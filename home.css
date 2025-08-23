@@ -1,0 +1,51 @@
+body {
+    padding-top: 140px;
+}
+
+/*Carousel*/
+#carouselspot .carousel-item > img {
+    height: 60vh;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Mission & Vision cards */
+#mission-vision .row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    #mission-vision .row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+#mission-vision .col {
+    display: flex;
+}
+
+#mission-vision .card {
+    width: 100%;
+    min-height: 260px;
+}
+
+#mission-vision .card-body {
+    min-height: 100%;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+}
+
+#mission-vision .card-title {
+    margin-bottom: 12px;
+}
+
+#mission-vision .card-text {
+    margin-bottom: 0;
+}
+
