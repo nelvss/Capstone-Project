@@ -1,0 +1,236 @@
+/* Payment Gallery Styles */
+.payment-gallery {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 32px;
+  justify-content: flex-start;
+}
+.payment-img {
+  width: 260px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 2px solid #ff0000;
+  background: #fff;
+}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+body {
+  margin: 0;
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  background: #fff5f5;
+  color: #222;
+}
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 210px;
+  background: #fff;
+  border-right: 2px solid #ff0000;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  z-index: 10;
+}
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding: 28px 24px 18px 24px;
+  border-bottom: 1.5px solid #f2f2f2;
+}
+.sidebar-logo {
+  font-size: 2rem;
+}
+.sidebar-title {
+  font-weight: 700;
+  color: #ff0000;
+}
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar nav ul li {
+  padding: 16px 28px;
+  font-size: 1.08rem;
+  color: #222;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  transition: background 0.2s, border 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar nav ul li.active, .sidebar nav ul li:hover {
+  background: #ffeaea;
+  border-left: 4px solid #ff0000;
+  color: #ff0000;
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding: 18px 24px;
+  border-top: 2px solid #ff0000;
+}
+.logout-btn {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid #ff0000;
+  color: #ff0000;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 10px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.logout-btn:hover {
+  background: #ff0000;
+  color: #fff;
+}
+.main-content {
+  margin-left: 210px;
+  padding: 32px 32px 0 32px;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+header h1 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin: 0;
+}
+.header-actions .icon {
+  font-size: 1.3rem;
+  margin-left: 18px;
+  color: #888;
+  cursor: pointer;
+}
+.stats {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px 0 18px 24px;
+  min-width: 160px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.stat-blue {
+  background: #ffeaea;
+  color: #ff0000;
+}
+.stat-yellow {
+  background: #ffeaea;
+  color: #ff0000;
+}
+.stat-green {
+  background: #ffeaea;
+  color: #ff0000;
+}
+.stat-red {
+  background: #ffeaea;
+  color: #ff0000;
+}
+.stat-value {
+  font-size: 2.1rem;
+  font-weight: 700;
+}
+.stat-label {
+  font-size: 1.1rem;
+  margin-top: 6px;
+  font-weight: 500;
+}
+.table-section {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  padding: 24px 0 24px 0;
+  margin-bottom: 32px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+  background: #fff;
+}
+thead {
+  background: #f4f7fa;
+}
+th, td {
+  padding: 12px 10px;
+  text-align: left;
+}
+th {
+  font-weight: 600;
+  color: #222;
+}
+tbody tr {
+  border-bottom: 1px solid #f2f2f2;
+}
+tbody tr:last-child {
+  border-bottom: none;
+}
+.action-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.98rem;
+  font-family: inherit;
+  margin-right: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-confirm {
+  background: #e6f7e6;
+  color: #4caf50;
+  border: 1.5px solid #b2e2b2;
+}
+.btn-cancel {
+  background: #ffeaea;
+  color: #f44336;
+  border: 1.5px solid #fbbcbc;
+}
+.btn-reschedule {
+  background: #fff7e0;
+  color: #ff9800;
+  border: 1.5px solid #ffe0b2;
+}
+.btn-confirm:hover {
+  background: #4caf50;
+  color: #fff;
+}
+.btn-cancel:hover {
+  background: #f44336;
+  color: #fff;
+}
+.btn-reschedule:hover {
+  background: #ff9800;
+  color: #fff;
+}
+@media (max-width: 900px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px 4px 0 4px;
+  }
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1.5px solid #eee;
+  }
+}

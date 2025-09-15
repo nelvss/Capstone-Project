@@ -1,9 +1,55 @@
+/* Lightbox overlay for modal image (moved from home.html) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    cursor: zoom-out;
+}
+.lightbox-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 10px;
+    box-shadow: 0 0 20px #000;
+}
 body {
     padding-top: 140px;
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
 }
 
+* {
+    font-family: 'Poppins', Arial, Helvetica, sans-serif !important;
+}
+
+header .navbar {
+    background: linear-gradient(to bottom right, #ff0000, #ffcc00);
+    padding: 0;
+    margin: 0;
+    border-top: 3px solid blue;
+    border-bottom: 3px solid blue;
+}
+
+header .navbar .container-fluid {
+    padding: 5px;
+    /* remove Bootstrap default padding */
+}
+
+header .navbar-brand img {
+    height: 100px;
+    width: 100px;
+    margin: 0;
+}
+
+
 /*Carousel*/
-#carouselspot .carousel-item > img {
+#carouselspot .carousel-item>img {
     height: 60vh;
     object-fit: cover;
     width: 100%;
@@ -48,4 +94,88 @@ body {
 #mission-vision .card-text {
     margin-bottom: 0;
 }
+
+/* Parallelogram nav links */
+.nav-link.slant {
+    display: inline-block;
+    background: #ffffff;
+    color: #000;
+    width: 120px;
+    text-align: center;
+    padding: 10px 0;
+    margin: 0 5px;
+    transform: skew(-20deg);
+    text-decoration: none;
+    border: none;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Straighten the text */
+.nav-link.slant span {
+    display: inline-block;
+    transform: skew(20deg);
+}
+
+/* Hover */
+.nav-link.slant:hover {
+    background: #ff0000;
+    color: #fff;
+}
+
+/* Book Now button */
+.slant-btn {
+    display: inline-block;
+    width: 120px;
+    text-align: center;
+    padding: 10px 0;
+    margin-left: 10px;
+    transform: skew(-20deg);
+    background: linear-gradient(to right, #0066ff, #00ccff);
+    border: none;
+    color: #fff;
+}
+
+/* Straighten text */
+.nav-link.slant span,
+.slant-btn span {
+    display: inline-block;
+    transform: skew(20deg);
+}
+
+/* Hover */
+.slant-btn:hover {
+    background: linear-gradient(to right, #0044cc, #0099cc);
+    color: #fff;
+}
+
+/* Add spacing between all nav items */
+.offcanvas-body .nav-item {
+    margin-bottom: 15px;
+}
+
+
+/* Keep parallelogram links consistent */
+.nav-link.slant,
+.slant-btn {
+    display: inline-block;
+    width: 120px;
+    text-align: center;
+    padding: 10px 0;
+    transform: skew(-20deg);
+}
+
+/* Adjust based on your header height */
+#mission-vision {
+  scroll-margin-top: 150px; 
+}
+
+#services {
+  scroll-margin-top: 150px;
+}
+
+#contact-us {
+  scroll-margin-top: 150px;
+}
+
+
 
