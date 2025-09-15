@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script defer src="dashboard.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">🧳</span>
+      <span class="sidebar-title">Travel Admin</span>
+    </div>
+    <nav>
+      <ul>
+        <li class="active" onclick="window.location.href='dashboard.html'"><span class="icon">📊</span> Dashboard</li>
+        <li onclick="window.location.href='analytics.html'"><span class="icon">📈</span> Analytics</li>
+        <li onclick="window.location.href='payment.html'"><span class="icon">💳</span> Payment</li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn"><span class="icon">⏻</span> Logout</button>
+    </div>
+  </div>
+  <div class="main-content">
+    <header>
+      <h1>Dashboard</h1>
+      <div class="header-actions">
+        <span class="icon">🔍</span>
+        <span class="icon">🔔</span>
+        <span class="icon">👤</span>
+      </div>
+    </header>
+    <section class="stats">
+      <div class="stat-card stat-blue">
+        <div class="stat-value">7</div>
+        <div class="stat-label">Total Bookings</div>
+      </div>
+      <div class="stat-card stat-yellow">
+        <div class="stat-value">7</div>
+        <div class="stat-label">Pending Bookings</div>
+      </div>
+      <div class="stat-card stat-green">
+        <div class="stat-value">0</div>
+        <div class="stat-label">Confirmed Booking</div>
+      </div>
+      <div class="stat-card stat-red">
+        <div class="stat-value">0</div>
+        <div class="stat-label">Cancelled Booking</div>
+      </div>
+    </section>
+    <section class="table-section">
+      <table>
+        <thead>
+          <tr>
+            <th>NAME</th>
+            <th>Services</th>
+            <th>Rental</th>
+            <th>Arrival Date</th>
+            <th>Departure Date</th>
+            <th>Hotel</th>
+            <th>Total Price</th>
+            <th>Contact Number</th>
+            <th>EMAIL</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="booking-table-body">
+          <!-- Rows will be rendered by JS -->
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>
