@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Login Page</title>
+</head>
+<body>
+    <section id="login" class="login-section">
+        <div class="container">
+            <div class="card mx-auto" style="max-width: 500px; border-radius: 20px;">
+                <div class="login-header">
+                    <img src="Images/logo.png" alt="OTG Logo" class="logo">
+                    <p>Sign in to your account</p>
+                </div>
+                
+                <form class="login-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="username" class="form-label">USERNAME</label>
+                        <input type="text" id="username" name="username" class="form-control" required placeholder="Enter your username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">PASSWORD</label>
+                        <input type="password" id="password" name="password" class="form-control" required placeholder="Enter your password">
+                    </div>
+                    
+                    <button type="submit" class="btn-login">LOGIN</button>
+                </form>
+                
+                <div class="forgot-password">
+                    <a href="#" onclick="handleForgotPassword(event)">Forgot password?</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="login.js"></script>
+</body>
+</html>
