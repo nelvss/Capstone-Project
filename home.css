@@ -21,32 +21,7 @@
 }
 body {
     padding-top: 140px;
-    font-family: 'Poppins', Arial, Helvetica, sans-serif;
 }
-
-* {
-    font-family: 'Poppins', Arial, Helvetica, sans-serif !important;
-}
-
-header .navbar {
-    background: linear-gradient(to bottom right, #ff0000, #ffcc00);
-    padding: 0;
-    margin: 0;
-    border-top: 3px solid blue;
-    border-bottom: 3px solid blue;
-}
-
-header .navbar .container-fluid {
-    padding: 5px;
-    /* remove Bootstrap default padding */
-}
-
-header .navbar-brand img {
-    height: 100px;
-    width: 100px;
-    margin: 0;
-}
-
 
 /*Carousel*/
 #carouselspot .carousel-item>img {
