@@ -4,10 +4,378 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="BookingPage.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="booking_page.css">
     <title>Booking Page</title>
 </head>
 <body>
     
+    <section id="book-form" class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+
+        <div id="form-step-1" class="form-step active">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-sm-11 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
+                        <div class="card shadow-lg">
+                            <div class="card-body p-4">
+                                <div class="text-center mb-3">
+                                    <img src="Images/logo.png" alt="logo" class="img-fluid">
+                                </div>
+                                <h2 class="text-center mb-3">BOOKING FORM</h2>
+                                <p class="text-center mb-4">Please fill out the form below to book your stay.</p>
+                                <div class="row g-3">
+
+                                    <div class="col-12 col-sm-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="firstName" placeholder="First Name">
+                                            <label for="firstName">First Name</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+
+                                    <div class="col-12 col-sm-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="lastName" placeholder="Last Name">
+                                            <label for="lastName">Last Name</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+
+                                    <div class="col-12 col-sm-6">
+                                        <div class="form-floating">
+                                            <input type="email" class="form-control" id="emailAddress" placeholder="Email Address">
+                                            <label for="emailAddress">Email Address</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+
+                                    <div class="col-12 col-sm-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="contactNo" placeholder="Contact Number">
+                                            <label for="contactNo">Contact Number</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+
+                                    <div class="col-12 col-sm-6">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" id="arrivalDate" placeholder="Arrival Date">
+                                            <label for="arrivalDate">Arrival Date</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+
+                                    <div class="col-12 col-sm-6">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" id="departureDate" placeholder="Departure Date">
+                                            <label for="departureDate">Departure Date</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">Next</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="form-step-2" class="form-step">
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="text-center">
+                                    <img src="Images/logo.png" alt="OTG logo" class="img-fluid">
+                                </div>
+                                <h2 class="text-center mb-3">BOOKING FORM</h2>
+                                <p class="text-center mb-4">Please fill out the form below to book your stay.</p>
+                                <div class="row g-3 ">
+
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="numberOfTourist" placeholder="Number of Tourist">
+                                        <label for="numberOfTourist">Number of Tourist</label>
+                                    </div>
+
+                                    <div class="col">
+                                        <div class="dropdown w-100">
+                                            <button class="btn btn-danger w-100  d-flex justify-content-between align-items-center" type="button" id="islandDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                ISLAND TOUR
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="islandDropdown">
+                                                <div class="form-check mt-1">
+                                                    <input class="form-check-input" type="checkbox" id="island-select-all">
+                                                    <label class="form-check-label" for="island-select-all">Select All</label>
+                                                </div>
+                                                <div class="mt-2" id="island-options">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input island-option" type="checkbox" id="island-heart-beach" value="HEART BEACH">
+                                                        <label class="form-check-label" for="island-heart-beach">HEART BEACH</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input island-option" type="checkbox" id="island-haligi-beach" value="HALIGI BEACH">
+                                                        <label class="form-check-label" for="island-haligi-beach">HALIGI BEACH</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input island-option" type="checkbox" id="island-long-beach" value="LONG BEACH">
+                                                        <label class="form-check-label" for="island-long-beach">LONG BEACH</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input island-option" type="checkbox" id="island-starfish-beach" value="STARFISH BEACH">
+                                                        <label class="form-check-label" for="island-starfish-beach">STARFISH BEACH</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input island-option" type="checkbox" id="island-muelle-bay" value="MUELLE BAY">
+                                                        <label class="form-check-label" for="island-muelle-bay">MUELLE BAY</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <div class="dropdown w-100">
+                                            <button class="btn btn-danger w-100 d-flex justify-content-between align-items-center" type="button" id="inlandDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                INLAND TOUR
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="inlandDropdown">
+                                                <div class="form-check mt-1">
+                                                    <input class="form-check-input" type="checkbox" id="inland-select-all">
+                                                    <label class="form-check-label" for="inland-select-all">Select All</label>
+                                                </div>
+                                                <div class="mt-2" id="inland-options">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input inland-option" type="checkbox" id="inland-muelle-heritage" value="MUELLE HERITAGE PARK">
+                                                        <label class="form-check-label" for="inland-muelle-heritage">MUELLE HERITAGE PARK</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input inland-option" type="checkbox" id="inland-virgin-beach" value="VIRGIN BEACH">
+                                                        <label class="form-check-label" for="inland-virgin-beach">VIRGIN BEACH</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input inland-option" type="checkbox" id="inland-viewpoint" value="VIEWPOINT">
+                                                        <label class="form-check-label" for="inland-viewpoint">VIEWPOINT</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input inland-option" type="checkbox" id="inland-tamaraw-falls" value="TAMARRAW FALLS">
+                                                        <label class="form-check-label" for="inland-tamaraw-falls">TAMARRAW FALLS</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <div class="dropdown w-100">
+                                            <button class="btn btn-danger w-100 d-flex justify-content-between align-items-center" type="button" id="snorkelDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                SNORKELING TOUR
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="snorkelDropdown">
+                                                <div class="form-check mt-1">
+                                                    <input class="form-check-input" type="checkbox" id="snorkel-select-all">
+                                                    <label class="form-check-label" for="snorkel-select-all">Select All</label>
+                                                </div>
+                                                <div class="mt-2" id="snorkel-options">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input snorkel-option" type="checkbox" id="snorkel-muelle-bay" value="MUELLE BAY">
+                                                        <label class="form-check-label" for="snorkel-muelle-bay">MUELLE BAY</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input snorkel-option" type="checkbox" id="snorkel-sandbar" value="SAND BAR BEACH">
+                                                        <label class="form-check-label" for="snorkel-sandbar">SAND BAR BEACH</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input snorkel-option" type="checkbox" id="snorkel-coral-garden" value="CORAL GARDEN">
+                                                        <label class="form-check-label" for="snorkel-coral-garden">CORAL GARDEN</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input snorkel-option" type="checkbox" id="snorkel-giant-clamps" value="GIANT CLAMPS">
+                                                        <label class="form-check-label" for="snorkel-giant-clamps">GIANT CLAMPS</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input snorkel-option" type="checkbox" id="snorkel-underwater-cave" value="UNDERWATER CAVE">
+                                                        <label class="form-check-label" for="snorkel-underwater-cave">UNDERWATER CAVE</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input type="text" class="mt-4" id="amountOfPackage" placeholder="Amount of Package" disabled>
+
+                                <div class="row mt-5" id="hotelsRow">
+                                    <div class="col">
+                                        <div class="dropdown">
+                                            <button class="btn btn-danger w-100 d-flex justify-content-between align-items-center" type="button" id="hotelsDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                              HOTELS
+                                              <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="hotelsDropdown">
+                                                <div class="form-check mt-1">
+                                                    <input class="form-check-input" type="checkbox" id="hotels-select-all">
+                                                    <label class="form-check-label" for="hotels-select-all">Select All</label>
+                                                </div>
+                                                <div class="mt-2" id="hotels-options">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input hotels-option" type="checkbox" id="hotel-mangyan-grand" value="The Mangyan Grand Hotel">
+                                                        <label class="form-check-label" for="hotel-mangyan-grand">The Mangyan Grand Hotel</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input hotels-option" type="checkbox" id="hotel-infinity" value="Infinity Hotel">
+                                                        <label class="form-check-label" for="hotel-infinity">Infinity Hotel</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input hotels-option" type="checkbox" id="hotel-ilaya" value="Ilaya">
+                                                        <label class="form-check-label" for="hotel-ilaya">Ilaya</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input hotels-option" type="checkbox" id="hotel-transient" value="Transient House">
+                                                        <label class="form-check-label" for="hotel-transient">Transient House</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <input type="text" id="days" placeholder="Days">
+                                    </div>
+
+                                    <div class="col">
+                                        <input type="text" id="amountOfHotel" placeholder="Amount of Hotel" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-5">
+                                    <div class="col">
+                                        <div class="dropdown">
+                                            <button class="btn btn-danger w-100 d-flex justify-content-between align-items-center" type="button" id="rentalDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                RENTAL VEHICLE
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="rentalDropdown">
+                                                <div class="form-check mt-1">
+                                                    <input class="form-check-input" type="checkbox" id="rental-select-all">
+                                                    <label class="form-check-label" for="rental-select-all">Select All</label>
+                                                </div>
+                                                <div class="mt-2" id="rental-options">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-adv" value="ADV">
+                                                        <label class="form-check-label" for="rental-adv">ADV</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-nmax" value="NMAX">
+                                                        <label class="form-check-label" for="rental-nmax">NMAX</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-versys-650" value="VERSYS 650">
+                                                        <label class="form-check-label" for="rental-versys-650">VERSYS 650</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-versys-1000" value="VERSYS 1000">
+                                                        <label class="form-check-label" for="rental-versys-1000">VERSYS 1000</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-tuktuk" value="TUKTUK">
+                                                        <label class="form-check-label" for="rental-tuktuk">TUKTUK</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-car" value="CAR">
+                                                        <label class="form-check-label" for="rental-car">CAR</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <select class="form-select">
+                                            <option selected>Days</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col">
+                                        <input type="text" id="amountOfVehicle" placeholder="Amount of Vehicle" disabled>
+                                    </div>
+                                </div>
+
+                                <input type="text" id="totalAmount" placeholder="Total Amount" class="mt-4" disabled>
+
+                                <div class="row">
+                                    <div class="col mt-5">
+                                        <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="previousStep()">Previous</button>
+                                    </div>
+
+                                    <div class="col mt-5">
+                                        <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+
+        <div id="form-step-3" class="form-step">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-10 col-lg-9 col-xl-8">
+                        <div class="card shadow-lg">
+                            <div class="card-body p-4">
+                                <div class="text-center mb-3">
+                                    <img src="Images/logo.png" alt="OTG Logo" class="img-fluid">
+                                </div>
+                                <h2 class="text-center mb-4">PAYMENT</h2>
+                                <p class="text-center mb-4">Complete your booking by providing payment information.</p>
+                                
+                                <div class="row mb-4">
+                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;">
+                                        GCASH
+                                    </button>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;">
+                                        PAYMAYA
+                                    </button>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;">
+                                        ONLINE BANKING
+                                    </button>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-6">
+                                        <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="previousStep()">Previous</button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="booking_page.js"></script>
 </body>
 </html>
