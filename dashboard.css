@@ -32,6 +32,11 @@ body {
   flex-direction: column;
   height: 100vh;
   z-index: 10;
+  transition: transform 0.3s ease;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
 }
 .sidebar-header {
   display: flex;
@@ -94,12 +99,33 @@ body {
 .main-content {
   margin-left: 210px;
   padding: 32px 32px 0 32px;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.expanded {
+  margin-left: 0;
 }
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #ff0000;
+  cursor: pointer;
+  margin-right: 16px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.sidebar-toggle:hover {
+  background-color: #ffeaea;
 }
 header h1 {
   font-size: 1.7rem;
@@ -159,12 +185,36 @@ header h1 {
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   padding: 24px 0 24px 0;
   margin-bottom: 32px;
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Custom scrollbar styling */
+.table-section::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.table-section::-webkit-scrollbar-thumb {
+  background: #ff0000;
+  border-radius: 6px;
+}
+
+.table-section::-webkit-scrollbar-thumb:hover {
+  background: #cc0000;
 }
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 1rem;
   background: #fff;
+  min-width: 800px;
 }
 thead {
   background: #f4f7fa;
@@ -172,6 +222,16 @@ thead {
 th, td {
   padding: 12px 10px;
   text-align: left;
+}
+
+td:last-child {
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
 }
 th {
   font-weight: 600;
@@ -186,12 +246,18 @@ tbody tr:last-child {
 .action-btn {
   border: none;
   border-radius: 6px;
-  padding: 6px 14px;
-  font-size: 0.98rem;
+  padding: 6px 12px;
+  font-size: 0.9rem;
   font-family: inherit;
-  margin-right: 6px;
+  margin-right: 4px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.action-btn:last-child {
+  margin-right: 0;
 }
 .btn-confirm {
   background: #e6f7e6;

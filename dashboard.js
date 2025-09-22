@@ -94,9 +94,11 @@ function renderTable() {
       <td>${b.contact}</td>
       <td>${b.email}</td>
       <td>
-        <button class="action-btn btn-confirm">Confirm</button>
-        <button class="action-btn btn-cancel">Cancel</button>
-        <button class="action-btn btn-reschedule">Reschedule</button>
+        <div class="action-buttons">
+          <button class="action-btn btn-confirm">Confirm</button>
+          <button class="action-btn btn-cancel">Cancel</button>
+          <button class="action-btn btn-reschedule">Reschedule</button>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -104,3 +106,12 @@ function renderTable() {
 }
 
 document.addEventListener('DOMContentLoaded', renderTable);
+
+// Sidebar toggle functionality
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const mainContent = document.querySelector('.main-content');
+  
+  sidebar.classList.toggle('collapsed');
+  mainContent.classList.toggle('expanded');
+}
