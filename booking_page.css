@@ -96,7 +96,6 @@
         transform: translateY(0);
     }
 }
-
 .form-step {
     display: none;
 }
@@ -136,4 +135,3 @@
     max-height: 500px;
     opacity: 1;
 }
-  
