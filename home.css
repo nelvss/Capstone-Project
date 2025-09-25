@@ -262,5 +262,32 @@ html {
     object-fit: cover;
 }
 
+/* Prevent text selection and remove text cursor */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection for input fields and text areas */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Remove text cursor on clickable elements */
+button, .btn, .nav-link, .navbar-brand, .carousel-control-prev, .carousel-control-next, 
+.gallery-thumbnail, .modal, .card, .btn-more-info, .lightbox-overlay {
+  cursor: pointer;
+}
+
+/* Default cursor for non-interactive elements */
+body, div, span, p, h1, h2, h3, h4, h5, h6 {
+  cursor: default;
+}
+
 
 
