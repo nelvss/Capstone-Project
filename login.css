@@ -133,14 +133,26 @@ body {
     opacity: 0.8;
 }
 
+.btn-login.loading .btn-text {
+    display: none;
+}
+
+.btn-login.loading .btn-loading {
+    display: inline;
+}
+
+.btn-loading {
+    display: none;
+}
+
 .btn-login.loading::after {
     content: '';
     position: absolute;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
     border: 2px solid transparent;
     border-top: 2px solid white;
     border-radius: 50%;

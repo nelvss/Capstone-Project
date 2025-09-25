@@ -115,3 +115,15 @@ function toggleSidebar() {
   sidebar.classList.toggle('collapsed');
   mainContent.classList.toggle('expanded');
 }
+
+// Logout functionality
+function handleLogout() {
+  // Show confirmation dialog
+  if (confirm('Are you sure you want to logout?')) {
+    // Clear any stored session data if needed
+    // localStorage.clear(); // Uncomment if you're using localStorage for sessions
+    
+    // Redirect to login page
+    window.location.href = 'login.html';
+  }
+}
