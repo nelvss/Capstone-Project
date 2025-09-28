@@ -94,9 +94,11 @@ function renderTable() {
       <td>${b.contact}</td>
       <td>${b.email}</td>
       <td>
-        <button class="action-btn btn-confirm">Confirm</button>
-        <button class="action-btn btn-cancel">Cancel</button>
-        <button class="action-btn btn-reschedule">Reschedule</button>
+        <div class="action-buttons">
+          <button class="action-btn btn-confirm">Confirm</button>
+          <button class="action-btn btn-cancel">Cancel</button>
+          <button class="action-btn btn-reschedule">Reschedule</button>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -104,3 +106,24 @@ function renderTable() {
 }
 
 document.addEventListener('DOMContentLoaded', renderTable);
+
+// Sidebar toggle functionality
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const mainContent = document.querySelector('.main-content');
+  
+  sidebar.classList.toggle('collapsed');
+  mainContent.classList.toggle('expanded');
+}
+
+// Logout functionality
+function handleLogout() {
+  // Show confirmation dialog
+  if (confirm('Are you sure you want to logout?')) {
+    // Clear any stored session data if needed
+    // localStorage.clear(); // Uncomment if you're using localStorage for sessions
+    
+    // Redirect to login page
+    window.location.href = 'login.html';
+  }
+}

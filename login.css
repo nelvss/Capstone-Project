@@ -133,14 +133,26 @@ body {
     opacity: 0.8;
 }
 
+.btn-login.loading .btn-text {
+    display: none;
+}
+
+.btn-login.loading .btn-loading {
+    display: inline;
+}
+
+.btn-loading {
+    display: none;
+}
+
 .btn-login.loading::after {
     content: '';
     position: absolute;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
     border: 2px solid transparent;
     border-top: 2px solid white;
     border-radius: 50%;
@@ -201,4 +213,30 @@ body {
     .login-header h2 {
         font-size: 1.5rem;
     }
+}
+
+/* Prevent text selection and remove text cursor */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection for input fields and text areas */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Remove text cursor on clickable elements */
+button, .btn, .btn-login, .signup-link a, .card {
+  cursor: pointer;
+}
+
+/* Default cursor for non-interactive elements */
+body, div, span, p, h1, h2, h3, h4, h5, h6, label {
+  cursor: default;
 }
