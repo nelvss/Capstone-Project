@@ -7,7 +7,7 @@
 .card {
     border: none;
     border-radius: 15px;
-    overflow: hidden;
+    overflow: visible;
     min-height: 500px;
     max-width: 800px;
     margin: 0 auto;
@@ -134,30 +134,5 @@
 #hotelsRow.is-visible {
     max-height: 500px;
     opacity: 1;
-}
-
-/* Prevent text selection and remove text cursor */
-* {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* Allow text selection for input fields and text areas */
-input, textarea, select, [contenteditable="true"] {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-}
-
-/* Remove text cursor on clickable elements */
-button, .btn, .card, .form-check-label, .nav-link, .navbar-brand {
-  cursor: pointer;
-}
-
-/* Default cursor for non-interactive elements */
-body, div, span, p, h1, h2, h3, h4, h5, h6, label {
-  cursor: default;
+    overflow: visible;
 }

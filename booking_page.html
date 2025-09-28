@@ -99,7 +99,7 @@
                                 <div class="row g-3 ">
 
                                     <div class="form-floating">
-                                        <input type="text" class="form-control" id="numberOfTourist" placeholder="Number of Tourist">
+                                        <input type="number" class="form-control" id="touristCount" placeholder="Number of Tourist">
                                         <label for="numberOfTourist">Number of Tourist</label>
                                     </div>
 
@@ -221,10 +221,7 @@
                                               <i class="fa-solid fa-chevron-down"></i>
                                             </button>
                                             <div class="dropdown-menu w-100 p-3" aria-labelledby="hotelsDropdown">
-                                                <div class="form-check mt-1">
-                                                    <input class="form-check-input" type="checkbox" id="hotels-select-all">
-                                                    <label class="form-check-label" for="hotels-select-all">Select All</label>
-                                                </div>
+                                                
                                                 <div class="mt-2" id="hotels-options">
                                                     <div class="form-check">
                                                         <input class="form-check-input hotels-option" type="checkbox" id="hotel-mangyan-grand" value="The Mangyan Grand Hotel">
@@ -242,17 +239,31 @@
                                                         <input class="form-check-input hotels-option" type="checkbox" id="hotel-transient" value="Transient House">
                                                         <label class="form-check-label" for="hotel-transient">Transient House</label>
                                                     </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input hotels-option" type="checkbox" id="hotel-bliss" value="Bliss">
+                                                        <label class="form-check-label" for="hotel-transient">Bliss</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input hotels-option" type="checkbox" id="hotel-southview" value="Southview">
+                                                        <label class="form-check-label" for="hotel-transient">Southview</label>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="col">
-                                        <input type="text" id="days" placeholder="Days">
+                                    <div class="col" id="daysGroup">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="days" placeholder="Days" readonly>
+                                            <label for="days">Number of Days</label>
+                                        </div>
                                     </div>
 
                                     <div class="col">
-                                        <input type="text" id="amountOfHotel" placeholder="Amount of Hotel" disabled>
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="hotelPrice" placeholder="Amount of Hotel" readonly>
+                                            <label for="hotelPrice">Hotel Price</label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -264,10 +275,6 @@
                                                 <i class="fa-solid fa-chevron-down"></i>
                                             </button>
                                             <div class="dropdown-menu w-100 p-3" aria-labelledby="rentalDropdown">
-                                                <div class="form-check mt-1">
-                                                    <input class="form-check-input" type="checkbox" id="rental-select-all">
-                                                    <label class="form-check-label" for="rental-select-all">Select All</label>
-                                                </div>
                                                 <div class="mt-2" id="rental-options">
                                                     <div class="form-check">
                                                         <input class="form-check-input rental-option" type="checkbox" id="rental-adv" value="ADV">
@@ -309,6 +316,34 @@
                                     </div>
                                 </div>
 
+
+                                <div class="row mt-5">
+                                    <div class="col">
+                                        <div class="dropdown">
+                                            <button class="btn btn-danger w-100 d-flex justify-content-between align-items-center" type="button" id="divingDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                DIVING
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="divingDropdown">
+                                                <div class="mt-2" id="diving-options">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input diving-option" type="checkbox" id="diving-only" value="DIVING">
+                                                        <label class="form-check-label" for="diving-only">DIVING</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <input type="text" id="numberOfDiver" placeholder="Number of Diver">
+                                    </div>
+
+                                    <div class="col">
+                                        <input type="text" id="amountOfDiving" placeholder="Amount of Diving" disabled>
+                                    </div>
+                                </div>
+
                                 <input type="text" id="totalAmount" placeholder="Total Amount" class="mt-4" disabled>
 
                                 <div class="row">
@@ -329,6 +364,26 @@
         </div>
 
         <div id="form-step-3" class="form-step">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-10 col-lg-9 col-xl-8">
+                        <div class="card shadow-lg">
+                            <div class="card-body p-4">
+                                <div class="text-center mb-3">
+                                    <img src="Images/logo.png" alt="OTG Logo" class="img-fluid">
+                                </div>
+                                <h2>BOOKING SUMMARY</h2>
+                                <p class="mb-4">Please review your booking details below before proceeding to payment.</p>
+
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="form-step-4" class="form-step">
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-12 col-md-10 col-lg-9 col-xl-8">
