@@ -250,6 +250,8 @@
       if (typeof updateHotelsRowVisibility === "function") {
         updateHotelsRowVisibility();
       }
+      // Update package price when selections change
+      updatePackagePrice();
     });
 
     optionCheckboxes.forEach(cb => {
@@ -259,6 +261,8 @@
         if (typeof updateHotelsRowVisibility === "function") {
           updateHotelsRowVisibility();
         }
+        // Update package price when selections change
+        updatePackagePrice();
       });
     });
 
@@ -279,13 +283,33 @@
   wireMultiSelect("rental-select-all", "rental-options", "rental-option", null);
   // Hotels
   wireMultiSelect("hotels-select-all", "hotels-options", "hotels-option", null);
+  
+  // Add days visibility control to hotel options
+  const hotelOptions = document.querySelectorAll(".hotels-option");
+  hotelOptions.forEach(option => {
+    option.addEventListener("change", updateDaysVisibility);
+  });
+  
+  // Initialize days visibility
+  updateDaysVisibility();
+  // Pre diving (single option, no select-all)
+  (function wireDivingSingleOption() {
+    const hotelsRow = document.getElementById("hotelsRow");
+    const divingOption = document.querySelector("#diving-options .diving-option");
+    if (!divingOption) return;
+    const refresh = () => {
+      updateHotelsRowVisibility();
+      updatePackagePrice();
+    };
+    divingOption.addEventListener("change", refresh);
+  })();
 
-// Control Hotels row visibility based on any tour selection
+// Control Hotels row visibility based on selected tour options only
 function updateHotelsRowVisibility() {
   const hotelsRow = document.getElementById("hotelsRow");
   if (!hotelsRow) return;
   const anyChecked = document.querySelectorAll(
-    ".island-option:checked, .inland-option:checked, .snorkel-option:checked"
+    ".island-option:checked, .inland-option:checked, .snorkel-option:checked, .diving-option:checked"
   ).length > 0;
   if (anyChecked) {
     hotelsRow.classList.add("is-visible");
@@ -294,12 +318,231 @@ function updateHotelsRowVisibility() {
   }
 }
 
-[".island-option", ".inland-option", ".snorkel-option"].forEach((selector) => {
+[".island-option", ".inland-option", ".snorkel-option", ".diving-option"].forEach((selector) => {
   document.querySelectorAll(selector).forEach((cb) => {
     cb.addEventListener("change", updateHotelsRowVisibility);
   });
 });
 
-// Initialize on load
-updateHotelsRowVisibility();
+// Function to control days input visibility
+function updateDaysVisibility() {
+  const daysGroup = document.getElementById("daysGroup");
+  const anyHotelSelected = document.querySelectorAll(".hotels-option:checked").length > 0;
+  
+  if (daysGroup) {
+    daysGroup.style.display = anyHotelSelected ? "block" : "none";
+    if (!anyHotelSelected) {
+      const daysInput = document.getElementById("days");
+      if (daysInput) daysInput.value = "";
+    } else {
+      calculateDuration(); // Update days when showing
+    }
+  }
+}
 
+// Wire up hotel options for days visibility
+document.querySelectorAll(".hotels-option").forEach(option => {
+  option.addEventListener("change", () => {
+    updateDaysVisibility();
+    calculateHotelPrice();
+  });
+});
+
+// Initialize visibility states
+updateHotelsRowVisibility();
+updateDaysVisibility();
+
+// PRICING LOGIC
+
+// ISLAND TOUR PRICING
+function calculateIslandTourPrice(touristCount) {
+  if (!touristCount || touristCount <= 0) return 0;
+  
+  let pricePerPerson = 0;
+  
+  if (touristCount === 1) {
+    pricePerPerson = 3000;
+  } else if (touristCount === 2) {
+    pricePerPerson = 1600;
+  } else if (touristCount >= 3 && touristCount <= 4) {
+    pricePerPerson = 1000;
+  } else if (touristCount >= 5) {
+    pricePerPerson = 800;
+  }
+  
+  return pricePerPerson * touristCount;
+}
+
+// INLAND TOUR PRICING
+function calculateInlandTourPrice(touristCount) {
+  if (!touristCount || touristCount <= 0) return 0;
+
+  let pricePerPerson = 0;
+
+  if (touristCount === 2) {
+    pricePerPerson = 1500;
+  } else if (touristCount === 3) {
+    pricePerPerson = 1100;
+  } else if (touristCount === 4) {
+    pricePerPerson = 800;
+  } else if (touristCount >= 5 && touristCount <= 6) {
+    pricePerPerson = 700;
+  } else if (touristCount >= 7 && touristCount <= 9) {
+    pricePerPerson = 600;
+  } else if (touristCount >= 10) {
+    pricePerPerson = 550;
+  }
+
+  return pricePerPerson * touristCount;
+}
+
+// SNORKELING TOUR PRICING
+function calculateSnorkelingTourPrice(touristCount) {
+  if (!touristCount || touristCount <= 0) return 0;
+
+  let pricePerPerson = 0;
+
+  if (touristCount === 1) {
+    pricePerPerson = 2400;
+  } else if (touristCount === 2) {
+    pricePerPerson = 1300;
+  } else if (touristCount >= 3 && touristCount <= 4) {
+    pricePerPerson = 1000;
+  } else if (touristCount >= 5 && touristCount <= 6) {
+    pricePerPerson = 900;
+  } else if (touristCount >= 7) {
+    pricePerPerson = 800;
+  }
+
+  return pricePerPerson * touristCount;
+}
+
+// Main function to update package price
+function calculateHotelPrice() {
+  const days = calculateDuration();
+  const touristCount = parseInt(document.getElementById("touristCount")?.value) || 0;
+  const hotelPriceInput = document.getElementById("hotelPrice");
+  
+  if (!days || !touristCount || !hotelPriceInput) {
+    if (hotelPriceInput) hotelPriceInput.value = "";
+    return 0;
+  }
+
+  const selectedHotel = document.querySelector(".hotels-option:checked");
+  if (!selectedHotel) {
+    hotelPriceInput.value = "";
+    return 0;
+  }
+
+  // Hotel price will be set later
+  hotelPriceInput.value = "";
+  return 0;
+}
+
+function updatePackagePrice() {
+  const touristCountInput = document.getElementById("touristCount");
+  const amountOfPackageInput = document.getElementById("amountOfPackage");
+  const hotelPriceInput = document.getElementById("hotelPrice");
+  
+  if (!touristCountInput || !amountOfPackageInput) return;
+  
+  const touristCount = parseInt(touristCountInput.value) || 0;
+  
+  // Check if any island tour option is selected
+  const islandOptionsChecked = document.querySelectorAll(".island-option:checked").length > 0;
+  const inlandOptionsChecked = document.querySelectorAll(".inland-option:checked").length > 0;
+  const snorkelOptionsChecked = document.querySelectorAll(".snorkel-option:checked").length > 0;
+  
+  let totalPackagePrice = 0;
+  
+  // Calculate island tour price if any island option is selected
+  if (islandOptionsChecked) {
+    totalPackagePrice += calculateIslandTourPrice(touristCount);
+  }
+
+  // Calculate inland tour price if any inland option is selected
+  if (inlandOptionsChecked) {
+    totalPackagePrice += calculateInlandTourPrice(touristCount);
+  }
+
+  // Calculate snorkeling tour price if any snorkeling option is selected
+  if (snorkelOptionsChecked) {
+    totalPackagePrice += calculateSnorkelingTourPrice(touristCount);
+  }
+
+  // Calculate hotel price if selected
+  calculateHotelPrice();
+  
+  // Format and display package price
+  if (totalPackagePrice > 0) {
+    amountOfPackageInput.value = `₱${totalPackagePrice.toLocaleString()}.00`;
+  } else {
+    amountOfPackageInput.value = "";
+  }
+}
+
+// Add event listener to tourist count input
+(function() {
+  const touristCountInput = document.getElementById("touristCount");
+  if (touristCountInput) {
+    touristCountInput.addEventListener("input", updatePackagePrice);
+    
+    // Ensure only positive numbers are entered
+    touristCountInput.addEventListener("keypress", (e) => {
+      const char = String.fromCharCode(e.which);
+      if (!/[0-9]/.test(char)) e.preventDefault();
+    });
+    
+    // Prevent negative values and zero
+    touristCountInput.addEventListener("blur", () => {
+      const value = parseInt(touristCountInput.value) || 0;
+      if (value < 0) {
+        touristCountInput.value = "";
+      }
+      updatePackagePrice();
+    });
+  }
+})();
+
+// Initialize package price on load
+updatePackagePrice();
+
+// HOTELS 
+function updateDaysVisibility() {
+  const daysGroup = document.getElementById("daysGroup"); // Make sure to add id="daysGroup" to the days input container
+  const hotelSelected = document.querySelector(".hotels-option:checked");
+  
+  if (daysGroup) {
+    if (hotelSelected) {
+      daysGroup.style.display = "block";
+      calculateDuration(); // Update days when showing
+    } else {
+      daysGroup.style.display = "none";
+      const daysInput = document.getElementById("days");
+      if (daysInput) daysInput.value = ""; // Clear days when hiding
+    }
+  }
+}
+
+function calculateDuration() {
+  const arrivalDate = document.getElementById("arrivalDate");
+  const departureDate = document.getElementById("departureDate");
+  const daysInput = document.getElementById("days");
+
+  if (!arrivalDate || !departureDate || !daysInput) return 0;
+
+  if (arrivalDate.value && departureDate.value) {
+    const arrival = new Date(arrivalDate.value);
+    const departure = new Date(departureDate.value);
+
+    if (departure > arrival) {
+      const timeDifference = departure - arrival;
+      const days = Math.ceil(timeDifference / (1000 * 3600 * 24));
+      daysInput.value = days;
+      return days;
+    }
+  }
+  
+  daysInput.value = "";
+  return 0;
+}
