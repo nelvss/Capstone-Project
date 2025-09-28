@@ -393,7 +393,6 @@ function updateDaysVisibility() {
     }
   }
 }
-<<<<<<< HEAD
 
 // Wire up hotel options for days visibility
 document.querySelectorAll(".hotels-option").forEach(option => {
@@ -790,8 +789,6 @@ function populateDivingSummary() {
     }
 }
 
-=======
->>>>>>> 0f28e4bf89575cc017693aeeadfda312e83ab22b
 
 // Wire up hotel options for days visibility
 document.querySelectorAll(".hotels-option").forEach(option => {
