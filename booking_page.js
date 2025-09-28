@@ -252,6 +252,10 @@
       }
       // Update package price when selections change
       updatePackagePrice();
+      // Update rental vehicle price if this is rental section
+      if (selectAllId === "rental-select-all" && typeof calculateRentalVehiclePrice === "function") {
+        calculateRentalVehiclePrice();
+      }
     });
 
     optionCheckboxes.forEach(cb => {
@@ -263,6 +267,10 @@
         }
         // Update package price when selections change
         updatePackagePrice();
+        // Update rental vehicle price if this is rental section
+        if (cb.classList.contains("rental-option") && typeof calculateRentalVehiclePrice === "function") {
+          calculateRentalVehiclePrice();
+        }
       });
     });
 
@@ -281,6 +289,44 @@
   wireMultiSelect("snorkel-select-all", "snorkel-options", "snorkel-option", null);
   // Rental vehicle
   wireMultiSelect("rental-select-all", "rental-options", "rental-option", null);
+  
+  // Add event listeners for rental vehicle pricing
+  document.querySelectorAll(".rental-option").forEach(option => {
+    option.addEventListener("change", calculateRentalVehiclePrice);
+  });
+  
+  // Add event listener for rental days dropdown
+  const rentalDaysSelect = document.getElementById("rentalDays");
+  if (rentalDaysSelect) {
+    rentalDaysSelect.addEventListener("change", calculateRentalVehiclePrice);
+  }
+  
+  // Add event listeners for diving functionality
+  const numberOfDiverInput = document.getElementById("numberOfDiver");
+  if (numberOfDiverInput) {
+    // Only allow numbers and trigger price calculation
+    numberOfDiverInput.addEventListener("input", () => {
+      // Keep only digits
+      let value = numberOfDiverInput.value.replace(/\D/g, "");
+      numberOfDiverInput.value = value;
+      calculateDivingPrice();
+    });
+    
+    // Block non-digit characters at keypress level
+    numberOfDiverInput.addEventListener("keypress", (e) => {
+      const char = String.fromCharCode(e.which);
+      if (!/[0-9]/.test(char)) e.preventDefault();
+    });
+    
+    // Validate on blur
+    numberOfDiverInput.addEventListener("blur", () => {
+      const value = parseInt(numberOfDiverInput.value) || 0;
+      if (value < 0) {
+        numberOfDiverInput.value = "";
+      }
+      calculateDivingPrice();
+    });
+  }
   // Hotels
   wireMultiSelect("hotels-select-all", "hotels-options", "hotels-option", null);
   
@@ -300,6 +346,7 @@
     const refresh = () => {
       updateHotelsRowVisibility();
       updatePackagePrice();
+      calculateDivingPrice();
     };
     divingOption.addEventListener("change", refresh);
   })();
@@ -417,6 +464,131 @@ function calculateSnorkelingTourPrice(touristCount) {
   return pricePerPerson * touristCount;
 }
 
+// RENTAL VEHICLE PRICING
+function calculateRentalVehiclePrice() {
+  const rentalDaysSelect = document.getElementById("rentalDays");
+  const amountOfVehicleInput = document.getElementById("amountOfVehicle");
+  
+  if (!rentalDaysSelect || !amountOfVehicleInput) return 0;
+  
+  const selectedDays = parseInt(rentalDaysSelect.value) || 0;
+  if (selectedDays <= 0) {
+    amountOfVehicleInput.value = "";
+    calculateTotalAmount();
+    return 0;
+  }
+
+  // Get selected rental vehicles
+  const selectedVehicles = document.querySelectorAll(".rental-option:checked");
+  if (selectedVehicles.length === 0) {
+    amountOfVehicleInput.value = "";
+    calculateTotalAmount();
+    return 0;
+  }
+
+  // Vehicle pricing per day
+  const vehiclePrices = {
+    "ADV": 1000,
+    "NMAX": 1000,
+    "VERSYS 650": 4000,
+    "VERSYS 1000": 4500,
+    "TUKTUK": 1500,
+    "CAR": 3500
+  };
+
+  let totalPrice = 0;
+  selectedVehicles.forEach(vehicle => {
+    const vehicleType = vehicle.value;
+    const pricePerDay = vehiclePrices[vehicleType] || 0;
+    totalPrice += pricePerDay * selectedDays;
+  });
+
+  // Format and display vehicle price
+  if (totalPrice > 0) {
+    amountOfVehicleInput.value = `₱${totalPrice.toLocaleString()}.00`;
+  } else {
+    amountOfVehicleInput.value = "";
+  }
+
+  // Update total amount whenever vehicle price changes
+  calculateTotalAmount();
+  
+  return totalPrice;
+}
+
+// DIVING PRICING
+function calculateDivingPrice() {
+  const numberOfDiverInput = document.getElementById("numberOfDiver");
+  const amountOfDivingInput = document.getElementById("amountOfDiving");
+  
+  if (!numberOfDiverInput || !amountOfDivingInput) return 0;
+  
+  const numberOfDivers = parseInt(numberOfDiverInput.value) || 0;
+  
+  // Check if diving option is selected
+  const divingOptionSelected = document.querySelector(".diving-option:checked");
+  if (!divingOptionSelected || numberOfDivers <= 0) {
+    amountOfDivingInput.value = "";
+    calculateTotalAmount();
+    return 0;
+  }
+
+  // Diving price per diver
+  const pricePerDiver = 3500;
+  const totalPrice = pricePerDiver * numberOfDivers;
+
+  // Format and display diving price
+  amountOfDivingInput.value = `₱${totalPrice.toLocaleString()}.00`;
+  
+  // Update total amount whenever diving price changes
+  calculateTotalAmount();
+  
+  return totalPrice;
+}
+
+// TOTAL AMOUNT CALCULATION
+function calculateTotalAmount() {
+  const totalAmountInput = document.getElementById("totalAmount");
+  if (!totalAmountInput) return;
+
+  let total = 0;
+
+  // Get package amount (tours)
+  const packageAmountInput = document.getElementById("amountOfPackage");
+  if (packageAmountInput && packageAmountInput.value) {
+    const packageAmount = parseFloat(packageAmountInput.value.replace(/[₱,]/g, "")) || 0;
+    total += packageAmount;
+  }
+
+  // Get hotel price
+  const hotelPriceInput = document.getElementById("hotelPrice");
+  if (hotelPriceInput && hotelPriceInput.value) {
+    const hotelAmount = parseFloat(hotelPriceInput.value.replace(/[₱,]/g, "")) || 0;
+    total += hotelAmount;
+  }
+
+  // Get vehicle rental amount
+  const vehicleAmountInput = document.getElementById("amountOfVehicle");
+  if (vehicleAmountInput && vehicleAmountInput.value) {
+    const vehicleAmount = parseFloat(vehicleAmountInput.value.replace(/[₱,]/g, "")) || 0;
+    total += vehicleAmount;
+  }
+
+  // Get diving service amount
+  const divingAmountInput = document.getElementById("amountOfDiving");
+  if (divingAmountInput && divingAmountInput.value) {
+    const divingAmount = parseFloat(divingAmountInput.value.replace(/[₱,]/g, "")) || 0;
+    total += divingAmount;
+  }
+
+  // Format and display total amount
+  if (total > 0) {
+    totalAmountInput.value = `₱${total.toLocaleString()}.00`;
+  } else {
+    totalAmountInput.value = "";
+  }
+}
+
 // Main function to update package price
 function calculateHotelPrice() {
   const days = calculateDuration();
@@ -425,17 +597,20 @@ function calculateHotelPrice() {
   
   if (!days || !touristCount || !hotelPriceInput) {
     if (hotelPriceInput) hotelPriceInput.value = "";
+    calculateTotalAmount();
     return 0;
   }
 
   const selectedHotel = document.querySelector(".hotels-option:checked");
   if (!selectedHotel) {
     hotelPriceInput.value = "";
+    calculateTotalAmount();
     return 0;
   }
 
   // Hotel price will be set later
   hotelPriceInput.value = "";
+  calculateTotalAmount();
   return 0;
 }
 
@@ -479,6 +654,9 @@ function updatePackagePrice() {
   } else {
     amountOfPackageInput.value = "";
   }
+
+  // Update total amount whenever package price changes
+  calculateTotalAmount();
 }
 
 // Add event listener to tourist count input
@@ -506,6 +684,15 @@ function updatePackagePrice() {
 
 // Initialize package price on load
 updatePackagePrice();
+
+// Initialize rental vehicle pricing on load
+calculateRentalVehiclePrice();
+
+// Initialize diving pricing on load
+calculateDivingPrice();
+
+// Initialize total amount calculation on load
+calculateTotalAmount();
 
 // HOTELS 
 function updateDaysVisibility() {
