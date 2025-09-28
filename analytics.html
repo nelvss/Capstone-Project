@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+    integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="analytics.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Analytics Dashboard - OTG Travel and Tours</title>
+</head>
+
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">🧳</span>
+      <span class="sidebar-title">Travel Admin</span>
+    </div>
+    <nav>
+      <ul>
+        <li onclick="window.location.href='dashboard.html'"><span class="icon">📊</span> Dashboard</li>
+        <li class="active" onclick="window.location.href='analytics.html'"><span class="icon">📈</span> Analytics</li>
+        <li onclick="window.location.href='payment.html'"><span class="icon">💳</span> Payment</li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="handleLogout()"><span class="icon">⏻</span> Logout</button>
+    </div>
+  </div>
+  <div class="main-content">
+    <header>
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="hamburger-icon">☰</span>
+      </button>
+      <h1>Analytics Dashboard</h1>
+    </header>
+
+    <!-- Analytics Dashboard Content -->
+    <div class="analytics-container">
+      <!-- Analytics Sidebar -->
+      <div class="analytics-sidebar">
+        <div class="d-flex flex-column">
+          <h5 class="mb-4">Analytics Menu</h5>
+          <a href="#overview" class="nav-link active" data-section="overview">
+            <i class="fas fa-chart-line me-2"></i>Overview
+          </a>
+          <a href="#bookings" class="nav-link" data-section="bookings">
+            <i class="fas fa-calendar-check me-2"></i>Booking Trends
+          </a>
+          <a href="#services" class="nav-link" data-section="services">
+            <i class="fas fa-star me-2"></i>Popular Services
+          </a>
+          <a href="#seasonal" class="nav-link" data-section="seasonal">
+            <i class="fas fa-sun me-2"></i>Seasonal Analysis
+          </a>
+          <a href="#predictive" class="nav-link" data-section="predictive">
+            <i class="fas fa-crystal-ball me-2"></i>Predictions
+          </a>
+        </div>
+      </div>
+
+      <!-- Analytics Main Content -->
+      <div class="analytics-main-content">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h1 class="h2">Analytics Dashboard</h1>
+            <p class="text-muted">Track booking trends, seasonal patterns, and service performance</p>
+          </div>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" id="refresh-data">
+              <i class="fas fa-sync-alt me-1"></i>Refresh
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="export-data">
+              <i class="fas fa-download me-1"></i>Export
+            </button>
+          </div>
+        </div>
+
+        <!-- Overview Section -->
+        <section id="overview" class="analytics-section">
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <div class="card metric-card">
+                <div class="card-body text-center">
+                  <div class="metric-icon bg-primary">
+                    <i class="fas fa-calendar-check"></i>
+                  </div>
+                  <h3 class="metric-value" id="total-bookings">1,247</h3>
+                  <p class="metric-label">Total Bookings</p>
+                  <span class="metric-change positive">+12.5%</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card metric-card">
+                <div class="card-body text-center">
+                  <div class="metric-icon bg-success">
+                    <i class="fas fa-peso-sign"></i>
+                  </div>
+                  <h3 class="metric-value" id="total-revenue">₱2.4M</h3>
+                  <p class="metric-label">Total Revenue</p>
+                  <span class="metric-change positive">+18.2%</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card metric-card">
+                <div class="card-body text-center">
+                  <div class="metric-icon bg-warning">
+                    <i class="fas fa-users"></i>
+                  </div>
+                  <h3 class="metric-value" id="total-customers">892</h3>
+                  <p class="metric-label">Active Customers</p>
+                  <span class="metric-change positive">+7.8%</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card metric-card">
+                <div class="card-body text-center">
+                  <div class="metric-icon bg-info">
+                    <i class="fas fa-star"></i>
+                  </div>
+                  <h3 class="metric-value" id="avg-rating">4.8</h3>
+                  <p class="metric-label">Average Rating</p>
+                  <span class="metric-change positive">+0.3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revenue Trend Chart -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Revenue Trend (Last 12 Months)</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="revenueTrendChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Booking Trends Section -->
+        <section id="bookings" class="analytics-section d-none">
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Booking Trends Over Time</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="bookingTrendsChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Booking Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="bookingStatusChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Daily Booking Pattern</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="dailyBookingChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Monthly Booking Volume</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="monthlyBookingChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Services Analysis Section -->
+        <section id="services" class="analytics-section d-none">
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Most Popular Services</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="popularServicesChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Service Revenue Share</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="serviceRevenueChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service Performance Table -->
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Service Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Service</th>
+                      <th>Bookings</th>
+                      <th>Revenue</th>
+                      <th>Avg. Rating</th>
+                      <th>Growth</th>
+                      <th>Trend</th>
+                    </tr>
+                  </thead>
+                  <tbody id="serviceMetricsTable">
+                    <!-- Data will be populated by JavaScript -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Seasonal Analysis Section -->
+        <section id="seasonal" class="analytics-section d-none">
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Peak vs Low Season Analysis</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="seasonalAnalysisChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card season-card peak-season">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="season-icon">
+                      <i class="fas fa-sun"></i>
+                    </div>
+                    <div>
+                      <h5 class="card-title mb-0">Peak Season</h5>
+                      <p class="text-muted mb-0">December - April</p>
+                    </div>
+                  </div>
+                  <div class="row text-center">
+                    <div class="col">
+                      <h4 class="text-warning">892</h4>
+                      <small>Avg. Bookings/Month</small>
+                    </div>
+                    <div class="col">
+                      <h4 class="text-warning">₱485K</h4>
+                      <small>Avg. Revenue/Month</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card season-card low-season">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="season-icon">
+                      <i class="fas fa-cloud-rain"></i>
+                    </div>
+                    <div>
+                      <h5 class="card-title mb-0">Low Season</h5>
+                      <p class="text-muted mb-0">May - November</p>
+                    </div>
+                  </div>
+                  <div class="row text-center">
+                    <div class="col">
+                      <h4 class="text-info">324</h4>
+                      <small>Avg. Bookings/Month</small>
+                    </div>
+                    <div class="col">
+                      <h4 class="text-info">₱187K</h4>
+                      <small>Avg. Revenue/Month</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Seasonal Service Preferences</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="seasonalServicesChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Weather Impact on Bookings</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="weatherImpactChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Predictive Analytics Section -->
+        <section id="predictive" class="analytics-section d-none">
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Revenue Forecast (Next 6 Months)</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="revenueForecastChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Prediction Confidence</h5>
+                </div>
+                <div class="card-body">
+                  <div class="confidence-meter">
+                    <div class="progress mb-3">
+                      <div class="progress-bar bg-success confidence-85" role="progressbar" 
+                           aria-valuenow="85" aria-valuemin="0" aria-valuemax="100" 
+                           aria-label="Prediction confidence level" title="85% confidence in revenue predictions"></div>
+                    </div>
+                    <p class="text-center"><strong>85% Confidence</strong></p>
+                    <small class="text-muted">Based on historical data and market trends</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Demand Prediction by Service</h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="demandPredictionChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recommendations -->
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">AI-Powered Recommendations</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="recommendation-card">
+                    <div class="recommendation-icon bg-success">
+                      <i class="fas fa-thumbs-up"></i>
+                    </div>
+                    <h6>Increase Island Hopping Capacity</h6>
+                    <p class="small text-muted">Predicted 35% demand increase in Q2</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="recommendation-card">
+                    <div class="recommendation-icon bg-warning">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h6>Promote Diving Tours</h6>
+                    <p class="small text-muted">Low season opportunity identified</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="recommendation-card">
+                    <div class="recommendation-icon bg-info">
+                      <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h6>Weekend Package Deals</h6>
+                    <p class="small text-muted">Higher conversion potential detected</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="analytics.js"></script>
+</body>
+
+</html>

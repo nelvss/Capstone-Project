@@ -22,17 +22,15 @@
       </ul>
     </nav>
     <div class="sidebar-footer">
-      <button class="logout-btn"><span class="icon">⏻</span> Logout</button>
+      <button class="logout-btn" onclick="handleLogout()"><span class="icon">⏻</span> Logout</button>
     </div>
   </div>
   <div class="main-content">
     <header>
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="hamburger-icon">☰</span>
+      </button>
       <h1>Dashboard</h1>
-      <div class="header-actions">
-        <span class="icon">🔍</span>
-        <span class="icon">🔔</span>
-        <span class="icon">👤</span>
-      </div>
     </header>
     <section class="stats">
       <div class="stat-card stat-blue">
