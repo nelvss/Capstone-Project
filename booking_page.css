@@ -135,6 +135,8 @@
     max-height: 500px;
     opacity: 1;
     overflow: visible;
+<<<<<<< HEAD
+=======
 }
 
 /* Prevent text selection and remove text cursor */
@@ -161,4 +163,5 @@ button, .btn, .card, .form-check-label, .nav-link, .navbar-brand {
 /* Default cursor for non-interactive elements */
 body, div, span, p, h1, h2, h3, h4, h5, h6, label {
   cursor: default;
+>>>>>>> 0f28e4bf89575cc017693aeeadfda312e83ab22b
 }

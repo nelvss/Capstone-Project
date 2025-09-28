@@ -214,29 +214,3 @@ body {
         font-size: 1.5rem;
     }
 }
-
-/* Prevent text selection and remove text cursor */
-* {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* Allow text selection for input fields and text areas */
-input, textarea, [contenteditable="true"] {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-}
-
-/* Remove text cursor on clickable elements */
-button, .btn, .btn-login, .signup-link a, .card {
-  cursor: pointer;
-}
-
-/* Default cursor for non-interactive elements */
-body, div, span, p, h1, h2, h3, h4, h5, h6, label {
-  cursor: default;
-}
