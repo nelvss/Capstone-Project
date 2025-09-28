@@ -1,10 +1,10 @@
 // booking_page.js
 (() => {
     // ----------------------------
-    // STEP HANDLER (3-step wizard)
+    // STEP HANDLER (4-step wizard)
     // ----------------------------
     let currentStep = 1;
-    const totalSteps = 3;
+    const totalSteps = 4;
   
     function showStep(step) {
       document.querySelectorAll(".form-step").forEach((el, index) => {
@@ -25,8 +25,15 @@
           return; // stay on step 1
         }
       }
+      
       if (currentStep < totalSteps) {
         currentStep++;
+        
+        // When moving to step 3, populate the summary
+        if (currentStep === 3) {
+          populateBookingSummary();
+        }
+        
         showStep(currentStep);
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
@@ -479,6 +486,9 @@ function updatePackagePrice() {
   } else {
     amountOfPackageInput.value = "";
   }
+  
+  // Update total amount whenever package price changes
+  calculateTotalAmount();
 }
 
 // Add event listener to tourist count input
@@ -506,6 +516,21 @@ function updatePackagePrice() {
 
 // Initialize package price on load
 updatePackagePrice();
+
+// Add event listeners to update total amount when individual amounts change
+(function() {
+  const amountFields = ['amountOfPackage', 'hotelPrice', 'amountOfVehicle', 'amountOfDiving'];
+  
+  amountFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      field.addEventListener('input', calculateTotalAmount);
+      // Also listen for value changes from other functions
+      const observer = new MutationObserver(() => calculateTotalAmount());
+      observer.observe(field, { attributes: true, attributeFilter: ['value'] });
+    }
+  });
+})();
 
 // HOTELS 
 function updateDaysVisibility() {
@@ -546,3 +571,175 @@ function calculateDuration() {
   daysInput.value = "";
   return 0;
 }
+
+// Function to populate the booking summary
+function populateBookingSummary() {
+    // Personal Information
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const email = document.getElementById('emailAddress').value;
+    const contact = document.getElementById('contactNo').value;
+    const arrival = document.getElementById('arrivalDate').value;
+    const departure = document.getElementById('departureDate').value;
+    const tourists = document.getElementById('touristCount').value;
+
+    document.getElementById('summary-name').textContent = firstName + ' ' + lastName;
+    document.getElementById('summary-email').textContent = email || '-';
+    document.getElementById('summary-contact').textContent = contact || '-';
+    document.getElementById('summary-arrival').textContent = formatDate(arrival) || '-';
+    document.getElementById('summary-departure').textContent = formatDate(departure) || '-';
+    document.getElementById('summary-tourists').textContent = tourists || '-';
+
+    // Tour Packages
+    populateTourSummary('island', 'summary-island-tours');
+    populateTourSummary('inland', 'summary-inland-tours');
+    populateTourSummary('snorkel', 'summary-snorkel-tours');
+
+    // Package Amount - remove ₱ symbol from display value since it's already formatted
+    const packageAmount = document.getElementById('amountOfPackage').value;
+    document.getElementById('summary-package-amount').textContent = packageAmount || '₱0.00';
+
+    // Hotel Information
+    populateHotelSummary();
+
+    // Vehicle Information
+    populateVehicleSummary();
+
+    // Diving Information
+    populateDivingSummary();
+
+    // Calculate and display total amount
+    calculateTotalAmount();
+}
+
+// Helper function to format date for display
+function formatDate(dateString) {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+}
+
+// Function to calculate total amount for summary
+function calculateTotalAmount() {
+    let total = 0;
+    
+    // Get package amount
+    const packageAmountText = document.getElementById('amountOfPackage').value;
+    if (packageAmountText) {
+        const packageAmount = parseFloat(packageAmountText.replace(/[₱,]/g, '')) || 0;
+        total += packageAmount;
+    }
+    
+    // Get hotel amount
+    const hotelAmountText = document.getElementById('hotelPrice').value;
+    if (hotelAmountText) {
+        const hotelAmount = parseFloat(hotelAmountText.replace(/[₱,]/g, '')) || 0;
+        total += hotelAmount;
+    }
+    
+    // Get vehicle amount
+    const vehicleAmountText = document.getElementById('amountOfVehicle').value;
+    if (vehicleAmountText) {
+        const vehicleAmount = parseFloat(vehicleAmountText.replace(/[₱,]/g, '')) || 0;
+        total += vehicleAmount;
+    }
+    
+    // Get diving amount
+    const divingAmountText = document.getElementById('amountOfDiving').value;
+    if (divingAmountText) {
+        const divingAmount = parseFloat(divingAmountText.replace(/[₱,]/g, '')) || 0;
+        total += divingAmount;
+    }
+    
+    // Update total amount fields
+    const totalAmountInput = document.getElementById('totalAmount');
+    const summaryTotalElement = document.getElementById('summary-total-amount');
+    
+    if (total > 0) {
+        const formattedTotal = `₱${total.toLocaleString()}.00`;
+        if (totalAmountInput) totalAmountInput.value = formattedTotal;
+        if (summaryTotalElement) summaryTotalElement.textContent = formattedTotal;
+    } else {
+        if (totalAmountInput) totalAmountInput.value = '';
+        if (summaryTotalElement) summaryTotalElement.textContent = '₱0.00';
+    }
+}
+
+function populateTourSummary(type, elementId) {
+    const options = document.querySelectorAll(`.${type}-option:checked`);
+    const summaryElement = document.getElementById(elementId);
+    
+    if (options.length > 0) {
+        summaryElement.innerHTML = '';
+        options.forEach(option => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fas fa-check-circle text-success me-2"></i>${option.value}`;
+            summaryElement.appendChild(li);
+        });
+    } else {
+        const typeDisplay = type === 'island' ? 'island' : type === 'inland' ? 'inland' : 'snorkeling';
+        summaryElement.innerHTML = `<li class="text-muted">No ${typeDisplay} tours selected</li>`;
+    }
+}
+
+function populateHotelSummary() {
+    const hotelOptions = document.querySelectorAll('.hotels-option:checked');
+    const accommodationSection = document.getElementById('accommodation-section');
+    
+    if (hotelOptions.length > 0) {
+        accommodationSection.style.display = 'block';
+        document.getElementById('summary-hotel').textContent = hotelOptions[0].value;
+        
+        const days = document.getElementById('days').value;
+        document.getElementById('summary-hotel-days').textContent = days || '-';
+        
+        const hotelPrice = document.getElementById('hotelPrice').value;
+        document.getElementById('summary-hotel-amount').textContent = hotelPrice || '₱0.00';
+    } else {
+        accommodationSection.style.display = 'none';
+    }
+}
+
+function populateVehicleSummary() {
+    const vehicleOptions = document.querySelectorAll('.rental-option:checked');
+    const vehicleSection = document.getElementById('vehicle-section');
+    
+    if (vehicleOptions.length > 0) {
+        vehicleSection.style.display = 'block';
+        
+        // Display all selected vehicles
+        const selectedVehicles = Array.from(vehicleOptions).map(option => option.value);
+        document.getElementById('summary-vehicle').textContent = selectedVehicles.join(', ');
+        
+        // Get vehicle rental days - you may need to add this input field
+        document.getElementById('summary-vehicle-days').textContent = '-';
+        
+        const vehicleAmount = document.getElementById('amountOfVehicle').value;
+        document.getElementById('summary-vehicle-amount').textContent = vehicleAmount || '₱0.00';
+    } else {
+        vehicleSection.style.display = 'none';
+    }
+}
+
+function populateDivingSummary() {
+    const divingOptions = document.querySelectorAll('.diving-option:checked');
+    const divingSection = document.getElementById('diving-section');
+    
+    if (divingOptions.length > 0) {
+        divingSection.style.display = 'block';
+        
+        const divers = document.getElementById('numberOfDiver').value;
+        document.getElementById('summary-divers').textContent = divers || '-';
+        
+        const divingAmount = document.getElementById('amountOfDiving').value;
+        document.getElementById('summary-diving-amount').textContent = divingAmount || '₱0.00';
+    } else {
+        divingSection.style.display = 'none';
+    }
+}
+
+
