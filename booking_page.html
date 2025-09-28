@@ -400,10 +400,164 @@
                                 <div class="text-center mb-3">
                                     <img src="Images/logo.png" alt="OTG Logo" class="img-fluid">
                                 </div>
+<<<<<<< HEAD
+                                <h2 class="text-center mb-3">BOOKING SUMMARY</h2>
+                                <p class="text-center mb-4">Please review your booking details below before proceeding to payment.</p>
+
+                                <!-- Personal Information Section -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Personal Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Full Name:</strong> <span id="summary-name">-</span></p>
+                                                <p><strong>Email:</strong> <span id="summary-email">-</span></p>
+                                                <p><strong>Contact Number:</strong> <span id="summary-contact">-</span></p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Arrival Date:</strong> <span id="summary-arrival">-</span></p>
+                                                <p><strong>Departure Date:</strong> <span id="summary-departure">-</span></p>
+                                                <p><strong>Number of Tourists:</strong> <span id="summary-tourists">-</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tour Packages Section -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i>Tour Packages</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <h6 class="text-danger">Island Tours</h6>
+                                                <ul id="summary-island-tours" class="list-unstyled">
+                                                    <li class="text-muted">No island tours selected</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <h6 class="text-danger">Inland Tours</h6>
+                                                <ul id="summary-inland-tours" class="list-unstyled">
+                                                    <li class="text-muted">No inland tours selected</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <h6 class="text-danger">Snorkeling Tours</h6>
+                                                <ul id="summary-snorkel-tours" class="list-unstyled">
+                                                    <li class="text-muted">No snorkeling tours selected</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded">
+                                                    <span><strong>Package Total:</strong></span>
+                                                    <span class="text-danger fw-bold" id="summary-package-amount">₱0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Accommodation Section -->
+                                <div class="card mb-4" id="accommodation-section" style="display: none;">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-bed me-2"></i>Accommodation</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Hotel:</strong> <span id="summary-hotel">-</span></p>
+                                                <p><strong>Number of Days:</strong> <span id="summary-hotel-days">-</span></p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded">
+                                                    <span><strong>Hotel Total:</strong></span>
+                                                    <span class="text-danger fw-bold" id="summary-hotel-amount">₱0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Vehicle Rental Section -->
+                                <div class="card mb-4" id="vehicle-section" style="display: none;">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-car me-2"></i>Vehicle Rental</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Vehicle:</strong> <span id="summary-vehicle">-</span></p>
+                                                <p><strong>Rental Days:</strong> <span id="summary-vehicle-days">-</span></p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded">
+                                                    <span><strong>Vehicle Total:</strong></span>
+                                                    <span class="text-danger fw-bold" id="summary-vehicle-amount">₱0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Diving Section -->
+                                <div class="card mb-4" id="diving-section" style="display: none;">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-swimmer me-2"></i>Diving Activity</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Activity:</strong> <span id="summary-diving">Diving</span></p>
+                                                <p><strong>Number of Divers:</strong> <span id="summary-divers">-</span></p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded">
+                                                    <span><strong>Diving Total:</strong></span>
+                                                    <span class="text-danger fw-bold" id="summary-diving-amount">₱0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Total Amount Section -->
+                                <div class="card mb-4 border-danger">
+                                    <div class="card-body bg-light">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <h4 class="text-danger mb-0">TOTAL AMOUNT:</h4>
+                                                    <h3 class="text-danger mb-0 fw-bold" id="summary-total-amount">₱0.00</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Navigation Buttons -->
+                                <div class="row">
+                                    <div class="col-6">
+                                        <button type="button" class="btn w-100 py-2" style="background-color: #6c757d; border-color: #6c757d; color: white;" onclick="previousStep()">
+                                            <i class="fas fa-arrow-left me-2"></i>Previous
+                                        </button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">
+                                            Proceed to Payment<i class="fas fa-arrow-right ms-2"></i>
+                                        </button>
+                                    </div>
+                                </div>
+=======
                                 <h2>BOOKING SUMMARY</h2>
                                 <p class="mb-4">Please review your booking details below before proceeding to payment.</p>
 
                                 
+>>>>>>> 0f28e4bf89575cc017693aeeadfda312e83ab22b
                             </div>
                         </div>
                     </div>
