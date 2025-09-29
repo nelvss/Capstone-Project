@@ -698,8 +698,7 @@
       calculateDivingPrice();
     });
   }
-  // Hotels
-  wireMultiSelect("hotels-select-all", "hotels-options", "hotels-option", null);
+  // Hotels - Single selection (radio buttons), no wireMultiSelect needed
   
   // Add event listeners to clear step 2 validation errors when selections are made
   function addStep2ValidationClearListeners() {
