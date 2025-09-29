@@ -28,7 +28,7 @@
 
 .form-floating > .form-control {
     border-radius: 10px;
-    border: 2px solid #e9ecef;
+    border: 2px solid #000000;
     transition: all 0.3s ease;
 }
 
@@ -116,6 +116,38 @@
     box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.15) !important;
 }
 
+.form-control.is-invalid + label::after {
+    content: "⚠";
+    color: #dc2626;
+    margin-left: 0.25rem;
+    font-size: 1rem;
+}
+
+/* Ensure all form inputs have black borders */
+#book-form .form-control,
+#book-form .form-select,
+#book-form input[type="text"],
+#book-form input[type="email"],
+#book-form input[type="tel"],
+#book-form input[type="date"],
+#book-form select,
+#book-form textarea {
+    border: 2px solid #000000 !important;
+}
+
+/* Booking summary specific input styling */
+#form-step-3 .form-control,
+#form-step-3 .form-select,
+#form-step-3 input[type="text"],
+#form-step-3 input[type="email"],
+#form-step-3 input[type="tel"],
+#form-step-3 input[type="date"],
+#form-step-3 select,
+#form-step-3 textarea {
+    border: 2px solid #000000 !important;
+    border-radius: 10px;
+}
+
 
 #form-step-3 .card {
     min-height: 400px;
@@ -135,4 +167,170 @@
     max-height: 500px;
     opacity: 1;
     overflow: visible;
+}
+
+/* Responsive design for form-step-2 on small screens */
+@media (max-width: 768px) {
+    #form-step-2 .row {
+        margin: 0;
+    }
+    
+    #form-step-2 .col {
+        padding: 0 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    #form-step-2 .form-floating {
+        margin-bottom: 1rem;
+    }
+    
+    #form-step-2 .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    #form-step-2 h2 {
+        font-size: 1.5rem;
+    }
+    
+    #form-step-2 .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    #form-step-2 .card-body {
+        padding: 1rem !important;
+    }
+    
+    #form-step-2 .col {
+        padding: 0 0.25rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    #form-step-2 h2 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    #form-step-2 p {
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    #form-step-2 .form-floating > .form-control {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+    
+    #form-step-2 .form-floating > label {
+        font-size: 0.85rem;
+    }
+    
+    #form-step-2 .btn {
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Stack dropdowns vertically on very small screens */
+    #form-step-2 .row.g-3 {
+        flex-direction: column;
+        gap: 0.75rem !important;
+    }
+    
+    #form-step-2 .row.g-3 .col {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Hotel row adjustments */
+    #hotelsRow {
+        margin-top: 0.75rem !important;
+    }
+    
+    #hotelsRow .col {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Form sections spacing */
+    #form-step-2 .mt-5 {
+        margin-top: 1.5rem !important;
+    }
+    
+    #form-step-2 .mt-4 {
+        margin-top: 1rem !important;
+    }
+    
+    /* Reorganize rental vehicle section for mobile */
+    #form-step-2 .row:has(#rentalDropdown) {
+        flex-direction: column;
+        gap: 0.75rem !important;
+    }
+    
+    #form-step-2 .row:has(#rentalDropdown) .col:nth-child(2),
+    #form-step-2 .row:has(#rentalDropdown) .col:nth-child(3) {
+        order: 2;
+        margin-top: 0.75rem;
+    }
+    
+    #form-step-2 .row:has(#rentalDropdown) .col:first-child {
+        order: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Reorganize diving section for mobile */
+    #form-step-2 .row:has(#divingDropdown) {
+        flex-direction: column;
+        gap: 0.75rem !important;
+    }
+    
+    #form-step-2 .row:has(#divingDropdown) .col:nth-child(2),
+    #form-step-2 .row:has(#divingDropdown) .col:nth-child(3) {
+        order: 2;
+        margin-top: 0.75rem;
+    }
+    
+    #form-step-2 .row:has(#divingDropdown) .col:first-child {
+        order: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Reorganize hotels section for mobile */
+    #form-step-2 .row:has(#hotelsDropdown) {
+        flex-direction: column;
+        gap: 0.75rem !important;
+    }
+    
+    #form-step-2 .row:has(#hotelsDropdown) .col:nth-child(2),
+    #form-step-2 .row:has(#hotelsDropdown) .col:nth-child(3) {
+        order: 2;
+        margin-top: 0.75rem;
+    }
+    
+    #form-step-2 .row:has(#hotelsDropdown) .col:first-child {
+        order: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Additional spacing adjustments for mobile */
+    #form-step-2 .dropdown-menu {
+        margin-bottom: 0.5rem;
+    }
+    
+    #form-step-2 .form-floating {
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Total amount field spacing */
+    #form-step-2 .form-floating.mt-4 {
+        margin-top: 1.25rem !important;
+        margin-bottom: 1rem;
+    }
+    
+    /* Button row spacing */
+    #form-step-2 .row:last-child {
+        margin-top: 1.5rem !important;
+    }
 }
