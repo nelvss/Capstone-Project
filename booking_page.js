@@ -85,43 +85,74 @@
       // Island Tours
       const islandTours = document.querySelectorAll(".island-option:checked");
       const islandList = document.getElementById("summary-island-tours");
+      const islandContainer = document.getElementById("island-tours-container");
       if (islandTours.length > 0) {
         islandList.innerHTML = "";
         islandTours.forEach(tour => {
           const li = document.createElement("li");
-          li.innerHTML = `<i class="fas fa-check text-success me-2"></i>${tour.value}`;
+          li.innerHTML = `${tour.value}`;
           islandList.appendChild(li);
         });
+        islandContainer.style.display = "block";
       } else {
-        islandList.innerHTML = '<li class="text-muted">No island tours selected</li>';
+        islandContainer.style.display = "none";
       }
 
       // Inland Tours
       const inlandTours = document.querySelectorAll(".inland-option:checked");
       const inlandList = document.getElementById("summary-inland-tours");
+      const inlandContainer = document.getElementById("inland-tours-container");
       if (inlandTours.length > 0) {
         inlandList.innerHTML = "";
         inlandTours.forEach(tour => {
           const li = document.createElement("li");
-          li.innerHTML = `<i class="fas fa-check text-success me-2"></i>${tour.value}`;
+          li.innerHTML = `${tour.value}`;
           inlandList.appendChild(li);
         });
+        inlandContainer.style.display = "block";
       } else {
-        inlandList.innerHTML = '<li class="text-muted">No inland tours selected</li>';
+        inlandContainer.style.display = "none";
       }
 
       // Snorkeling Tours
       const snorkelTours = document.querySelectorAll(".snorkel-option:checked");
       const snorkelList = document.getElementById("summary-snorkel-tours");
+      const snorkelContainer = document.getElementById("snorkel-tours-container");
       if (snorkelTours.length > 0) {
         snorkelList.innerHTML = "";
         snorkelTours.forEach(tour => {
           const li = document.createElement("li");
-          li.innerHTML = `<i class="fas fa-check text-success me-2"></i>${tour.value}`;
+          li.innerHTML = `${tour.value}`;
           snorkelList.appendChild(li);
         });
+        snorkelContainer.style.display = "block";
       } else {
-        snorkelList.innerHTML = '<li class="text-muted">No snorkeling tours selected</li>';
+        snorkelContainer.style.display = "none";
+      }
+
+      // Show/Hide "No tours selected" message and adjust layout
+      const anyToursSelected = islandTours.length > 0 || inlandTours.length > 0 || snorkelTours.length > 0;
+      const noToursMessage = document.getElementById("no-tours-message");
+      const tourPackagesContainer = document.getElementById("tour-packages-container");
+      
+      if (anyToursSelected) {
+        noToursMessage.style.display = "none";
+        // Adjust column sizes based on number of selected tour types
+        const visibleTourTypes = [islandTours.length > 0, inlandTours.length > 0, snorkelTours.length > 0].filter(Boolean).length;
+        const colClass = visibleTourTypes === 1 ? "col-12" : visibleTourTypes === 2 ? "col-md-6" : "col-md-4";
+        
+        // Update column classes for responsive layout
+        if (islandContainer.style.display !== "none") {
+          islandContainer.className = `${colClass}`;
+        }
+        if (inlandContainer.style.display !== "none") {
+          inlandContainer.className = `${colClass}`;
+        }
+        if (snorkelContainer.style.display !== "none") {
+          snorkelContainer.className = `${colClass}`;
+        }
+      } else {
+        noToursMessage.style.display = "block";
       }
 
       // Package Amount
