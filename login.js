@@ -22,7 +22,7 @@ function handleLogin(event) {
         }
         else if (username === staffUser.username && password === staffUser.password) {
             // Successful login - redirect to dashboard
-            window.location.href = 'dashboard.html';
+            window.location.href = 'staff_dashboard.html';
         }
         else {
             // Invalid credentials - remove loading state and show error
