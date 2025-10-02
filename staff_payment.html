@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - Staff Portal</title>
+  <link rel="stylesheet" href="staff_dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">👥</span>
+      <span class="sidebar-title">Staff Portal</span>
+    </div>
+    <nav>
+      <ul>
+        <li onclick="window.location.href='staff_dashboard.html'"><span class="icon">📊</span> Dashboard</li>
+        <li class="active"><span class="icon">💳</span> Payment</li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="handleLogout()"><span class="icon">⏻</span> Logout</button>
+    </div>
+  </div>
+  <div class="main-content">
+    <header>
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="hamburger-icon">☰</span>
+      </button>
+      <h1>Payment Information</h1>
+      <div class="staff-info">
+        <span class="staff-role">Staff Member</span>
+      </div>
+    </header>
+    <section class="payment-content">
+      <div class="receipt-controls">
+        <div class="controls-header">
+          <h2>Payment E-Receipts</h2>
+          <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterReceipts('all')">All Receipts</button>
+            <button class="filter-btn" onclick="filterReceipts('today')">Today</button>
+            <button class="filter-btn" onclick="filterReceipts('week')">This Week</button>
+            <button class="filter-btn" onclick="filterReceipts('month')">This Month</button>
+          </div>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="receipt-search" placeholder="Search by customer name or receipt ID..." onkeyup="searchReceipts()">
+          <button class="search-btn">🔍</button>
+        </div>
+      </div>
+
+      <div class="receipts-gallery">
+        <div class="receipt-item" data-date="2024-01-15" data-customer="elizabeth lopez">
+          <div class="receipt-header">
+            <span class="receipt-id">#R001</span>
+            <span class="receipt-date">Jan 15, 2024</span>
+          </div>
+          <div class="receipt-preview">
+            <img src="Images/receipt1.jpg" alt="E-Receipt #R001" class="receipt-image" onclick="openReceiptModal('Images/receipt1.jpg', 'Elizabeth Lopez', '#R001', '$500.00')">
+          </div>
+          <div class="receipt-details">
+            <p class="customer-name">Elizabeth Lopez</p>
+            <p class="amount">$500.00</p>
+            <span class="payment-method">Credit Card</span>
+          </div>
+        </div>
+
+        <div class="receipt-item" data-date="2024-01-14" data-customer="mathew martinez">
+          <div class="receipt-header">
+            <span class="receipt-id">#R002</span>
+            <span class="receipt-date">Jan 14, 2024</span>
+          </div>
+          <div class="receipt-preview">
+            <img src="Images/receipt2.jpg" alt="E-Receipt #R002" class="receipt-image" onclick="openReceiptModal('Images/receipt2.jpg', 'Mathew Martinez', '#R002', '$350.00')">
+          </div>
+          <div class="receipt-details">
+            <p class="customer-name">Mathew Martinez</p>
+            <p class="amount">$350.00</p>
+            <span class="payment-method">Bank Transfer</span>
+          </div>
+        </div>
+
+        <div class="receipt-item" data-date="2024-01-13" data-customer="elizabeth hall">
+          <div class="receipt-header">
+            <span class="receipt-id">#R003</span>
+            <span class="receipt-date">Jan 13, 2024</span>
+          </div>
+          <div class="receipt-preview">
+            <img src="Images/receipt3.jpg" alt="E-Receipt #R003" class="receipt-image" onclick="openReceiptModal('Images/receipt3.jpg', 'Elizabeth Hall', '#R003', '$200.00')">
+          </div>
+          <div class="receipt-details">
+            <p class="customer-name">Elizabeth Hall</p>
+            <p class="amount">$200.00</p>
+            <span class="payment-method">PayPal</span>
+          </div>
+        </div>
+
+        <div class="receipt-item" data-date="2024-01-12" data-customer="maria white">
+          <div class="receipt-header">
+            <span class="receipt-id">#R004</span>
+            <span class="receipt-date">Jan 12, 2024</span>
+          </div>
+          <div class="receipt-preview">
+            <img src="Images/receipt4.jpg" alt="E-Receipt #R004" class="receipt-image" onclick="openReceiptModal('Images/receipt4.jpg', 'Maria White', '#R004', '$400.00')">
+          </div>
+          <div class="receipt-details">
+            <p class="customer-name">Maria White</p>
+            <p class="amount">$400.00</p>
+            <span class="payment-method">Cash</span>
+          </div>
+        </div>
+
+        <div class="receipt-item" data-date="2024-01-11" data-customer="elizabeth watson">
+          <div class="receipt-header">
+            <span class="receipt-id">#R005</span>
+            <span class="receipt-date">Jan 11, 2024</span>
+          </div>
+          <div class="receipt-preview">
+            <img src="Images/receipt5.jpg" alt="E-Receipt #R005" class="receipt-image" onclick="openReceiptModal('Images/receipt5.jpg', 'Elizabeth Watson', '#R005', '$600.00')">
+          </div>
+          <div class="receipt-details">
+            <p class="customer-name">Elizabeth Watson</p>
+            <p class="amount">$600.00</p>
+            <span class="payment-method">Credit Card</span>
+          </div>
+        </div>
+
+        <div class="receipt-item" data-date="2024-01-10" data-customer="caleb jones">
+          <div class="receipt-header">
+            <span class="receipt-id">#R006</span>
+            <span class="receipt-date">Jan 10, 2024</span>
+          </div>
+          <div class="receipt-preview">
+            <img src="Images/receipt6.jpg" alt="E-Receipt #R006" class="receipt-image" onclick="openReceiptModal('Images/receipt6.jpg', 'Caleb Jones', '#R006', '$150.00')">
+          </div>
+          <div class="receipt-details">
+            <p class="customer-name">Caleb Jones</p>
+            <p class="amount">$150.00</p>
+            <span class="payment-method">Apple Pay</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Receipt Modal -->
+      <div id="receiptModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="modalTitle">Receipt Details</h3>
+            <span class="close" onclick="closeReceiptModal()">&times;</span>
+          </div>
+          <div class="modal-body">
+            <img id="modalReceiptImage" src="" alt="Receipt" class="modal-receipt-image">
+            <div class="modal-receipt-info">
+              <div class="info-item">
+                <strong>Customer:</strong> <span id="modalCustomer"></span>
+              </div>
+              <div class="info-item">
+                <strong>Receipt ID:</strong> <span id="modalReceiptId"></span>
+              </div>
+              <div class="info-item">
+                <strong>Amount:</strong> <span id="modalAmount"></span>
+              </div>
+              <div class="modal-actions">
+                <button class="btn-print" onclick="printReceipt()">🖨️ Print</button>
+                <button class="btn-download" onclick="downloadReceipt()">💾 Download</button>
+                <button class="btn-email" onclick="emailReceipt()">📧 Email</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Sidebar toggle and logout functionality
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const mainContent = document.querySelector('.main-content');
+      
+      sidebar.classList.toggle('collapsed');
+      mainContent.classList.toggle('expanded');
+    }
+
+    function handleLogout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('staffSession');
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Receipt filtering functionality
+    function filterReceipts(period) {
+      const receipts = document.querySelectorAll('.receipt-item');
+      const buttons = document.querySelectorAll('.filter-btn');
+      
+      // Update active button
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      const today = new Date();
+      const currentDate = today.toISOString().split('T')[0];
+      
+      receipts.forEach(receipt => {
+        const receiptDate = receipt.getAttribute('data-date');
+        let showReceipt = false;
+        
+        switch(period) {
+          case 'all':
+            showReceipt = true;
+            break;
+          case 'today':
+            showReceipt = receiptDate === currentDate;
+            break;
+          case 'week':
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            showReceipt = new Date(receiptDate) >= weekAgo;
+            break;
+          case 'month':
+            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            showReceipt = new Date(receiptDate) >= monthAgo;
+            break;
+        }
+        
+        receipt.style.display = showReceipt ? 'block' : 'none';
+      });
+    }
+
+    // Search receipts functionality
+    function searchReceipts() {
+      const searchTerm = document.getElementById('receipt-search').value.toLowerCase();
+      const receipts = document.querySelectorAll('.receipt-item');
+      
+      receipts.forEach(receipt => {
+        const customer = receipt.getAttribute('data-customer').toLowerCase();
+        const receiptId = receipt.querySelector('.receipt-id').textContent.toLowerCase();
+        
+        if (customer.includes(searchTerm) || receiptId.includes(searchTerm)) {
+          receipt.style.display = 'block';
+        } else {
+          receipt.style.display = 'none';
+        }
+      });
+    }
+
+    // Modal functionality
+    function openReceiptModal(imageSrc, customer, receiptId, amount) {
+      const modal = document.getElementById('receiptModal');
+      const modalImage = document.getElementById('modalReceiptImage');
+      const modalCustomer = document.getElementById('modalCustomer');
+      const modalReceiptId = document.getElementById('modalReceiptId');
+      const modalAmount = document.getElementById('modalAmount');
+      
+      modalImage.src = imageSrc;
+      modalCustomer.textContent = customer;
+      modalReceiptId.textContent = receiptId;
+      modalAmount.textContent = amount;
+      
+      modal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeReceiptModal() {
+      const modal = document.getElementById('receiptModal');
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+
+    // Modal actions
+    function printReceipt() {
+      const receiptImage = document.getElementById('modalReceiptImage').src;
+      const printWindow = window.open('', '_blank');
+      const htmlContent = '<html><head><title>Print Receipt</title></head><body style="margin: 0; padding: 20px; text-align: center;"><img src="' + receiptImage + '" style="max-width: 100%; height: auto;"></body></html>';
+      printWindow.document.write(htmlContent);
+      printWindow.onload = function() { 
+        printWindow.print(); 
+        printWindow.close(); 
+      };
+    }
+
+    function downloadReceipt() {
+      const receiptImage = document.getElementById('modalReceiptImage');
+      const receiptId = document.getElementById('modalReceiptId').textContent;
+      
+      const link = document.createElement('a');
+      link.download = `receipt_${receiptId.replace('#', '')}.jpg`;
+      link.href = receiptImage.src;
+      link.click();
+    }
+
+    function emailReceipt() {
+      const customer = document.getElementById('modalCustomer').textContent;
+      const receiptId = document.getElementById('modalReceiptId').textContent;
+      
+      alert(`Email functionality would send receipt ${receiptId} to ${customer}'s email address.`);
+      // In a real application, this would integrate with an email service
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('receiptModal');
+      if (event.target === modal) {
+        closeReceiptModal();
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Staff Payment page loaded successfully');
+    });
+  </script>
+</body>
+</html>
