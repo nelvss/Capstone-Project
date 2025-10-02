@@ -44,6 +44,11 @@
       populateBookingSummary();
     }
     
+    // When moving to step 4, setup payment options
+    if (currentStep === 4) {
+      setupPaymentOptions();
+    }
+    
     showStep(currentStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -59,151 +64,6 @@
   
     showStep(currentStep);
   
-    // Function to populate booking summary
-    function populateBookingSummary() {
-      // Personal Information
-      const firstName = document.getElementById("firstName")?.value || "";
-      const lastName = document.getElementById("lastName")?.value || "";
-      const email = document.getElementById("emailAddress")?.value || "";
-      const contact = document.getElementById("contactNo")?.value || "";
-      const arrival = document.getElementById("arrivalDate")?.value || "";
-      const departure = document.getElementById("departureDate")?.value || "";
-      const tourists = document.getElementById("touristCount")?.value || "";
-
-      document.getElementById("summary-name").textContent = `${firstName} ${lastName}`.trim() || "-";
-      document.getElementById("summary-email").textContent = email || "-";
-      document.getElementById("summary-contact").textContent = contact || "-";
-      document.getElementById("summary-arrival").textContent = arrival || "-";
-      document.getElementById("summary-departure").textContent = departure || "-";
-      document.getElementById("summary-tourists").textContent = tourists || "-";
-
-      // Island Tours
-      const islandTours = document.querySelectorAll(".island-option:checked");
-      const islandList = document.getElementById("summary-island-tours");
-      const islandContainer = document.getElementById("island-tours-container");
-      if (islandTours.length > 0) {
-        islandList.innerHTML = "";
-        islandTours.forEach(tour => {
-          const li = document.createElement("li");
-          li.innerHTML = `${tour.value}`;
-          islandList.appendChild(li);
-        });
-        islandContainer.style.display = "block";
-      } else {
-        islandContainer.style.display = "none";
-      }
-
-      // Inland Tours
-      const inlandTours = document.querySelectorAll(".inland-option:checked");
-      const inlandList = document.getElementById("summary-inland-tours");
-      const inlandContainer = document.getElementById("inland-tours-container");
-      if (inlandTours.length > 0) {
-        inlandList.innerHTML = "";
-        inlandTours.forEach(tour => {
-          const li = document.createElement("li");
-          li.innerHTML = `${tour.value}`;
-          inlandList.appendChild(li);
-        });
-        inlandContainer.style.display = "block";
-      } else {
-        inlandContainer.style.display = "none";
-      }
-
-      // Snorkeling Tours
-      const snorkelTours = document.querySelectorAll(".snorkel-option:checked");
-      const snorkelList = document.getElementById("summary-snorkel-tours");
-      const snorkelContainer = document.getElementById("snorkel-tours-container");
-      if (snorkelTours.length > 0) {
-        snorkelList.innerHTML = "";
-        snorkelTours.forEach(tour => {
-          const li = document.createElement("li");
-          li.innerHTML = `${tour.value}`;
-          snorkelList.appendChild(li);
-        });
-        snorkelContainer.style.display = "block";
-      } else {
-        snorkelContainer.style.display = "none";
-      }
-
-      // Show/Hide "No tours selected" message and adjust layout
-      const anyToursSelected = islandTours.length > 0 || inlandTours.length > 0 || snorkelTours.length > 0;
-      const noToursMessage = document.getElementById("no-tours-message");
-      const tourPackagesContainer = document.getElementById("tour-packages-container");
-      
-      if (anyToursSelected) {
-        noToursMessage.style.display = "none";
-        // Adjust column sizes based on number of selected tour types
-        const visibleTourTypes = [islandTours.length > 0, inlandTours.length > 0, snorkelTours.length > 0].filter(Boolean).length;
-        const colClass = visibleTourTypes === 1 ? "col-12" : visibleTourTypes === 2 ? "col-md-6" : "col-md-4";
-        
-        // Update column classes for responsive layout
-        if (islandContainer.style.display !== "none") {
-          islandContainer.className = `${colClass}`;
-        }
-        if (inlandContainer.style.display !== "none") {
-          inlandContainer.className = `${colClass}`;
-        }
-        if (snorkelContainer.style.display !== "none") {
-          snorkelContainer.className = `${colClass}`;
-        }
-      } else {
-        noToursMessage.style.display = "block";
-      }
-
-      // Package Amount
-      const packageAmount = document.getElementById("amountOfPackage")?.value || "₱0.00";
-      document.getElementById("summary-package-amount").textContent = packageAmount;
-
-      // Hotel Information
-      const selectedHotel = document.querySelector(".hotels-option:checked");
-      const hotelDays = document.getElementById("days")?.value || "";
-      const hotelPrice = document.getElementById("hotelPrice")?.value || "";
-      const accommodationSection = document.getElementById("accommodation-section");
-
-      if (selectedHotel) {
-        document.getElementById("summary-hotel").textContent = selectedHotel.value;
-        document.getElementById("summary-hotel-days").textContent = hotelDays || "-";
-        document.getElementById("summary-hotel-amount").textContent = hotelPrice || "₱0.00";
-        accommodationSection.style.display = "block";
-      } else {
-        accommodationSection.style.display = "none";
-      }
-
-      // Vehicle Rental Information
-      const selectedVehicles = document.querySelectorAll(".rental-option:checked");
-      const rentalDays = document.getElementById("rentalDays")?.value || "";
-      const vehicleAmount = document.getElementById("amountOfVehicle")?.value || "";
-      const vehicleSection = document.getElementById("vehicle-section");
-
-      if (selectedVehicles.length > 0) {
-        const vehicleNames = Array.from(selectedVehicles).map(v => v.value).join(", ");
-        document.getElementById("summary-vehicle").textContent = vehicleNames;
-        document.getElementById("summary-vehicle-days").textContent = rentalDays ? `${rentalDays} day(s)` : "-";
-        document.getElementById("summary-vehicle-amount").textContent = vehicleAmount || "₱0.00";
-        vehicleSection.style.display = "block";
-      } else {
-        vehicleSection.style.display = "none";
-      }
-
-      // Diving Information
-      const divingSelected = document.querySelector(".diving-option:checked");
-      const numberOfDivers = document.getElementById("numberOfDiver")?.value || "";
-      const divingAmount = document.getElementById("amountOfDiving")?.value || "";
-      const divingSection = document.getElementById("diving-section");
-
-      if (divingSelected && numberOfDivers) {
-        document.getElementById("summary-divers").textContent = numberOfDivers;
-        document.getElementById("summary-diving-amount").textContent = divingAmount || "₱0.00";
-        divingSection.style.display = "block";
-      } else {
-        divingSection.style.display = "none";
-      }
-
-      // Total Amount
-      const totalAmount = document.getElementById("totalAmount")?.value || "₱0.00";
-      document.getElementById("summary-total-amount").textContent = totalAmount;
-    }
-
     // VALIDATION UTILITIES PAGE 1
 
     const FIELD_LABELS = {
