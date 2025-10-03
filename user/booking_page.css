@@ -1,0 +1,1430 @@
+
+/* ===== GLOBAL FORM STYLING ===== */
+#book-form {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 2rem 0;
+}
+
+/* Enhanced Header Styling */
+.card .text-center.mb-4 {
+    position: relative;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 2rem !important;
+}
+
+/* Error Field Styling - Hidden by default */
+.field-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    padding: 0.25rem 0;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateY(-10px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.field-error.show {
+    max-height: 100px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.field-error:not(:empty) {
+    max-height: 100px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.card .text-center.mb-4 img {
+    width: 80px;
+    height: auto;
+    filter: brightness(1.2);
+    margin-bottom: 1rem !important;
+}
+
+.badge.bg-danger {
+    background: #dc2626 !important;
+    border: 2px solid #dc2626;
+    color: white !important;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 25px;
+    text-transform: uppercase;
+}
+
+.card h2.text-danger {
+    color: #dc2626 !important;
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+    margin-bottom: 1rem !important;
+}
+
+.card p.text-muted {
+    color: #6c757d !important;
+    font-size: 1.1rem;
+    font-weight: 300;
+    margin-bottom: 0 !important;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    overflow: visible;
+    min-height: 500px;
+}
+
+#form-step-1 .card {
+    min-width: 400px;
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 2.5rem 2rem;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+    padding: 2rem 1.5rem;
+    min-height: 80px;
+}
+
+.card-body {
+    background-color: #f8f9fa;
+    padding: 2.5rem !important;
+    min-height: 400px;
+}
+
+/* ===== FORM CONTROLS STYLING ===== */
+.form-floating > .form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-floating > .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-floating > label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* ===== BUTTON STYLING ===== */
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+}
+
+/* ===== DROPDOWN STYLING ===== */
+.dropdown .btn {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.dropdown .btn:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(220, 38, 38, 0.4);
+}
+
+.dropdown-menu {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+.dropdown-menu .form-check-label {
+    font-weight: 500;
+    color: #374151;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.dropdown-menu .form-check-label:hover {
+    color: #dc2626;
+}
+
+.dropdown-menu .form-check-input:checked + .form-check-label {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+/* ===== FIELD ERROR STYLING ===== */
+.field-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: rgba(220, 38, 38, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #dc2626;
+}
+
+.form-control.is-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+}
+
+/* ===== SECTION CARDS (for form-step-3) ===== */
+.card.mb-4 {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem !important;
+    overflow: hidden;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.card-header.bg-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    border: none;
+    padding: 1.25rem 1.5rem;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.card-header h5 {
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin: 0;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.card-header i {
+    font-size: 1.25rem;
+    margin-right: 0.75rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+    background: #ffffff;
+}
+
+/* ===== INFO ITEMS STYLING ===== */
+.info-item {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: rgba(248, 250, 252, 0.8);
+    margin-bottom: 0.75rem;
+    border-left: 4px solid #dc2626;
+    transition: all 0.3s ease;
+}
+
+.info-item:hover {
+    background: rgba(220, 38, 38, 0.05);
+    transform: translateX(5px);
+}
+
+.info-item p {
+    margin: 0;
+    font-size: 1rem;
+    color: #374151;
+    font-weight: 500;
+}
+
+.info-item strong {
+    color: #1f2937;
+    font-weight: 700;
+}
+
+/* ===== TOTAL AMOUNT SECTION ===== */
+.card.border-danger {
+    border: 2px solid #dc2626 !important;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(185, 28, 28, 0.05) 100%);
+}
+
+.bg-light {
+    background: rgba(248, 250, 252, 0.8) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    #book-form {
+        padding: 1rem 0;
+    }
+    
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .card-header {
+        padding: 1rem !important;
+    }
+    
+    .card-header h3 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .col-sm-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animation for form appearance */
+.card {
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== FORM STEP DISPLAY RULES ===== */
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Step 2 - Tour Selection */
+#form-step-2 .container {
+    max-width: 1200px;
+}
+
+#form-step-2 .card {
+    max-width: 100%;
+}
+
+#form-step-2 .row.g-3 .col {
+    margin-bottom: 1.5rem;
+}
+
+#form-step-2 .form-floating {
+    margin-bottom: 1rem;
+}
+
+#form-step-2 .mt-4 {
+    margin-top: 2rem !important;
+}
+
+#form-step-2 .mt-5 {
+    margin-top: 2.5rem !important;
+}
+
+/* Step 3 - Booking Summary */
+#form-step-3 .container-fluid {
+    padding: 0 1rem;
+}
+
+#form-step-3 .card {
+    max-width: 100%;
+    width: 100%;
+}
+
+/* Step 4 - Payment */
+#form-step-4 .row.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+/* ===== ENHANCED SPACING AND LAYOUT ===== */
+.container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.row {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+}
+
+.row > * {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+/* ===== FORM FIELD ENHANCEMENTS ===== */
+.form-floating {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.form-floating > .form-control {
+    height: calc(3.5rem + 2px);
+    line-height: 1.25;
+}
+
+.form-floating > label {
+    height: calc(3.5rem + 2px);
+    padding: 1rem 0.75rem;
+    line-height: 1.25;
+}
+
+/* ===== BUTTON ENHANCEMENTS ===== */
+.btn-danger,
+.btn[style*="background-color: #ef4444"] {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover,
+.btn[style*="background-color: #ef4444"]:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(220, 38, 38, 0.4);
+}
+
+/* ===== HOTELS ROW ANIMATION ===== */
+#hotelsRow {
+    display: flex;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
+    margin-top: 0;
+}
+
+#hotelsRow.is-visible {
+    max-height: 500px;
+    opacity: 1;
+    overflow: visible;
+    margin-top: 2.5rem;
+}
+
+/* ===== STEP 4 PAYMENT STYLING ===== */
+#form-step-4 .btn {
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+#form-step-4 .btn:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(220, 38, 38, 0.4);
+}
+
+/* ===== UTILITY CLASSES ===== */
+.text-danger {
+    color: #dc2626 !important;
+}
+
+.bg-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+
+.border-danger {
+    border-color: #dc2626 !important;
+}
+
+/* ===== LOADING STATES ===== */
+.btn.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.form-step.active {
+    display: block;
+}
+
+
+/* Form validation error styling - updated */
+.field-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: rgba(220, 38, 38, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #dc2626;
+}
+  
+.form-control.is-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+}
+
+.form-control.is-invalid + label::after {
+    content: "⚠";
+    color: #dc2626;
+    margin-left: 0.25rem;
+    font-size: 1rem;
+}
+
+/* Updated form control styling to match global design */
+#book-form .form-control,
+#book-form .form-select,
+#book-form input[type="text"],
+#book-form input[type="email"],
+#book-form input[type="tel"],
+#book-form input[type="date"],
+#book-form select,
+#book-form textarea {
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+#book-form .form-control:focus,
+#book-form .form-select:focus,
+#book-form input[type="text"]:focus,
+#book-form input[type="email"]:focus,
+#book-form input[type="tel"]:focus,
+#book-form input[type="date"]:focus,
+#book-form select:focus,
+#book-form textarea:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Booking summary specific input styling - updated */
+#form-step-3 .form-control,
+#form-step-3 .form-select,
+#form-step-3 input[type="text"],
+#form-step-3 input[type="email"],
+#form-step-3 input[type="tel"],
+#form-step-3 input[type="date"],
+#form-step-3 select,
+#form-step-3 textarea {
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+}
+
+#form-step-3 .card {
+    min-height: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#hotelsRow {
+    display: flex;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.35s ease;
+}
+
+#hotelsRow.is-visible {
+    max-height: 500px;
+    opacity: 1;
+    overflow: visible;
+}
+
+/* Payment Options Styles */
+.payment-options .form-check {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.payment-option-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.payment-option-card .form-check-label {
+    cursor: pointer;
+    width: 100%;
+}
+
+.payment-option-card .card {
+    transition: all 0.3s ease;
+    border: 2px solid #dee2e6;
+    background: white;
+}
+
+.payment-option-card .card:hover {
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
+}
+
+.payment-option-card .form-check-input:checked + .form-check-label .card {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+}
+
+.payment-option-card .card-body {
+    padding: 2rem 1.5rem;
+    background: transparent !important;
+    min-height: auto;
+}
+
+.payment-option-card .fa-2x {
+    font-size: 2.5rem !important;
+}
+
+.payment-option-card .badge {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.8rem;
+}
+
+/* Down Payment Section Animation */
+#downPaymentSection {
+    transition: all 0.4s ease;
+    opacity: 1;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+#downPaymentSection.d-none {
+    opacity: 0;
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+/* Payment Reminder Alert */
+#downPaymentReminder {
+    transition: all 0.3s ease;
+    border-left: 4px solid #ffc107;
+}
+
+#downPaymentReminder.d-none {
+    opacity: 0;
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Form Controls in Payment Section */
+#downPaymentAmount {
+    border: 2px solid #ffc107;
+}
+
+#downPaymentAmount:focus {
+    border-color: #ffb000;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+/* Remaining Balance Display */
+.bg-light {
+    background-color: #f8f9fa !important;
+    border-radius: 8px;
+}
+
+/* Responsive adjustments for payment options */
+@media (max-width: 768px) {
+    .payment-option-card .card-body {
+        padding: 1.5rem 1rem;
+    }
+    
+    .payment-option-card .fa-2x {
+        font-size: 2rem !important;
+    }
+    
+    .payment-option-card h5 {
+        font-size: 1.1rem;
+    }
+}
+
+/* QR Code Modal Styles */
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.payment-method-info .payment-logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    background: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #ef4444;
+}
+
+.payment-amount-section .card {
+    border-width: 0px;
+}
+
+.qr-code-section .qr-placeholder {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    padding: 2rem;
+}
+
+.qr-code-container {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+    background: white;
+    border: 2px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.qr-code-container:hover {
+    border-color: #ef4444;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
+}
+
+.payment-instructions .alert {
+    text-align: left;
+}
+
+.payment-instructions ol {
+    padding-left: 1.2rem;
+}
+
+.payment-instructions ol li {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Modal animations */
+.modal.fade .modal-dialog {
+    transform: translateY(-50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0);
+}
+
+/* Responsive modal */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .qr-code-container {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .payment-method-info .payment-logo {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* E-Receipt Upload Styles */
+.upload-section .card {
+    transition: all 0.3s ease;
+}
+
+.upload-section .border-dashed {
+    border-style: dashed !important;
+    border-width: 2px !important;
+}
+
+.upload-area {
+    padding: 2rem;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    background-color: #f8f9fa;
+}
+
+.upload-placeholder {
+    cursor: pointer;
+}
+
+.upload-placeholder .fa-cloud-upload-alt {
+    transition: all 0.3s ease;
+}
+
+.upload-placeholder:hover .fa-cloud-upload-alt {
+    transform: scale(1.1);
+    color: #0056b3 !important;
+}
+
+.uploaded-files {
+    transition: all 0.4s ease;
+}
+
+.uploaded-files .card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.uploaded-files .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+}
+
+.uploaded-files .card-img-top {
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 2px solid #28a745;
+}
+
+.uploaded-files .btn-outline-danger {
+    transition: all 0.3s ease;
+}
+
+.uploaded-files .btn-outline-danger:hover {
+    transform: scale(1.05);
+}
+
+/* File upload animations */
+.upload-section .card.border-primary {
+    animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+    0% {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+    }
+    50% {
+        border-color: #0056b3;
+        box-shadow: 0 0 0 8px rgba(0, 123, 255, 0);
+    }
+    100% {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+/* Success state */
+.upload-area .text-success {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Submit button states */
+#submitBookingBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#submitBookingBtn .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Payment summary card */
+.border-success {
+    border-color: #28a745 !important;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+/* Responsive adjustments for upload page */
+@media (max-width: 768px) {
+    .upload-area {
+        padding: 1.5rem;
+    }
+    
+    .uploaded-files .card-img-top {
+        height: 150px;
+    }
+    
+    .upload-placeholder h5 {
+        font-size: 1.1rem;
+    }
+    
+    .upload-placeholder .fa-cloud-upload-alt {
+        font-size: 2.5rem !important;
+    }
+}
+
+/* ===== BOOKING SUMMARY (STEP 3) ENHANCEMENTS ===== */
+
+/* Container and layout adjustments */
+#form-step-3 {
+    padding: 1rem 0;
+    min-height: auto;
+}
+
+#form-step-3 .container-fluid {
+    padding: 0 1rem;
+}
+
+/* Main summary card styling */
+#form-step-3 .card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-width: 100%;
+    width: 100%;
+}
+
+#form-step-3 .card-body {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 2.5rem !important;
+}
+
+/* Adjust section card margins for tighter layout */
+#form-step-3 .card.mb-4 {
+    margin-bottom: 1.25rem !important;
+}
+
+/* Header section styling */
+#form-step-3 .text-center img {
+    max-width: 150px;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+#form-step-3 h2 {
+    color: #dc2626;
+    font-weight: 700;
+    font-size: 2.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+#form-step-3 .text-center p {
+    color: #6c757d;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Section cards styling */
+#form-step-3 .card.mb-4 {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 1.25rem !important;
+}
+
+#form-step-3 .card.mb-4:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Card headers styling */
+#form-step-3 .card-header {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+    border: none;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+#form-step-3 .card-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+}
+
+#form-step-3 .card-header h5 {
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+#form-step-3 .card-header i {
+    font-size: 1.3rem;
+    margin-right: 0.75rem;
+}
+
+/* Card body styling */
+#form-step-3 .card-body {
+    padding: 1.75rem;
+    background: #ffffff;
+}
+
+/* Personal Information specific adjustments */
+#form-step-3 .card:first-of-type .card-body {
+    padding: 1.5rem;
+}
+
+#form-step-3 .card:first-of-type .info-item {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem !important;
+}
+
+#form-step-3 .card:first-of-type .info-item p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+#form-step-3 .card:first-of-type .card-header {
+    padding: 1.25rem 1.5rem;
+}
+
+/* Information rows styling */
+#form-step-3 .card-body p {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #495057;
+}
+
+#form-step-3 .card-body p strong {
+    color: #343a40;
+    font-weight: 600;
+    display: inline-block;
+    min-width: 140px;
+}
+
+#form-step-3 .card-body span {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Info item styling */
+#form-step-3 .info-item {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: rgba(248, 249, 250, 0.5);
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+#form-step-3 .info-item:hover {
+    background: rgba(220, 38, 38, 0.05);
+    border-left-color: #dc2626;
+    transform: translateX(5px);
+}
+
+#form-step-3 .info-item p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+#form-step-3 .info-item i.fas {
+    width: 20px;
+    text-align: center;
+}
+
+/* Tour category styling */
+#form-step-3 .tour-category {
+    background: rgba(248, 249, 250, 0.3);
+    padding: 1.75rem;
+    border-radius: 12px;
+    height: 100%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+#form-step-3 .tour-category:hover {
+    border-color: #dc2626;
+    background: rgba(220, 38, 38, 0.05);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Dynamic tour containers responsive layout */
+#form-step-3 #tour-packages-container [class*="col-"] {
+    margin-bottom: 1rem;
+}
+
+#form-step-3 #no-tours-message {
+    padding: 2rem;
+    border-radius: 12px;
+    background: rgba(248, 249, 250, 0.5);
+    border: 2px dashed #dee2e6;
+}
+
+/* Responsive adjustments for tour packages */
+@media (max-width: 768px) {
+    #form-step-3 #tour-packages-container [class*="col-"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Step badge styling */
+#form-step-3 .badge {
+    border-radius: 25px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+/* Tour packages specific styling */
+#form-step-3 .card-body h6 {
+    color: #dc2626;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #dc2626;
+    display: inline-block;
+}
+
+#form-step-3 .card-body ul {
+    padding-left: 0;
+}
+
+#form-step-3 .card-body ul li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+    font-weight: 500;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+#form-step-3 .card-body ul li:last-child {
+    border-bottom: none;
+}
+
+#form-step-3 .card-body ul li:not(.text-muted)::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    color: #28a745;
+    font-weight: bold;
+}
+
+#form-step-3 .card-body ul li.text-muted {
+    color: #adb5bd !important;
+    font-style: italic;
+}
+
+/* Amount display boxes */
+#form-step-3 .bg-light {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border: 2px solid #e9ecef;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    transition: all 0.3s ease;
+}
+
+#form-step-3 .bg-light:hover {
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+#form-step-3 .bg-light span:first-child {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+#form-step-3 .bg-light .text-danger {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* Total amount section special styling */
+#form-step-3 .card.border-danger {
+    border: 3px solid #dc2626 !important;
+    background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+    min-height: auto;
+}
+
+#form-step-3 .card.border-danger .card-body {
+    background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%) !important;
+    padding: 1.5rem !important;
+    min-height: auto;
+}
+
+#form-step-3 .card.border-danger .text-center.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+#form-step-3 .card.border-danger .fs-1 {
+    font-size: 2rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+#form-step-3 .card.border-danger h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
+}
+
+#form-step-3 .card.border-danger h3 {
+    font-size: 2rem;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+#form-step-3 .card.border-danger .d-flex {
+    align-items: center;
+    min-height: auto;
+}
+
+/* Navigation buttons styling */
+#form-step-3 .btn {
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 1rem 2rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#form-step-3 .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+#form-step-3 .btn:hover::before {
+    left: 100%;
+}
+
+#form-step-3 .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive design for booking summary */
+@media (max-width: 1200px) {
+    #form-step-3 .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    #form-step-3 .card:first-of-type .card-body {
+        padding: 0.875rem;
+    }
+}
+
+@media (max-width: 992px) {
+    #form-step-3 .card-body {
+        padding: 1.25rem !important;
+    }
+    
+    #form-step-3 .card:first-of-type .card-body {
+        padding: 0.75rem;
+    }
+    
+    #form-step-3 .tour-category {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    #form-step-3 .card-body {
+        padding: 1.25rem !important;
+    }
+    
+    #form-step-3 .card:first-of-type .card-body {
+        padding: 0.75rem;
+    }
+    
+    #form-step-3 .card:first-of-type .info-item {
+        padding: 0.35rem 0.5rem;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    #form-step-3 .card:first-of-type .info-item p {
+        font-size: 0.9rem;
+    }
+    
+    #form-step-3 h2 {
+        font-size: 2rem;
+    }
+    
+    #form-step-3 .card-header {
+        padding: 1rem 1.25rem;
+    }
+    
+    #form-step-3 .card:first-of-type .card-header {
+        padding: 0.875rem 1rem;
+    }
+    
+    #form-step-3 .card-body p strong {
+        min-width: auto;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    
+    #form-step-3 .bg-light {
+        padding: 1rem !important;
+    }
+    
+    #form-step-3 .card.border-danger h4 {
+        font-size: 1.25rem;
+    }
+    
+    #form-step-3 .card.border-danger h3 {
+        font-size: 1.75rem;
+    }
+    
+    #form-step-3 .card.border-danger .card-body {
+        padding: 1.25rem !important;
+    }
+    
+    #form-step-3 .card.border-danger .fs-1 {
+        font-size: 1.5rem !important;
+    }
+    
+    #form-step-3 .btn {
+        font-size: 1rem;
+        padding: 0.875rem 1.5rem;
+    }
+    
+    #form-step-3 .tour-category {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    #form-step-3 .card.mb-4 {
+        margin-bottom: 1.25rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    #form-step-3 .card-body {
+        padding: 1rem !important;
+    }
+    
+    #form-step-3 .card:first-of-type .card-body {
+        padding: 0.625rem;
+    }
+    
+    #form-step-3 .card:first-of-type .info-item {
+        padding: 0.3rem 0.4rem;
+        margin-bottom: 0.4rem !important;
+    }
+    
+    #form-step-3 .card:first-of-type .info-item p {
+        font-size: 0.85rem;
+    }
+    
+    #form-step-3 .card:first-of-type .card-header {
+        padding: 0.75rem 0.875rem;
+    }
+    
+    #form-step-3 .card.border-danger .card-body {
+        padding: 1rem !important;
+    }
+    
+    #form-step-3 .card.border-danger h4 {
+        font-size: 1.1rem;
+    }
+    
+    #form-step-3 .card.border-danger h3 {
+        font-size: 1.5rem;
+    }
+    
+    #form-step-3 .card.border-danger .fs-1 {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    #form-step-3 .tour-category {
+        padding: 0.875rem;
+    }
+    
+    #form-step-3 .info-item {
+        padding: 0.5rem;
+    }
+    
+    #form-step-3 .card-header {
+        padding: 0.875rem 1rem;
+    }
+}

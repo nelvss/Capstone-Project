@@ -1,0 +1,95 @@
+<!DOCTYPE html>    <nav>
+      <ul>
+        <li class="active" onclick="window.location.href='staff_dashboard.html'"><span class="icon">📊</span> Dashboard</li>
+        <li onclick="window.location.href='staff_payment.html'"><span class="icon">💳</span> Payment</li>
+      </ul>
+    </nav>lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Dashboard</title>
+  <link rel="stylesheet" href="staff_dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script defer src="staff_dashboard.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">👥</span>
+      <span class="sidebar-title">Staff Portal</span>
+    </div>
+    <nav>
+      <ul>
+        <li class="active" onclick="window.location.href='staff_dashboard.html'"><span class="icon">📊</span> Dashboard</li>
+        <li onclick="window.location.href='staff_payment.html'"><span class="icon">�</span> Payment</li>
+
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="handleLogout()"><span class="icon">⏻</span> Logout</button>
+    </div>
+  </div>
+  <div class="main-content">
+    <header>
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="hamburger-icon">☰</span>
+      </button>
+      <h1>Staff Dashboard</h1>
+      <div class="staff-info">
+        <span class="staff-role">Staff Member</span>
+      </div>
+    </header>
+    <section class="stats">
+      <div class="stat-card stat-blue">
+        <div class="stat-value" id="total-bookings">7</div>
+        <div class="stat-label">Total Bookings</div>
+      </div>
+      <div class="stat-card stat-yellow">
+        <div class="stat-value" id="pending-bookings">7</div>
+        <div class="stat-label">Pending Bookings</div>
+      </div>
+      <div class="stat-card stat-green">
+        <div class="stat-value" id="confirmed-bookings">0</div>
+        <div class="stat-label">Confirmed Bookings</div>
+      </div>
+      <div class="stat-card stat-red">
+        <div class="stat-value" id="cancelled-bookings">0</div>
+        <div class="stat-label">Cancelled Bookings</div>
+      </div>
+    </section>
+    <section class="table-section">
+      <div class="table-header">
+        <h2>Booking Management</h2>
+        <div class="filter-controls">
+          <select id="status-filter" onchange="filterBookings()">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>NAME</th>
+            <th>Services</th>
+            <th>Rental</th>
+            <th>Arrival Date</th>
+            <th>Departure Date</th>
+            <th>Hotel</th>
+            <th>Total Price</th>
+            <th>Contact Number</th>
+            <th>EMAIL</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="booking-table-body">
+          <!-- Rows will be rendered by JS -->
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>
