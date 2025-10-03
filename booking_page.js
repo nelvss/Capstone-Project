@@ -362,6 +362,16 @@
   // Hotels
   wireMultiSelect("hotels-select-all", "hotels-options", "hotels-option", null);
   
+  // Add event listener for diving option (no select-all needed since there's only one option)
+  const divingOption = document.getElementById("diving-only");
+  if (divingOption) {
+    divingOption.addEventListener("change", () => {
+      calculateDivingPrice();
+      calculateTotalAmount();
+      updatePackagePrice();
+    });
+  }
+  
   // Add days visibility control to hotel options
   const hotelOptions = document.querySelectorAll(".hotels-option");
   hotelOptions.forEach(option => {
@@ -396,11 +406,8 @@ function updateHotelsRowVisibility() {
   }
 }
 
-[".island-option", ".inland-option", ".snorkel-option", ".diving-option"].forEach((selector) => {
-  document.querySelectorAll(selector).forEach((cb) => {
-    cb.addEventListener("change", updateHotelsRowVisibility);
-  });
-});
+// Tour options already have event listeners set up via wireMultiSelect function
+// which includes updatePackagePrice() calls
 
 // Function to control days input visibility
 function updateDaysVisibility() {
@@ -495,6 +502,78 @@ function calculateSnorkelingTourPrice(touristCount) {
   return pricePerPerson * touristCount;
 }
 
+// VEHICLE RENTAL PRICING
+function calculateVehiclePrice() {
+  const vehicleAmountInput = document.getElementById("amountOfVehicle");
+  if (!vehicleAmountInput) return 0;
+
+  const selectedVehicles = document.querySelectorAll(".rental-option:checked");
+  if (selectedVehicles.length === 0) {
+    vehicleAmountInput.value = "";
+    return 0;
+  }
+
+  let totalVehiclePrice = 0;
+  
+  selectedVehicles.forEach(vehicle => {
+    const vehicleType = vehicle.value;
+    let dailyRate = 0;
+    
+    switch (vehicleType) {
+      case "ADV":
+        dailyRate = 1000;
+        break;
+      case "NMAX":
+        dailyRate = 1000;
+        break;
+      case "VERSYS 650":
+        dailyRate = 2000;
+        break;
+      case "VERSYS 1000":
+        dailyRate = 2500;
+        break;
+      case "TUKTUK":
+        dailyRate = 1800;
+        break;
+      case "CAR":
+        dailyRate = 3000;
+        break;
+      default:
+        dailyRate = 1000;
+    }
+    
+    // For now, assume 1 day rental. Later you might want to add rental days input
+    const rentalDays = 1;
+    totalVehiclePrice += dailyRate * rentalDays;
+  });
+
+  vehicleAmountInput.value = totalVehiclePrice > 0 ? `₱${totalVehiclePrice.toLocaleString()}.00` : "";
+  return totalVehiclePrice;
+}
+
+// DIVING SERVICE PRICING
+function calculateDivingPrice() {
+  const divingAmountInput = document.getElementById("amountOfDiving");
+  const numberOfDiversInput = document.getElementById("numberOfDiver");
+  
+  if (!divingAmountInput || !numberOfDiversInput) return 0;
+
+  const selectedDiving = document.querySelector(".diving-option:checked");
+  const numberOfDivers = parseInt(numberOfDiversInput.value) || 0;
+  
+  if (!selectedDiving || numberOfDivers === 0) {
+    divingAmountInput.value = "";
+    return 0;
+  }
+
+  // Diving service pricing (per diver)
+  const pricePerDiver = 2500;
+  const totalDivingPrice = pricePerDiver * numberOfDivers;
+
+  divingAmountInput.value = totalDivingPrice > 0 ? `₱${totalDivingPrice.toLocaleString()}.00` : "";
+  return totalDivingPrice;
+}
+
 // Main function to update package price
 function calculateHotelPrice() {
   const days = calculateDuration();
@@ -551,6 +630,12 @@ function updatePackagePrice() {
   // Calculate hotel price if selected
   calculateHotelPrice();
   
+  // Calculate vehicle rental price if selected
+  calculateVehiclePrice();
+  
+  // Calculate diving service price if selected
+  calculateDivingPrice();
+  
   // Format and display package price
   if (totalPackagePrice > 0) {
     amountOfPackageInput.value = `₱${totalPackagePrice.toLocaleString()}.00`;
@@ -581,6 +666,33 @@ function updatePackagePrice() {
         touristCountInput.value = "";
       }
       updatePackagePrice();
+    });
+  }
+})();
+
+// Add event listener to number of divers input
+(function() {
+  const numberOfDiversInput = document.getElementById("numberOfDiver");
+  if (numberOfDiversInput) {
+    numberOfDiversInput.addEventListener("input", () => {
+      calculateDivingPrice();
+      calculateTotalAmount();
+    });
+    
+    // Ensure only positive numbers are entered
+    numberOfDiversInput.addEventListener("keypress", (e) => {
+      const char = String.fromCharCode(e.which);
+      if (!/[0-9]/.test(char)) e.preventDefault();
+    });
+    
+    // Prevent negative values
+    numberOfDiversInput.addEventListener("blur", () => {
+      const value = parseInt(numberOfDiversInput.value) || 0;
+      if (value < 0) {
+        numberOfDiversInput.value = "";
+      }
+      calculateDivingPrice();
+      calculateTotalAmount();
     });
   }
 })();
