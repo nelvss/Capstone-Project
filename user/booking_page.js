@@ -32,8 +32,6 @@
     if (!ok) {
       return; // stay on step 2
     }
-    // Clear any existing step 2 errors when validation passes
-    hideStep2Error();
   }
   
   if (currentStep < totalSteps) {
@@ -161,6 +159,166 @@
   
       return valid;
     }
+
+    // STEP 2 VALIDATION
+    function validateStep2() {
+      let valid = true;
+      
+      // Check if at least one service is selected:
+      // 1. Tour packages (island, inland, or snorkeling)
+      // 2. Rental vehicle
+      // 3. Diving
+      
+      const errorMessageDiv = document.getElementById("step2-error-message");
+      const errorTextSpan = document.getElementById("step2-error-text");
+      const touristCountInput = document.getElementById("touristCount");
+      const rentalDaysSelect = document.getElementById("rentalDays");
+      const numberOfDiversInput = document.getElementById("numberOfDiver");
+      
+      // Check tour packages
+      const islandTours = document.querySelectorAll('.island-option:checked');
+      const inlandTours = document.querySelectorAll('.inland-option:checked');
+      const snorkelTours = document.querySelectorAll('.snorkel-option:checked');
+      const hasTourPackages = islandTours.length > 0 || inlandTours.length > 0 || snorkelTours.length > 0;
+      
+      // Check rental vehicles
+      const rentalVehicles = document.querySelectorAll('.rental-option:checked');
+      const hasRentalVehicle = rentalVehicles.length > 0;
+      
+      // Check diving
+      const divingOptions = document.querySelectorAll('.diving-option:checked');
+      const hasDiving = divingOptions.length > 0;
+      
+      // Clear previous errors
+      if (touristCountInput) {
+        setError(touristCountInput, "");
+      }
+      if (rentalDaysSelect) {
+        setError(rentalDaysSelect, "");
+      }
+      if (numberOfDiversInput) {
+        setError(numberOfDiversInput, "");
+      }
+      
+      // Validate that at least one service is selected
+      if (!hasTourPackages && !hasRentalVehicle && !hasDiving) {
+        // Show error message
+        if (errorMessageDiv && errorTextSpan) {
+          errorTextSpan.textContent = 'Please select at least one service (Tour Package, Rental Vehicle, or Diving) before proceeding to the next page.';
+          errorMessageDiv.style.display = 'block';
+          // Scroll to the error message
+          errorMessageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return false;
+      }
+      
+      // If tour packages are selected, validate tourist count
+      if (hasTourPackages) {
+        const touristCount = parseInt(touristCountInput.value) || 0;
+        
+        if (touristCount === 0 || touristCountInput.value.trim() === "") {
+          setError(touristCountInput, "Number of Tourist is required when selecting tour packages.");
+          valid = false;
+          // Focus on the tourist count input
+          touristCountInput.focus();
+        } else if (touristCount < 1) {
+          setError(touristCountInput, "Number of Tourist must be at least 1.");
+          valid = false;
+          touristCountInput.focus();
+        }
+      }
+      
+      // If rental vehicles are selected, validate rental days
+      if (hasRentalVehicle) {
+        const rentalDays = rentalDaysSelect.value;
+        
+        if (!rentalDays || rentalDays === "") {
+          setError(rentalDaysSelect, "Select Rental Days is required when selecting rental vehicles.");
+          valid = false;
+          // Focus on the rental days select if tourist count was valid
+          if (hasTourPackages && parseInt(touristCountInput.value) > 0) {
+            rentalDaysSelect.focus();
+          } else if (!hasTourPackages) {
+            rentalDaysSelect.focus();
+          }
+        }
+      }
+      
+      // If diving is selected, validate number of divers
+      if (hasDiving) {
+        const numberOfDivers = parseInt(numberOfDiversInput.value) || 0;
+        
+        if (numberOfDivers === 0 || numberOfDiversInput.value.trim() === "") {
+          setError(numberOfDiversInput, "Number of Divers is required when selecting diving service.");
+          valid = false;
+          // Focus on the number of divers input if previous validations passed
+          if (!hasTourPackages && !hasRentalVehicle) {
+            numberOfDiversInput.focus();
+          } else if (hasTourPackages && parseInt(touristCountInput.value) > 0 && (!hasRentalVehicle || rentalDaysSelect.value !== "")) {
+            numberOfDiversInput.focus();
+          } else if (!hasTourPackages && hasRentalVehicle && rentalDaysSelect.value !== "") {
+            numberOfDiversInput.focus();
+          }
+        } else if (numberOfDivers < 1) {
+          setError(numberOfDiversInput, "Number of Divers must be at least 1.");
+          valid = false;
+          numberOfDiversInput.focus();
+        }
+      }
+      
+      // Hide the general error message if validation passes
+      if (valid && errorMessageDiv) {
+        errorMessageDiv.style.display = 'none';
+      }
+      
+      return valid;
+    }
+
+    // Function to clear Step 2 error message when user makes a selection
+    function clearStep2Error() {
+      const errorMessageDiv = document.getElementById("step2-error-message");
+      if (errorMessageDiv) {
+        errorMessageDiv.style.display = 'none';
+      }
+    }
+
+    // Function to clear tourist count error if no tour packages are selected
+    function clearTouristCountErrorIfNoTours() {
+      const touristCountInput = document.getElementById("touristCount");
+      const islandTours = document.querySelectorAll('.island-option:checked');
+      const inlandTours = document.querySelectorAll('.inland-option:checked');
+      const snorkelTours = document.querySelectorAll('.snorkel-option:checked');
+      const hasTourPackages = islandTours.length > 0 || inlandTours.length > 0 || snorkelTours.length > 0;
+      
+      // Clear tourist count error if no tour packages are selected
+      if (!hasTourPackages && touristCountInput) {
+        setError(touristCountInput, "");
+      }
+    }
+
+    // Function to clear rental days error if no rental vehicles are selected
+    function clearRentalDaysErrorIfNoVehicles() {
+      const rentalDaysSelect = document.getElementById("rentalDays");
+      const rentalVehicles = document.querySelectorAll('.rental-option:checked');
+      const hasRentalVehicle = rentalVehicles.length > 0;
+      
+      // Clear rental days error if no rental vehicles are selected
+      if (!hasRentalVehicle && rentalDaysSelect) {
+        setError(rentalDaysSelect, "");
+      }
+    }
+
+    // Function to clear number of divers error if diving is not selected
+    function clearNumberOfDiversErrorIfNoDiving() {
+      const numberOfDiversInput = document.getElementById("numberOfDiver");
+      const divingOptions = document.querySelectorAll('.diving-option:checked');
+      const hasDiving = divingOptions.length > 0;
+      
+      // Clear number of divers error if diving is not selected
+      if (!hasDiving && numberOfDiversInput) {
+        setError(numberOfDiversInput, "");
+      }
+    }
   
     (function enforceContactInput() {
       const contactNo = document.getElementById("contactNo");
@@ -221,63 +379,7 @@
     })();
   })();
   
-    // STEP 2 VALIDATION
-    function validateStep2() {
-      // Check if at least one tour option is selected from any category
-      const islandOptions = document.querySelectorAll('.island-option:checked');
-      const inlandOptions = document.querySelectorAll('.inland-option:checked');
-      const snorkelOptions = document.querySelectorAll('.snorkel-option:checked');
-      const divingOptions = document.querySelectorAll('.diving-option:checked');
-      
-      // Check if any option is selected
-      const hasSelection = islandOptions.length > 0 || 
-                          inlandOptions.length > 0 || 
-                          snorkelOptions.length > 0 || 
-                          divingOptions.length > 0;
-      
-      if (!hasSelection) {
-        showStep2Error();
-        return false;
-      }
-      
-      return true;
-    }
-    
-    function showStep2Error() {
-      // Create or show error message
-      let errorContainer = document.getElementById('step2-error-container');
-      
-      if (!errorContainer) {
-        // Create error container if it doesn't exist
-        errorContainer = document.createElement('div');
-        errorContainer.id = 'step2-error-container';
-        errorContainer.className = 'alert alert-danger mt-3';
-        errorContainer.innerHTML = `
-          <div class="d-flex align-items-center">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>Please select at least one tour option to proceed.</strong>
-          </div>
-        `;
-        
-        // Insert the error after the form content but before navigation buttons
-        const step2Form = document.querySelector('#form-step-2 .card-body');
-        const navigationRow = step2Form.querySelector('.row:last-child');
-        step2Form.insertBefore(errorContainer, navigationRow);
-      } else {
-        // Show existing error container
-        errorContainer.style.display = 'block';
-      }
-      
-      // Scroll to error message
-      errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    
-    function hideStep2Error() {
-      const errorContainer = document.getElementById('step2-error-container');
-      if (errorContainer) {
-        errorContainer.style.display = 'none';
-      }
-    }
+
 
   // For island, inland, and snorkeling dropdown groups
 
@@ -330,6 +432,14 @@
       }
       // Update package price when selections change
       updatePackagePrice();
+      // Clear step 2 error message if it exists
+      if (typeof clearStep2Error === "function") {
+        clearStep2Error();
+      }
+      // Clear tourist count error if no tour packages selected
+      if (typeof clearTouristCountErrorIfNoTours === "function") {
+        clearTouristCountErrorIfNoTours();
+      }
     });
 
     optionCheckboxes.forEach(cb => {
@@ -341,6 +451,14 @@
         }
         // Update package price when selections change
         updatePackagePrice();
+        // Clear step 2 error message if it exists
+        if (typeof clearStep2Error === "function") {
+          clearStep2Error();
+        }
+        // Clear tourist count error if no tour packages selected
+        if (typeof clearTouristCountErrorIfNoTours === "function") {
+          clearTouristCountErrorIfNoTours();
+        }
       });
     });
 
@@ -359,6 +477,30 @@
   wireMultiSelect("snorkel-select-all", "snorkel-options", "snorkel-option", null);
   // Rental vehicle
   wireMultiSelect("rental-select-all", "rental-options", "rental-option", null);
+  
+  // Add specific handling for rental vehicle options to clear rental days error
+  const rentalOptions = document.querySelectorAll(".rental-option");
+  rentalOptions.forEach(option => {
+    option.addEventListener("change", () => {
+      if (typeof clearRentalDaysErrorIfNoVehicles === "function") {
+        clearRentalDaysErrorIfNoVehicles();
+      }
+    });
+  });
+  
+  // Add event listener for rental days dropdown
+  const rentalDaysSelect = document.getElementById("rentalDays");
+  if (rentalDaysSelect) {
+    rentalDaysSelect.addEventListener("change", () => {
+      calculateVehiclePrice();
+      calculateTotalAmount();
+      // Clear error when user selects a value
+      if (rentalDaysSelect.value !== "") {
+        setError(rentalDaysSelect, "");
+      }
+    });
+  }
+  
   // Hotels
   wireMultiSelect("hotels-select-all", "hotels-options", "hotels-option", null);
   
@@ -369,6 +511,10 @@
       calculateDivingPrice();
       calculateTotalAmount();
       updatePackagePrice();
+      // Clear number of divers error if diving is unchecked
+      if (typeof clearNumberOfDiversErrorIfNoDiving === "function") {
+        clearNumberOfDiversErrorIfNoDiving();
+      }
     });
   }
   
@@ -388,21 +534,31 @@
     const refresh = () => {
       updateHotelsRowVisibility();
       updatePackagePrice();
+      // Clear step 2 error message if it exists
+      if (typeof clearStep2Error === "function") {
+        clearStep2Error();
+      }
     };
     divingOption.addEventListener("change", refresh);
   })();
 
-// Control Hotels row visibility based on selected tour options only
+// Control Hotels row visibility based on selected tour options only (NOT diving or rental)
 function updateHotelsRowVisibility() {
   const hotelsRow = document.getElementById("hotelsRow");
   if (!hotelsRow) return;
+  // Only show hotels when tour packages are selected (island, inland, or snorkeling)
+  // NOT when diving or rental vehicles are selected
   const anyChecked = document.querySelectorAll(
-    ".island-option:checked, .inland-option:checked, .snorkel-option:checked, .diving-option:checked"
+    ".island-option:checked, .inland-option:checked, .snorkel-option:checked"
   ).length > 0;
   if (anyChecked) {
     hotelsRow.classList.add("is-visible");
   } else {
     hotelsRow.classList.remove("is-visible");
+  }
+  // Update days visibility when hotels row visibility changes
+  if (typeof updateDaysVisibility === "function") {
+    updateDaysVisibility();
   }
 }
 
@@ -412,11 +568,14 @@ function updateHotelsRowVisibility() {
 // Function to control days input visibility
 function updateDaysVisibility() {
   const daysGroup = document.getElementById("daysGroup");
-  const anyHotelSelected = document.querySelectorAll(".hotels-option:checked").length > 0;
+  const hotelsRow = document.getElementById("hotelsRow");
   
-  if (daysGroup) {
-    daysGroup.style.display = anyHotelSelected ? "block" : "none";
-    if (!anyHotelSelected) {
+  if (daysGroup && hotelsRow) {
+    // Show days field when hotels row is visible (i.e., when tour packages are selected)
+    const isHotelsRowVisible = hotelsRow.classList.contains("is-visible");
+    daysGroup.style.display = isHotelsRowVisible ? "block" : "none";
+    
+    if (!isHotelsRowVisible) {
       const daysInput = document.getElementById("days");
       if (daysInput) daysInput.value = "";
     } else {
@@ -505,10 +664,14 @@ function calculateSnorkelingTourPrice(touristCount) {
 // VEHICLE RENTAL PRICING
 function calculateVehiclePrice() {
   const vehicleAmountInput = document.getElementById("amountOfVehicle");
-  if (!vehicleAmountInput) return 0;
+  const rentalDaysSelect = document.getElementById("rentalDays");
+  
+  if (!vehicleAmountInput || !rentalDaysSelect) return 0;
 
   const selectedVehicles = document.querySelectorAll(".rental-option:checked");
-  if (selectedVehicles.length === 0) {
+  const rentalDays = parseInt(rentalDaysSelect.value) || 0;
+  
+  if (selectedVehicles.length === 0 || rentalDays === 0) {
     vehicleAmountInput.value = "";
     return 0;
   }
@@ -542,8 +705,6 @@ function calculateVehiclePrice() {
         dailyRate = 1000;
     }
     
-    // For now, assume 1 day rental. Later you might want to add rental days input
-    const rentalDays = 1;
     totalVehiclePrice += dailyRate * rentalDays;
   });
 
@@ -567,7 +728,7 @@ function calculateDivingPrice() {
   }
 
   // Diving service pricing (per diver)
-  const pricePerDiver = 2500;
+  const pricePerDiver = 3500;
   const totalDivingPrice = pricePerDiver * numberOfDivers;
 
   divingAmountInput.value = totalDivingPrice > 0 ? `₱${totalDivingPrice.toLocaleString()}.00` : "";
@@ -651,7 +812,13 @@ function updatePackagePrice() {
 (function() {
   const touristCountInput = document.getElementById("touristCount");
   if (touristCountInput) {
-    touristCountInput.addEventListener("input", updatePackagePrice);
+    touristCountInput.addEventListener("input", () => {
+      updatePackagePrice();
+      // Clear error when user types
+      if (touristCountInput.value.trim() !== "") {
+        setError(touristCountInput, "");
+      }
+    });
     
     // Ensure only positive numbers are entered
     touristCountInput.addEventListener("keypress", (e) => {
@@ -677,6 +844,10 @@ function updatePackagePrice() {
     numberOfDiversInput.addEventListener("input", () => {
       calculateDivingPrice();
       calculateTotalAmount();
+      // Clear error when user types
+      if (numberOfDiversInput.value.trim() !== "") {
+        setError(numberOfDiversInput, "");
+      }
     });
     
     // Ensure only positive numbers are entered
@@ -716,22 +887,6 @@ updatePackagePrice();
 })();
 
 // HOTELS 
-function updateDaysVisibility() {
-  const daysGroup = document.getElementById("daysGroup"); // Make sure to add id="daysGroup" to the days input container
-  const hotelSelected = document.querySelector(".hotels-option:checked");
-  
-  if (daysGroup) {
-    if (hotelSelected) {
-      daysGroup.style.display = "block";
-      calculateDuration(); // Update days when showing
-    } else {
-      daysGroup.style.display = "none";
-      const daysInput = document.getElementById("days");
-      if (daysInput) daysInput.value = ""; // Clear days when hiding
-    }
-  }
-}
-
 function calculateDuration() {
   const arrivalDate = document.getElementById("arrivalDate");
   const departureDate = document.getElementById("departureDate");
@@ -777,6 +932,9 @@ function populateBookingSummary() {
     populateTourSummary('island', 'summary-island-tours');
     populateTourSummary('inland', 'summary-inland-tours');
     populateTourSummary('snorkel', 'summary-snorkel-tours');
+    
+    // Check how many tour types are selected and adjust layout
+    updateTourPackagesLayout();
 
     // Package Amount - remove ₱ symbol from display value since it's already formatted
     const packageAmount = document.getElementById('amountOfPackage').value;
@@ -793,6 +951,52 @@ function populateBookingSummary() {
 
     // Calculate and display total amount
     calculateTotalAmount();
+}
+
+// Function to adjust tour packages layout based on how many are selected
+function updateTourPackagesLayout() {
+    const islandContainer = document.getElementById('island-tours-container');
+    const inlandContainer = document.getElementById('inland-tours-container');
+    const snorkelContainer = document.getElementById('snorkel-tours-container');
+    const noToursMessage = document.getElementById('no-tours-message');
+    const tourPackagesSection = document.getElementById('tour-packages-section');
+    
+    // Count how many tour types are selected
+    const islandSelected = document.querySelectorAll('.island-option:checked').length > 0;
+    const inlandSelected = document.querySelectorAll('.inland-option:checked').length > 0;
+    const snorkelSelected = document.querySelectorAll('.snorkel-option:checked').length > 0;
+    
+    const selectedCount = (islandSelected ? 1 : 0) + (inlandSelected ? 1 : 0) + (snorkelSelected ? 1 : 0);
+    
+    if (selectedCount === 0) {
+        // No tours selected - hide the entire tour packages section
+        if (tourPackagesSection) tourPackagesSection.style.display = 'none';
+        if (noToursMessage) noToursMessage.style.display = 'block';
+    } else {
+        // At least one tour selected - show the section and hide the "no tours" message
+        if (tourPackagesSection) tourPackagesSection.style.display = 'block';
+        if (noToursMessage) noToursMessage.style.display = 'none';
+        
+        // Adjust column sizes based on how many tour types are selected
+        let colClass = 'col-md-4'; // default for 3 columns
+        
+        if (selectedCount === 1) {
+            colClass = 'col-12'; // full width for 1 tour type
+        } else if (selectedCount === 2) {
+            colClass = 'col-md-6'; // half width for 2 tour types
+        }
+        
+        // Update column classes for visible containers
+        if (islandContainer && islandSelected) {
+            islandContainer.className = colClass;
+        }
+        if (inlandContainer && inlandSelected) {
+            inlandContainer.className = colClass;
+        }
+        if (snorkelContainer && snorkelSelected) {
+            snorkelContainer.className = colClass;
+        }
+    }
 }
 
 // Helper function to format date for display
@@ -855,8 +1059,15 @@ function calculateTotalAmount() {
 function populateTourSummary(type, elementId) {
     const options = document.querySelectorAll(`.${type}-option:checked`);
     const summaryElement = document.getElementById(elementId);
+    const containerElement = document.getElementById(`${type}-tours-container`);
     
     if (options.length > 0) {
+        // Show the container
+        if (containerElement) {
+            containerElement.style.display = 'block';
+        }
+        
+        // Populate the list
         summaryElement.innerHTML = '';
         options.forEach(option => {
             const li = document.createElement('li');
@@ -864,6 +1075,11 @@ function populateTourSummary(type, elementId) {
             summaryElement.appendChild(li);
         });
     } else {
+        // Hide the container when no tours are selected
+        if (containerElement) {
+            containerElement.style.display = 'none';
+        }
+        
         const typeDisplay = type === 'island' ? 'island' : type === 'inland' ? 'inland' : 'snorkeling';
         summaryElement.innerHTML = `<li class="text-muted">No ${typeDisplay} tours selected</li>`;
     }
@@ -898,8 +1114,9 @@ function populateVehicleSummary() {
         const selectedVehicles = Array.from(vehicleOptions).map(option => option.value);
         document.getElementById('summary-vehicle').textContent = selectedVehicles.join(', ');
         
-        // Get vehicle rental days - you may need to add this input field
-        document.getElementById('summary-vehicle-days').textContent = '-';
+        // Get vehicle rental days from the dropdown
+        const rentalDays = document.getElementById('rentalDays').value;
+        document.getElementById('summary-vehicle-days').textContent = rentalDays ? `${rentalDays} Day${rentalDays > 1 ? 's' : ''}` : '-';
         
         const vehicleAmount = document.getElementById('amountOfVehicle').value;
         document.getElementById('summary-vehicle-amount').textContent = vehicleAmount || '₱0.00';
