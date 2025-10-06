@@ -1,0 +1,314 @@
+/* ===== GENERAL STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.option-container {
+    width: 100%;
+    padding: 1rem;
+}
+
+/* ===== HEADER STYLES ===== */
+.logo-img {
+    width: 100px;
+    height: auto;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.main-title {
+    color: #ffffff;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #f3f4f6;
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+/* ===== OPTION CARDS ===== */
+.option-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.option-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+
+.option-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.option-card:hover::before {
+    transform: scaleX(1);
+}
+
+.option-card:active {
+    transform: translateY(-5px);
+}
+
+/* ===== OPTION ICON ===== */
+.option-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    transition: all 0.4s ease;
+}
+
+.option-icon i {
+    font-size: 2.5rem;
+    color: #ffffff;
+}
+
+.option-card:hover .option-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+}
+
+.tour-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.option-card:hover .tour-icon {
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+}
+
+/* ===== OPTION CONTENT ===== */
+.option-title {
+    color: #1f2937;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.option-description {
+    color: #6b7280;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* ===== FEATURES LIST ===== */
+.option-features {
+    flex-grow: 1;
+    margin-bottom: 2rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.feature-item:hover {
+    background-color: #f9fafb;
+}
+
+.feature-item i {
+    color: #10b981;
+    font-size: 1.1rem;
+    margin-right: 0.75rem;
+    min-width: 20px;
+}
+
+.feature-item span {
+    color: #374151;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* ===== SELECT BUTTON ===== */
+.btn-select {
+    width: 100%;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-select:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-select:active {
+    transform: translateY(0);
+}
+
+.option-card:nth-child(2) .btn-select {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.option-card:nth-child(2) .btn-select:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* ===== INFO SECTION ===== */
+.info-section .card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.info-section .card-body {
+    padding: 2rem;
+}
+
+.info-icon {
+    font-size: 2rem;
+    color: #ef4444;
+}
+
+.info-section h5 {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.info-section p {
+    font-size: 0.9rem;
+}
+
+/* ===== BACK BUTTON ===== */
+.btn-outline-secondary {
+    padding: 0.75rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6b7280;
+    border-color: #6b7280;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+/* ===== RESPONSIVE STYLES ===== */
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .option-card {
+        padding: 2rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .option-title {
+        font-size: 1.5rem;
+    }
+
+    .option-icon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .option-icon i {
+        font-size: 2rem;
+    }
+
+    .info-section .card-body {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        padding: 1rem 0;
+    }
+
+    .main-title {
+        font-size: 1.75rem;
+    }
+
+    .logo-img {
+        width: 80px;
+    }
+
+    .option-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .btn-select {
+        font-size: 1rem;
+        padding: 0.875rem;
+    }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.option-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.option-card:nth-child(2) {
+    animation-delay: 0.1s;
+}

@@ -96,7 +96,113 @@
             </div>
         </div>
 
-    <div id="form-step-2" class="form-step booking-step-2">
+    <!-- NEW STEP 2: OPTION PAGE -->
+    <div id="form-step-2" class="form-step booking-step-option">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <div class="card shadow-lg">
+                        <div class="card-body p-4">
+                            <!-- Header Section -->
+                            <div class="text-center mb-4">
+                                <img src="../Images/logo.png" alt="OTG Logo" class="img-fluid" style="width: 100px;">
+                                <div class="mt-3">
+                                    <div class="badge bg-danger fs-6 px-3 py-2 mb-2">
+                                        <i class="fas fa-route me-2"></i>Step 2 of 9
+                                    </div>
+                                </div>
+                                <h2 class="main-title mt-3">Choose Your Booking Option</h2>
+                                <p class="subtitle">Select the best option that suits your travel needs</p>
+                            </div>
+
+                            <!-- Options Cards -->
+                            <div class="row g-4 mb-4">
+                                <!-- Package Only Option -->
+                                <div class="col-12 col-md-6">
+                                    <div class="option-card-inline" id="packageOption" onclick="selectBookingOption('package')">
+                                        <div class="option-icon-inline">
+                                            <i class="fas fa-box-open"></i>
+                                        </div>
+                                        <h3 class="option-title-inline">Package Only</h3>
+                                        <p class="option-description-inline">
+                                            Book a complete package with accommodation, tours, and activities all included.
+                                        </p>
+                                        <div class="option-features-inline">
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Island & Inland Tours</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Hotel Accommodation</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Vehicle Rental</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Diving Services</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tour Only Option -->
+                                <div class="col-12 col-md-6">
+                                    <div class="option-card-inline" id="tourOption" onclick="selectBookingOption('tour')">
+                                        <div class="option-icon-inline tour-icon-inline">
+                                            <i class="fas fa-map-marked-alt"></i>
+                                        </div>
+                                        <h3 class="option-title-inline">Tour Only</h3>
+                                        <p class="option-description-inline">
+                                            Book tours and activities only, perfect if you already have accommodation.
+                                        </p>
+                                        <div class="option-features-inline">
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Island Tours</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Inland Tours</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Snorkeling Tours</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Flexible Scheduling</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selection Message -->
+                            <div class="alert alert-info text-center d-none" id="optionSelectedMessage">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Selected:</strong> <span id="selectedOptionText"></span>
+                            </div>
+
+                            <!-- Navigation Buttons -->
+                            <div class="row">
+                                <div class="col-6">
+                                    <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #6c757d; border-color: #6c757d; color: white;" onclick="previousStep()">Previous</button>
+                                </div>
+                                <div class="col-6">
+                                    <button type="button" id="optionNextBtn" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()" disabled>Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="form-step-3" class="form-step booking-step-2">
         <div class="container">
             <div class="row">
                 <div class="col">
@@ -169,6 +275,10 @@
                                             <i class="fa-solid fa-chevron-down"></i>
                                         </button>
                                         <div class="dropdown-menu w-100 p-3" aria-labelledby="inlandDropdown">
+                                            <div class="alert alert-warning py-2 px-3 mb-2" id="inlandTourAlert" style="font-size: 0.85rem;">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                <strong>Reminder:</strong> Inland Tour requires at least 2 tourists.
+                                            </div>
                                             <div class="form-check mt-1">
                                                 <input class="form-check-input" type="checkbox" id="inland-select-all">
                                                 <label class="form-check-label" for="inland-select-all">Select All</label>
@@ -632,7 +742,7 @@
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white; white-space: nowrap;" onclick="nextStep()">
+                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">
                                             Proceed to Payment
                                         </button>
                                     </div>
@@ -798,8 +908,13 @@
                                         <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #6c757d; border-color: #6c757d; color: white;" onclick="previousStep()">Previous</button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">Next</button>
+                                        <button type="button" id="paymentNextBtn" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()" disabled>Next</button>
                                     </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <small class="text-muted" id="paymentInstructions">
+                                        <i class="fas fa-info-circle me-1"></i>Please select a payment method and complete the payment to proceed
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -1026,7 +1141,20 @@
                     </div>
 
                     <!-- Simple Instruction -->
-                    <p class="text-muted small mb-0">Scan QR code with <span id="instructionApp">GCash</span> app</p>
+                    <p class="text-muted small mb-3">Scan QR code with <span id="instructionApp">GCash</span> app</p>
+
+                    <!-- Non-Refundable Policy Reminder -->
+                    <div class="alert alert-warning border-0 mb-0" style="padding: 8px 12px;">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-exclamation-triangle text-warning me-2 mt-1" style="font-size: 0.8rem;"></i>
+                            <div>
+                                <h6 class="mb-1" style="font-size: 0.75rem;">Important Notice</h6>
+                                <p class="mb-0" style="font-size: 0.7rem; line-height: 1.2;">
+                                    Once payment is sent, it is <strong>non-refundable</strong> if you cancel your booking.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>

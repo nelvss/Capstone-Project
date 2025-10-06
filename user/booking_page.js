@@ -1,10 +1,10 @@
 // booking_page.js
 (() => {
     // ----------------------------
-    // STEP HANDLER (8-step wizard)
+    // STEP HANDLER (9-step wizard with option page)
     // ----------------------------
     let currentStep = 1;
-    const totalSteps = 8;
+    const totalSteps = 9;
   
     function showStep(step) {
       document.querySelectorAll(".form-step").forEach((el, index) => {
@@ -26,25 +26,39 @@
     }
   }
   
-  // Block advancing from Step 2 unless valid
+  // Block advancing from Step 2 (option page) unless an option is selected
   if (currentStep === 2) {
+    const selectedOption = window.selectedBookingOption;
+    if (!selectedOption) {
+      alert('Please select a booking option before proceeding.');
+      return; // stay on step 2
+    }
+  }
+  
+  // Block advancing from Step 3 (booking form) unless valid
+  if (currentStep === 3) {
     const ok = validateStep2();
     if (!ok) {
-      return; // stay on step 2
+      return; // stay on step 3
     }
   }
   
   if (currentStep < totalSteps) {
     currentStep++;
     
-    // When moving to step 3, always populate the summary with current selections
-    if (currentStep === 3) {
+    // When moving to step 4 (booking form - previously step 3), always populate the summary with current selections
+    if (currentStep === 4) {
       populateBookingSummary();
     }
     
-    // When moving to step 4, setup payment options
-    if (currentStep === 4) {
+    // When moving to step 5, setup payment options
+    if (currentStep === 5) {
       setupPaymentOptions();
+    }
+    
+    // When moving to step 7 (receipt upload), setup with payment info
+    if (currentStep === 7 && window.paymentInfo) {
+      setupReceiptUpload(window.paymentInfo.method, window.paymentInfo.amount);
     }
     
     showStep(currentStep);
@@ -818,6 +832,8 @@ function updatePackagePrice() {
       if (touristCountInput.value.trim() !== "") {
         setError(touristCountInput, "");
       }
+      // Update inland tour availability based on tourist count
+      updateInlandTourAvailability();
     });
     
     // Ensure only positive numbers are entered
@@ -833,9 +849,87 @@ function updatePackagePrice() {
         touristCountInput.value = "";
       }
       updatePackagePrice();
+      // Update inland tour availability on blur as well
+      updateInlandTourAvailability();
     });
   }
 })();
+
+// Function to update inland tour availability based on tourist count
+function updateInlandTourAvailability() {
+  const touristCountInput = document.getElementById("touristCount");
+  const touristCount = parseInt(touristCountInput?.value) || 0;
+  
+  // Get all inland tour checkboxes including select-all
+  const inlandSelectAll = document.getElementById("inland-select-all");
+  const inlandOptions = document.querySelectorAll(".inland-option");
+  const inlandDropdownButton = document.getElementById("inlandDropdown");
+  const inlandTourAlert = document.getElementById("inlandTourAlert");
+  
+  // If tourist count is less than 2, disable all inland options
+  if (touristCount < 2) {
+    // Disable and uncheck all inland tour options
+    if (inlandSelectAll) {
+      inlandSelectAll.disabled = true;
+      inlandSelectAll.checked = false;
+      inlandSelectAll.indeterminate = false;
+    }
+    
+    inlandOptions.forEach(option => {
+      option.disabled = true;
+      option.checked = false;
+    });
+    
+    // Update the dropdown button to show it's disabled (visual only - still clickable to view)
+    if (inlandDropdownButton) {
+      inlandDropdownButton.classList.add('opacity-75');
+      inlandDropdownButton.style.cursor = 'pointer'; // Keep it clickable
+    }
+    
+    // Update alert message to show it's disabled
+    if (inlandTourAlert) {
+      inlandTourAlert.className = 'alert alert-danger py-2 px-3 mb-2';
+      inlandTourAlert.innerHTML = `
+        <i class="fas fa-exclamation-triangle me-1"></i>
+        <strong>Not Available:</strong> You need at least 2 tourists to book Inland Tour. 
+        ${touristCount === 0 ? 'Please enter number of tourists.' : `Currently: ${touristCount} tourist${touristCount === 1 ? '' : 's'}.`}
+      `;
+      inlandTourAlert.style.fontSize = '0.85rem';
+    }
+    
+    console.log('Inland tour options disabled - tourist count less than 2');
+  } else {
+    // Enable all inland tour options
+    if (inlandSelectAll) {
+      inlandSelectAll.disabled = false;
+    }
+    
+    inlandOptions.forEach(option => {
+      option.disabled = false;
+    });
+    
+    // Remove disabled styling from dropdown button
+    if (inlandDropdownButton) {
+      inlandDropdownButton.classList.remove('opacity-75');
+      inlandDropdownButton.style.cursor = 'pointer';
+    }
+    
+    // Update alert message to show it's available
+    if (inlandTourAlert) {
+      inlandTourAlert.className = 'alert alert-success py-2 px-3 mb-2';
+      inlandTourAlert.innerHTML = `
+        <i class="fas fa-check-circle me-1"></i>
+        <strong>Available:</strong> You can now select Inland Tour destinations (${touristCount} tourists).
+      `;
+      inlandTourAlert.style.fontSize = '0.85rem';
+    }
+    
+    console.log('Inland tour options enabled - tourist count is 2 or more');
+  }
+  
+  // Recalculate package price since inland tours may have been unchecked
+  updatePackagePrice();
+}
 
 // Add event listener to number of divers input
 (function() {
@@ -1156,6 +1250,22 @@ function setupPaymentOptions() {
         paymentTotalElement.textContent = totalAmount;
     }
     
+    // Initialize Next button state - disabled until payment is confirmed
+    const paymentNextBtn = document.getElementById('paymentNextBtn');
+    const paymentInstructions = document.getElementById('paymentInstructions');
+    
+    // Only reset if payment hasn't been confirmed yet
+    if (paymentNextBtn && !window.paymentInfo) {
+        paymentNextBtn.disabled = true;
+        paymentNextBtn.innerHTML = 'Next';
+    }
+    
+    if (paymentInstructions && !window.paymentInfo) {
+        paymentInstructions.innerHTML = '<i class="fas fa-info-circle me-1"></i>Please select a payment method and complete the payment to proceed';
+        paymentInstructions.classList.remove('text-success');
+        paymentInstructions.classList.add('text-muted');
+    }
+    
     // Set up payment option change handlers
     const fullPaymentRadio = document.getElementById('fullPayment');
     const downPaymentRadio = document.getElementById('downPayment');
@@ -1272,11 +1382,28 @@ const paymentMethods = {
 
 // Show payment QR code modal
 function showPaymentQR(paymentType) {
+    console.log('showPaymentQR called with:', paymentType);
+    
     const method = paymentMethods[paymentType];
     if (!method) return;
     
+    // AGGRESSIVE CLEANUP: Remove any existing modal backdrops and reset body
+    const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+    console.log('Removing existing backdrops:', existingBackdrops.length);
+    existingBackdrops.forEach(backdrop => backdrop.remove());
+    
+    // Reset body state
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    
     // Update modal content based on payment method
     const modal = document.getElementById('paymentQRModal');
+    if (!modal) {
+        console.error('Modal element not found!');
+        return;
+    }
+    
     const modalTitle = document.getElementById('paymentQRModalLabel');
     const paymentIcon = document.getElementById('paymentIcon');
     const paymentMethodName = document.getElementById('paymentMethodName');
@@ -1284,12 +1411,16 @@ function showPaymentQR(paymentType) {
     const instructionApp = document.getElementById('instructionApp');
     
     // Set payment method details
-    modalTitle.innerHTML = `<i class="fas fa-qrcode me-2"></i>${method.name} Payment`;
-    paymentIcon.className = `${method.icon} fa-3x`;
-    paymentIcon.style.color = method.color;
-    paymentMethodName.textContent = method.name;
-    paymentMethodName.style.color = method.color;
-    instructionApp.textContent = method.app;
+    if (modalTitle) modalTitle.innerHTML = `<i class="fas fa-qrcode me-2"></i>${method.name} Payment`;
+    if (paymentIcon) {
+        paymentIcon.className = `${method.icon} fa-3x`;
+        paymentIcon.style.color = method.color;
+    }
+    if (paymentMethodName) {
+        paymentMethodName.textContent = method.name;
+        paymentMethodName.style.color = method.color;
+    }
+    if (instructionApp) instructionApp.textContent = method.app;
     
     // Get the payment amount (full payment or down payment)
     const fullPaymentRadio = document.getElementById('fullPayment');
@@ -1313,56 +1444,149 @@ function showPaymentQR(paymentType) {
         }
     }
     
-    modalPaymentAmount.textContent = amountToPay;
+    if (modalPaymentAmount) modalPaymentAmount.textContent = amountToPay;
     
     // Generate QR code placeholder (in real implementation, you'd generate actual QR code)
     generateQRCodePlaceholder(method, amountToPay);
     
-    // Show modal
-    const bsModal = new bootstrap.Modal(modal);
-    bsModal.show();
+    // Dispose any existing modal instance
+    let bsModal = bootstrap.Modal.getInstance(modal);
+    if (bsModal) {
+        console.log('Disposing existing modal instance');
+        try {
+            bsModal.dispose();
+        } catch (e) {
+            console.log('Error disposing modal:', e);
+        }
+    }
+    
+    // Wait a bit for cleanup to complete, then create and show new modal
+    setTimeout(() => {
+        console.log('Creating new modal instance');
+        // Create new instance and show
+        bsModal = new bootstrap.Modal(modal, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+        });
+        
+        console.log('Showing modal');
+        bsModal.show();
+    }, 150);
 }
 
 // Generate QR code placeholder
 function generateQRCodePlaceholder(method, amount) {
     const qrContainer = document.querySelector('.qr-code-container');
-    
-    // In a real implementation, you would generate an actual QR code here
-    // For now, we'll show a styled placeholder
+    let qrImageSrc = '';
+
+    // Choose QR image based on method
+    if (method.name === 'GCASH') {
+        qrImageSrc = '../user/images/gcash_qr.png'; // update path as needed
+    } else if (method.name === 'PAYMAYA') {
+        qrImageSrc = '../user/images/paymaya_qr.png';
+    } else if (method.name === 'ONLINE BANKING') {
+        qrImageSrc = '../user/images/banking_qr.png';
+    }
+
     qrContainer.innerHTML = `
         <div class="text-center">
-            <div style="width: 160px; height: 160px; background: linear-gradient(45deg, #f0f0f0 25%, #fff 25%, #fff 75%, #f0f0f0 75%), linear-gradient(45deg, #f0f0f0 25%, #fff 25%, #fff 75%, #f0f0f0 75%); background-size: 20px 20px; background-position: 0 0, 10px 10px; border: 2px solid ${method.color}; margin: 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                <div>
-                    <i class="${method.icon}" style="font-size: 2rem; color: ${method.color}; margin-bottom: 8px;"></i>
-                    <div style="font-size: 0.7rem; color: #666; font-weight: bold;">${method.name}</div>
-                    <div style="font-size: 0.6rem; color: #888;">${amount}</div>
-                </div>
-            </div>
-            <p class="text-muted small mt-2 mb-0">Scan to pay with ${method.app}</p>
+            <img src="${qrImageSrc}" alt="${method.name} QR Code" style="width: 160px; height: 160px; object-fit: contain; border: 2px solid ${method.color}; border-radius: 8px; margin-bottom: 8px;">
+            <div style="font-size: 0.7rem; color: #666; font-weight: bold;">${method.name}</div>
+            <div style="font-size: 0.6rem; color: #888;">${amount}</div>
         </div>
+        <p class="text-muted small mt-2 mb-0">Scan to pay with ${method.app}</p>
     `;
 }
 
 // Confirm payment completion
 function confirmPayment() {
-    // Show success message
-    if (confirm('Have you completed the payment successfully?')) {
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('paymentQRModal'));
-        modal.hide();
-        
-        // Store payment method info for receipt page
-        const paymentMethodName = document.getElementById('paymentMethodName').textContent;
-        const paidAmount = document.getElementById('modalPaymentAmount').textContent;
-        
-        // Move to receipt upload step
-        currentStep = 6;
-        setupReceiptUpload(paymentMethodName, paidAmount);
-        showStep(currentStep);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        
-        console.log('Moving to receipt upload page');
+    console.log('confirmPayment function called');
+    
+    // Store payment method info for receipt page before closing modal
+    const paymentMethodName = document.getElementById('paymentMethodName')?.textContent || '';
+    const paidAmount = document.getElementById('modalPaymentAmount')?.textContent || '';
+    
+    console.log('Payment Method:', paymentMethodName, 'Amount:', paidAmount);
+    
+    // Force enable the Next button on step 5 (Payment Methods page)
+    // Use a more robust selector to find the button
+    const paymentNextBtn = document.querySelector('#paymentNextBtn') || 
+                          document.querySelector('#form-step-5 button[onclick="nextStep()"]');
+    const paymentInstructions = document.querySelector('#paymentInstructions');
+    
+    console.log('Next button element found:', paymentNextBtn);
+    console.log('Button disabled state before:', paymentNextBtn?.disabled);
+    console.log('Instructions element found:', paymentInstructions);
+    
+    if (paymentNextBtn) {
+        // Force enable the button
+        paymentNextBtn.removeAttribute('disabled');
+        paymentNextBtn.disabled = false;
+        paymentNextBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Next';
+        // Force styles
+        paymentNextBtn.style.opacity = '1';
+        paymentNextBtn.style.cursor = 'pointer';
+        paymentNextBtn.style.backgroundColor = '#ef4444';
+        paymentNextBtn.style.borderColor = '#ef4444';
+        console.log('Next button enabled! Disabled state after:', paymentNextBtn.disabled);
+    } else {
+        console.error('Next button not found! Trying alternative methods...');
+        // Try to find all buttons with nextStep
+        const allButtons = document.querySelectorAll('button[onclick="nextStep()"]');
+        console.log('Found buttons with nextStep():', allButtons.length);
+        allButtons.forEach((btn, index) => {
+            console.log(`Button ${index}:`, btn.id, btn.textContent);
+        });
     }
+    
+    if (paymentInstructions) {
+        paymentInstructions.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Payment confirmed! Click Next to continue';
+        paymentInstructions.classList.remove('text-muted');
+        paymentInstructions.classList.add('text-success');
+        console.log('Instructions updated!');
+    } else {
+        console.error('Instructions element not found!');
+    }
+    
+    // Store payment info for later use
+    window.paymentInfo = {
+        method: paymentMethodName,
+        amount: paidAmount
+    };
+    
+    console.log('Payment info stored:', window.paymentInfo);
+    
+    // Close and dispose modal properly
+    const modalElement = document.getElementById('paymentQRModal');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    if (modal) {
+        modal.hide();
+    }
+    
+    // Clean up after modal is hidden
+    setTimeout(() => {
+        if (modal) {
+            modal.dispose();
+        }
+        
+        // Remove any lingering backdrops
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        
+        // Ensure body classes are cleaned up
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        
+        // Double-check button is enabled after modal closes
+        const btnCheck = document.getElementById('paymentNextBtn');
+        if (btnCheck) {
+            console.log('Final button check - disabled:', btnCheck.disabled);
+        }
+    }, 300);
+    
+    console.log('Payment confirmed, Next button should be enabled');
 }
 
 // ----------------------------
@@ -1556,6 +1780,69 @@ function goBackToHome() {
     window.location.href = 'home.html';
 }
 
+// Add event listener to handle modal disposal when it's closed
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentModal = document.getElementById('paymentQRModal');
+    if (paymentModal) {
+        // When modal is hidden, do aggressive cleanup
+        paymentModal.addEventListener('hidden.bs.modal', function () {
+            console.log('Modal hidden event triggered - cleaning up');
+            
+            // Dispose of the modal instance when it's fully closed
+            const modalInstance = bootstrap.Modal.getInstance(paymentModal);
+            if (modalInstance) {
+                try {
+                    modalInstance.dispose();
+                    console.log('Modal instance disposed');
+                } catch (e) {
+                    console.log('Error disposing modal instance:', e);
+                }
+            }
+            
+            // AGGRESSIVE CLEANUP
+            // Remove ALL modal backdrops (sometimes multiple can stack)
+            setTimeout(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                console.log('Removing backdrops:', backdrops.length);
+                backdrops.forEach(backdrop => {
+                    backdrop.remove();
+                });
+                
+                // Force remove modal-open class from body
+                document.body.classList.remove('modal-open');
+                
+                // Reset body styles
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.body.removeAttribute('data-bs-overflow');
+                document.body.removeAttribute('data-bs-padding-right');
+                
+                console.log('Cleanup complete - page should be interactive now');
+            }, 100);
+        });
+        
+        // Also listen for the hide event (before hidden)
+        paymentModal.addEventListener('hide.bs.modal', function () {
+            console.log('Modal hide event triggered');
+        });
+    }
+    
+    // Initialize Bootstrap tooltips for the inland tour warning icon
+    const inlandTourWarning = document.getElementById('inlandTourWarning');
+    if (inlandTourWarning) {
+        // Initialize tooltip
+        const tooltip = new bootstrap.Tooltip(inlandTourWarning, {
+            trigger: 'click hover focus',
+            html: true
+        });
+        
+        // Optional: Add click event to toggle tooltip
+        inlandTourWarning.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent dropdown from toggling
+        });
+    }
+});
+
 // Expose functions globally
 window.showPaymentQR = showPaymentQR;
 window.confirmPayment = confirmPayment;
@@ -1564,5 +1851,49 @@ window.removeFile = removeFile;
 window.submitBooking = submitBooking;
 window.goBackToHome = goBackToHome;
 window.goToHomePage = goToHomePage;
+
+// ----------------------------
+// BOOKING OPTION SELECTION (STEP 2)
+// ----------------------------
+
+// Function to handle booking option selection
+window.selectBookingOption = function(optionType) {
+    console.log('Selected booking option:', optionType);
+    
+    // Store the selected option
+    window.selectedBookingOption = optionType;
+    
+    // Get the option cards
+    const packageCard = document.getElementById('packageOption');
+    const tourCard = document.getElementById('tourOption');
+    const optionNextBtn = document.getElementById('optionNextBtn');
+    const optionMessage = document.getElementById('optionSelectedMessage');
+    const optionText = document.getElementById('selectedOptionText');
+    
+    // Remove selected class from both cards
+    if (packageCard) packageCard.classList.remove('option-selected');
+    if (tourCard) tourCard.classList.remove('option-selected');
+    
+    // Add selected class to the chosen card
+    if (optionType === 'package') {
+        if (packageCard) packageCard.classList.add('option-selected');
+        if (optionText) optionText.textContent = 'Package Only - Complete package with all services';
+    } else if (optionType === 'tour') {
+        if (tourCard) tourCard.classList.add('option-selected');
+        if (optionText) optionText.textContent = 'Tour Only - Tours and activities without accommodation';
+    }
+    
+    // Show selection message
+    if (optionMessage) {
+        optionMessage.classList.remove('d-none');
+    }
+    
+    // Enable the Next button
+    if (optionNextBtn) {
+        optionNextBtn.disabled = false;
+    }
+    
+    console.log('Booking option selected:', optionType);
+};
 
 
