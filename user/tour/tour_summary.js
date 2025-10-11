@@ -1,59 +1,65 @@
 // booking_page.js
+// ----------------------------
+// STEP HANDLER (9-step wizard with option page)
+// ----------------------------
+let currentStep = 3;  // Start at step 3 (booking summary) since steps 1-2 are handled elsewhere
+const totalSteps = 8;  // Steps 3-8 are in this page
+
 (() => {
-    // ----------------------------
-    // STEP HANDLER (9-step wizard with option page)
-    // ----------------------------
-    let currentStep = 1;
-    const totalSteps = 9;
   
     function showStep(step) {
-      document.querySelectorAll(".form-step").forEach((el, index) => {
-        el.classList.toggle("active", index === step - 1);
+      console.log('showStep called with step:', step);
+      const steps = document.querySelectorAll(".form-step");
+      console.log('Found', steps.length, 'form steps');
+      
+      steps.forEach((el, index) => {
+        // Step 3 = index 0, Step 4 = index 1, etc.
+        const shouldBeActive = index === step - 3;
+        el.classList.toggle("active", shouldBeActive);
+        console.log(`Step ${index + 3} (${el.id}): ${shouldBeActive ? 'ACTIVE' : 'hidden'}`);
       });
     }
   
     // Expose for buttons in HTML
     window.nextStep = function () {
-  // Block advancing from Step 1 unless valid
-  if (currentStep === 1) {
-    const ok = validateStep1();
-    if (!ok) {
-      const firstInvalid = document.querySelector(
-        "#form-step-1 .form-control.is-invalid"
-      );
-      if (firstInvalid) firstInvalid.focus();
-      return; // stay on step 1
-    }
-  }
+  // Steps 1-2 are handled on other pages, starting from step 3 here
+  // Step 3 is booking summary - no validation needed, proceed to payment options
   
-  // Block advancing from Step 2 (option page) unless an option is selected
-  if (currentStep === 2) {
-    const selectedOption = window.selectedBookingOption;
-    if (!selectedOption) {
-      alert('Please select a booking option before proceeding.');
-      return; // stay on step 2
+  // Step 4 validation - payment options must be selected
+  if (currentStep === 4) {
+    const fullPaymentRadio = document.getElementById('fullPayment');
+    const downPaymentRadio = document.getElementById('downPayment');
+    
+    if (!fullPaymentRadio.checked && !downPaymentRadio.checked) {
+      alert('Please select a payment option (Full Payment or Down Payment) before proceeding.');
+      return; // stay on step 4
     }
-  }
-  
-  // Block advancing from Step 3 (booking form) unless valid
-  if (currentStep === 3) {
-    const ok = validateStep2();
-    if (!ok) {
-      return; // stay on step 3
+    
+    // If down payment is selected, validate the amount
+    if (downPaymentRadio.checked) {
+      const isValid = window.validatePaymentOptions();
+      if (!isValid) {
+        return; // stay on step 4
+      }
     }
   }
   
   if (currentStep < totalSteps) {
     currentStep++;
     
-    // When moving to step 4 (booking form - previously step 3), always populate the summary with current selections
-    if (currentStep === 4) {
+    // When moving to step 3 (booking summary), populate the summary
+    if (currentStep === 3) {
       populateBookingSummary();
     }
     
-    // When moving to step 5, setup payment options
-    if (currentStep === 5) {
+    // When moving to step 4 (payment options), setup payment options
+    if (currentStep === 4) {
       setupPaymentOptions();
+    }
+    
+    // Step 5 is payment methods - no additional setup needed here
+    if (currentStep === 5) {
+      // Payment methods are static, just show the step
     }
     
     // When moving to step 7 (receipt upload), setup with payment info
@@ -67,14 +73,68 @@
 };
   
     window.previousStep = function () {
-      if (currentStep > 1) {
+      console.log('previousStep called, currentStep:', currentStep);
+      
+      // If we're on step 3 (booking summary), go back to tour selection page
+      if (currentStep === 3) {
+        // Check if we came from tour_only or package_only (has completeBookingData in sessionStorage)
+        const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+        if (completeBookingDataString) {
+          try {
+            const bookingData = JSON.parse(completeBookingDataString);
+            if (bookingData.bookingType === 'tour-only' || bookingData.bookingType === 'package_only') {
+              // Store any additional information filled in the booking page before going back
+              const currentBookingPageData = {
+                // Get any additional form data from booking page that might have been filled
+                paymentMethod: document.querySelector('input[name="paymentOption"]:checked')?.value || '',
+                fullPayment: document.getElementById('fullPayment')?.checked || false,
+                downPayment: document.getElementById('downPayment')?.checked || false,
+                downPaymentAmount: document.getElementById('downPaymentAmount')?.value || '',
+                // Add any other fields that might be filled in the booking page
+                notes: document.getElementById('notes')?.value || '',
+                specialRequests: document.getElementById('specialRequests')?.value || ''
+              };
+              
+              // Merge with existing booking data
+              const updatedBookingData = {
+                ...bookingData,
+                ...currentBookingPageData,
+                lastPage: 'booking_page' // Track where we came from
+              };
+              
+              // Store updated data back to sessionStorage
+              sessionStorage.setItem('completeBookingData', JSON.stringify(updatedBookingData));
+              
+              // Also store it as bookingPageData for potential restoration
+              sessionStorage.setItem('bookingPageData', JSON.stringify(currentBookingPageData));
+              
+              console.log('Stored booking page data before going back to tour_only:', currentBookingPageData);
+              
+              // Go back to tour_only page
+              window.location.href = 'tour_only.html';
+              return;
+            }
+          } catch (error) {
+            console.error('Error parsing booking data:', error);
+          }
+        }
+      }
+      
+      // For steps 4 and above, just go back to the previous step within this page
+      if (currentStep > 3) {  // Can't go below step 3 (booking summary)
         currentStep--;
+        console.log('Moving to step:', currentStep);
         showStep(currentStep);
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
   
     showStep(currentStep);
+    
+    // Initialize booking summary on page load (step 3)
+    if (currentStep === 3) {
+      populateBookingSummary();
+    }
   
     // VALIDATION UTILITIES PAGE 1
 
@@ -1006,20 +1066,48 @@ function calculateDuration() {
 
 // Function to populate the booking summary
 function populateBookingSummary() {
-    // Personal Information
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
-    const email = document.getElementById('emailAddress').value;
-    const contact = document.getElementById('contactNo').value;
-    const arrival = document.getElementById('arrivalDate').value;
-    const departure = document.getElementById('departureDate').value;
-    const tourists = document.getElementById('touristCount').value;
+    // Get complete booking data from sessionStorage (from tour_only form)
+    const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+    let bookingData = null;
+    
+    if (completeBookingDataString) {
+        try {
+            bookingData = JSON.parse(completeBookingDataString);
+            console.log('Loaded complete booking data from tour_only:', bookingData);
+        } catch (error) {
+            console.error('Error parsing complete booking data:', error);
+        }
+    }
+    
+    // Fallback to current form values if no session data
+    let firstName, lastName, email, contact, arrival, departure, tourists;
+    
+    if (bookingData) {
+        // Use data from tour_only form
+        firstName = bookingData.firstName || '';
+        lastName = bookingData.lastName || '';
+        email = bookingData.emailAddress || '';
+        contact = bookingData.contactNo || '';
+        arrival = bookingData.arrivalDate || '';
+        departure = bookingData.departureDate || '';
+        tourists = bookingData.touristCount || '';
+    } else {
+        // Fallback to current form elements
+        firstName = document.getElementById('firstName')?.value || '';
+        lastName = document.getElementById('lastName')?.value || '';
+        email = document.getElementById('emailAddress')?.value || '';
+        contact = document.getElementById('contactNo')?.value || '';
+        arrival = document.getElementById('arrivalDate')?.value || '';
+        departure = document.getElementById('departureDate')?.value || '';
+        tourists = document.getElementById('touristCount')?.value || '';
+    }
 
+    // Populate personal information summary
     document.getElementById('summary-name').textContent = firstName + ' ' + lastName;
     document.getElementById('summary-email').textContent = email || '-';
     document.getElementById('summary-contact').textContent = contact || '-';
     document.getElementById('summary-arrival').textContent = formatDate(arrival) || '-';
-    document.getElementById('summary-departure').textContent = formatDate(departure) || '-';
+    document.getElementById('summary-departure').textContent = departure || '-';
     document.getElementById('summary-tourists').textContent = tourists || '-';
 
     // Tour Packages
@@ -1030,8 +1118,13 @@ function populateBookingSummary() {
     // Check how many tour types are selected and adjust layout
     updateTourPackagesLayout();
 
-    // Package Amount - remove ₱ symbol from display value since it's already formatted
-    const packageAmount = document.getElementById('amountOfPackage').value;
+    // Package Amount - get from sessionStorage first, fallback to form element
+    let packageAmount = '';
+    if (bookingData && bookingData.packageAmount) {
+        packageAmount = bookingData.packageAmount;
+    } else {
+        packageAmount = document.getElementById('amountOfPackage')?.value || '';
+    }
     document.getElementById('summary-package-amount').textContent = packageAmount || '₱0.00';
 
     // Hotel Information
@@ -1108,32 +1201,70 @@ function formatDate(dateString) {
 function calculateTotalAmount() {
     let total = 0;
     
-    // Get package amount
-    const packageAmountText = document.getElementById('amountOfPackage').value;
-    if (packageAmountText) {
-        const packageAmount = parseFloat(packageAmountText.replace(/[₱,]/g, '')) || 0;
-        total += packageAmount;
+    // Try to get total from sessionStorage first
+    const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+    let sessionTotal = 0;
+    
+    if (completeBookingDataString) {
+        try {
+            const bookingData = JSON.parse(completeBookingDataString);
+            
+            // Get package amount from session data
+            if (bookingData.packageAmount) {
+                const packageAmount = parseFloat(bookingData.packageAmount.replace(/[₱,]/g, '')) || 0;
+                sessionTotal += packageAmount;
+            }
+            
+            // Get vehicle amount from session data
+            if (bookingData.vehicleAmount) {
+                const vehicleAmount = parseFloat(bookingData.vehicleAmount.replace(/[₱,]/g, '')) || 0;
+                sessionTotal += vehicleAmount;
+            }
+            
+            // Get diving amount from session data
+            if (bookingData.divingAmount) {
+                const divingAmount = parseFloat(bookingData.divingAmount.replace(/[₱,]/g, '')) || 0;
+                sessionTotal += divingAmount;
+            }
+            
+            // Use session total if available
+            if (sessionTotal > 0) {
+                total = sessionTotal;
+            }
+        } catch (error) {
+            console.error('Error parsing booking data for total calculation:', error);
+        }
     }
     
-    // Get hotel amount
-    const hotelAmountText = document.getElementById('hotelPrice').value;
-    if (hotelAmountText) {
-        const hotelAmount = parseFloat(hotelAmountText.replace(/[₱,]/g, '')) || 0;
-        total += hotelAmount;
-    }
-    
-    // Get vehicle amount
-    const vehicleAmountText = document.getElementById('amountOfVehicle').value;
-    if (vehicleAmountText) {
-        const vehicleAmount = parseFloat(vehicleAmountText.replace(/[₱,]/g, '')) || 0;
-        total += vehicleAmount;
-    }
-    
-    // Get diving amount
-    const divingAmountText = document.getElementById('amountOfDiving').value;
-    if (divingAmountText) {
-        const divingAmount = parseFloat(divingAmountText.replace(/[₱,]/g, '')) || 0;
-        total += divingAmount;
+    // Fallback to form elements if no session data
+    if (total === 0) {
+        // Get package amount
+        const packageAmountText = document.getElementById('amountOfPackage')?.value;
+        if (packageAmountText) {
+            const packageAmount = parseFloat(packageAmountText.replace(/[₱,]/g, '')) || 0;
+            total += packageAmount;
+        }
+        
+        // Get hotel amount
+        const hotelAmountText = document.getElementById('hotelPrice')?.value;
+        if (hotelAmountText) {
+            const hotelAmount = parseFloat(hotelAmountText.replace(/[₱,]/g, '')) || 0;
+            total += hotelAmount;
+        }
+        
+        // Get vehicle amount
+        const vehicleAmountText = document.getElementById('amountOfVehicle')?.value;
+        if (vehicleAmountText) {
+            const vehicleAmount = parseFloat(vehicleAmountText.replace(/[₱,]/g, '')) || 0;
+            total += vehicleAmount;
+        }
+        
+        // Get diving amount
+        const divingAmountText = document.getElementById('amountOfDiving')?.value;
+        if (divingAmountText) {
+            const divingAmount = parseFloat(divingAmountText.replace(/[₱,]/g, '')) || 0;
+            total += divingAmount;
+        }
     }
     
     // Update total amount fields
@@ -1151,11 +1282,37 @@ function calculateTotalAmount() {
 }
 
 function populateTourSummary(type, elementId) {
-    const options = document.querySelectorAll(`.${type}-option:checked`);
     const summaryElement = document.getElementById(elementId);
     const containerElement = document.getElementById(`${type}-tours-container`);
     
-    if (options.length > 0) {
+    // Get tour data from sessionStorage
+    const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+    let selectedTours = [];
+    
+    if (completeBookingDataString) {
+        try {
+            const bookingData = JSON.parse(completeBookingDataString);
+            
+            // Get the appropriate tour array based on type
+            if (type === 'island') {
+                selectedTours = bookingData.islandTours || [];
+            } else if (type === 'inland') {
+                selectedTours = bookingData.inlandTours || [];
+            } else if (type === 'snorkel') {
+                selectedTours = bookingData.snorkelTours || [];
+            }
+        } catch (error) {
+            console.error('Error parsing booking data for tour summary:', error);
+        }
+    }
+    
+    // Fallback to current form elements if no session data
+    if (selectedTours.length === 0) {
+        const options = document.querySelectorAll(`.${type}-option:checked`);
+        selectedTours = Array.from(options).map(option => option.value);
+    }
+    
+    if (selectedTours.length > 0) {
         // Show the container
         if (containerElement) {
             containerElement.style.display = 'block';
@@ -1163,9 +1320,9 @@ function populateTourSummary(type, elementId) {
         
         // Populate the list
         summaryElement.innerHTML = '';
-        options.forEach(option => {
+        selectedTours.forEach(tour => {
             const li = document.createElement('li');
-            li.innerHTML = `<i class="fas fa-check-circle text-success me-2"></i>${option.value}`;
+            li.innerHTML = `<i class="fas fa-check-circle text-success me-2"></i>${tour}`;
             summaryElement.appendChild(li);
         });
     } else {
@@ -1198,21 +1355,43 @@ function populateHotelSummary() {
 }
 
 function populateVehicleSummary() {
-    const vehicleOptions = document.querySelectorAll('.rental-option:checked');
     const vehicleSection = document.getElementById('vehicle-section');
     
-    if (vehicleOptions.length > 0) {
+    // Get vehicle data from sessionStorage
+    const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+    let selectedVehicles = [];
+    let rentalDays = '';
+    let vehicleAmount = '';
+    
+    if (completeBookingDataString) {
+        try {
+            const bookingData = JSON.parse(completeBookingDataString);
+            selectedVehicles = bookingData.rentalVehicles || [];
+            rentalDays = bookingData.rentalDays || '';
+            vehicleAmount = bookingData.vehicleAmount || '';
+        } catch (error) {
+            console.error('Error parsing booking data for vehicle summary:', error);
+        }
+    }
+    
+    // Fallback to current form elements if no session data
+    if (selectedVehicles.length === 0) {
+        const vehicleOptions = document.querySelectorAll('.rental-option:checked');
+        selectedVehicles = Array.from(vehicleOptions).map(option => option.value);
+        rentalDays = document.getElementById('rentalDays')?.value || '';
+        vehicleAmount = document.getElementById('amountOfVehicle')?.value || '';
+    }
+    
+    if (selectedVehicles.length > 0) {
         vehicleSection.style.display = 'block';
         
         // Display all selected vehicles
-        const selectedVehicles = Array.from(vehicleOptions).map(option => option.value);
         document.getElementById('summary-vehicle').textContent = selectedVehicles.join(', ');
         
-        // Get vehicle rental days from the dropdown
-        const rentalDays = document.getElementById('rentalDays').value;
+        // Display rental days
         document.getElementById('summary-vehicle-days').textContent = rentalDays ? `${rentalDays} Day${rentalDays > 1 ? 's' : ''}` : '-';
         
-        const vehicleAmount = document.getElementById('amountOfVehicle').value;
+        // Display vehicle amount
         document.getElementById('summary-vehicle-amount').textContent = vehicleAmount || '₱0.00';
     } else {
         vehicleSection.style.display = 'none';
@@ -1220,16 +1399,40 @@ function populateVehicleSummary() {
 }
 
 function populateDivingSummary() {
-    const divingOptions = document.querySelectorAll('.diving-option:checked');
     const divingSection = document.getElementById('diving-section');
     
-    if (divingOptions.length > 0) {
+    // Get diving data from sessionStorage
+    const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+    let hasDiving = false;
+    let numberOfDivers = '';
+    let divingAmount = '';
+    
+    if (completeBookingDataString) {
+        try {
+            const bookingData = JSON.parse(completeBookingDataString);
+            hasDiving = bookingData.diving || false;
+            numberOfDivers = bookingData.numberOfDivers || '';
+            divingAmount = bookingData.divingAmount || '';
+        } catch (error) {
+            console.error('Error parsing booking data for diving summary:', error);
+        }
+    }
+    
+    // Fallback to current form elements if no session data
+    if (!hasDiving) {
+        const divingOptions = document.querySelectorAll('.diving-option:checked');
+        hasDiving = divingOptions.length > 0;
+        numberOfDivers = document.getElementById('numberOfDiver')?.value || '';
+        divingAmount = document.getElementById('amountOfDiving')?.value || '';
+    }
+    
+    if (hasDiving) {
         divingSection.style.display = 'block';
         
-        const divers = document.getElementById('numberOfDiver').value;
-        document.getElementById('summary-divers').textContent = divers || '-';
+        // Display number of divers
+        document.getElementById('summary-divers').textContent = numberOfDivers || '-';
         
-        const divingAmount = document.getElementById('amountOfDiving').value;
+        // Display diving amount
         document.getElementById('summary-diving-amount').textContent = divingAmount || '₱0.00';
     } else {
         divingSection.style.display = 'none';
@@ -1248,6 +1451,37 @@ function setupPaymentOptions() {
     if (summaryTotalElement && paymentTotalElement) {
         const totalAmount = summaryTotalElement.textContent;
         paymentTotalElement.textContent = totalAmount;
+    }
+    
+    // Calculate minimum down payment based on number of tourists
+    const minimumPerPerson = 500;
+    let numberOfTourists = 1;
+    let minimumDownPayment = 500;
+    
+    // Get number of tourists from booking data
+    const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+    if (completeBookingDataString) {
+        try {
+            const bookingData = JSON.parse(completeBookingDataString);
+            numberOfTourists = parseInt(bookingData.touristCount) || 1;
+        } catch (error) {
+            console.error('Error parsing booking data:', error);
+        }
+    }
+    
+    // Calculate minimum down payment (₱500 × number of tourists)
+    minimumDownPayment = minimumPerPerson * numberOfTourists;
+    
+    // Update the minimum down payment display
+    const minimumDownPaymentText = document.getElementById('minimumDownPaymentText');
+    const minimumDownPaymentAmount = document.getElementById('minimumDownPaymentAmount');
+    
+    if (minimumDownPaymentText) {
+        minimumDownPaymentText.textContent = `Minimum for your booking: ₱${minimumDownPayment.toLocaleString()}`;
+    }
+    
+    if (minimumDownPaymentAmount) {
+        minimumDownPaymentAmount.textContent = `₱${minimumDownPayment.toLocaleString()}`;
     }
     
     // Initialize Next button state - disabled until payment is confirmed
@@ -1279,6 +1513,14 @@ function setupPaymentOptions() {
             if (this.checked) {
                 downPaymentReminder.classList.add('d-none');
                 downPaymentSection.classList.add('d-none');
+                
+                // Enable the Next button
+                if (paymentNextBtn) {
+                    paymentNextBtn.disabled = false;
+                    paymentInstructions.innerHTML = '<i class="fas fa-check-circle me-1 text-success"></i>Full Payment selected. Click Next to proceed.';
+                    paymentInstructions.classList.remove('text-muted');
+                    paymentInstructions.classList.add('text-success');
+                }
             }
         });
         
@@ -1292,20 +1534,33 @@ function setupPaymentOptions() {
                 const totalAmount = parseFloat(totalText) || 0;
                 downPaymentAmountInput.max = totalAmount;
                 
-                // Set default down payment to minimum (1000)
-                downPaymentAmountInput.value = 1000;
+                // Set minimum attribute dynamically
+                downPaymentAmountInput.min = minimumDownPayment;
+                
+                // Set default down payment to minimum calculated amount
+                downPaymentAmountInput.value = minimumDownPayment;
                 updateRemainingBalance();
+                
+                // Enable the Next button
+                if (paymentNextBtn) {
+                    paymentNextBtn.disabled = false;
+                    paymentInstructions.innerHTML = '<i class="fas fa-check-circle me-1 text-success"></i>Down Payment selected. Click Next to proceed.';
+                    paymentInstructions.classList.remove('text-muted');
+                    paymentInstructions.classList.add('text-success');
+                }
             }
         });
         
         // Update remaining balance when down payment amount changes
         if (downPaymentAmountInput) {
-            downPaymentAmountInput.addEventListener('input', updateRemainingBalance);
+            downPaymentAmountInput.addEventListener('input', function() {
+                updateRemainingBalance(minimumDownPayment);
+            });
         }
     }
 }
 
-function updateRemainingBalance() {
+function updateRemainingBalance(minimumDownPayment = 500) {
     const paymentTotalElement = document.getElementById('payment-total-amount');
     const downPaymentAmountInput = document.getElementById('downPaymentAmount');
     const remainingBalanceElement = document.getElementById('remainingBalance');
@@ -1315,14 +1570,14 @@ function updateRemainingBalance() {
         const totalAmount = parseFloat(totalText) || 0;
         const downPaymentAmount = parseFloat(downPaymentAmountInput.value) || 0;
         
-        // Validate minimum down payment
-        if (downPaymentAmount < 1000 && downPaymentAmount > 0) {
-            downPaymentAmountInput.value = 1000;
+        // Validate minimum down payment based on number of tourists
+        if (downPaymentAmount < minimumDownPayment && downPaymentAmount > 0) {
+            downPaymentAmountInput.value = minimumDownPayment;
         }
         
         // Calculate remaining balance
         const remainingAmount = totalAmount - (parseFloat(downPaymentAmountInput.value) || 0);
-        remainingBalanceElement.textContent = `₱${remainingAmount.toLocaleString()}.00`;
+        remainingBalanceElement.textContent = `₱${remainingAmount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 }
 
@@ -1768,7 +2023,7 @@ function submitBooking() {
 // Go to home page function
 function goToHomePage() {
     // Redirect to home page
-    window.location.href = 'home.html';
+    window.location.href = '../home/home.html';
 }
 
 // ----------------------------
@@ -1777,11 +2032,117 @@ function goToHomePage() {
 
 // Go back to home page
 function goBackToHome() {
-    window.location.href = 'home.html';
+    window.location.href = '../home/home.html';
+}
+
+// Function to load tour data from sessionStorage on page load
+function loadTourDataFromSession() {
+    const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+    if (completeBookingDataString) {
+        try {
+            const bookingData = JSON.parse(completeBookingDataString);
+            console.log('Loading tour data from session on page load:', bookingData);
+            
+            // Automatically populate the booking summary if we have tour data
+            if (bookingData.bookingType === 'tour-only') {
+                // Set currentStep to 3 (booking summary) when coming from tour_only
+                currentStep = 3;
+                console.log('Set currentStep to 3 for tour-only booking');
+                
+                // Wait a bit for the DOM to be fully ready
+                setTimeout(() => {
+                    populateBookingSummary();
+                    restoreBookingPageData(); // Restore any previously filled booking page data
+                    showStep(currentStep); // Show the correct step
+                }, 100);
+            } else {
+                // If no specific booking type, still initialize to step 3 by default
+                currentStep = 3;
+                setTimeout(() => {
+                    showStep(currentStep);
+                }, 100);
+            }
+        } catch (error) {
+            console.error('Error loading tour data from session:', error);
+        }
+    }
+}
+
+// Function to restore booking page data that was previously filled
+function restoreBookingPageData() {
+    const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+    if (completeBookingDataString) {
+        try {
+            const bookingData = JSON.parse(completeBookingDataString);
+            console.log('Restoring booking page data:', bookingData);
+            
+            // Restore payment method selection
+            if (bookingData.paymentMethod) {
+                const paymentRadio = document.querySelector(`input[name="paymentOption"][value="${bookingData.paymentMethod}"]`);
+                if (paymentRadio) paymentRadio.checked = true;
+            }
+            
+            // Restore payment type (full vs down payment)
+            if (bookingData.fullPayment) {
+                const fullPaymentRadio = document.getElementById('fullPayment');
+                if (fullPaymentRadio) fullPaymentRadio.checked = true;
+            }
+            
+            if (bookingData.downPayment) {
+                const downPaymentRadio = document.getElementById('downPayment');
+                if (downPaymentRadio) {
+                    downPaymentRadio.checked = true;
+                    // Show down payment section if down payment was selected
+                    const downPaymentSection = document.getElementById('downPaymentSection');
+                    if (downPaymentSection) downPaymentSection.style.display = 'block';
+                }
+            }
+            
+            // Restore down payment amount
+            if (bookingData.downPaymentAmount) {
+                const downPaymentAmountInput = document.getElementById('downPaymentAmount');
+                if (downPaymentAmountInput) {
+                    downPaymentAmountInput.value = bookingData.downPaymentAmount;
+                    // Update remaining balance
+                    if (typeof updateRemainingBalance === 'function') {
+                        updateRemainingBalance();
+                    }
+                }
+            }
+            
+            // Restore notes
+            if (bookingData.notes) {
+                const notesInput = document.getElementById('notes');
+                if (notesInput) notesInput.value = bookingData.notes;
+            }
+            
+            // Restore special requests
+            if (bookingData.specialRequests) {
+                const specialRequestsInput = document.getElementById('specialRequests');
+                if (specialRequestsInput) specialRequestsInput.value = bookingData.specialRequests;
+            }
+            
+            console.log('Booking page data restored successfully');
+        } catch (error) {
+            console.error('Error restoring booking page data:', error);
+        }
+    }
 }
 
 // Add event listener to handle modal disposal when it's closed
 document.addEventListener('DOMContentLoaded', function() {
+    // Load tour data from session storage when page loads
+    loadTourDataFromSession();
+    
+    // Fallback: If currentStep is still not set after 500ms, default to step 3
+    setTimeout(() => {
+        if (currentStep === 0 || !currentStep) {
+            currentStep = 3;
+            console.log('Fallback: Setting currentStep to 3');
+            showStep(currentStep);
+        }
+    }, 500);
+    
     const paymentModal = document.getElementById('paymentQRModal');
     if (paymentModal) {
         // When modal is hidden, do aggressive cleanup

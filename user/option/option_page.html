@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="option_page.css">
+    <title>Booking Options</title>
+</head>
+<body>
+    
+    <section id="book-form" class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <div id="form-step-2" class="form-step active booking-step-option">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <div class="card shadow-lg">
+                        <div class="card-body p-4">
+                            <!-- Header Section -->
+                            <div class="text-center mb-4">
+                                <img src="../../Images/logo.png" alt="OTG Logo" class="img-fluid logo-img">
+                                <div class="mt-3">
+                                    <div class="badge bg-danger fs-6 px-3 py-2 mb-2">
+                                        <i class="fas fa-route me-2"></i>Step 2 of 4
+                                    </div>
+                                </div>
+                                <h2 class="main-title mt-3">Choose Your Booking Option</h2>
+                                <p class="subtitle">Select the best option that suits your travel needs</p>
+                            </div>
+
+                            <!-- Options Cards -->
+                            <div class="row g-4 mb-4">
+                                <!-- Package Only Option -->
+                                <div class="col-12 col-md-6">
+                                    <div class="option-card-inline" id="packageOption" onclick="selectBookingOption('package')">
+                                        <div class="option-icon-inline">
+                                            <i class="fas fa-box-open"></i>
+                                        </div>
+                                        <h3 class="option-title-inline">Package Only</h3>
+                                        <p class="option-description-inline">
+                                            Book a complete package with accommodation, tours, and activities all included.
+                                        </p>
+                                        <div class="option-features-inline">
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Island & Inland Tours</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Hotel Accommodation</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Vehicle Rental</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Diving Services</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tour Only Option -->
+                                <div class="col-12 col-md-6">
+                                    <div class="option-card-inline" id="tourOption" onclick="selectBookingOption('tour')">
+                                        <div class="option-icon-inline tour-icon-inline">
+                                            <i class="fas fa-map-marked-alt"></i>
+                                        </div>
+                                        <h3 class="option-title-inline">Tour Only</h3>
+                                        <p class="option-description-inline">
+                                            Book tours and activities only, perfect if you already have accommodation.
+                                        </p>
+                                        <div class="option-features-inline">
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Island Tours</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Inland Tours</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Snorkeling Tours</span>
+                                            </div>
+                                            <div class="feature-item-inline">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Flexible Scheduling</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selection Message -->
+                            <div class="alert alert-info text-center d-none" id="optionSelectedMessage">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Selected:</strong> <span id="selectedOptionText"></span>
+                            </div>
+
+                            <!-- Navigation Buttons -->
+                            <div class="row">
+                                <div class="col-6">
+                                    <button type="button" class="btn btn-previous w-100 py-2 fs-6 fs-sm-5" onclick="window.location.href='../form/booking_form.html'">Previous</button>
+                                </div>
+                                <div class="col-6">
+                                    <button type="button" id="optionNextBtn" class="btn btn-next w-100 py-2 fs-6 fs-sm-5" onclick="proceedToBooking()" disabled>Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="option_page.js"></script>
+</body>
+</html>

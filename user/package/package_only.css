@@ -1,0 +1,723 @@
+/* ===== GLOBAL FORM STYLING ===== */
+body {
+    background-image: url('../../Images/white_beach.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    min-height: 100vh;
+}
+
+#book-form {
+    background-color: transparent;
+    padding: 2rem 0;
+}
+
+/* Enhanced Header Styling */
+.card .text-center.mb-4 {
+    position: relative;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 2rem !important;
+}
+
+/* Error Field Styling - Hidden by default */
+.field-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    padding: 0.25rem 0;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateY(-10px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.field-error.show {
+    max-height: 100px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.field-error:not(:empty) {
+    max-height: 100px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.card .text-center.mb-4 img {
+    width: 80px;
+    height: auto;
+    filter: brightness(1.2);
+    margin-bottom: 1rem !important;
+}
+
+.badge.bg-danger {
+    background: #dc2626 !important;
+    border: 2px solid #dc2626;
+    color: white !important;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 25px;
+    text-transform: uppercase;
+}
+
+.card h2.text-danger {
+    color: #dc2626 !important;
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+    margin-bottom: 1rem !important;
+}
+
+.card p.text-muted {
+    color: #6c757d !important;
+    font-size: 1.1rem;
+    font-weight: 300;
+    margin-bottom: 0 !important;
+}
+
+.card {
+    border: none;
+    border-radius: 20px;
+    overflow: visible;
+    min-height: 500px;
+    background-color: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+    padding: 2rem 1.5rem;
+    min-height: 80px;
+}
+
+.card-body {
+    background-color: rgba(248, 249, 250, 0.9);
+    padding: 2.5rem !important;
+    min-height: 400px;
+    border-radius: 0 0 20px 20px;
+}
+
+/* ===== FORM CONTROLS STYLING ===== */
+.form-floating > .form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-floating > .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-floating > label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* ===== BUTTON STYLING ===== */
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+}
+
+/* ===== DROPDOWN STYLING ===== */
+.dropdown .btn {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.dropdown .btn:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(220, 38, 38, 0.4);
+}
+
+.dropdown-menu {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 0.75rem;
+    margin-top: 0.25rem;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: rgba(255, 255, 255, 0.98);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    min-width: 250px;
+}
+
+/* Minimal Package Dropdown Styling */
+.pricing-list .d-flex {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.pricing-list .d-flex:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.pricing-list .small {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.pricing-list .fw-bold {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.dropdown-menu h6 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.dropdown-menu .text-muted {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.dropdown-menu .form-check {
+    margin-bottom: 0.15rem;
+}
+
+.dropdown-menu .form-check-label {
+    font-weight: 500;
+    color: #374151;
+    padding: 0.25rem 0;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.dropdown-menu .form-check-label:hover {
+    color: #dc2626;
+}
+
+.dropdown-menu .form-check-input:checked + .form-check-label {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+/* Compact scrollbar for dropdown menus */
+.dropdown-menu::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: #dc2626;
+    border-radius: 10px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #b91c1c;
+}
+
+/* ===== FIELD ERROR STYLING ===== */
+.field-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: rgba(220, 38, 38, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #dc2626;
+}
+
+.form-control.is-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+}
+
+/* ===== FORM STEP DISPLAY RULES ===== */
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ===== ENHANCED SPACING AND LAYOUT ===== */
+.container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    max-width: 1200px;
+}
+
+.row {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+}
+
+.row > * {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+/* Package dropdown cards styling */
+.row.g-3.mb-4:first-of-type .col-12.col-md-6.col-lg-3 {
+    margin-bottom: 1rem;
+}
+
+/* Improved spacing for form rows */
+.row.g-3.mb-4 {
+    margin-bottom: 2rem !important;
+}
+
+/* Better alignment for dropdowns */
+.dropdown.w-100.h-100 {
+    min-height: 3.5rem;
+}
+
+/* ===== FORM FIELD ENHANCEMENTS ===== */
+.form-floating {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.form-floating > .form-control {
+    height: calc(3.5rem + 2px);
+    line-height: 1.25;
+}
+
+.form-floating > label {
+    height: calc(3.5rem + 2px);
+    padding: 1rem 0.75rem;
+    line-height: 1.25;
+}
+
+/* ===== BUTTON ENHANCEMENTS ===== */
+.btn-danger,
+.btn-previous {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    box-shadow: 0 4px 6px rgba(108, 117, 125, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-next {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-previous:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(108, 117, 125, 0.4);
+}
+
+.btn-next:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(220, 38, 38, 0.4);
+}
+
+/* ===== HOTELS ROW ANIMATION ===== */
+#hotelsRow {
+    display: flex;
+    overflow: visible;
+    max-height: 500px;
+    opacity: 1;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
+    margin-top: 2rem;
+}
+
+#hotelsRow.is-visible {
+    max-height: 500px;
+    opacity: 1;
+    overflow: visible;
+    margin-top: 2rem;
+}
+
+/* ===== HEADER AND TITLE IMPROVEMENTS ===== */
+.d-flex.justify-content-between.align-items-center.mb-3 {
+    margin-bottom: 1.5rem !important;
+}
+
+.text-center h2 {
+    color: #dc2626 !important;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem !important;
+}
+
+.text-center p {
+    color: #6c757d !important;
+    font-size: 1.1rem;
+    margin-bottom: 2rem !important;
+}
+
+/* ===== FORM SECTION IMPROVEMENTS ===== */
+.form-floating.mt-4 {
+    margin-top: 2.5rem !important;
+    margin-bottom: 1.5rem !important;
+}
+
+#totalAmount {
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%) !important;
+    border: 2px solid #dc2626 !important;
+}
+
+/* ===== ERROR MESSAGE STYLING ===== */
+#step2-error-message {
+    border-radius: 10px;
+    border-left: 4px solid #dc2626;
+}
+
+/* ===== NAVIGATION BUTTONS IMPROVEMENTS ===== */
+.row .col.mt-5 {
+    margin-top: 2rem !important;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.text-danger {
+    color: #dc2626 !important;
+}
+
+.bg-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+
+.border-danger {
+    border-color: #dc2626 !important;
+}
+
+/* ===== LOADING STATES ===== */
+.btn.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Form validation error styling - updated */
+.field-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: rgba(220, 38, 38, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #dc2626;
+}
+  
+.form-control.is-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+}
+
+.form-control.is-invalid + label::after {
+    content: "⚠";
+    color: #dc2626;
+    margin-left: 0.25rem;
+    font-size: 1rem;
+}
+
+/* Updated form control styling to match global design */
+#book-form .form-control,
+#book-form .form-select,
+#book-form input[type="text"],
+#book-form input[type="email"],
+#book-form input[type="tel"],
+#book-form input[type="date"],
+#book-form input[type="number"],
+#book-form select,
+#book-form textarea {
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+#book-form .form-control:focus,
+#book-form .form-select:focus,
+#book-form input[type="text"]:focus,
+#book-form input[type="email"]:focus,
+#book-form input[type="tel"]:focus,
+#book-form input[type="date"]:focus,
+#book-form input[type="number"]:focus,
+#book-form select:focus,
+#book-form textarea:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* ===== INLAND TOUR WARNING ICON ===== */
+#inlandTourWarning {
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    animation: pulse-warning 2s infinite;
+}
+
+#inlandTourWarning:hover {
+    transform: scale(1.2);
+    color: #fbbf24 !important;
+}
+
+@keyframes pulse-warning {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Tooltip styling for inland tour warning */
+.tooltip-inner {
+    max-width: 250px;
+    text-align: left;
+    background-color: #dc2626;
+    font-size: 0.875rem;
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #dc2626;
+}
+
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #dc2626;
+}
+
+.tooltip.bs-tooltip-start .tooltip-arrow::before {
+    border-left-color: #dc2626;
+}
+
+.tooltip.bs-tooltip-end .tooltip-arrow::before {
+    border-right-color: #dc2626;
+}
+
+/* ===== DISABLED INLAND TOUR OPTIONS ===== */
+.inland-option:disabled,
+#inland-select-all:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.inland-option:disabled + label,
+#inland-select-all:disabled + label {
+    cursor: not-allowed;
+    opacity: 0.5;
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+#inlandDropdown.opacity-75 {
+    opacity: 0.75 !important;
+}
+
+/* ===== SPECIFIC STYLING FOR INLINE ELEMENTS ===== */
+#inlandTourAlert {
+    font-size: 0.85rem;
+}
+
+#step2-error-message {
+    display: none;
+}
+
+/* Animation for form appearance */
+.card {
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    #book-form {
+        padding: 1rem 0;
+    }
+    
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .card-header {
+        padding: 1rem !important;
+    }
+    
+    .card-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    /* Stack package dropdowns vertically on mobile */
+    .row.g-3.mb-4:first-of-type .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .col-sm-6 {
+        margin-bottom: 1rem;
+    }
+    
+    .row.g-3 .col {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+    
+    .mt-4 {
+        margin-top: 2rem !important;
+    }
+    
+    .mt-5 {
+        margin-top: 2.5rem !important;
+    }
+    
+    /* Better mobile layout for package dropdowns */
+    .row.g-3.mb-4:first-of-type .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 992px) {
+    .container {
+        max-width: 100%;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    /* Adjust package dropdown layout for tablets */
+    .row.g-3.mb-4:first-of-type .col-12.col-md-6.col-lg-3 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* ===== PACKAGE SELECTION DROPDOWN STYLING ===== */
+.package-selection-options .package-option-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    margin-bottom: 0.25rem;
+}
+
+.package-selection-options .package-option-item:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.package-selection-options .package-option-item .badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 12px;
+}
+
+.package-selection-option:checked + .form-check-label {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+#packageSelectionDropdown {
+    min-height: 3.5rem;
+    font-weight: 500;
+    border: 2px solid #0d6efd;
+}
+
+#selectedPackageText {
+    font-weight: 500;
+}
+
+/* Enhanced package selection labels */
+.package-selection-options .form-check-label {
+    cursor: pointer;
+    width: 100%;
+}
+
+.package-selection-options .form-check-label .d-flex {
+    transition: all 0.2s ease;
+}
+
+.package-selection-options .form-check-label small {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
