@@ -119,7 +119,7 @@ const analyticsData = {
 
 // Navigation functionality
 function initializeNavigation() {
-    const navLinks = document.querySelectorAll('.sidebar .nav-link[data-section]');
+    const navLinks = document.querySelectorAll('.analytics-sidebar .nav-link[data-section]');
     const sections = document.querySelectorAll('.analytics-section');
     
     navLinks.forEach(link => {
@@ -148,17 +148,11 @@ function initializeNavigation() {
 // Initialize all charts
 function initializeCharts() {
     createRevenueTrendChart();
-    createBookingTrendsChart();
-    createBookingStatusChart();
-    createDailyBookingChart();
-    createMonthlyBookingChart();
-    createPopularServicesChart();
-    createServiceRevenueChart();
-    createSeasonalAnalysisChart();
-    createSeasonalServicesChart();
-    createWeatherImpactChart();
     createRevenueForecastChart();
     createDemandPredictionChart();
+    createServiceDistributionChart();
+    createServiceDistributionChart2();
+    createBookingTrendsChart();
 }
 
 // Revenue Trend Chart
@@ -200,36 +194,7 @@ function createRevenueTrendChart() {
     });
 }
 
-// Booking Trends Chart
-function createBookingTrendsChart() {
-    const ctx = document.getElementById('bookingTrendsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: analyticsData.monthlyRevenue.map(d => d.month),
-            datasets: [{
-                label: 'Bookings',
-                data: analyticsData.monthlyRevenue.map(d => d.bookings),
-                backgroundColor: '#007bff',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
+// Booking Trends Chart - removed duplicate, using amCharts version below
 
 // Booking Status Chart
 function createBookingStatusChart() {
@@ -726,6 +691,17 @@ function initializeRealTimeUpdates() {
     }, 30000); // Update every 30 seconds
 }
 
+// Smooth page navigation with transition
+function navigateWithTransition(url) {
+  // Add transition class to body
+  document.body.classList.add('page-transition');
+  
+  // Wait for transition to complete before navigating
+  setTimeout(() => {
+    window.location.href = url;
+  }, 300); // Match the CSS transition duration
+}
+
 // Logout functionality
 function handleLogout() {
   if (confirm('Are you sure you want to logout?')) {
@@ -736,3 +712,394 @@ function handleLogout() {
 
 // Start real-time updates
 initializeRealTimeUpdates();
+
+// Service Distribution Pie Chart using amCharts
+function createServiceDistributionChart() {
+    const ctx = document.getElementById('chartdiv').getContext('2d');
+    
+    // Sample data showing trend over 12 months for Tour Only services
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Snorkeling',
+                    data: [28, 32, 35, 25, 20, 18, 22, 26, 30, 33, 36, 40],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Island Hopping',
+                    data: [25, 28, 30, 22, 18, 16, 20, 24, 27, 29, 32, 35],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Inland Tour',
+                    data: [18, 20, 22, 16, 13, 11, 14, 16, 18, 20, 22, 24],
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Vehicle Rental',
+                    data: [15, 16, 18, 12, 10, 8, 11, 13, 15, 16, 18, 20],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Hotels',
+                    data: [32, 35, 38, 28, 24, 20, 25, 29, 33, 36, 40, 45],
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    backgroundColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Diving',
+                    data: [10, 12, 14, 9, 7, 6, 8, 10, 12, 13, 15, 17],
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    backgroundColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 10
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+function createServiceDistributionChart2() {
+    const ctx = document.getElementById('chartdiv2').getContext('2d');
+    
+    // Sample data showing trend over 12 months for Package Tours
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Package 1',
+                    data: [28, 32, 35, 25, 20, 18, 22, 26, 30, 33, 36, 40],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Package 2',
+                    data: [25, 28, 30, 22, 18, 16, 20, 24, 27, 29, 32, 35],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Package 3',
+                    data: [18, 20, 22, 16, 13, 11, 14, 16, 18, 20, 22, 24],
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Package 4',
+                    data: [15, 16, 18, 12, 10, 8, 11, 13, 15, 16, 18, 20],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + ' bookings';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 10
+                    },
+                    title: {
+                        display: true,
+                        text: 'Bookings'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+function createBookingTrendsChart() {
+    const ctx = document.getElementById('bookingTrendsChart').getContext('2d');
+    
+    // Use data from analyticsData
+    const data = analyticsData.monthlyRevenue.map(d => ({
+        month: d.month,
+        bookings: d.bookings
+    }));
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.month),
+            datasets: [{
+                label: 'Bookings',
+                data: data.map(d => d.bookings),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)',
+                    'rgba(201, 203, 207, 0.8)',
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(201, 203, 207, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Bookings: ' + context.parsed.y;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 25
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Feedback/Messages Section Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter buttons
+    const filterButtons = document.querySelectorAll('[data-filter]');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Filter feedback items
+            const filter = this.dataset.filter;
+            const feedbackItems = document.querySelectorAll('.feedback-item');
+            
+            feedbackItems.forEach(item => {
+                if (filter === 'all') {
+                    item.style.display = 'block';
+                } else if (filter === 'unread' && item.classList.contains('unread')) {
+                    item.style.display = 'block';
+                } else if (filter === 'read' && item.classList.contains('read')) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Mark as Read functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.mark-read')) {
+            const feedbackItem = e.target.closest('.feedback-item');
+            feedbackItem.classList.remove('unread');
+            feedbackItem.classList.add('read');
+            
+            const badge = feedbackItem.querySelector('.badge');
+            badge.classList.remove('bg-danger');
+            badge.classList.add('bg-secondary');
+            badge.textContent = 'Read';
+            
+            // Replace button
+            const button = e.target.closest('.mark-read');
+            button.outerHTML = `
+                <button class="btn btn-sm btn-outline-secondary mark-unread">
+                    <i class="fas fa-envelope me-1"></i>Mark as Unread
+                </button>
+            `;
+        }
+    });
+    
+    // Mark as Unread functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.mark-unread')) {
+            const feedbackItem = e.target.closest('.feedback-item');
+            feedbackItem.classList.remove('read');
+            feedbackItem.classList.add('unread');
+            
+            const badge = feedbackItem.querySelector('.badge');
+            badge.classList.remove('bg-secondary');
+            badge.classList.add('bg-danger');
+            badge.textContent = 'Unread';
+            
+            // Replace button
+            const button = e.target.closest('.mark-unread');
+            button.outerHTML = `
+                <button class="btn btn-sm btn-outline-primary mark-read">
+                    <i class="fas fa-check me-1"></i>Mark as Read
+                </button>
+            `;
+        }
+    });
+    
+    // Delete feedback functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.delete-feedback')) {
+            if (confirm('Are you sure you want to delete this feedback?')) {
+                const feedbackItem = e.target.closest('.feedback-item');
+                feedbackItem.style.transition = 'all 0.3s ease';
+                feedbackItem.style.opacity = '0';
+                feedbackItem.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    feedbackItem.remove();
+                    
+                    // Check if there are any feedback items left
+                    const remainingItems = document.querySelectorAll('.feedback-item');
+                    if (remainingItems.length === 0) {
+                        const container = document.getElementById('feedback-container');
+                        container.innerHTML = `
+                            <div class="feedback-empty">
+                                <i class="fas fa-inbox"></i>
+                                <p>No feedback messages</p>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            }
+        }
+    });
+});

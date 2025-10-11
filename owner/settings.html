@@ -6,64 +6,18 @@
   <title>Settings - Owner Dashboard</title>
   <link rel="stylesheet" href="dashboard.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script defer sr              <div class="image-grid" id=              <div class="image-grid" id=              <div class="image-grid" id="tour-image-grid">
-                <div class="image-item primary">
-                <img src="../Images/white_beach.jpg" alt="Tour 1">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-                </div>
-                <div class="image-item">
-                <img src="../Images/tamaraw_falls.jpg" alt="Tour 2">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-                </div>
-              </div>e-grid">
-                <div class="image-item primary">
-                <img src="../Images/nmax.png" alt="Vehicle 1">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-                </div>
-                <div class="image-item">
-                <img src="../Images/versys_650.png" alt="Vehicle 2">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-                </div>
-              </div>age-grid">
-                <div class="image-item primary">
-                <img src="../Images/infinity_hotel.jpg" alt="Hotel 1">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-                </div>
-                <div class="image-item">
-                <img src="../Images/the_mangyan_grand_hotel.png" alt="Hotel 2">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-                </div>
-              </div></script>
+  <script defer src="settings.js"></script>
 </head>
 <body>
   <div class="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-logo">🧳</span>
-      <span class="sidebar-title">Travel Admin</span>
+      <img src="../Images/logo.png" alt="Logo" class="sidebar-logo-img">
     </div>
     <nav>
       <ul>
-        <li onclick="window.location.href='dashboard.html'"><span class="icon">📊</span> Dashboard</li>
-        <li onclick="window.location.href='analytics.html'"><span class="icon">📈</span> Analytics</li>
-        <li onclick="window.location.href='payment.html'"><span class="icon">💳</span> Payment</li>
+        <li onclick="navigateWithTransition('dashboard.html')"><span class="icon">📊</span> Dashboard</li>
+        <li onclick="navigateWithTransition('analytics.html')"><span class="icon">📈</span> Analytics</li>
+        <li onclick="navigateWithTransition('payment.html')"><span class="icon">💳</span> Payment</li>
         <li class="active"><span class="icon">⚙️</span> Settings</li>
       </ul>
     </nav>

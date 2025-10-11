@@ -307,6 +307,17 @@ function toggleSidebar() {
   mainContent.classList.toggle('expanded');
 }
 
+// Smooth page navigation with transition
+function navigateWithTransition(url) {
+  // Add transition class to body
+  document.body.classList.add('page-transition');
+  
+  // Wait for transition to complete before navigating
+  setTimeout(() => {
+    window.location.href = url;
+  }, 300); // Match the CSS transition duration
+}
+
 // Logout functionality (same as dashboard)
 function handleLogout() {
   if (confirm('Are you sure you want to logout? Any unsaved changes will be lost.')) {

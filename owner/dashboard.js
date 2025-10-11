@@ -8,7 +8,7 @@ const bookings = [
     hotel: 'Grand Hotel',
     price: '$500',
     contact: '123-456-7890',
-    email: 'elopez@yahoo.com',
+    email: 'ceddreyes21@gmail.com',
   },
   {
     name: 'Mathew Martinez',
@@ -78,6 +78,102 @@ const bookings = [
   },
 ];
 
+// API Configuration
+const API_URL = 'http://localhost:3000'; // Change this to your server URL
+
+// Function to send email via API
+async function sendEmail(action, booking) {
+  try {
+    const response = await fetch(`${API_URL}/api/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: action,
+        booking: booking
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      return { success: true, message: result.message };
+    } else {
+      return { success: false, message: result.message };
+    }
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return { 
+      success: false, 
+      message: 'Failed to connect to email server. Please ensure the server is running.' 
+    };
+  }
+}
+
+// Handle confirm button click
+async function handleConfirm(booking, button) {
+  if (confirm(`Are you sure you want to confirm the booking for ${booking.name}?`)) {
+    // Disable button and show loading state
+    button.disabled = true;
+    button.textContent = 'Sending...';
+    
+    const result = await sendEmail('confirm', booking);
+    
+    if (result.success) {
+      alert(`✅ Confirmation email sent successfully to ${booking.email}`);
+      button.textContent = '✓ Confirmed';
+      button.style.backgroundColor = '#10b981';
+    } else {
+      alert(`❌ Failed to send email: ${result.message}`);
+      button.disabled = false;
+      button.textContent = 'Confirm';
+    }
+  }
+}
+
+// Handle cancel button click
+async function handleCancel(booking, button) {
+  if (confirm(`Are you sure you want to cancel the booking for ${booking.name}?`)) {
+    // Disable button and show loading state
+    button.disabled = true;
+    button.textContent = 'Sending...';
+    
+    const result = await sendEmail('cancel', booking);
+    
+    if (result.success) {
+      alert(`✅ Cancellation email sent successfully to ${booking.email}`);
+      button.textContent = '✓ Cancelled';
+      button.style.backgroundColor = '#ef4444';
+    } else {
+      alert(`❌ Failed to send email: ${result.message}`);
+      button.disabled = false;
+      button.textContent = 'Cancel';
+    }
+  }
+}
+
+// Handle reschedule button click
+async function handleReschedule(booking, button) {
+  if (confirm(`Are you sure you want to send a reschedule request for ${booking.name}?`)) {
+    // Disable button and show loading state
+    button.disabled = true;
+    button.textContent = 'Sending...';
+    
+    const result = await sendEmail('reschedule', booking);
+    
+    if (result.success) {
+      alert(`✅ Reschedule email sent successfully to ${booking.email}`);
+      button.textContent = '✓ Rescheduled';
+      button.style.backgroundColor = '#3b82f6';
+    } else {
+      alert(`❌ Failed to send email: ${result.message}`);
+      button.disabled = false;
+      button.textContent = 'Reschedule';
+    }
+  }
+}
+
 function renderTable() {
   const tbody = document.getElementById('booking-table-body');
   tbody.innerHTML = '';
@@ -95,14 +191,85 @@ function renderTable() {
       <td>${b.email}</td>
       <td>
         <div class="action-buttons">
-          <button class="action-btn btn-confirm">Confirm</button>
-          <button class="action-btn btn-cancel">Cancel</button>
-          <button class="action-btn btn-reschedule">Reschedule</button>
+          <button class="action-btn btn-confirm" data-action="confirm">Confirm</button>
+          <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          <button class="action-btn btn-reschedule" data-action="reschedule">Reschedule</button>
         </div>
       </td>
     `;
+    
+    // Add event listeners to buttons
+    const confirmBtn = tr.querySelector('.btn-confirm');
+    const cancelBtn = tr.querySelector('.btn-cancel');
+    const rescheduleBtn = tr.querySelector('.btn-reschedule');
+    
+    confirmBtn.addEventListener('click', () => handleConfirm(b, confirmBtn));
+    cancelBtn.addEventListener('click', () => handleCancel(b, cancelBtn));
+    rescheduleBtn.addEventListener('click', () => handleReschedule(b, rescheduleBtn));
+    
     tbody.appendChild(tr);
   });
+}
+
+// Search functionality
+function filterTable(searchTerm) {
+  const tbody = document.getElementById('booking-table-body');
+  tbody.innerHTML = '';
+  
+  const filteredBookings = bookings.filter(b => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      b.name.toLowerCase().includes(searchLower) ||
+      b.services.toLowerCase().includes(searchLower) ||
+      b.rental.toLowerCase().includes(searchLower) ||
+      b.arrival.toLowerCase().includes(searchLower) ||
+      b.departure.toLowerCase().includes(searchLower) ||
+      b.hotel.toLowerCase().includes(searchLower) ||
+      b.price.toLowerCase().includes(searchLower) ||
+      b.contact.toLowerCase().includes(searchLower) ||
+      b.email.toLowerCase().includes(searchLower)
+    );
+  });
+  
+  filteredBookings.forEach(b => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${b.name}</td>
+      <td>${b.services}</td>
+      <td>${b.rental}</td>
+      <td>${b.arrival}</td>
+      <td>${b.departure}</td>
+      <td>${b.hotel}</td>
+      <td>${b.price}</td>
+      <td>${b.contact}</td>
+      <td>${b.email}</td>
+      <td>
+        <div class="action-buttons">
+          <button class="action-btn btn-confirm" data-action="confirm">Confirm</button>
+          <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          <button class="action-btn btn-reschedule" data-action="reschedule">Reschedule</button>
+        </div>
+      </td>
+    `;
+    
+    // Add event listeners to buttons
+    const confirmBtn = tr.querySelector('.btn-confirm');
+    const cancelBtn = tr.querySelector('.btn-cancel');
+    const rescheduleBtn = tr.querySelector('.btn-reschedule');
+    
+    confirmBtn.addEventListener('click', () => handleConfirm(b, confirmBtn));
+    cancelBtn.addEventListener('click', () => handleCancel(b, cancelBtn));
+    rescheduleBtn.addEventListener('click', () => handleReschedule(b, rescheduleBtn));
+    
+    tbody.appendChild(tr);
+  });
+  
+  // Show message if no results found
+  if (filteredBookings.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="10" style="text-align: center; padding: 20px; color: #64748b;">No bookings found matching "${searchTerm}"</td>`;
+    tbody.appendChild(tr);
+  }
 }
 
 // Session checking
@@ -144,6 +311,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // Check session before loading dashboard
   if (checkSession()) {
     renderTable();
+    
+    // Add search functionality
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.trim();
+        if (searchTerm === '') {
+          renderTable(); // Show all bookings if search is empty
+        } else {
+          filterTable(searchTerm);
+        }
+      });
+    }
   }
 });
 
@@ -154,6 +334,17 @@ function toggleSidebar() {
   
   sidebar.classList.toggle('collapsed');
   mainContent.classList.toggle('expanded');
+}
+
+// Smooth page navigation with transition
+function navigateWithTransition(url) {
+  // Add transition class to body
+  document.body.classList.add('page-transition');
+  
+  // Wait for transition to complete before navigating
+  setTimeout(() => {
+    window.location.href = url;
+  }, 300); // Match the CSS transition duration
 }
 
 // Logout functionality

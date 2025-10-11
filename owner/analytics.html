@@ -18,14 +18,14 @@
 <body>
   <div class="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-logo">🧳</span>
-      <span class="sidebar-title">Travel Admin</span>
+      <img src="../Images/logo.png" alt="Logo" class="sidebar-logo-img">
     </div>
     <nav>
       <ul>
-        <li onclick="window.location.href='dashboard.html'"><span class="icon">📊</span> Dashboard</li>
-        <li class="active" onclick="window.location.href='analytics.html'"><span class="icon">📈</span> Analytics</li>
-        <li onclick="window.location.href='payment.html'"><span class="icon">💳</span> Payment</li>
+        <li onclick="navigateWithTransition('dashboard.html')"><span class="icon">📊</span> Dashboard</li>
+        <li class="active" onclick="navigateWithTransition('analytics.html')"><span class="icon">📈</span> Analytics</li>
+        <li onclick="navigateWithTransition('payment.html')"><span class="icon">💳</span> Payment</li>
+        <li onclick="navigateWithTransition('settings.html')"><span class="icon">⚙️</span> Settings</li>
       </ul>
     </nav>
     <div class="sidebar-footer">
@@ -49,17 +49,11 @@
           <a href="#overview" class="nav-link active" data-section="overview">
             <i class="fas fa-chart-line me-2"></i>Overview
           </a>
-          <a href="#bookings" class="nav-link" data-section="bookings">
-            <i class="fas fa-calendar-check me-2"></i>Booking Trends
-          </a>
-          <a href="#services" class="nav-link" data-section="services">
-            <i class="fas fa-star me-2"></i>Popular Services
-          </a>
-          <a href="#seasonal" class="nav-link" data-section="seasonal">
-            <i class="fas fa-sun me-2"></i>Seasonal Analysis
-          </a>
           <a href="#predictive" class="nav-link" data-section="predictive">
             <i class="fas fa-crystal-ball me-2"></i>Predictions
+          </a>
+          <a href="#feedback" class="nav-link" data-section="feedback">
+            <i class="fas fa-comments me-2"></i>Feedback/Messages
           </a>
         </div>
       </div>
@@ -144,195 +138,42 @@
               <canvas id="revenueTrendChart"></canvas>
             </div>
           </div>
-        </section>
 
-        <!-- Booking Trends Section -->
-        <section id="bookings" class="analytics-section d-none">
-          <div class="row mb-4">
-            <div class="col-md-8">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Booking Trends Over Time</h5>
-                </div>
-                <div class="card-body">
-                  <canvas id="bookingTrendsChart"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Booking Status Distribution</h5>
-                </div>
-                <div class="card-body">
-                  <canvas id="bookingStatusChart"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-6">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Daily Booking Pattern</h5>
-                </div>
-                <div class="card-body">
-                  <canvas id="dailyBookingChart"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Monthly Booking Volume</h5>
-                </div>
-                <div class="card-body">
-                  <canvas id="monthlyBookingChart"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Services Analysis Section -->
-        <section id="services" class="analytics-section d-none">
-          <div class="row mb-4">
-            <div class="col-md-8">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Most Popular Services</h5>
-                </div>
-                <div class="card-body">
-                  <canvas id="popularServicesChart"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Service Revenue Share</h5>
-                </div>
-                <div class="card-body">
-                  <canvas id="serviceRevenueChart"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Service Performance Table -->
-          <div class="card">
+          <div class="card mb-4">
             <div class="card-header">
-              <h5 class="card-title mb-0">Service Performance Metrics</h5>
+              <h5 class="card-title mb-0">Booking Trends (Last 12 Months)</h5>
             </div>
             <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>Service</th>
-                      <th>Bookings</th>
-                      <th>Revenue</th>
-                      <th>Avg. Rating</th>
-                      <th>Growth</th>
-                      <th>Trend</th>
-                    </tr>
-                  </thead>
-                  <tbody id="serviceMetricsTable">
-                    <!-- Data will be populated by JavaScript -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Seasonal Analysis Section -->
-        <section id="seasonal" class="analytics-section d-none">
-          <div class="row mb-4">
-            <div class="col-md-12">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Peak vs Low Season Analysis</h5>
-                </div>
-                <div class="card-body">
-                  <canvas id="seasonalAnalysisChart"></canvas>
-                </div>
-              </div>
+              <canvas id="bookingTrendsChart"></canvas>
             </div>
           </div>
 
+          <!-- Service Distribution Charts -->
           <div class="row mb-4">
-            <div class="col-md-6">
-              <div class="card season-card peak-season">
-                <div class="card-body">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="season-icon">
-                      <i class="fas fa-sun"></i>
-                    </div>
-                    <div>
-                      <h5 class="card-title mb-0">Peak Season</h5>
-                      <p class="text-muted mb-0">December - April</p>
-                    </div>
-                  </div>
-                  <div class="row text-center">
-                    <div class="col">
-                      <h4 class="text-warning">892</h4>
-                      <small>Avg. Bookings/Month</small>
-                    </div>
-                    <div class="col">
-                      <h4 class="text-warning">₱485K</h4>
-                      <small>Avg. Revenue/Month</small>
-                    </div>
-                  </div>
+            <div class="col-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Tour Only
+                  </h5>
                 </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card season-card low-season">
                 <div class="card-body">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="season-icon">
-                      <i class="fas fa-cloud-rain"></i>
-                    </div>
-                    <div>
-                      <h5 class="card-title mb-0">Low Season</h5>
-                      <p class="text-muted mb-0">May - November</p>
-                    </div>
-                  </div>
-                  <div class="row text-center">
-                    <div class="col">
-                      <h4 class="text-info">324</h4>
-                      <small>Avg. Bookings/Month</small>
-                    </div>
-                    <div class="col">
-                      <h4 class="text-info">₱187K</h4>
-                      <small>Avg. Revenue/Month</small>
-                    </div>
-                  </div>
+                  <canvas id="chartdiv" style="width: 100%; height: 400px;"></canvas>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="row">
-            <div class="col-md-6">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Seasonal Service Preferences</h5>
+            <div class="col-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Package Tour
+                  </h5>
                 </div>
                 <div class="card-body">
-                  <canvas id="seasonalServicesChart"></canvas>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Weather Impact on Bookings</h5>
-                </div>
-                <div class="card-body">
-                  <canvas id="weatherImpactChart"></canvas>
+                  <canvas id="chartdiv2" style="width: 100%; height: 400px;"></canvas>
                 </div>
               </div>
             </div>
@@ -417,6 +258,140 @@
                     </div>
                     <h6>Weekend Package Deals</h6>
                     <p class="small text-muted">Higher conversion potential detected</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Feedback/Messages Section -->
+        <section id="feedback" class="analytics-section d-none">
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-comments me-2"></i>Customer Feedback & Messages
+                  </h5>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-filter="all">All</button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="unread">Unread</button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="read">Read</button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="feedback-container" id="feedback-container">
+                    <!-- Feedback items will be populated by JavaScript -->
+                    <div class="feedback-item unread">
+                      <div class="feedback-header">
+                        <div class="feedback-info">
+                          <span class="feedback-name">John Doe</span>
+                          <span class="feedback-email">john.doe@example.com</span>
+                          <span class="feedback-date">October 10, 2025</span>
+                        </div>
+                        <span class="badge bg-danger">Unread</span>
+                      </div>
+                      <div class="feedback-message">
+                        I had an amazing experience with your island hopping tour! The guide was very knowledgeable and friendly. Would definitely recommend to friends and family.
+                      </div>
+                      <div class="feedback-actions">
+                        <button class="btn btn-sm btn-outline-primary mark-read">
+                          <i class="fas fa-check me-1"></i>Mark as Read
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-feedback">
+                          <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="feedback-item unread">
+                      <div class="feedback-header">
+                        <div class="feedback-info">
+                          <span class="feedback-name">Maria Santos</span>
+                          <span class="feedback-email">maria.santos@gmail.com</span>
+                          <span class="feedback-date">October 9, 2025</span>
+                        </div>
+                        <span class="badge bg-danger">Unread</span>
+                      </div>
+                      <div class="feedback-message">
+                        The booking process was smooth and easy. Customer service was very responsive to my inquiries. Thank you for making our vacation memorable!
+                      </div>
+                      <div class="feedback-actions">
+                        <button class="btn btn-sm btn-outline-primary mark-read">
+                          <i class="fas fa-check me-1"></i>Mark as Read
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-feedback">
+                          <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="feedback-item read">
+                      <div class="feedback-header">
+                        <div class="feedback-info">
+                          <span class="feedback-name">Robert Chen</span>
+                          <span class="feedback-email">robert.chen@yahoo.com</span>
+                          <span class="feedback-date">October 8, 2025</span>
+                        </div>
+                        <span class="badge bg-secondary">Read</span>
+                      </div>
+                      <div class="feedback-message">
+                        Great service! The hotel accommodations were excellent and the tour packages were reasonably priced. Will definitely book again.
+                      </div>
+                      <div class="feedback-actions">
+                        <button class="btn btn-sm btn-outline-secondary mark-unread">
+                          <i class="fas fa-envelope me-1"></i>Mark as Unread
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-feedback">
+                          <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="feedback-item read">
+                      <div class="feedback-header">
+                        <div class="feedback-info">
+                          <span class="feedback-name">Lisa Anderson</span>
+                          <span class="feedback-email">lisa.anderson@hotmail.com</span>
+                          <span class="feedback-date">October 7, 2025</span>
+                        </div>
+                        <span class="badge bg-secondary">Read</span>
+                      </div>
+                      <div class="feedback-message">
+                        I would like to inquire about group discounts for our company outing. Can you provide more information about packages for 30+ people?
+                      </div>
+                      <div class="feedback-actions">
+                        <button class="btn btn-sm btn-outline-secondary mark-unread">
+                          <i class="fas fa-envelope me-1"></i>Mark as Unread
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-feedback">
+                          <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="feedback-item read">
+                      <div class="feedback-header">
+                        <div class="feedback-info">
+                          <span class="feedback-name">Michael Torres</span>
+                          <span class="feedback-email">m.torres@email.com</span>
+                          <span class="feedback-date">October 6, 2025</span>
+                        </div>
+                        <span class="badge bg-secondary">Read</span>
+                      </div>
+                      <div class="feedback-message">
+                        The diving experience was phenomenal! Professional instructors and well-maintained equipment. Highly recommended for both beginners and experienced divers.
+                      </div>
+                      <div class="feedback-actions">
+                        <button class="btn btn-sm btn-outline-secondary mark-unread">
+                          <i class="fas fa-envelope me-1"></i>Mark as Unread
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-feedback">
+                          <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
