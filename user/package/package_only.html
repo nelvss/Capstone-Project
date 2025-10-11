@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="package_only.css">
+    <title>Tour Booking Form</title>
+</head>
+<body>
+    <section id="book-form" class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <div id="form-step-3" class="form-step active booking-step-2">
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <img src="../../Images/logo.png" alt="OTG logo" class="img-fluid" style="max-height: 60px;">
+                                </div>
+                                <div class="text-center">
+                                    <div class="mt-3">
+                                        <div class="badge bg-danger fs-6 px-3 py-2 mb-2">
+                                            <i class="fas fa-route me-2"></i>Step 2 of 4 - Package Selection
+                                        </div>
+                                    </div>
+                                </div>
+                                <h2 class="text-center mb-3">BOOKING FORM</h2>
+                                
+                                <!-- Tour Packages Row -->
+                                <div class="row g-3 mb-4">
+                                    <!-- Package 1 - 2 Days 1 Night -->
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <div class="dropdown w-100 h-100">
+                                            <button class="btn btn-primary w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="package1Dropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                <span>Package 1</span>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="package1Dropdown">
+                                                <div class="mb-2">
+                                                    <h6 class="text-primary fw-bold mb-1">Package 1 - 2D1N</h6>
+                                                    <small class="text-muted">Hotel + Island + Land Tour</small>
+                                                </div>
+                                                <div class="pricing-list">
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">2 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="2" style="background-color: transparent; color: black;">₱3,200</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">3-4 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="3" style="background-color: transparent; color: black;">₱2,950</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">5-6 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="5" style="background-color: transparent; color: black;">₱2,650</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">7-9 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="7" style="background-color: transparent; color: black;">₱2,350</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">10+ pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="10" style="background-color: transparent; color: black;">₱2,100</span>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2 pt-2 border-top">
+                                                    <small class="text-muted fst-italic">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        Note: Price may vary depending on hotel selection
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Package 2 - 3 Days 2 Nights (Best Seller) -->
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <div class="dropdown w-100 h-100">
+                                            <button class="btn btn-danger w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="package2Dropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                <span>Package 2 <span class="badge bg-warning text-dark ms-2">BESTSELLER</span></span>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="package2Dropdown">
+                                                <div class="mb-2">
+                                                    <h6 class="text-danger fw-bold mb-1">Package 2 - 3D2N ⭐</h6>
+                                                    <small class="text-muted">Hotel + Island + Land Tour</small>
+                                                </div>
+                                                <div class="pricing-list">
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">2 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="2" style="background-color: transparent; color: black;">₱3,800</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">3-4 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="3" style="background-color: transparent; color: black;">₱3,450</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">5-6 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="5" style="background-color: transparent; color: black;">₱3,150</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">7-9 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="7" style="background-color: transparent; color: black;">₱2,850</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">10+ pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="10" style="background-color: transparent; color: black;">₱2,600</span>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2 pt-2 border-top">
+                                                    <small class="text-muted fst-italic">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        Note: Price may vary depending on hotel selection
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Package 3 - 2 Days 1 Night -->
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <div class="dropdown w-100 h-100">
+                                            <button class="btn btn-info w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="package3Dropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                <span>Package 3</span>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="package3Dropdown">
+                                                <div class="mb-2">
+                                                    <h6 class="text-info fw-bold mb-1">Package 3 - 2D1N</h6>
+                                                    <small class="text-muted">Hotel + Island Tour</small>
+                                                </div>
+                                                <div class="pricing-list">
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">2 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="2" style="background-color: transparent; color: black;">₱2,800</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">3 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="3" style="background-color: transparent; color: black;">₱2,550</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">4 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="4" style="background-color: transparent; color: black;">₱2,300</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">5-6 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="5" style="background-color: transparent; color: black;">₱1,950</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">7-9 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="7" style="background-color: transparent; color: black;">₱1,850</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">10+ pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="10" style="background-color: transparent; color: black;">₱1,650</span>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2 pt-2 border-top">
+                                                    <small class="text-muted fst-italic">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        Note: Price may vary depending on hotel selection
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Package 4 - 3 Days 2 Nights -->
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <div class="dropdown w-100 h-100">
+                                            <button class="btn btn-success w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="package4Dropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                <span>Package 4</span>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="package4Dropdown">
+                                                <div class="mb-2">
+                                                    <h6 class="text-success fw-bold mb-1">Package 4 - 3D2N</h6>
+                                                    <small class="text-muted">Hotel + Island Tour</small>
+                                                </div>
+                                                <div class="pricing-list">
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">2 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="2" style="background-color: transparent; color: black;">₱3,300</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">3 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="3" style="background-color: transparent; color: black;">₱3,150</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">4 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="4" style="background-color: transparent; color: black;">₱3,000</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">5-6 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="5" style="background-color: transparent; color: black;">₱2,700</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">7-9 pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="7" style="background-color: transparent; color: black;">₱2,400</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span class="small">10+ pax</span>
+                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="10" style="background-color: transparent; color: black;">₱2,100</span>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2 pt-2 border-top">
+                                                    <small class="text-muted fst-italic">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        Note: Price may vary depending on hotel selection
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tourist Count and Package Amount Row -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-6">
+                                        <div class="form-floating h-100">
+                                            <input type="number" class="form-control" id="touristCount" placeholder="Number of Tourist">
+                                            <label for="touristCount">Number of Tourist</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="dropdown w-100 h-100">
+                                            <button class="btn btn-outline-primary w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="packageSelectionDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                <span id="selectedPackageText">Select Package</span>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="packageSelectionDropdown">
+                                                <div class="package-selection-options">
+                                                    <div class="form-check p-2 package-option-item mb-1">
+                                                        <input class="form-check-input package-selection-option" type="radio" name="package-selection" id="select-package-1" value="Package 1">
+                                                        <label class="form-check-label w-100" for="select-package-1">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <span><strong>Package 1</strong> - 2D1N</span>
+                                                                <small class="text-muted">Hotel + Island + Land</small>
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check p-2 package-option-item mb-1">
+                                                        <input class="form-check-input package-selection-option" type="radio" name="package-selection" id="select-package-2" value="Package 2">
+                                                        <label class="form-check-label w-100" for="select-package-2">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <span><strong>Package 2</strong> - 3D2N <span class="badge bg-warning text-dark ms-1">BESTSELLER</span></span>
+                                                                <small class="text-muted">Hotel + Island + Land</small>
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check p-2 package-option-item mb-1">
+                                                        <input class="form-check-input package-selection-option" type="radio" name="package-selection" id="select-package-3" value="Package 3">
+                                                        <label class="form-check-label w-100" for="select-package-3">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <span><strong>Package 3</strong> - 2D1N</span>
+                                                                <small class="text-muted">Hotel + Island</small>
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check p-2 package-option-item">
+                                                        <input class="form-check-input package-selection-option" type="radio" name="package-selection" id="select-package-4" value="Package 4">
+                                                        <label class="form-check-label w-100" for="select-package-4">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <span><strong>Package 4</strong> - 3D2N</span>
+                                                                <small class="text-muted">Hotel + Island</small>
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Package Amount Row -->
+                                
+
+                                <!-- Accommodation Selection Row -->
+                                <div class="row g-3 mb-4" id="hotelsRow">
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="dropdown w-100 h-100">
+                                            <button class="btn btn-success w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="hotelsDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                <span>
+                                                    <i class="fas fa-bed me-2"></i>
+                                                    <span id="selectedHotelText">Choose Your Hotel</span>
+                                                </span>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="hotelsDropdown">
+                                                <div class="mb-2">
+                                                    <h6 class="text-success fw-bold mb-1">Select Hotel</h6>
+                                                </div>
+                                                <div id="hotels-options">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input hotels-option" type="radio" name="hotel-selection" id="hotel-mangyan-grand" value="The Mangyan Grand Hotel">
+                                                        <label class="form-check-label" for="hotel-mangyan-grand">
+                                                            <strong>The Mangyan Grand Hotel</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input hotels-option" type="radio" name="hotel-selection" id="hotel-ilaya" value="Ilaya Resort">
+                                                        <label class="form-check-label" for="hotel-ilaya">
+                                                            <strong>Ilaya Resort</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input hotels-option" type="radio" name="hotel-selection" id="hotel-transient" value="Mindoro Transient House">
+                                                        <label class="form-check-label" for="hotel-transient">
+                                                            <strong>Casa De Honcho</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input hotels-option" type="radio" name="hotel-selection" id="hotel-bliss" value="Bliss Beach Resort">
+                                                        <label class="form-check-label" for="hotel-bliss">
+                                                            <strong>Bliss Beach Resort</strong>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input hotels-option" type="radio" name="hotel-selection" id="hotel-southview" value="Southview Lodge">
+                                                        <label class="form-check-label" for="hotel-southview">
+                                                            <strong>Southview Lodge</strong>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-4" id="daysGroup">
+                                        <div class="form-floating h-100">
+                                            <input type="text" class="form-control" id="days" placeholder="Days" readonly>
+                                            <label for="days">Number of Days</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="form-floating h-100">
+                                            <input type="text" class="form-control" id="hotelPrice" placeholder="Amount of Hotel" readonly>
+                                            <label for="hotelPrice">Hotel Price</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Services Row -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="dropdown w-100 h-100">
+                                            <button class="btn btn-danger w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="rentalDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                <span>RENTAL VEHICLE</span>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="rentalDropdown">
+                                                <div class="mt-2" id="rental-options">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-adv" value="ADV">
+                                                        <label class="form-check-label" for="rental-adv">ADV</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-nmax" value="NMAX">
+                                                        <label class="form-check-label" for="rental-nmax">NMAX</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-versys-650" value="VERSYS 650">
+                                                        <label class="form-check-label" for="rental-versys-650">VERSYS 650</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-versys-1000" value="VERSYS 1000">
+                                                        <label class="form-check-label" for="rental-versys-1000">VERSYS 1000</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-tuktuk" value="TUKTUK">
+                                                        <label class="form-check-label" for="rental-tuktuk">TUKTUK</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input rental-option" type="checkbox" id="rental-car" value="CAR">
+                                                        <label class="form-check-label" for="rental-car">CAR</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="form-floating h-100">
+                                            <select class="form-control" id="rentalDays">
+                                                <option value="">Select Rental Days</option>
+                                                <option value="1">1 Day</option>
+                                                <option value="2">2 Days</option>
+                                                <option value="3">3 Days</option>
+                                                <option value="4">4 Days</option>
+                                                <option value="5">5 Days</option>
+                                                <option value="6">6 Days</option>
+                                                <option value="7">7 Days</option>
+                                                <option value="8">8 Days</option>
+                                                <option value="9">9 Days</option>
+                                                <option value="10">10 Days</option>
+                                            </select>
+                                            <label for="rentalDays">Select Rental Days</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="form-floating h-100">
+                                            <input type="text" class="form-control" id="amountOfVehicle" placeholder="Vehicle Rental Amount" readonly>
+                                            <label for="amountOfVehicle">Vehicle Rental Amount</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Final Services Row -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="dropdown w-100 h-100">
+                                            <button class="btn btn-danger w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="divingDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                <span>DIVING</span>
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="divingDropdown">
+                                                <div class="mt-2" id="diving-options">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input diving-option" type="checkbox" id="diving-only" value="DIVING">
+                                                        <label class="form-check-label" for="diving-only">DIVING</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="form-floating h-100">
+                                            <input type="text" class="form-control" id="numberOfDiver" placeholder="Number of Divers">
+                                            <label for="numberOfDiver">Number of Divers</label>
+                                        </div>
+                                        <div class="field-error"></div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="form-floating h-100">
+                                            <input type="text" class="form-control" id="amountOfDiving" placeholder="Diving Service Amount" readonly>
+                                            <label for="amountOfDiving">Diving Service Amount</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Total Amount -->
+                                <div class="form-floating mt-4">
+                                    <input type="text" class="form-control" id="totalAmount" placeholder="Total Amount" readonly>
+                                    <label for="totalAmount">Total Amount</label>
+                                </div>
+
+                                <!-- Hotel Selection Error Message -->
+                                <div id="hotel-error-message" class="alert alert-danger mt-3" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <span id="hotel-error-text">Please select a hotel before proceeding.</span>
+                                </div>
+
+                                <!-- Error Message for Step 2 -->
+                                <div id="step2-error-message" class="alert alert-danger mt-3" role="alert" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <span id="step2-error-text"></span>
+                                </div>
+
+                                <!-- Navigation Buttons -->
+                                <div class="row">
+                                    <div class="col mt-5">
+                                        <button type="button" class="btn btn-previous w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">Previous</button>
+                                    </div>
+
+                                    <div class="col mt-5">
+                                        <button type="button" class="btn btn-next w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()">Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="package_only.js"></script>
+</body>
+</html>

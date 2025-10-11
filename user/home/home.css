@@ -110,6 +110,11 @@
 }
 body {
     padding-top: 140px;
+    background-image: url('../../Images/white_beach.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 html {
@@ -121,6 +126,35 @@ html {
     height: 60vh;
     object-fit: cover;
     width: 100%;
+}
+
+/* Transparent headers with strong text shadows for readability */
+#mission-vision h1, #services h1, #contact-us h1 {
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7), 1px 1px 3px rgba(255, 255, 255, 0.8);
+    background-color: transparent;
+    color: #fff;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* Center the main section headings */
+#services h1.text-center, #contact-us h1.text-center {
+    text-align: center !important;
+    width: 100%;
+    margin: 0 auto 2rem auto;
+    display: block;
+}
+
+/* Override the inline-block for these specific centered headings */
+#services h1.text-center, #contact-us h1.text-center {
+    display: block !important;
+}
+
+/* Card styling with subtle transparency */
+.card {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
 }
 
 /* Mission & Vision cards */
@@ -260,6 +294,34 @@ html {
     height: auto;
     border-radius: 8px;
     object-fit: cover;
+}
+
+/* Red Navbar Styling */
+nav.navbar {
+    background-color: #dc3545 !important; /* Bootstrap danger red */
+    border-color: #dc3545 !important; /* Red border */
+}
+
+.navbar.fixed-top {
+    background-color: #dc3545 !important; /* More specific selector */
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3); /* Red shadow */
+}
+
+.navbar-brand img {
+    filter: brightness(1.1) contrast(1.1); /* Enhance logo visibility */
+}
+
+/* Navbar toggler for mobile - make it white on red background */
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25) !important;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
 }
 
 
