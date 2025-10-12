@@ -213,4 +213,41 @@ document.addEventListener('DOMContentLoaded', function () {
       thumb.classList.toggle('active', i === activeIndex);
     });
   });
+
+  // Send feedback functionality
+  const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
+  if (sendFeedbackBtn) {
+    sendFeedbackBtn.addEventListener('click', function() {
+      const feedbackText = document.getElementById('feedback').value.trim();
+      
+      if (!feedbackText) {
+        alert('Please enter a message or feedback before sending.');
+        return;
+      }
+      
+      // Get existing feedback from localStorage or initialize empty array
+      let feedbackList = JSON.parse(localStorage.getItem('feedbackList')) || [];
+      
+      // Create new feedback object
+      const newFeedback = {
+        name: 'Anonymous',
+        message: feedbackText,
+        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        timestamp: new Date().getTime(),
+        status: 'unread'
+      };
+      
+      // Add to beginning of array (newest first)
+      feedbackList.unshift(newFeedback);
+      
+      // Save to localStorage
+      localStorage.setItem('feedbackList', JSON.stringify(feedbackList));
+      
+      // Clear the textarea
+      document.getElementById('feedback').value = '';
+      
+      // Show success message
+      alert('Thank you for your feedback! Your message has been sent successfully.');
+    });
+  }
 });
