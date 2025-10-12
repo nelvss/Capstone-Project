@@ -45,6 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup event listeners
     setupEventListeners();
+    
+    // Load feedback from localStorage
+    loadFeedback();
 });
 
 // Sample data for analytics
@@ -613,6 +616,10 @@ function refreshData() {
         button.classList.remove('loading');
         // Re-initialize charts with new data
         // initializeCharts();
+        
+        // Reload feedback messages
+        loadFeedback();
+        
         showNotification('Data refreshed successfully!', 'success');
     }, 2000);
 }
@@ -1103,3 +1110,147 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+// Load feedback from localStorage
+function loadFeedback() {
+    const feedbackContainer = document.getElementById('feedback-container');
+    if (!feedbackContainer) return;
+    
+    const feedbackList = JSON.parse(localStorage.getItem('feedbackList')) || [];
+    
+    // Clear existing feedback items
+    feedbackContainer.innerHTML = '';
+    
+    // Add feedback items from localStorage
+    if (feedbackList.length === 0) {
+        feedbackContainer.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <p>No feedback messages yet.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    feedbackList.forEach((feedback) => {
+        const feedbackItem = createFeedbackItem(feedback);
+        feedbackContainer.insertAdjacentHTML('beforeend', feedbackItem);
+    });
+    
+    // Attach event listeners
+    attachFeedbackListeners();
+}
+
+// Create feedback item HTML
+function createFeedbackItem(feedback) {
+    const badgeClass = feedback.status === 'unread' ? 'bg-danger' : 'bg-secondary';
+    const badgeText = feedback.status === 'unread' ? 'Unread' : 'Read';
+    const actionButton = feedback.status === 'unread' 
+        ? '<button class="btn btn-sm btn-outline-primary mark-read"><i class="fas fa-check me-1"></i>Mark as Read</button>'
+        : '<button class="btn btn-sm btn-outline-secondary mark-unread"><i class="fas fa-envelope me-1"></i>Mark as Unread</button>';
+    
+    return `
+        <div class="feedback-item ${feedback.status}" data-timestamp="${feedback.timestamp}">
+            <div class="feedback-header">
+                <div class="feedback-info">
+                    <span class="feedback-name">${feedback.name}</span>
+                    <span class="feedback-date">${feedback.date}</span>
+                </div>
+                <span class="badge ${badgeClass}">${badgeText}</span>
+            </div>
+            <div class="feedback-message">
+                ${feedback.message}
+            </div>
+            <div class="feedback-actions">
+                ${actionButton}
+                <button class="btn btn-sm btn-outline-danger delete-feedback">
+                    <i class="fas fa-trash me-1"></i>Delete
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Attach event listeners to feedback items
+function attachFeedbackListeners() {
+    // Mark as read
+    document.querySelectorAll('.mark-read').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const feedbackItem = this.closest('.feedback-item');
+            const timestamp = feedbackItem.dataset.timestamp;
+            updateFeedbackStatus(timestamp, 'read');
+        });
+    });
+    
+    // Mark as unread
+    document.querySelectorAll('.mark-unread').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const feedbackItem = this.closest('.feedback-item');
+            const timestamp = feedbackItem.dataset.timestamp;
+            updateFeedbackStatus(timestamp, 'unread');
+        });
+    });
+    
+    // Delete feedback
+    document.querySelectorAll('.delete-feedback').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this feedback?')) {
+                const feedbackItem = this.closest('.feedback-item');
+                const timestamp = feedbackItem.dataset.timestamp;
+                deleteFeedback(timestamp);
+            }
+        });
+    });
+    
+    // Feedback filter buttons
+    document.querySelectorAll('.btn-group[role="group"] .btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update active button
+            document.querySelectorAll('.btn-group[role="group"] .btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Filter feedback items
+            filterFeedback(filter);
+        });
+    });
+}
+
+// Update feedback status
+function updateFeedbackStatus(timestamp, status) {
+    let feedbackList = JSON.parse(localStorage.getItem('feedbackList')) || [];
+    const index = feedbackList.findIndex(f => f.timestamp == timestamp);
+    
+    if (index !== -1) {
+        feedbackList[index].status = status;
+        localStorage.setItem('feedbackList', JSON.stringify(feedbackList));
+        loadFeedback();
+    }
+}
+
+// Delete feedback
+function deleteFeedback(timestamp) {
+    let feedbackList = JSON.parse(localStorage.getItem('feedbackList')) || [];
+    feedbackList = feedbackList.filter(f => f.timestamp != timestamp);
+    localStorage.setItem('feedbackList', JSON.stringify(feedbackList));
+    loadFeedback();
+}
+
+// Filter feedback
+function filterFeedback(filter) {
+    const feedbackItems = document.querySelectorAll('.feedback-item');
+    
+    feedbackItems.forEach(item => {
+        if (filter === 'all') {
+            item.style.display = 'block';
+        } else if (filter === 'unread' && item.classList.contains('unread')) {
+            item.style.display = 'block';
+        } else if (filter === 'read' && item.classList.contains('read')) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
