@@ -1259,51 +1259,70 @@ function calculateSummaryTotalAmount(bookingData) {
     console.log('calculateSummaryTotalAmount called with:', bookingData);
     
     if (bookingData) {
-        // Get package amount from session data
-        if (bookingData.packageAmount) {
-            const packageAmount = parseFloat(bookingData.packageAmount.replace(/[₱,]/g, '')) || 0;
-            total += packageAmount;
-            console.log('Added package amount:', packageAmount);
+        // Method 1: Try to get totalAmount directly (this is the complete total)
+        if (bookingData.totalAmount) {
+            const totalFromForm = parseFloat(bookingData.totalAmount.replace(/[₱,]/g, '')) || 0;
+            if (totalFromForm > 0) {
+                total = totalFromForm;
+                console.log('Using totalAmount from form:', totalFromForm);
+            }
         }
         
-        // Get vehicle amount from session data  
-        if (bookingData.vehicleAmount) {
-            const vehicleAmount = parseFloat(bookingData.vehicleAmount.replace(/[₱,]/g, '')) || 0;
-            total += vehicleAmount;
-            console.log('Added vehicle amount:', vehicleAmount);
-        }
-        
-        // Get diving amount from session data
-        if (bookingData.divingAmount) {
-            const divingAmount = parseFloat(bookingData.divingAmount.replace(/[₱,]/g, '')) || 0;
-            total += divingAmount;
-            console.log('Added diving amount:', divingAmount);
+        // Method 2: If no totalAmount, calculate from individual amounts
+        if (total === 0) {
+            // Get package amount from session data
+            if (bookingData.packageAmount) {
+                const packageAmount = parseFloat(bookingData.packageAmount.replace(/[₱,]/g, '')) || 0;
+                total += packageAmount;
+                console.log('Added package amount:', packageAmount);
+            }
+            
+            // Get vehicle amount from session data  
+            if (bookingData.vehicleAmount) {
+                const vehicleAmount = parseFloat(bookingData.vehicleAmount.replace(/[₱,]/g, '')) || 0;
+                total += vehicleAmount;
+                console.log('Added vehicle amount:', vehicleAmount);
+            }
+            
+            // Get diving amount from session data
+            if (bookingData.divingAmount) {
+                const divingAmount = parseFloat(bookingData.divingAmount.replace(/[₱,]/g, '')) || 0;
+                total += divingAmount;
+                console.log('Added diving amount:', divingAmount);
+            }
         }
     }
     
-    console.log('Total calculated:', total);
+    console.log('Final total calculated:', total);
     
-    // Update total amount fields
+    // Update total amount fields - including payment option total
     const summaryTotalElement = document.getElementById('summary-total-amount');
     const paymentTotalElement = document.getElementById('payment-total-amount');
+    const packageAmountDisplay = document.getElementById('summary-package-amount');
     
     if (total > 0) {
         const formattedTotal = `₱${total.toLocaleString()}.00`;
         if (summaryTotalElement) {
             summaryTotalElement.textContent = formattedTotal;
-            console.log('Updated summary total to:', formattedTotal);
+            console.log('✓ Updated summary-total-amount to:', formattedTotal);
+        } else {
+            console.error('✗ Element summary-total-amount not found!');
         }
+        
         if (paymentTotalElement) {
             paymentTotalElement.textContent = formattedTotal;
-            console.log('Updated payment total to:', formattedTotal);
+            console.log('✓ Updated payment-total-amount to:', formattedTotal);
+        } else {
+            console.error('✗ Element payment-total-amount not found!');
         }
         
         // Also update package amount display
-        const packageAmountDisplay = document.getElementById('summary-package-amount');
         if (packageAmountDisplay && bookingData && bookingData.packageAmount) {
             packageAmountDisplay.textContent = bookingData.packageAmount;
+            console.log('✓ Updated summary-package-amount to:', bookingData.packageAmount);
         }
     } else {
+        console.warn('⚠ Total is 0 or negative, setting default values');
         if (summaryTotalElement) summaryTotalElement.textContent = '₱0.00';
         if (paymentTotalElement) paymentTotalElement.textContent = '₱0.00';
     }
@@ -1348,17 +1367,20 @@ function calculateTotalAmount() {
         }
     }
     
-    // Update total amount fields
+    // Update total amount fields - including payment option total
     const totalAmountInput = document.getElementById('totalAmount');
     const summaryTotalElement = document.getElementById('summary-total-amount');
+    const paymentTotalElement = document.getElementById('payment-total-amount');
     
     if (total > 0) {
         const formattedTotal = `₱${total.toLocaleString()}.00`;
         if (totalAmountInput) totalAmountInput.value = formattedTotal;
         if (summaryTotalElement) summaryTotalElement.textContent = formattedTotal;
+        if (paymentTotalElement) paymentTotalElement.textContent = formattedTotal;
     } else {
         if (totalAmountInput) totalAmountInput.value = '';
         if (summaryTotalElement) summaryTotalElement.textContent = '₱0.00';
+        if (paymentTotalElement) paymentTotalElement.textContent = '₱0.00';
     }
 }
 
@@ -1464,7 +1486,8 @@ function populateHotelSummary() {
 }
 
 function populateVehicleSummary(bookingData) {
-    const vehicleSection = document.getElementById('vehicle-section');
+    const vehicleSubsection = document.getElementById('vehicle-subsection');
+    const additionalServicesSection = document.getElementById('additional-services-section');
     
     let selectedVehicles = [];
     let rentalDays = '';
@@ -1479,7 +1502,7 @@ function populateVehicleSummary(bookingData) {
     console.log('Vehicle summary - vehicles:', selectedVehicles, 'days:', rentalDays, 'amount:', vehicleAmount);
     
     if (selectedVehicles.length > 0) {
-        vehicleSection.style.display = 'block';
+        vehicleSubsection.style.display = 'block';
         
         // Display all selected vehicles
         document.getElementById('summary-vehicle').textContent = selectedVehicles.join(', ');
@@ -1487,15 +1510,19 @@ function populateVehicleSummary(bookingData) {
         // Display rental days
         document.getElementById('summary-vehicle-days').textContent = rentalDays ? `${rentalDays} Day${rentalDays > 1 ? 's' : ''}` : '-';
         
-        // Display vehicle amount
-        document.getElementById('summary-vehicle-amount').textContent = vehicleAmount || '₱0.00';
+        // Show the additional services section
+        updateAdditionalServicesVisibility();
     } else {
-        vehicleSection.style.display = 'none';
+        vehicleSubsection.style.display = 'none';
+        
+        // Update visibility of additional services section
+        updateAdditionalServicesVisibility();
     }
 }
 
 function populateDivingSummary(bookingData) {
-    const divingSection = document.getElementById('diving-section');
+    const divingSubsection = document.getElementById('diving-subsection');
+    const additionalServicesSection = document.getElementById('additional-services-section');
     
     let hasDiving = false;
     let numberOfDivers = '';
@@ -1510,15 +1537,35 @@ function populateDivingSummary(bookingData) {
     console.log('Diving summary - hasDiving:', hasDiving, 'divers:', numberOfDivers, 'amount:', divingAmount);
     
     if (hasDiving && numberOfDivers) {
-        divingSection.style.display = 'block';
+        divingSubsection.style.display = 'block';
         
         // Display number of divers
         document.getElementById('summary-divers').textContent = numberOfDivers || '-';
         
-        // Display diving amount
-        document.getElementById('summary-diving-amount').textContent = divingAmount || '₱0.00';
+        // Show the additional services section
+        updateAdditionalServicesVisibility();
     } else {
-        divingSection.style.display = 'none';
+        divingSubsection.style.display = 'none';
+        
+        // Update visibility of additional services section
+        updateAdditionalServicesVisibility();
+    }
+}
+
+// Helper function to show/hide the Additional Services section
+function updateAdditionalServicesVisibility() {
+    const additionalServicesSection = document.getElementById('additional-services-section');
+    const vehicleSubsection = document.getElementById('vehicle-subsection');
+    const divingSubsection = document.getElementById('diving-subsection');
+    
+    // Show the section if either vehicle or diving is visible
+    const hasVehicle = vehicleSubsection && vehicleSubsection.style.display !== 'none';
+    const hasDiving = divingSubsection && divingSubsection.style.display !== 'none';
+    
+    if (hasVehicle || hasDiving) {
+        additionalServicesSection.style.display = 'block';
+    } else {
+        additionalServicesSection.style.display = 'none';
     }
 }
 
@@ -1527,13 +1574,22 @@ function populateDivingSummary(bookingData) {
 // ----------------------------
 
 function setupPaymentOptions() {
+    console.log('=== setupPaymentOptions called ===');
+    
     // Get the total amount from the summary
     const summaryTotalElement = document.getElementById('summary-total-amount');
     const paymentTotalElement = document.getElementById('payment-total-amount');
     
+    console.log('Summary total element found:', !!summaryTotalElement);
+    console.log('Payment total element found:', !!paymentTotalElement);
+    
     if (summaryTotalElement && paymentTotalElement) {
         const totalAmount = summaryTotalElement.textContent;
+        console.log('Summary total amount:', totalAmount);
         paymentTotalElement.textContent = totalAmount;
+        console.log('✓ Synced payment total to:', totalAmount);
+    } else {
+        console.error('✗ Could not sync totals - elements missing');
     }
     
     // Calculate minimum down payment based on number of tourists
@@ -1547,6 +1603,7 @@ function setupPaymentOptions() {
         try {
             const bookingData = JSON.parse(completeBookingDataString);
             numberOfTourists = parseInt(bookingData.touristCount) || 1;
+            console.log('Number of tourists:', numberOfTourists);
         } catch (error) {
             console.error('Error parsing booking data:', error);
         }
@@ -1554,6 +1611,7 @@ function setupPaymentOptions() {
     
     // Calculate minimum down payment (₱500 × number of tourists)
     minimumDownPayment = minimumPerPerson * numberOfTourists;
+    console.log('Minimum down payment:', minimumDownPayment);
     
     // Update the minimum down payment display
     const minimumDownPaymentText = document.getElementById('minimumDownPaymentText');
@@ -1672,8 +1730,27 @@ window.validatePaymentOptions = function() {
     if (downPaymentRadio && downPaymentRadio.checked) {
         const downPaymentAmount = parseFloat(downPaymentAmountInput.value) || 0;
         
-        if (downPaymentAmount < 1000) {
-            alert('Please enter a down payment of at least ₱1,000.');
+        // Calculate minimum down payment based on number of tourists
+        const minimumPerPerson = 500;
+        let numberOfTourists = 1;
+        let minimumDownPayment = 500;
+        
+        // Get number of tourists from booking data
+        const completeBookingDataString = sessionStorage.getItem('completeBookingData');
+        if (completeBookingDataString) {
+            try {
+                const bookingData = JSON.parse(completeBookingDataString);
+                numberOfTourists = parseInt(bookingData.touristCount) || 1;
+            } catch (error) {
+                console.error('Error parsing booking data:', error);
+            }
+        }
+        
+        // Calculate minimum down payment (₱500 × number of tourists)
+        minimumDownPayment = minimumPerPerson * numberOfTourists;
+        
+        if (downPaymentAmount < minimumDownPayment) {
+            alert(`Please enter a down payment of at least ₱${minimumDownPayment.toLocaleString()} (₱500 × ${numberOfTourists} tourist${numberOfTourists > 1 ? 's' : ''}).`);
             downPaymentAmountInput.focus();
             return false;
         }

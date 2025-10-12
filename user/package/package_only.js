@@ -68,7 +68,7 @@
         if (!hasTourPackages && !hasRentalVehicle && !hasDiving) {
             // Show error message
             if (errorMessageDiv && errorTextSpan) {
-                errorTextSpan.textContent = 'Please select at least one service (Tour Package, Rental Vehicle, or Diving) before proceeding to the next page.';
+                errorTextSpan.textContent = 'Please select at least one service.';
                 errorMessageDiv.style.display = 'block';
                 // Scroll to the error message
                 errorMessageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -85,7 +85,7 @@
                 valid = false;
                 // Focus on the tourist count input
                 touristCountInput.focus();
-            } else if (touristCount < 2) {
+            } else if (touristCount < 1) {
                 setError(touristCountInput, "Number of Tourist must be at least 2 for package bookings.");
                 valid = false;
                 touristCountInput.focus();
@@ -304,72 +304,72 @@
         const hotelPricing = {
             'Ilaya Resort': {
                 'Package 1': {
-                    2: 3200, '3-4': 2950, '5-6': 2650, '7-9': 2350, '10+': 2100
+                    1: 6400, 2: 3200, '3-4': 2950, '5-6': 2650, '7-9': 2350, '10+': 2100
                 },
                 'Package 2': {
-                    2: 3800, '3-4': 3450, '5-6': 3150, '7-9': 2850, '10+': 2600
+                    1: 7600, 2: 3800, '3-4': 3450, '5-6': 3150, '7-9': 2850, '10+': 2600
                 },
                 'Package 3': {
-                    2: 2800, 3: 2550, 4: 2300, '5-6': 1950, '7-9': 1850, '10+': 1650
+                    1: 5600, 2: 2800, 3: 2550, 4: 2300, '5-6': 1950, '7-9': 1850, '10+': 1650
                 },
                 'Package 4': {
-                    2: 3300, 3: 3150, 4: 3000, '5-6': 2700, '7-9': 2400, '10+': 2100
+                    1: 6600, 2: 3300, 3: 3150, 4: 3000, '5-6': 2700, '7-9': 2400, '10+': 2100
                 }
             },
             'Bliss Beach Resort': {
                 'Package 1': {
-                    2: 3400, '3-4': 3150, '5-6': 2850, '7-9': 2550, '10+': 2300
+                    1: 6800, 2: 3400, '3-4': 3150, '5-6': 2850, '7-9': 2550, '10+': 2300
                 },
                 'Package 2': {
-                    2: 4000, '3-4': 3650, '5-6': 3350, '7-9': 3050, '10+': 2800
+                    1: 8000, 2: 4000, '3-4': 3650, '5-6': 3350, '7-9': 3050, '10+': 2800
                 },
                 'Package 3': {
-                    2: 3000, 3: 2750, 4: 2500, '5-6': 2150, '7-9': 2050, '10+': 1850
+                    1: 6000, 2: 3000, 3: 2750, 4: 2500, '5-6': 2150, '7-9': 2050, '10+': 1850
                 },
                 'Package 4': {
-                    2: 3500, 3: 3350, 4: 3200, '5-6': 2900, '7-9': 2600, '10+': 2300
+                    1: 7000, 2: 3500, 3: 3350, 4: 3200, '5-6': 2900, '7-9': 2600, '10+': 2300
                 }
             },
             'The Mangyan Grand Hotel': {
                 'Package 1': {
-                    2: 4300, '3-4': 4100, '5-8': 3900, '9+': 3700
+                    1: 8600, 2: 4300, '3-4': 4100, '5-8': 3900, '9+': 3700
                 },
                 'Package 2': {
-                    2: 5850, '3-4': 5400, '5-8': 4900, '9+': 4700
+                    1: 11700, 2: 5850, '3-4': 5400, '5-8': 4900, '9+': 4700
                 },
                 'Package 3': {
-                    2: 4050, '3-4': 3850, '5-8': 3300, '9+': 3100
+                    1: 8100, 2: 4050, '3-4': 3850, '5-8': 3300, '9+': 3100
                 },
                 'Package 4': {
-                    2: 5400, '3-4': 4800, '5-8': 4200, '9+': 4000
+                    1: 10800, 2: 5400, '3-4': 4800, '5-8': 4200, '9+': 4000
                 }
             },
             'Mindoro Transient House': { // Casa De Honcho
                 'Package 1': {
-                    2: 3450, '3-4': 3300, '5-6': 3100, '7-9': 2900, '10+': 2600
+                    1: 6900, 2: 3450, '3-4': 3300, '5-6': 3100, '7-9': 2900, '10+': 2600
                 },
                 'Package 2': {
-                    2: 4600, '3-4': 4400, '5-6': 4100, '7-9': 3800, '10+': 3500
+                    1: 9200, 2: 4600, '3-4': 4400, '5-6': 4100, '7-9': 3800, '10+': 3500
                 },
                 'Package 3': {
-                    2: 3450, '3-4': 3300, '5-6': 3100, '7-9': 2900, '10+': 2600
+                    1: 6900, 2: 3450, '3-4': 3300, '5-6': 3100, '7-9': 2900, '10+': 2600
                 },
                 'Package 4': {
-                    2: 4600, '3-4': 4400, '5-6': 4100, '7-9': 3800, '10+': 3500
+                    1: 9200, 2: 4600, '3-4': 4400, '5-6': 4100, '7-9': 3800, '10+': 3500
                 }
             },
             'Southview Lodge': {
                 'Package 1': {
-                    2: 3500, '3-4': 3150, '5-6': 2850, '7-9': 2550, '10+': 2300
+                    1: 7000, 2: 3500, '3-4': 3150, '5-6': 2850, '7-9': 2550, '10+': 2300
                 },
                 'Package 2': {
-                    2: 4000, '3-4': 3750, '5-6': 3350, '7-9': 3050, '10+': 2800
+                    1: 8000, 2: 4000, '3-4': 3750, '5-6': 3350, '7-9': 3050, '10+': 2800
                 },
                 'Package 3': {
-                    2: 3000, 3: 2750, 4: 2500, '5-6': 2150, '7-9': 2050, '10+': 1850
+                    1: 6000, 2: 3000, 3: 2750, 4: 2500, '5-6': 2150, '7-9': 2050, '10+': 1850
                 },
                 'Package 4': {
-                    2: 3500, 3: 3350, 4: 3200, '5-6': 2900, '7-9': 2600, '10+': 2300
+                    1: 7000, 2: 3500, 3: 3350, 4: 3200, '5-6': 2900, '7-9': 2600, '10+': 2300
                 }
             }
         };
@@ -384,8 +384,8 @@
         // Determine price based on tourist count
         if (hotel === 'The Mangyan Grand Hotel') {
             // Mangyan Grand Hotel has different groupings
-            if (touristCount === 2) {
-                pricePerPax = packagePricing[2];
+            if (touristCount === 1 || touristCount === 2) {
+                pricePerPax = packagePricing[touristCount] || packagePricing[2];
             } else if (touristCount >= 3 && touristCount <= 4) {
                 pricePerPax = packagePricing['3-4'];
             } else if (touristCount >= 5 && touristCount <= 8) {
@@ -395,8 +395,8 @@
             }
         } else {
             // Standard groupings for other hotels
-            if (touristCount === 2) {
-                pricePerPax = packagePricing[2];
+            if (touristCount === 1 || touristCount === 2) {
+                pricePerPax = packagePricing[touristCount] || packagePricing[2];
             } else if (touristCount === 3 && packagePricing[3]) {
                 pricePerPax = packagePricing[3];
             } else if (touristCount === 4 && packagePricing[4]) {
@@ -438,8 +438,8 @@
         
         if (selectedPackage && touristCount > 0) {
             // Check if tourist count is valid for the selected package
-            if (touristCount < 2) {
-                selectedPackageText.innerHTML = `${selectedPackage} <small class="text-danger">(Min 2 pax)</small>`;
+            if (touristCount < 1) {
+                selectedPackageText.innerHTML = `${selectedPackage} <small class="text-danger">(Min 1 pax)</small>`;
                 // Still update total amount even when invalid
                 calculateTotalAmount();
                 return;
@@ -450,7 +450,7 @@
             if (pricing.pricePerPax > 0) {
                 // Update selected package text with pricing info and hotel indication
                 const hotelIndicator = selectedHotel ? ` - ${selectedHotel.split(' ')[0]}` : '';
-                selectedPackageText.innerHTML = `${selectedPackage}${hotelIndicator} <small class="text-success">(₱${pricing.pricePerPax.toLocaleString()} x ${touristCount})</small>`;
+                selectedPackageText.innerHTML = `${selectedPackage}${hotelIndicator} <small class="text-muted">(₱${pricing.pricePerPax.toLocaleString()} x ${touristCount})</small>`;
             } else {
                 selectedPackageText.innerHTML = `${selectedPackage} <small class="text-warning">(Invalid count)</small>`;
             }
@@ -672,7 +672,7 @@
             
             console.log('Tourist count:', touristCount, 'Selected package:', selectedPackage, 'Selected hotel:', selectedHotel);
             
-            if (selectedPackage && touristCount >= 2) {
+            if (selectedPackage && touristCount >= 1) {
                 const pricing = calculatePackagePricing(selectedPackage, touristCount, selectedHotel);
                 console.log('Package pricing result:', pricing);
                 if (pricing.totalPrice > 0) {
@@ -1040,7 +1040,7 @@
                 const touristCount = parseInt(document.getElementById('touristCount').value) || 0;
                 const selectedPackage = document.querySelector('input[name="package-selection"]:checked')?.value || null;
                 const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked')?.value || null;
-                if (selectedPackage && touristCount >= 2) {
+                if (selectedPackage && touristCount >= 1) {
                     const pricing = calculatePackagePricing(selectedPackage, touristCount, selectedHotel);
                     return pricing.totalPrice > 0 ? `₱${pricing.totalPrice.toLocaleString()}.00` : '';
                 }
@@ -1057,6 +1057,12 @@
             ...tourSelections,
             bookingType: 'package_only'
         };
+        
+        console.log('Saving to sessionStorage - completeBookingData:', completeBookingData);
+        console.log('Package Amount:', completeBookingData.packageAmount);
+        console.log('Vehicle Amount:', completeBookingData.vehicleAmount);
+        console.log('Diving Amount:', completeBookingData.divingAmount);
+        console.log('Total Amount:', completeBookingData.totalAmount);
         
         sessionStorage.setItem('completeBookingData', JSON.stringify(completeBookingData));
         sessionStorage.setItem('tourSelections', JSON.stringify(tourSelections));

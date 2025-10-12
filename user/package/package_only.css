@@ -145,9 +145,14 @@ body {
     text-transform: uppercase;
     box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
     border-radius: 10px;
-    padding: 0.6rem 1rem;
+    padding: 0.5rem 1rem;
     font-size: 0.85rem;
     transition: all 0.3s ease;
+    height: auto;
+    min-height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .dropdown .btn:hover {
@@ -168,6 +173,21 @@ body {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     min-width: 250px;
+}
+
+/* Remove scrollbar for Package 1-4 dropdown menus */
+#package1Dropdown + .dropdown-menu,
+#package2Dropdown + .dropdown-menu,
+#package3Dropdown + .dropdown-menu,
+#package4Dropdown + .dropdown-menu {
+    max-height: none;
+    overflow-y: visible;
+}
+
+/* Hide scrollbar but keep functionality for other dropdowns if needed */
+.dropdown-menu::-webkit-scrollbar {
+    width: 0;
+    display: none;
 }
 
 /* Minimal Package Dropdown Styling */
@@ -226,23 +246,27 @@ body {
     font-weight: 700;
 }
 
-/* Compact scrollbar for dropdown menus */
+/* Compact scrollbar for dropdown menus - Hidden */
 .dropdown-menu::-webkit-scrollbar {
-    width: 4px;
+    width: 0;
+    display: none;
 }
 
 .dropdown-menu::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+    display: none;
 }
 
 .dropdown-menu::-webkit-scrollbar-thumb {
-    background: #dc2626;
-    border-radius: 10px;
+    display: none;
 }
 
 .dropdown-menu::-webkit-scrollbar-thumb:hover {
-    background: #b91c1c;
+    display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.dropdown-menu {
+    scrollbar-width: none;
 }
 
 /* ===== FIELD ERROR STYLING ===== */
@@ -304,9 +328,31 @@ body {
     margin-bottom: 2rem !important;
 }
 
-/* Better alignment for dropdowns */
-.dropdown.w-100.h-100 {
-    min-height: 3.5rem;
+.row.g-3.mb-4 > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.row.g-3.mb-4 .form-floating,
+.row.g-3.mb-4 .dropdown {
+    flex: 1;
+    height: 100%;
+    min-height: unset;
+}
+
+/* Ensure hotel row fields have consistent height */
+#hotelsRow .form-floating {
+    height: 100%;
+}
+
+#hotelsRow .form-floating > .form-control {
+    height: 100%;
+    min-height: unset;
+}
+
+#hotelsRow .dropdown .btn {
+    height: 100%;
+    min-height: unset;
 }
 
 /* ===== FORM FIELD ENHANCEMENTS ===== */
@@ -316,14 +362,47 @@ body {
 }
 
 .form-floating > .form-control {
-    height: calc(3.5rem + 2px);
+    height: auto;
     line-height: 1.25;
 }
 
 .form-floating > label {
-    height: calc(3.5rem + 2px);
-    padding: 1rem 0.75rem;
+    height: auto;
+    padding: 0.5rem 0.75rem;
     line-height: 1.25;
+    font-size: 0.9rem;
+}
+
+/* Make all dropdowns match input field height */
+.dropdown .btn {
+    height: auto;
+    min-height: unset;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+}
+
+.dropdown.w-100.h-100 .btn {
+    height: 100%;
+    min-height: unset;
+}
+
+/* Ensure all rows have consistent heights */
+.row.g-3.mb-4 {
+    margin-bottom: 2rem !important;
+}
+
+.row.g-3.mb-4 > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.row.g-3.mb-4 .form-floating,
+.row.g-3.mb-4 .dropdown {
+    flex: 1;
+    height: 100%;
+    min-height: calc(2.5rem + 2px);
 }
 
 /* ===== BUTTON ENHANCEMENTS ===== */
@@ -408,6 +487,17 @@ body {
     font-weight: 600;
     background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%) !important;
     border: 2px solid #dc2626 !important;
+}
+
+/* Total Amount in hotel row specific styling */
+#hotelsRow #totalAmount {
+    height: 100%;
+    min-height: unset;
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #dc2626;
 }
 
 /* ===== ERROR MESSAGE STYLING ===== */
@@ -698,9 +788,13 @@ body {
 }
 
 #packageSelectionDropdown {
-    min-height: 3.5rem;
+    min-height: unset;
+    height: auto;
     font-weight: 500;
     border: 2px solid #0d6efd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 #selectedPackageText {

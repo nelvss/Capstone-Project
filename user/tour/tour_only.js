@@ -83,7 +83,7 @@
             const touristCount = parseInt(touristCountInput.value) || 0;
             
             if (touristCount === 0 || touristCountInput.value.trim() === "") {
-                setError(touristCountInput, "Number of Tourist is required when selecting tour packages.");
+                setError(touristCountInput, "Number of Tourist is required.");
                 valid = false;
                 // Focus on the tourist count input
                 touristCountInput.focus();
