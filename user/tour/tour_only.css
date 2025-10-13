@@ -240,13 +240,16 @@ body {
 
 .card {
     border: none;
-    border-radius: 15px;
+    border-radius: 20px;
     overflow: visible;
     min-height: 500px;
     background-color: rgba(255, 255, 255, 0.95);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .card-header {
@@ -403,6 +406,7 @@ body {
 .container {
     padding-left: 1rem;
     padding-right: 1rem;
+    max-width: 760px;
 }
 
 .row {
@@ -563,6 +567,38 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* Make the Total Amount field same width as Diving Experience container */
+#totalAmount {
+    width:89%;
+    max-width: 100%;
+    margin-left: 40px;
+    display: block;
+    padding-top: 1.8rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    height: auto !important;
+    min-height: 58px !important;
+    margin-top: -5% !important;
+}
+
+/* Put the Total Amount label inside the input box at the top */
+.form-floating label[for="totalAmount"] {
+    position: absolute !important;
+    top: -2rem !important;
+    left: 3.5rem !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    color: #6c757d !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+}
+
 #book-form .form-control:focus,
 #book-form .form-select:focus,
 #book-form input[type="text"]:focus,
@@ -666,6 +702,25 @@ body {
     }
 }
 
+/* FORCE IDENTICAL SIZES FOR BOTH PLACE DROPDOWNS */
+#placeSelect,
+#outsidePlaceSelect {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: 38px !important;
+    font-size: 1rem !important;
+    box-sizing: border-box !important;
+}
+
+#placeSelectionContainer,
+#outsidePlaceContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 576px) {
     #book-form {
@@ -704,5 +759,27 @@ body {
     
     .mt-5 {
         margin-top: 2.5rem !important;
+    }
+    
+    /* Make select dropdowns more compact on mobile */
+    #placeSelect,
+    #outsidePlaceSelect {
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.5rem !important;
+        max-height: 60vh !important;
+    }
+    
+    #placeSelect option,
+    #outsidePlaceSelect option {
+        font-size: 0.75rem !important;
+        padding: 0.3rem 0.5rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    #placeSelect optgroup,
+    #outsidePlaceSelect optgroup {
+        font-size: 0.7rem !important;
+        font-weight: 600 !important;
+        padding: 0.2rem 0.3rem !important;
     }
 }

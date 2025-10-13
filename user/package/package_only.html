@@ -357,10 +357,10 @@
                                         Additional Services (Optional)
                                     </h5>
                                     
-                                    <!-- Rental Vehicle Section -->
+                                    <!-- Rental Vehicle Section (Motorcycles & Cars) -->
                                     <div class="border rounded-3 p-3 mb-3 bg-white shadow-sm">
                                         <div class="d-flex align-items-center mb-3">
-                                            <h6 class="mb-0 text-dark fw-bold">Vehicle Rental</h6>
+                                            <h6 class="mb-0 text-dark fw-bold">Vehicle Rental (Motorcycles & Cars)</h6>
                                         </div>
                                         
                                         <div class="row g-3">
@@ -445,6 +445,181 @@
                                         </div>
                                     </div>
 
+                                    <!-- Van Rental Section (Separate Container) -->
+                                    <div class="border rounded-3 p-3 mb-3 bg-white shadow-sm">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <h6 class="mb-0 text-dark fw-bold">Van Rental with Tourist Franchise</h6>
+                                            <small class="text-muted ms-2">(Max 14 pax)</small>
+                                        </div>
+                                        
+                                        <div class="van-rental-container" style="width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box;">
+                                            <div class="row g-2 van-fixed-row">
+                                                <!-- Column 1: Destination -->
+                                                <div class="col-4 van-fixed-col">
+                                                    <label class="form-label fw-semibold small" for="destinationSelect">
+                                                        Choose Destination
+                                                    </label>
+                                                    <select class="form-select" id="destinationSelect">
+                                                        <option value="">Select Place...</option>
+                                                        <option value="Within Puerto Galera">Within Puerto Galera</option>
+                                                        <option value="Outside Puerto Galera">Outside Puerto Galera</option>
+                                                    </select>
+                                                    <div class="field-error"></div>
+                                                </div>
+                                                
+                                                <!-- Column 2: Place Selection (fixed width, content changes) -->
+                                                <div class="col-4 van-fixed-col">
+                                                    <!-- Dynamic field: Shows place selector for Within PG -->
+                                                    <div id="placeSelectionContainer" style="display: none;">
+                                                        <label class="form-label fw-semibold small" for="placeSelect">
+                                                            Select a Place
+                                                        </label>
+                                                    <select class="form-select" id="placeSelect">
+                                                        <option value="">Select place...</option>
+                                                        <option value="Sabang" data-oneway="800" data-roundtrip="1600">Sabang</option>
+                                                        <option value="Muelle" data-oneway="800" data-roundtrip="1600">Muelle</option>
+                                                        <option value="Balatero" data-oneway="1000" data-roundtrip="2000">Balatero</option>
+                                                        <option value="White Beach" data-oneway="1500" data-roundtrip="3000">White Beach</option>
+                                                        <option value="Aninuan" data-oneway="1500" data-roundtrip="3000">Aninuan</option>
+                                                        <option value="Ponderosa" data-oneway="1800" data-roundtrip="3000">Ponderosa</option>
+                                                        <option value="Tabinay" data-oneway="800" data-roundtrip="1500">Tabinay</option>
+                                                        <option value="Dulangan" data-oneway="1500" data-roundtrip="3000">Dulangan</option>
+                                                        <option value="Tamaraw Falls" data-oneway="" data-roundtrip="3000">Tamaraw Falls</option>
+                                                        <option value="Tamaraw Tour" data-oneway="" data-roundtrip="4000">Tamaraw Tour</option>
+                                                        <option value="Windfarm" data-oneway="" data-roundtrip="3000">Windfarm</option>
+                                                        <option value="Tukuran Falls" data-oneway="" data-roundtrip="3500">Tukuran Falls</option>
+                                                        <option value="Infinity Farm" data-oneway="" data-roundtrip="4500">Infinity Farm</option>
+                                                        <option value="Lantuyan" data-oneway="" data-roundtrip="4500">Lantuyan</option>
+                                                        <option value="Calapan" data-oneway="" data-roundtrip="4500">Calapan</option>
+                                                        <option value="Roxas" data-oneway="" data-roundtrip="9000">Roxas</option>
+                                                        <option value="Around PG" data-oneway="" data-roundtrip="4500">Around PG</option>
+                                                    </select>
+                                                    <div class="field-error"></div>
+                                                </div>
+
+                                                <!-- Fields for Outside Puerto Galera destinations -->
+                                                <div id="outsidePlaceContainer" style="display: none;">
+                                                    <label class="form-label fw-semibold small" for="outsidePlaceSelect">
+                                                        Select a Place
+                                                    </label>
+                                                    <select class="form-select" id="outsidePlaceSelect">
+                                                        <option value="">Select place...</option>
+                                                        <option value="Calapan" data-oneway="4000" data-roundtrip="5000">Calapan</option>
+                                                        <option value="Naujan" data-oneway="5000" data-roundtrip="6000">Naujan</option>
+                                                        <option value="Victoria" data-oneway="5500" data-roundtrip="6500">Victoria</option>
+                                                        <option value="Socorro" data-oneway="6000" data-roundtrip="7000">Socorro</option>
+                                                        <option value="Pola" data-oneway="6500" data-roundtrip="7500">Pola</option>
+                                                        <option value="Pinamalayan" data-oneway="6500" data-roundtrip="7500">Pinamalayan</option>
+                                                        <option value="Gloria" data-oneway="7000" data-roundtrip="8000">Gloria</option>
+                                                        <option value="Bansud" data-oneway="7500" data-roundtrip="8500">Bansud</option>
+                                                        <option value="Bongabong" data-oneway="8000" data-roundtrip="9000">Bongabong</option>
+                                                        <option value="Roxas" data-oneway="8500" data-roundtrip="10000">Roxas</option>
+                                                        <option value="Mansalay" data-oneway="9000" data-roundtrip="11000">Mansalay</option>
+                                                        <option value="Bulalacao" data-oneway="10000" data-roundtrip="12500">Bulalacao</option>
+                                                        <option value="San Jose" data-oneway="15000" data-roundtrip="">San Jose</option>
+                                                        <option value="Sablayan" data-oneway="20000" data-roundtrip="">Sablayan</option>
+                                                        <option value="Manila Airport" data-oneway="25000" data-roundtrip="">Manila Airport</option>
+                                                    </select>
+                                                    <div class="field-error"></div>
+                                                </div>
+                                            </div>
+
+                                                <!-- Column 3: Trip Type (fixed width, content changes) -->
+                                                <div class="col-4 van-fixed-col">
+                                                    <!-- Trip Type for Within PG -->
+                                                    <div id="withinTripTypeContainer" style="display: none;">
+                                                        <label class="form-label fw-semibold small" for="withinTripTypeSelect">
+                                                            Trip Type
+                                                        </label>
+                                                        <select class="form-select" id="withinTripTypeSelect">
+                                                            <option value="">Select type...</option>
+                                                            <option value="oneway">One Way</option>
+                                                            <option value="roundtrip">Roundtrip</option>
+                                                        </select>
+                                                        <div class="field-error"></div>
+                                                    </div>
+
+                                                    <!-- Trip Type for Outside PG -->
+                                                    <div id="tripTypeContainer" style="display: none;">
+                                                        <label class="form-label fw-semibold small" for="tripTypeSelect">
+                                                            Trip Type
+                                                        </label>
+                                                        <select class="form-select" id="tripTypeSelect">
+                                                            <option value="">Select type...</option>
+                                                            <option value="oneway">One Way</option>
+                                                            <option value="roundtrip">Roundtrip</option>
+                                                        </select>
+                                                        <div class="field-error"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Second Row: Days and Total -->
+                                            <div class="row g-2 van-fixed-row">
+                                                <!-- Column 1: Number of Days (aligned with Choose Destination) -->
+                                                <div class="col-4 van-fixed-col">
+                                                    <!-- Number of Days for Within PG -->
+                                                    <div id="withinDaysContainer" style="display: none;">
+                                                        <label class="form-label fw-semibold small" for="withinNumberOfDays">
+                                                            Number of Days
+                                                        </label>
+                                                        <select class="form-select" id="withinNumberOfDays">
+                                                            <option value="">Select days...</option>
+                                                            <option value="1">1 Day</option>
+                                                            <option value="2">2 Days</option>
+                                                            <option value="3">3 Days</option>
+                                                            <option value="4">4 Days</option>
+                                                            <option value="5">5 Days</option>
+                                                            <option value="6">6 Days</option>
+                                                            <option value="7">7 Days</option>
+                                                            <option value="8">8 Days</option>
+                                                            <option value="9">9 Days</option>
+                                                            <option value="10">10 Days</option>
+                                                        </select>
+                                                        <div class="field-error"></div>
+                                                    </div>
+
+                                                    <!-- Number of Days for Outside PG -->
+                                                    <div id="outsideDaysContainer" style="display: none;">
+                                                        <label class="form-label fw-semibold small" for="outsideNumberOfDays">
+                                                            Number of Days
+                                                        </label>
+                                                        <select class="form-select" id="outsideNumberOfDays">
+                                                            <option value="">Select days...</option>
+                                                            <option value="1">1 Day</option>
+                                                            <option value="2">2 Days</option>
+                                                            <option value="3">3 Days</option>
+                                                            <option value="4">4 Days</option>
+                                                            <option value="5">5 Days</option>
+                                                            <option value="6">6 Days</option>
+                                                            <option value="7">7 Days</option>
+                                                            <option value="8">8 Days</option>
+                                                            <option value="9">9 Days</option>
+                                                            <option value="10">10 Days</option>
+                                                        </select>
+                                                        <div class="field-error"></div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Column 2: Total Amount -->
+                                                <div class="col-4 van-fixed-col">
+                                                    <div id="vanTotalAmountContainer" style="display: none;">
+                                                        <label class="form-label fw-semibold small" for="vanTotalAmount">
+                                                            Total Amount
+                                                        </label>
+                                                        <input type="text" class="form-control bg-light fw-bold" id="vanTotalAmount" placeholder="0.00" readonly>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Column 3: Empty spacer -->
+                                                <div class="col-4 van-fixed-col">
+                                                    <!-- Empty spacer -->
+                                                </div>
+                                            </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Diving Service Section -->
                                     <div class="border rounded-3 p-3 bg-white shadow-sm">
                                         <div class="d-flex align-items-center mb-3">
@@ -505,13 +680,16 @@
                                 </div>
 
                                 <!-- Navigation Buttons -->
-                                <div class="row">
-                                    <div class="col mt-5">
-                                        <button type="button" class="btn btn-previous w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">Previous</button>
+                                <div class="row mt-4">
+                                    <div class="col-6">
+                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #6c757d; border-color: #6c757d; color: white;" onclick="previousStep()">
+                                        Previous
+                                        </button>
                                     </div>
-
-                                    <div class="col mt-5">
-                                        <button type="button" class="btn btn-next w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()">Next</button>
+                                    <div class="col-6">
+                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">
+                                            Proceed to Payment
+                                        </button>
                                     </div>
                                 </div>
                             </div>

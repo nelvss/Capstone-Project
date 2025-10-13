@@ -745,6 +745,30 @@ body {
         flex: 0 0 50%;
         max-width: 50%;
     }
+    
+    /* Make select dropdowns more compact on mobile */
+    #placeSelect,
+    #outsidePlaceSelect {
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.5rem !important;
+        max-height: 60vh !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    #placeSelect option,
+    #outsidePlaceSelect option {
+        font-size: 0.75rem !important;
+        padding: 0.3rem 0.5rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    #placeSelect optgroup,
+    #outsidePlaceSelect optgroup {
+        font-size: 0.7rem !important;
+        font-weight: 600 !important;
+        padding: 0.2rem 0.3rem !important;
+    }
 }
 
 @media (max-width: 992px) {
@@ -760,6 +784,48 @@ body {
         max-width: 50%;
         margin-bottom: 1.5rem;
     }
+}
+
+/* Constrain width of place select dropdowns to prevent expansion */
+#placeSelect,
+#outsidePlaceSelect {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+#placeSelect option,
+#outsidePlaceSelect option {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+/* Constrain parent containers to prevent width expansion */
+#placeSelectionContainer,
+#outsidePlaceContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* Ensure van rental columns maintain fixed width */
+.van-fixed-col {
+    flex: 0 0 33.333333% !important;
+    max-width: 33.333333% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.van-rental-container {
+    overflow: hidden !important;
+}
+
+.van-fixed-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 /* ===== PACKAGE SELECTION DROPDOWN STYLING ===== */

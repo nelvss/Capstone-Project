@@ -1224,6 +1224,12 @@ function calculateTotalAmount() {
                 sessionTotal += vehicleAmount;
             }
             
+            // Get van rental amount from session data (van rental with tourist franchise)
+            if (bookingData.vanRentalAmount) {
+                const vanRentalAmount = parseFloat(bookingData.vanRentalAmount.replace(/[₱,]/g, '')) || 0;
+                sessionTotal += vanRentalAmount;
+            }
+            
             // Get diving amount from session data
             if (bookingData.divingAmount) {
                 const divingAmount = parseFloat(bookingData.divingAmount.replace(/[₱,]/g, '')) || 0;
@@ -1255,11 +1261,18 @@ function calculateTotalAmount() {
             total += hotelAmount;
         }
         
-        // Get vehicle amount
+        // Get vehicle amount (regular rental vehicles)
         const vehicleAmountText = document.getElementById('amountOfVehicle')?.value;
         if (vehicleAmountText) {
             const vehicleAmount = parseFloat(vehicleAmountText.replace(/[₱,]/g, '')) || 0;
             total += vehicleAmount;
+        }
+        
+        // Get van rental amount (van rental with tourist franchise)
+        const vanRentalAmountText = document.getElementById('amountOfVanRental')?.value;
+        if (vanRentalAmountText) {
+            const vanRentalAmount = parseFloat(vanRentalAmountText.replace(/[₱,]/g, '')) || 0;
+            total += vanRentalAmount;
         }
         
         // Get diving amount

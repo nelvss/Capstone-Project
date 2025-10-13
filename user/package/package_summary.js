@@ -1115,6 +1115,9 @@ function populateBookingSummary() {
     // Diving Information
     populateDivingSummary(bookingData);
 
+    // Van Rental Information
+    populateVanRentalSummary(bookingData);
+
     // Calculate and display total amount
     calculateSummaryTotalAmount(bookingData);
 }
@@ -1131,6 +1134,7 @@ function displayPackageType(bookingData) {
     let selectedPackageName = '';
     let hasVehicleRental = false;
     let hasDiving = false;
+    let hasVanRental = false;
     
     if (bookingData) {
         // Get data from package_only form
@@ -1138,6 +1142,7 @@ function displayPackageType(bookingData) {
         selectedHotel = bookingData.selectedHotel || '';
         hasVehicleRental = (bookingData.rentalVehicles && bookingData.rentalVehicles.length > 0);
         hasDiving = bookingData.diving || false;
+        hasVanRental = (bookingData.vanDestination && bookingData.vanPlace);
     }
     
     // Add package name to services
@@ -1164,6 +1169,12 @@ function displayPackageType(bookingData) {
     if (hasDiving) {
         const divers = bookingData.numberOfDivers || '1';
         packageTypes.push(`Diving Service (${divers} diver${divers > 1 ? 's' : ''})`);
+    }
+    if (hasVanRental) {
+        const vanPlace = bookingData.vanPlace || 'Unknown';
+        const vanDays = bookingData.vanDays || '1';
+        const vanTripType = bookingData.vanTripType ? (bookingData.vanTripType === 'oneway' ? 'One Way' : 'Roundtrip') : '';
+        packageTypes.push(`Van Rental: ${vanPlace} (${vanTripType}, ${vanDays} day${vanDays > 1 ? 's' : ''})`);
     }
     
     // Create HTML content
@@ -1552,17 +1563,58 @@ function populateDivingSummary(bookingData) {
     }
 }
 
+function populateVanRentalSummary(bookingData) {
+    const vanSubsection = document.getElementById('van-subsection');
+    const additionalServicesSection = document.getElementById('additional-services-section');
+    
+    let vanDestination = '';
+    let vanPlace = '';
+    let vanTripType = '';
+    let vanDays = '';
+    let vanAmount = '';
+    
+    if (bookingData) {
+        vanDestination = bookingData.vanDestination || '';
+        vanPlace = bookingData.vanPlace || '';
+        vanTripType = bookingData.vanTripType || '';
+        vanDays = bookingData.vanDays || '';
+        vanAmount = bookingData.vanAmount || '';
+    }
+    
+    console.log('Van rental summary - destination:', vanDestination, 'place:', vanPlace, 'trip type:', vanTripType, 'days:', vanDays, 'amount:', vanAmount);
+    
+    if (vanDestination && vanPlace) {
+        vanSubsection.style.display = 'block';
+        
+        // Display van rental details
+        document.getElementById('summary-van-destination').textContent = vanDestination || '-';
+        document.getElementById('summary-van-place').textContent = vanPlace || '-';
+        document.getElementById('summary-van-trip-type').textContent = vanTripType ? (vanTripType === 'oneway' ? 'One Way' : 'Roundtrip') : '-';
+        document.getElementById('summary-van-days').textContent = vanDays ? `${vanDays} Day${vanDays > 1 ? 's' : ''}` : '-';
+        
+        // Show the additional services section
+        updateAdditionalServicesVisibility();
+    } else {
+        vanSubsection.style.display = 'none';
+        
+        // Update visibility of additional services section
+        updateAdditionalServicesVisibility();
+    }
+}
+
 // Helper function to show/hide the Additional Services section
 function updateAdditionalServicesVisibility() {
     const additionalServicesSection = document.getElementById('additional-services-section');
     const vehicleSubsection = document.getElementById('vehicle-subsection');
     const divingSubsection = document.getElementById('diving-subsection');
+    const vanSubsection = document.getElementById('van-subsection');
     
-    // Show the section if either vehicle or diving is visible
+    // Show the section if any service is visible
     const hasVehicle = vehicleSubsection && vehicleSubsection.style.display !== 'none';
     const hasDiving = divingSubsection && divingSubsection.style.display !== 'none';
+    const hasVan = vanSubsection && vanSubsection.style.display !== 'none';
     
-    if (hasVehicle || hasDiving) {
+    if (hasVehicle || hasDiving || hasVan) {
         additionalServicesSection.style.display = 'block';
     } else {
         additionalServicesSection.style.display = 'none';
@@ -1796,29 +1848,23 @@ const paymentMethods = {
 };
 
 // Show payment QR code modal
-function showPaymentQR(paymentType) {
-    console.log('showPaymentQR called with:', paymentType);
+function showPaymentQRInternal(paymentType) {
+    console.log('showPaymentQRInternal called with:', paymentType);
     
     const method = paymentMethods[paymentType];
-    if (!method) return;
-    
-    // AGGRESSIVE CLEANUP: Remove any existing modal backdrops and reset body
-    const existingBackdrops = document.querySelectorAll('.modal-backdrop');
-    console.log('Removing existing backdrops:', existingBackdrops.length);
-    existingBackdrops.forEach(backdrop => backdrop.remove());
-    
-    // Reset body state
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-    
-    // Update modal content based on payment method
-    const modal = document.getElementById('paymentQRModal');
-    if (!modal) {
-        console.error('Modal element not found!');
+    if (!method) {
+        console.error('Payment method not found:', paymentType);
         return;
     }
     
+    // Get modal element
+    const modal = document.getElementById('paymentQRModal');
+    if (!modal) {
+        console.error('Modal element #paymentQRModal not found!');
+        return;
+    }
+    
+    // Update modal content based on payment method
     const modalTitle = document.getElementById('paymentQRModalLabel');
     const paymentIcon = document.getElementById('paymentIcon');
     const paymentMethodName = document.getElementById('paymentMethodName');
@@ -1826,7 +1872,7 @@ function showPaymentQR(paymentType) {
     const instructionApp = document.getElementById('instructionApp');
     
     // Set payment method details
-    if (modalTitle) modalTitle.innerHTML = `<i class="fas fa-qrcode me-2"></i>${method.name} Payment`;
+    if (modalTitle) modalTitle.innerHTML = `<i class="${method.icon} me-2"></i>${method.name} Payment`;
     if (paymentIcon) {
         paymentIcon.className = `${method.icon} fa-3x`;
         paymentIcon.style.color = method.color;
@@ -1861,33 +1907,36 @@ function showPaymentQR(paymentType) {
     
     if (modalPaymentAmount) modalPaymentAmount.textContent = amountToPay;
     
-    // Generate QR code placeholder (in real implementation, you'd generate actual QR code)
+    // Generate QR code placeholder
     generateQRCodePlaceholder(method, amountToPay);
     
-    // Dispose any existing modal instance
-    let bsModal = bootstrap.Modal.getInstance(modal);
-    if (bsModal) {
-        console.log('Disposing existing modal instance');
-        try {
-            bsModal.dispose();
-        } catch (e) {
-            console.log('Error disposing modal:', e);
-        }
+    // Check if Bootstrap is loaded
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap is not loaded!');
+        alert('Error: Bootstrap library not loaded. Please refresh the page.');
+        return;
     }
     
-    // Wait a bit for cleanup to complete, then create and show new modal
-    setTimeout(() => {
-        console.log('Creating new modal instance');
-        // Create new instance and show
-        bsModal = new bootstrap.Modal(modal, {
+    // Clean up any existing modal instance
+    const existingInstance = bootstrap.Modal.getInstance(modal);
+    if (existingInstance) {
+        existingInstance.dispose();
+    }
+    
+    // Create and show modal
+    try {
+        const bsModal = new bootstrap.Modal(modal, {
             backdrop: true,
             keyboard: true,
             focus: true
         });
         
-        console.log('Showing modal');
+        console.log('Showing modal...');
         bsModal.show();
-    }, 150);
+    } catch (error) {
+        console.error('Error showing modal:', error);
+        alert('Error opening payment modal. Please try again.');
+    }
 }
 
 // Generate QR code placeholder
@@ -2024,55 +2073,71 @@ function setupReceiptUpload(paymentMethod, amount) {
 
 // Handle file upload
 function handleFileUpload(event) {
+    console.log('=== handleFileUpload CALLED ===');
+    console.log('Event:', event);
+    console.log('Event target:', event.target);
+    
     const files = event.target.files;
+    console.log('Files object:', files);
+    console.log('Files length:', files ? files.length : 'files is null/undefined');
+    
     const filePreviewContainer = document.getElementById('filePreviewContainer');
     const uploadedFilesSection = document.getElementById('uploadedFiles');
+    const uploadArea = document.getElementById('uploadArea');
     const submitBtn = document.getElementById('submitBookingBtn');
     
-    console.log('handleFileUpload called with files:', files.length);
+    console.log('DOM Elements:', {
+        filePreviewContainer: filePreviewContainer ? 'found' : 'NOT FOUND',
+        uploadedFilesSection: uploadedFilesSection ? 'found' : 'NOT FOUND',
+        uploadArea: uploadArea ? 'found' : 'NOT FOUND',
+        submitBtn: submitBtn ? 'found' : 'NOT FOUND'
+    });
     
-    if (files.length > 0) {
-        // Set global flag
-        isReceiptUploaded = true;
-        
-        // Clear existing previews
-        filePreviewContainer.innerHTML = '';
-        
-        // Show uploaded files section and remove d-none class
-        uploadedFilesSection.classList.remove('d-none');
-        uploadedFilesSection.style.display = 'block';
-        
-        // Create simple preview
-        const previewDiv = document.createElement('div');
-        previewDiv.className = 'text-center';
-        previewDiv.innerHTML = `
-            <div class="mb-2">
-                <i class="fas fa-image text-success fa-2x"></i>
-            </div>
-            <p class="mb-0 small text-success">${files[0].name}</p>
-            <p class="mb-0 text-muted small">${(files[0].size / 1024 / 1024).toFixed(2)} MB</p>
-        `;
-        filePreviewContainer.appendChild(previewDiv);
-        
-        // Enable submit button
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Complete<i class="fas fa-check ms-2"></i>';
-        
-        // Update upload area to show success
-        const uploadArea = document.getElementById('uploadArea');
-        uploadArea.innerHTML = `
-            <div class="border border-2 border-dashed border-success rounded text-center" style="padding: 1.5rem 1rem; min-height: 120px; display: flex; flex-direction: column; justify-content: center;">
-                <i class="fas fa-check-circle text-success" style="font-size: 1.5rem; margin-bottom: 0.75rem;"></i>
-                <p class="text-success mb-2">Receipt Uploaded Successfully!</p>
-                <button type="button" class="btn btn-outline-success btn-sm" onclick="document.getElementById('receiptFile').click()" style="min-width: 120px;">
-                    Change File
-                </button>
-                <input type="file" id="receiptFile" class="d-none" accept="image/*" onchange="handleFileUpload(event)">
-            </div>
-        `;
-        
-        console.log('File upload completed successfully, isReceiptUploaded set to:', isReceiptUploaded);
+    if (!files || files.length === 0) {
+        console.error('No files selected or files is null');
+        return;
     }
+    
+    console.log('File selected:', files[0].name);
+    console.log('File size:', files[0].size);
+    console.log('File type:', files[0].type);
+    
+    // Set global flag
+    isReceiptUploaded = true;
+    console.log('isReceiptUploaded set to:', isReceiptUploaded);
+    
+    // Clear existing previews
+    filePreviewContainer.innerHTML = '';
+    console.log('Cleared preview container');
+    
+    // Create simple preview
+    const previewDiv = document.createElement('div');
+    previewDiv.className = 'text-center';
+    previewDiv.innerHTML = `
+        <div class="mb-2">
+            <i class="fas fa-image text-success fa-2x"></i>
+        </div>
+        <p class="mb-0 small text-success fw-bold">${files[0].name}</p>
+        <p class="mb-0 text-muted small">${(files[0].size / 1024 / 1024).toFixed(2)} MB</p>
+    `;
+    filePreviewContainer.appendChild(previewDiv);
+    console.log('Added preview to container');
+    
+    // Hide upload area
+    uploadArea.style.display = 'none';
+    console.log('Upload area hidden');
+    
+    // Show uploaded files section
+    uploadedFilesSection.classList.remove('d-none');
+    uploadedFilesSection.style.display = 'block';
+    console.log('Uploaded files section shown');
+    
+    // Enable submit button
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Complete<i class="fas fa-check ms-2"></i>';
+    console.log('Submit button enabled');
+    
+    console.log('=== handleFileUpload COMPLETED ===');
 }
 
 // Remove uploaded file
@@ -2305,6 +2370,79 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const paymentModal = document.getElementById('paymentQRModal');
     if (paymentModal) {
+        // Listen for when modal is about to be shown
+        paymentModal.addEventListener('show.bs.modal', function (event) {
+            console.log('Modal show.bs.modal event triggered');
+            
+            // Get the button that triggered the modal
+            const button = event.relatedTarget;
+            if (!button) {
+                console.error('No button found that triggered the modal');
+                return;
+            }
+            
+            // Extract payment type from data attribute
+            const paymentType = button.getAttribute('data-payment-type');
+            console.log('Payment type from button:', paymentType);
+            
+            if (!paymentType) {
+                console.error('No payment type found on button');
+                return;
+            }
+            
+            // Get payment method details
+            const method = paymentMethods[paymentType];
+            if (!method) {
+                console.error('Payment method not found:', paymentType);
+                return;
+            }
+            
+            // Update modal content
+            const modalTitle = document.getElementById('paymentQRModalLabel');
+            const paymentIcon = document.getElementById('paymentIcon');
+            const paymentMethodName = document.getElementById('paymentMethodName');
+            const modalPaymentAmount = document.getElementById('modalPaymentAmount');
+            const instructionApp = document.getElementById('instructionApp');
+            
+            // Set payment method details
+            if (modalTitle) modalTitle.innerHTML = `<i class="${method.icon} me-2"></i>${method.name} Payment`;
+            if (paymentIcon) {
+                paymentIcon.className = `${method.icon} fa-3x`;
+                paymentIcon.style.color = method.color;
+            }
+            if (paymentMethodName) {
+                paymentMethodName.textContent = method.name;
+                paymentMethodName.style.color = method.color;
+            }
+            if (instructionApp) instructionApp.textContent = method.app;
+            
+            // Get the payment amount
+            const fullPaymentRadio = document.getElementById('fullPayment');
+            const downPaymentRadio = document.getElementById('downPayment');
+            const paymentTotalElement = document.getElementById('payment-total-amount');
+            const downPaymentAmountInput = document.getElementById('downPaymentAmount');
+            
+            let amountToPay = '₱0.00';
+            
+            if (paymentTotalElement) {
+                if (fullPaymentRadio && fullPaymentRadio.checked) {
+                    amountToPay = paymentTotalElement.textContent;
+                } else if (downPaymentRadio && downPaymentRadio.checked && downPaymentAmountInput) {
+                    const downAmount = parseFloat(downPaymentAmountInput.value) || 0;
+                    amountToPay = `₱${downAmount.toLocaleString()}.00`;
+                } else {
+                    amountToPay = paymentTotalElement.textContent;
+                }
+            }
+            
+            if (modalPaymentAmount) modalPaymentAmount.textContent = amountToPay;
+            
+            // Generate QR code placeholder
+            generateQRCodePlaceholder(method, amountToPay);
+            
+            console.log('Modal content updated successfully');
+        });
+        
         // When modal is hidden, do aggressive cleanup
         paymentModal.addEventListener('hidden.bs.modal', function () {
             console.log('Modal hidden event triggered - cleaning up');
@@ -2364,8 +2502,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Expose functions globally
-window.showPaymentQR = showPaymentQR;
+// Expose functions globally - MOVED TO TOP TO ENSURE AVAILABILITY
+window.showPaymentQR = function(paymentType) {
+    console.log('Window.showPaymentQR wrapper called with:', paymentType);
+    
+    // Ensure DOM is ready
+    if (document.readyState === 'loading') {
+        console.error('DOM not ready yet!');
+        return;
+    }
+    
+    // Call the actual function
+    showPaymentQRInternal(paymentType);
+};
+
 window.confirmPayment = confirmPayment;
 window.handleFileUpload = handleFileUpload;
 window.removeFile = removeFile;

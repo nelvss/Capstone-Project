@@ -146,6 +146,23 @@
                                                     <p class="mb-1"><strong>Number of Divers:</strong> <span id="summary-divers" class="text-info fw-bold">-</span></p>
                                                 </div>
                                             </div>
+
+                                            <!-- Van Rental with Tourist Franchise -->
+                                            <div class="col-md-6" id="van-subsection" style="display: none;">
+                                                <h6 class="text-danger mb-2">Van Rental with Tourist Franchise</h6>
+                                                <div class="info-item mb-2">
+                                                    <p class="mb-1"><strong>Destination:</strong> <span id="summary-van-destination" class="text-primary">-</span></p>
+                                                </div>
+                                                <div class="info-item mb-2">
+                                                    <p class="mb-1"><strong>Place:</strong> <span id="summary-van-place" class="text-primary">-</span></p>
+                                                </div>
+                                                <div class="info-item mb-2">
+                                                    <p class="mb-1"><strong>Trip Type:</strong> <span id="summary-van-trip-type" class="text-info">-</span></p>
+                                                </div>
+                                                <div class="info-item mb-2">
+                                                    <p class="mb-1"><strong>Number of Days:</strong> <span id="summary-van-days" class="text-info fw-bold">-</span></p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -238,7 +255,7 @@
                                                     <div class="form-check payment-option-card mb-2">
                                                         <input class="form-check-input" type="radio" name="paymentOption" id="downPayment" value="down">
                                                         <label class="form-check-label w-100" for="downPayment">
-                                                            <div class="card border-2 h-100">
+                                                            <div class="card border-2 h-50">
                                                                 <div class="card-body text-center" style="padding: 1.5rem 1rem;">
                                                                     <i class="fas fa-hand-holding-usd text-warning fa-lg mb-2"></i>
                                                                     <h6 class="card-title text-warning mb-2">Down Payment</h6>
@@ -324,19 +341,19 @@
                                 <p class="text-center mb-4">Complete your booking by selecting a payment method.</p>
                                 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="showPaymentQR('gcash')">
+                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="gcash">
                                         <i class="fas fa-mobile-alt me-2"></i>GCASH
                                     </button>
                                 </div>
 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="showPaymentQR('paymaya')">
+                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="paymaya">
                                         <i class="fas fa-credit-card me-2"></i>PAYMAYA
                                     </button>
                                 </div>
 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="showPaymentQR('banking')">
+                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="banking">
                                         <i class="fas fa-university me-2"></i>ONLINE BANKING
                                     </button>
                                 </div>
@@ -403,11 +420,16 @@
 
                                     <!-- Success State -->
                                     <div id="uploadedFiles" class="d-none mb-4">
-                                        <div class="alert alert-success border-0 bg-success bg-opacity-10 text-center">
+                                        <div class="alert alert-success border-0 bg-success bg-opacity-10 text-center mb-3">
                                             <i class="fas fa-check-circle text-success me-2"></i>
                                             <span class="text-success fw-semibold">Receipt uploaded successfully!</span>
                                         </div>
-                                        <div id="filePreviewContainer"></div>
+                                        <div id="filePreviewContainer" class="mb-3"></div>
+                                        <div class="text-center">
+                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="document.getElementById('receiptFile').click()">
+                                                <i class="fas fa-sync-alt me-2"></i>Change File
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- Action Buttons -->
