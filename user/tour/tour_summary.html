@@ -65,26 +65,26 @@
                                 </div>
 
                                 <!-- Tour Selected Section -->
-                                <div class="card mb-4" id="tour-selected-section" style="display: none;">
+                                <div class="card mb-4 d-none" id="tour-selected-section">
                                     <div class="card-header bg-danger text-white">
                                         <h5 class="mb-0">Tour Selected</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="row" id="summary-selected-tours">
                                             <!-- Island Tours Column -->
-                                            <div class="col-md-4" id="island-tour-column" style="display: none;">
+                                            <div class="col-md-4 d-none" id="island-tour-column">
                                                 <h6 class="text-danger mb-3">Island Tour</h6>
                                                 <ul id="island-tour-list" class="list-unstyled">
                                                 </ul>
                                             </div>
                                             <!-- Inland Tours Column -->
-                                            <div class="col-md-4" id="inland-tour-column" style="display: none;">
+                                            <div class="col-md-4 d-none" id="inland-tour-column">
                                                 <h6 class="text-danger mb-3">Inland Tour</h6>
                                                 <ul id="inland-tour-list" class="list-unstyled">
                                                 </ul>
                                             </div>
                                             <!-- Snorkeling Tours Column -->
-                                            <div class="col-md-4" id="snorkel-tour-column" style="display: none;">
+                                            <div class="col-md-4 d-none" id="snorkel-tour-column">
                                                 <h6 class="text-danger mb-3">Snorkeling Tour</h6>
                                                 <ul id="snorkel-tour-list" class="list-unstyled">
                                                 </ul>
@@ -98,13 +98,13 @@
                                 </div>
 
                                 <!-- Tour Packages Section -->
-                                <div class="card mb-4" id="tour-packages-section" style="display: none;">
+                                <div class="card mb-4 d-none" id="tour-packages-section">
                                     <div class="card-header bg-danger text-white">
                                         <h5 class="mb-0">Tour Packages & Activities</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="row" id="tour-packages-container">
-                                            <div class="col-md-4" id="island-tours-container" style="display: none;">
+                                            <div class="col-md-4 d-none" id="island-tours-container">
                                                 <div class="tour-category">
                                                     <h6 class="text-danger">Island Tours</h6>
                                                     <ul id="summary-island-tours" class="list-unstyled">
@@ -112,7 +112,7 @@
                                                     </ul>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4" id="inland-tours-container" style="display: none;">
+                                            <div class="col-md-4 d-none" id="inland-tours-container">
                                                 <div class="tour-category">
                                                     <h6 class="text-danger">Inland Tours</h6>
                                                     <ul id="summary-inland-tours" class="list-unstyled">
@@ -120,7 +120,7 @@
                                                     </ul>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4" id="snorkel-tours-container" style="display: none;">
+                                            <div class="col-md-4 d-none" id="snorkel-tours-container">
                                                 <div class="tour-category">
                                                     <h6 class="text-danger">Snorkeling Tours</h6>
                                                     <ul id="summary-snorkel-tours" class="list-unstyled">
@@ -146,7 +146,7 @@
                                 </div>
 
                                 <!-- Accommodation Section -->
-                                <div class="card mb-4" id="accommodation-section" style="display: none;">
+                                <div class="card mb-4 d-none" id="accommodation-section">
                                     <div class="card-header bg-danger text-white">
                                         <h5 class="mb-0">Accommodation</h5>
                                     </div>
@@ -173,14 +173,14 @@
                                 </div>
 
                                 <!-- Additional Services Section -->
-                                <div class="card mb-4" id="additional-services-section" style="display: none;">
+                                <div class="card mb-4 d-none" id="additional-services-section">
                                     <div class="card-header bg-danger text-white py-2">
                                         <h5 class="mb-0">Additional Services</h5>
                                     </div>
                                     <div class="card-body py-2">
                                         <div class="row">
                                             <!-- Vehicle Rental -->
-                                            <div class="col-md-6" id="vehicle-subsection" style="display: none;">
+                                            <div class="col-md-6 d-none" id="vehicle-subsection">
                                                 <h6 class="text-danger mb-2">Vehicle Rental</h6>
                                                 <div class="info-item mb-2">
                                                     <p class="mb-1"><strong>Vehicle:</strong> <span id="summary-vehicle" class="text-primary">-</span></p>
@@ -191,7 +191,7 @@
                                             </div>
 
                                             <!-- Diving Activity -->
-                                            <div class="col-md-6" id="diving-subsection" style="display: none;">
+                                            <div class="col-md-6 d-none" id="diving-subsection">
                                                 <h6 class="text-danger mb-2">Diving Activity</h6>
                                                 <div class="info-item mb-2">
                                                     <p class="mb-1"><strong>Activity:</strong> <span id="summary-diving" class="text-primary">Diving</span></p>
@@ -226,12 +226,12 @@
                                 <!-- Navigation Buttons -->
                                 <div class="row mt-4">
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #6c757d; border-color: #6c757d; color: white;" onclick="previousStep()">
+                                        <button type="button" class="btn btn-secondary w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">
                                         Previous
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">
+                                        <button type="button" class="btn btn-danger w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()">
                                             Proceed to Payment
                                         </button>
                                     </div>
@@ -277,7 +277,7 @@
                                                         <input class="form-check-input" type="radio" name="paymentOption" id="fullPayment" value="full" checked>
                                                         <label class="form-check-label w-100" for="fullPayment">
                                                             <div class="card border-2 h-100">
-                                                                <div class="card-body text-center" style="padding: 1.5rem 1rem;">
+                                                                <div class="card-body text-center py-3 px-2">
                                                                     <i class="fas fa-credit-card text-success fa-lg mb-2"></i>
                                                                     <h6 class="card-title text-success mb-2">Full Payment</h6>
                                                                     <p class="card-text text-muted small mb-2">Pay the complete amount now and secure your booking instantly.</p>
@@ -293,7 +293,7 @@
                                                         <input class="form-check-input" type="radio" name="paymentOption" id="downPayment" value="down">
                                                         <label class="form-check-label w-100" for="downPayment">
                                                             <div class="card border-2 h-100">
-                                                                <div class="card-body text-center" style="padding: 1.5rem 1rem;">
+                                                                <div class="card-body text-center py-3 px-2">
                                                                     <i class="fas fa-hand-holding-usd text-warning fa-lg mb-2"></i>
                                                                     <h6 class="card-title text-warning mb-2">Down Payment</h6>
                                                                     <p class="card-text text-muted small mb-2">Pay a portion now and the remaining amount later.</p>
@@ -348,12 +348,12 @@
                 <!-- Navigation Buttons -->
                 <div class="row mt-1">
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2" style="background-color: #6c757d; border-color: #6c757d; color: white;" onclick="previousStep()">
+                                        <button type="button" class="btn btn-secondary w-100 py-2" onclick="previousStep()">
                                             <i class="fas fa-arrow-left me-2"></i>Previous
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">
+                                        <button type="button" class="btn btn-danger w-100 py-2" onclick="nextStep()">
                                             Continue<i class="fas fa-arrow-right ms-2"></i>
                                         </button>
                                     </div>
@@ -378,29 +378,29 @@
                                 <p class="text-center mb-4">Complete your booking by selecting a payment method.</p>
                                 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="showPaymentQR('gcash')">
+                                    <button type="button" class="btn btn-danger w-100 py-2" onclick="showPaymentQR('gcash')">
                                         <i class="fas fa-mobile-alt me-2"></i>GCASH
                                     </button>
                                 </div>
 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="showPaymentQR('paymaya')">
+                                    <button type="button" class="btn btn-danger w-100 py-2" onclick="showPaymentQR('paymaya')">
                                         <i class="fas fa-credit-card me-2"></i>PAYMAYA
                                     </button>
                                 </div>
 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn w-100 py-2" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="showPaymentQR('banking')">
+                                    <button type="button" class="btn btn-danger w-100 py-2" onclick="showPaymentQR('banking')">
                                         <i class="fas fa-university me-2"></i>ONLINE BANKING
                                     </button>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #6c757d; border-color: #6c757d; color: white;" onclick="previousStep()">Previous</button>
+                                        <button type="button" class="btn btn-secondary w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">Previous</button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" id="paymentNextBtn" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()" disabled>Next</button>
+                                        <button type="button" id="paymentNextBtn" class="btn btn-danger w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()" disabled>Next</button>
                                     </div>
                                 </div>
                                 <div class="text-center mt-3">
@@ -417,7 +417,7 @@
 
         <div id="form-step-6" class="form-step">
             <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
-                <div class="w-100" style="max-width: 500px;">
+                <div class="w-100 max-w-500">
                     <div class="row justify-content-center">
                         <div class="col-12">
                             
@@ -450,7 +450,7 @@
                                                 <button type="button" class="btn btn-primary rounded-pill px-4" onclick="document.getElementById('receiptFile').click()">
                                                     <i class="fas fa-plus me-2"></i>Select File
                                                 </button>
-                                                <input type="file" id="receiptFile" class="d-none" accept="image/*" onchange="handleFileUpload(event)">
+                                                <input type="file" id="receiptFile" class="d-none" accept="image/*" onchange="handleFileUpload(event)" aria-label="Upload payment receipt image" title="Upload payment receipt image">
                                             </div>
                                         </div>
                                     </div>
@@ -489,7 +489,7 @@
 
         <div id="form-step-7" class="form-step">
             <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
-                <div class="w-100" style="max-width: 500px;">
+                <div class="w-100 max-w-500">
                     <div class="row justify-content-center">
                         <div class="col-12">
                             
@@ -544,7 +544,7 @@
 
         <div id="form-step-8" class="form-step">
             <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
-                <div class="w-100" style="max-width: 600px;">
+                <div class="w-100 max-w-600">
                     <div class="row justify-content-center">
                         <div class="col-12">
                             
@@ -555,7 +555,7 @@
                                     <!-- Success Animation -->
                                     <div class="mb-4">
                                         <div class="mb-4">
-                                            <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                                            <i class="fas fa-check-circle text-success fs-4rem"></i>
                                         </div>
                                         <h2 class="text-success mb-2">Booking Submitted Successfully!</h2>
                                         <p class="text-muted mb-0">Thank you for choosing our services</p>
@@ -625,7 +625,7 @@
                     </div>
 
                     <!-- QR Code Section -->
-                    <div class="qr-code-container mb-3" style="width: 160px; height: 160px; margin: 0 auto; background: white; border: 2px solid #dc3545; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <div class="qr-code-container qr-small mb-3">
                         <div class="text-center">
                             <i class="fas fa-qrcode fa-4x text-danger mb-2"></i>
                             <p class="text-muted small mb-0">QR Code</p>
@@ -636,12 +636,12 @@
                     <p class="text-muted small mb-3">Scan QR code with <span id="instructionApp">GCash</span> app</p>
 
                     <!-- Non-Refundable Policy Reminder -->
-                    <div class="alert alert-warning border-0 mb-0" style="padding: 8px 12px;">
+                    <div class="alert alert-warning border-0 mb-0 py-1 px-2">
                         <div class="d-flex align-items-start">
-                            <i class="fas fa-exclamation-triangle text-warning me-2 mt-1" style="font-size: 0.8rem;"></i>
+                            <i class="fas fa-exclamation-triangle text-warning me-2 mt-1 fs-08"></i>
                             <div>
-                                <h6 class="mb-1" style="font-size: 0.75rem;">Important Notice</h6>
-                                <p class="mb-0" style="font-size: 0.7rem; line-height: 1.2;">
+                                <h6 class="mb-1 fs-075">Important Notice</h6>
+                                <p class="mb-0 fs-075 lh-12">
                                     Once payment is sent, it is <strong>non-refundable</strong> if you cancel your booking.
                                 </p>
                             </div>

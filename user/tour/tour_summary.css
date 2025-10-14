@@ -25,10 +25,14 @@ body {
 
 /* Error Field Styling - Hidden by default */
 .field-error {
-    color: #dc3545;
+    color: #dc2626;
     font-size: 0.875rem;
-    margin-top: 0.25rem;
-    padding: 0.25rem 0;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    background: rgba(220, 38, 38, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #dc2626;
     max-height: 0;
     opacity: 0;
     overflow: hidden;
@@ -36,12 +40,7 @@ body {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.field-error.show {
-    max-height: 100px;
-    opacity: 1;
-    transform: translateY(0);
-}
-
+.field-error.show,
 .field-error:not(:empty) {
     max-height: 100px;
     opacity: 1;
@@ -79,6 +78,7 @@ body {
     margin-bottom: 0 !important;
 }
 
+/* Consolidated card styling */
 .card {
     border: none;
     border-radius: 15px;
@@ -88,6 +88,8 @@ body {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    animation: slideInUp 0.6s ease-out;
 }
 
 #form-step-1 .card {
@@ -218,16 +220,7 @@ body {
 }
 
 /* ===== FIELD ERROR STYLING ===== */
-.field-error {
-    color: #dc2626;
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    background: rgba(220, 38, 38, 0.1);
-    border-radius: 8px;
-    border-left: 4px solid #dc2626;
-}
+/* Field error styling is defined above in the global section */
 
 .form-control.is-invalid {
     border-color: #dc2626 !important;
@@ -236,8 +229,6 @@ body {
 
 /* ===== SECTION CARDS (for form-step-3) ===== */
 .card.mb-4 {
-    border: none;
-    border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     margin-bottom: 1.5rem !important;
     overflow: hidden;
@@ -267,10 +258,7 @@ body {
     margin-right: 0.75rem;
 }
 
-.card-body {
-    padding: 1.5rem;
-    background: #ffffff;
-}
+/* .card-body styling consolidated above */
 
 /* ===== INFO ITEMS STYLING ===== */
 .info-item {
@@ -305,9 +293,7 @@ body {
     background: linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(185, 28, 28, 0.05) 100%);
 }
 
-.bg-light {
-    background: rgba(248, 250, 252, 0.8) !important;
-}
+/* .bg-light styling consolidated below */
 
 /* Responsive adjustments */
 @media (max-width: 576px) {
@@ -334,10 +320,7 @@ body {
     }
 }
 
-/* Animation for form appearance */
-.card {
-    animation: slideInUp 0.6s ease-out;
-}
+/* Animation for form appearance - consolidated with main card styling above */
 
 @keyframes slideInUp {
     from {
@@ -505,6 +488,41 @@ body {
     border-color: #dc2626 !important;
 }
 
+/* Max-width utilities to replace inline styles */
+.max-w-500 {
+    max-width: 500px;
+}
+
+.max-w-600 {
+    max-width: 600px;
+}
+
+/* Font-size utilities for specific cases */
+.fs-4rem {
+    font-size: 4rem !important;
+}
+
+.fs-08 {
+    font-size: 0.8rem !important;
+}
+
+.fs-075 {
+    font-size: 0.75rem !important;
+}
+
+/* Line-height utility */
+.lh-12 {
+    line-height: 1.2 !important;
+}
+
+/* QR code modal small variant to replace inline styles */
+.qr-code-container.qr-small {
+    width: 160px;
+    height: 160px;
+    border: 2px solid #dc3545; /* Bootstrap danger */
+    border-radius: 8px;
+}
+
 /* ===== LOADING STATES ===== */
 .btn.loading {
     position: relative;
@@ -529,22 +547,8 @@ body {
     to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-.form-step.active {
-    display: block;
-}
-
-
 /* Form validation error styling - updated */
-.field-error {
-    color: #dc2626;
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    background: rgba(220, 38, 38, 0.1);
-    border-radius: 8px;
-    border-left: 4px solid #dc2626;
-}
+/* Field error styling is defined above in the global section */
   
 .form-control.is-invalid {
     border-color: #dc2626 !important;
@@ -658,7 +662,7 @@ body {
 .payment-option-card .card-body {
     padding: 2rem 1.5rem;
     background: transparent !important;
-    min-height: auto;
+    min-height: 0;
 }
 
 .payment-option-card .fa-2x {
@@ -710,10 +714,7 @@ body {
 }
 
 /* Remaining Balance Display */
-.bg-light {
-    background-color: #f8f9fa !important;
-    border-radius: 8px;
-}
+/* .bg-light styling consolidated below */
 
 /* Responsive adjustments for payment options */
 @media (max-width: 768px) {
@@ -938,8 +939,11 @@ body {
     border-color: #28a745 !important;
 }
 
+/* Consolidated .bg-light styling */
 .bg-light {
     background-color: #f8f9fa !important;
+    background: rgba(248, 250, 252, 0.8) !important;
+    border-radius: 8px;
 }
 
 /* Responsive adjustments for upload page */
@@ -966,7 +970,7 @@ body {
 /* Container and layout adjustments */
 #form-step-3 {
     padding: 1rem 0;
-    min-height: auto;
+    min-height: 0;
 }
 
 #form-step-3 .container-fluid {
@@ -1252,13 +1256,13 @@ body {
 #form-step-3 .card.border-danger {
     border: 3px solid #dc2626 !important;
     background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
-    min-height: auto;
+    min-height: 0;
 }
 
 #form-step-3 .card.border-danger .card-body {
     background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%) !important;
     padding: 1.5rem !important;
-    min-height: auto;
+    min-height: 0;
 }
 
 #form-step-3 .card.border-danger .text-center.mb-3 {
@@ -1287,7 +1291,7 @@ body {
 
 #form-step-3 .card.border-danger .d-flex {
     align-items: center;
-    min-height: auto;
+    min-height: 0;
 }
 
 /* Navigation buttons styling */
