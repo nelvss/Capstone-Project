@@ -51,6 +51,10 @@
         const rentalVehicles = document.querySelectorAll('.rental-option:checked');
         const hasRentalVehicle = rentalVehicles.length > 0;
         
+        // Check van rental with tourist franchise
+        const franchiseDestination = document.getElementById('destinationSelect');
+        const hasFranchiseRental = franchiseDestination && franchiseDestination.value !== "";
+        
         // Check diving
         const divingOptions = document.querySelectorAll('.diving-option:checked');
         const hasDiving = divingOptions.length > 0;
@@ -67,10 +71,10 @@
         }
         
         // Validate that at least one service is selected
-        if (!hasTourPackages && !hasRentalVehicle && !hasDiving) {
+        if (!hasTourPackages && !hasRentalVehicle && !hasFranchiseRental && !hasDiving) {
             // Show error message
             if (errorMessageDiv && errorTextSpan) {
-                errorTextSpan.textContent = 'Please select at least one service (Tour Package, Rental Vehicle, or Diving) before proceeding to the next page.';
+                errorTextSpan.textContent = 'Please select at least one service (Tour Package, Rental Vehicle, Van Rental with Tourist Franchise, or Diving) before proceeding to the next page.';
                 errorMessageDiv.style.display = 'block';
                 // Scroll to the error message
                 errorMessageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -384,6 +388,8 @@
         selectedVehicles.forEach(vehicle => {
             const vehicleType = vehicle.value;
             let dailyRate = 0;
+            let isVanService = false;
+            let vanPrice = 0;
             
             switch (vehicleType) {
                 case "ADV":
@@ -404,11 +410,178 @@
                 case "CAR":
                     dailyRate = 3000;
                     break;
+                // Within Puerto Galera Van Destinations (fixed prices, no daily multiplier)
+                case "VAN - Sabang":
+                    isVanService = true;
+                    vanPrice = 800;
+                    break;
+                case "VAN - Sabang Roundtrip":
+                    isVanService = true;
+                    vanPrice = 1600;
+                    break;
+                case "VAN - Muelle":
+                    isVanService = true;
+                    vanPrice = 800;
+                    break;
+                case "VAN - Muelle Roundtrip":
+                    isVanService = true;
+                    vanPrice = 1600;
+                    break;
+                case "VAN - Balatero":
+                    isVanService = true;
+                    vanPrice = 1000;
+                    break;
+                case "VAN - Balatero Roundtrip":
+                    isVanService = true;
+                    vanPrice = 2000;
+                    break;
+                case "VAN - White Beach":
+                    isVanService = true;
+                    vanPrice = 1500;
+                    break;
+                case "VAN - White Beach Roundtrip":
+                    isVanService = true;
+                    vanPrice = 3000;
+                    break;
+                case "VAN - Aninuan":
+                    isVanService = true;
+                    vanPrice = 1500;
+                    break;
+                case "VAN - Aninuan Roundtrip":
+                    isVanService = true;
+                    vanPrice = 3000;
+                    break;
+                case "VAN - Ponderosa":
+                    isVanService = true;
+                    vanPrice = 1800;
+                    break;
+                case "VAN - Ponderosa Roundtrip":
+                    isVanService = true;
+                    vanPrice = 3000;
+                    break;
+                case "VAN - Tabinay":
+                    isVanService = true;
+                    vanPrice = 800;
+                    break;
+                case "VAN - Tabinay Roundtrip":
+                    isVanService = true;
+                    vanPrice = 1500;
+                    break;
+                case "VAN - Dulangan":
+                    isVanService = true;
+                    vanPrice = 1500;
+                    break;
+                case "VAN - Dulangan Roundtrip":
+                    isVanService = true;
+                    vanPrice = 3000;
+                    break;
+                case "VAN - Tamaraw Falls":
+                    isVanService = true;
+                    vanPrice = 3000;
+                    break;
+                case "VAN - Tamaraw/Ponderosa/Talipanan/White Beach":
+                    isVanService = true;
+                    vanPrice = 4000;
+                    break;
+                case "VAN - Windfarm":
+                    isVanService = true;
+                    vanPrice = 3000;
+                    break;
+                case "VAN - Tukuran Falls":
+                    isVanService = true;
+                    vanPrice = 3500;
+                    break;
+                case "VAN - Infinity Farm":
+                    isVanService = true;
+                    vanPrice = 4500;
+                    break;
+                case "VAN - Lantuyan":
+                    isVanService = true;
+                    vanPrice = 4500;
+                    break;
+                case "VAN - Calapan (Within PG)":
+                    isVanService = true;
+                    vanPrice = 4500;
+                    break;
+                case "VAN - Roxas (Within PG)":
+                    isVanService = true;
+                    vanPrice = 9000;
+                    break;
+                case "VAN - Around Puerto Galera":
+                    isVanService = true;
+                    vanPrice = 4500;
+                    break;
+                // Outside Puerto Galera Van Destinations (fixed prices, no daily multiplier)
+                case "VAN - Calapan":
+                    isVanService = true;
+                    vanPrice = 5000;
+                    break;
+                case "VAN - Naujan":
+                    isVanService = true;
+                    vanPrice = 6000;
+                    break;
+                case "VAN - Victoria":
+                    isVanService = true;
+                    vanPrice = 6500;
+                    break;
+                case "VAN - Socorro":
+                    isVanService = true;
+                    vanPrice = 7000;
+                    break;
+                case "VAN - Pola":
+                    isVanService = true;
+                    vanPrice = 7500;
+                    break;
+                case "VAN - Pinamalayan":
+                    isVanService = true;
+                    vanPrice = 7500;
+                    break;
+                case "VAN - Gloria":
+                    isVanService = true;
+                    vanPrice = 8000;
+                    break;
+                case "VAN - Bansud":
+                    isVanService = true;
+                    vanPrice = 8500;
+                    break;
+                case "VAN - Bongabong":
+                    isVanService = true;
+                    vanPrice = 9000;
+                    break;
+                case "VAN - Roxas":
+                    isVanService = true;
+                    vanPrice = 10000;
+                    break;
+                case "VAN - Mansalay":
+                    isVanService = true;
+                    vanPrice = 11000;
+                    break;
+                case "VAN - Bulalacao":
+                    isVanService = true;
+                    vanPrice = 12500;
+                    break;
+                case "VAN - San Jose":
+                    isVanService = true;
+                    vanPrice = 15000;
+                    break;
+                case "VAN - Sablayan":
+                    isVanService = true;
+                    vanPrice = 20000;
+                    break;
+                case "VAN - Manila Airport":
+                    isVanService = true;
+                    vanPrice = 25000;
+                    break;
                 default:
                     dailyRate = 1000;
             }
             
-            totalVehiclePrice += dailyRate * rentalDays;
+            // Add price: vans have fixed price, vehicles multiply by rental days
+            if (isVanService) {
+                totalVehiclePrice += vanPrice;
+            } else {
+                totalVehiclePrice += dailyRate * rentalDays;
+            }
         });
 
         vehicleAmountInput.value = totalVehiclePrice > 0 ? `₱${totalVehiclePrice.toLocaleString()}.00` : "";
@@ -497,11 +670,18 @@
             total += packageAmount;
         }
         
-        // Get vehicle amount
+        // Get vehicle amount (regular rental vehicles)
         const vehicleAmountText = document.getElementById('amountOfVehicle').value;
         if (vehicleAmountText) {
             const vehicleAmount = parseFloat(vehicleAmountText.replace(/[₱,]/g, '')) || 0;
             total += vehicleAmount;
+        }
+        
+        // Get van rental amount (van rental with tourist franchise)
+        const vanRentalAmountText = document.getElementById('amountOfVanRental')?.value;
+        if (vanRentalAmountText) {
+            const vanRentalAmount = parseFloat(vanRentalAmountText.replace(/[₱,]/g, '')) || 0;
+            total += vanRentalAmount;
         }
         
         // Get diving amount
@@ -862,6 +1042,7 @@
             selectedHotel: document.querySelector('.hotels-option:checked')?.value || '',
             packageAmount: document.getElementById('amountOfPackage').value,
             vehicleAmount: document.getElementById('amountOfVehicle').value,
+            vanRentalAmount: document.getElementById('amountOfVanRental')?.value || '',
             divingAmount: document.getElementById('amountOfDiving').value,
             totalAmount: document.getElementById('totalAmount').value
         };
@@ -887,6 +1068,7 @@
             selectedHotel: document.querySelector('.hotels-option:checked')?.value || '',
             packageAmount: document.getElementById('amountOfPackage').value,
             vehicleAmount: document.getElementById('amountOfVehicle').value,
+            vanRentalAmount: document.getElementById('amountOfVanRental')?.value || '',
             divingAmount: document.getElementById('amountOfDiving').value,
             totalAmount: document.getElementById('totalAmount').value
         };
@@ -921,6 +1103,7 @@
             selectedHotel: document.querySelector('.hotels-option:checked')?.value || '',
             packageAmount: document.getElementById('amountOfPackage').value,
             vehicleAmount: document.getElementById('amountOfVehicle').value,
+            vanRentalAmount: document.getElementById('amountOfVanRental')?.value || '',
             divingAmount: document.getElementById('amountOfDiving').value,
             totalAmount: document.getElementById('totalAmount').value
         };
@@ -1108,6 +1291,131 @@
     
     // Restore tour selections if returning to this page
     restoreTourSelections();
+
+    // ----------------------------
+    // VAN RENTAL DESTINATION HANDLING
+    // ----------------------------
+    
+    const destinationSelect = document.getElementById('destinationSelect');
+    const placeSelectionContainer = document.getElementById('placeSelectionContainer');
+    const withinTripTypeContainer = document.getElementById('withinTripTypeContainer');
+    const withinDaysContainer = document.getElementById('withinDaysContainer');
+    const outsidePlaceContainer = document.getElementById('outsidePlaceContainer');
+    const tripTypeContainer = document.getElementById('tripTypeContainer');
+    const outsideDaysContainer = document.getElementById('outsideDaysContainer');
+    const vanTotalAmountContainer = document.getElementById('vanTotalAmountContainer');
+    const placeSelect = document.getElementById('placeSelect');
+    const withinTripTypeSelect = document.getElementById('withinTripTypeSelect');
+    const withinNumberOfDays = document.getElementById('withinNumberOfDays');
+    const outsidePlaceSelect = document.getElementById('outsidePlaceSelect');
+    const tripTypeSelect = document.getElementById('tripTypeSelect');
+    const outsideNumberOfDays = document.getElementById('outsideNumberOfDays');
+    const vanAmountInput = document.getElementById('amountOfVanRental');
+
+    if (destinationSelect) {
+        destinationSelect.addEventListener('change', function() {
+            const selectedDestination = this.value;
+            
+            // Hide all dynamic containers
+            placeSelectionContainer.style.display = 'none';
+            withinTripTypeContainer.style.display = 'none';
+            withinDaysContainer.style.display = 'none';
+            outsidePlaceContainer.style.display = 'none';
+            tripTypeContainer.style.display = 'none';
+            outsideDaysContainer.style.display = 'none';
+            vanTotalAmountContainer.style.display = 'none';
+            
+            // Reset selections
+            if (placeSelect) placeSelect.value = '';
+            if (withinTripTypeSelect) withinTripTypeSelect.value = '';
+            if (withinNumberOfDays) withinNumberOfDays.value = '';
+            if (outsidePlaceSelect) outsidePlaceSelect.value = '';
+            if (tripTypeSelect) tripTypeSelect.value = '';
+            if (outsideNumberOfDays) outsideNumberOfDays.value = '';
+            if (vanAmountInput) vanAmountInput.value = '';
+            
+            // Show appropriate container based on selection
+            if (selectedDestination === 'Within Puerto Galera') {
+                placeSelectionContainer.style.display = 'block';
+                withinTripTypeContainer.style.display = 'block';
+                withinDaysContainer.style.display = 'block';
+                vanTotalAmountContainer.style.display = 'block';
+            } else if (selectedDestination === 'Outside Puerto Galera') {
+                outsidePlaceContainer.style.display = 'block';
+                tripTypeContainer.style.display = 'block';
+                outsideDaysContainer.style.display = 'block';
+                vanTotalAmountContainer.style.display = 'block';
+            }
+        });
+    }
+
+    // Handle Within PG place, trip type, and days selection
+    if (placeSelect && withinTripTypeSelect && withinNumberOfDays) {
+        function updateWithinPrice() {
+            const selectedPlace = placeSelect.options[placeSelect.selectedIndex];
+            const tripType = withinTripTypeSelect.value;
+            const days = parseInt(withinNumberOfDays.value) || 0;
+            
+            if (!selectedPlace || !tripType || !days || !vanAmountInput) {
+                if (vanAmountInput) vanAmountInput.value = '';
+                return;
+            }
+            
+            let basePrice = 0;
+            if (tripType === 'oneway') {
+                basePrice = selectedPlace.getAttribute('data-oneway');
+            } else if (tripType === 'roundtrip') {
+                basePrice = selectedPlace.getAttribute('data-roundtrip');
+            }
+            
+            if (basePrice) {
+                const totalPrice = parseInt(basePrice) * days;
+                vanAmountInput.value = `₱${totalPrice.toLocaleString()}.00`;
+            } else {
+                vanAmountInput.value = '';
+            }
+            
+            calculateTotalAmount();
+        }
+        
+        placeSelect.addEventListener('change', updateWithinPrice);
+        withinTripTypeSelect.addEventListener('change', updateWithinPrice);
+        withinNumberOfDays.addEventListener('change', updateWithinPrice);
+    }
+
+    // Handle Outside PG place, trip type, and days selection
+    if (outsidePlaceSelect && tripTypeSelect && outsideNumberOfDays) {
+        function updateOutsidePrice() {
+            const selectedPlace = outsidePlaceSelect.options[outsidePlaceSelect.selectedIndex];
+            const tripType = tripTypeSelect.value;
+            const days = parseInt(outsideNumberOfDays.value) || 0;
+            
+            if (!selectedPlace || !tripType || !days || !vanAmountInput) {
+                if (vanAmountInput) vanAmountInput.value = '';
+                return;
+            }
+            
+            let basePrice = 0;
+            if (tripType === 'oneway') {
+                basePrice = selectedPlace.getAttribute('data-oneway');
+            } else if (tripType === 'roundtrip') {
+                basePrice = selectedPlace.getAttribute('data-roundtrip');
+            }
+            
+            if (basePrice) {
+                const totalPrice = parseInt(basePrice) * days;
+                vanAmountInput.value = `₱${totalPrice.toLocaleString()}.00`;
+            } else {
+                vanAmountInput.value = '';
+            }
+            
+            calculateTotalAmount();
+        }
+        
+        outsidePlaceSelect.addEventListener('change', updateOutsidePrice);
+        tripTypeSelect.addEventListener('change', updateOutsidePrice);
+        outsideNumberOfDays.addEventListener('change', updateOutsidePrice);
+    }
 
     console.log("Tour booking form initialized successfully!");
 })();
