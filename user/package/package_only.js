@@ -869,6 +869,13 @@
             total += divingAmount;
         }
         
+        // Get van rental amount
+        const vanAmountText = document.getElementById('vanTotalAmount').value;
+        if (vanAmountText) {
+            const vanAmount = parseFloat(vanAmountText.replace(/[₱,]/g, '')) || 0;
+            total += vanAmount;
+        }
+        
         // Update total amount field
         const totalAmountInput = document.getElementById('totalAmount');
         console.log('Total amount input found:', !!totalAmountInput);
@@ -986,14 +993,15 @@
 
     // Add specific handling for rental vehicle options
     const rentalOptions = document.querySelectorAll(".rental-option");
-    rentalOptions.forEach(option => {
-        option.addEventListener("change", () => {
-            calculateVehiclePrice();
-            calculateTotalAmount();
-            clearRentalDaysErrorIfNoVehicles();
-            clearStep2Error();
+        rentalOptions.forEach(option => {
+            option.addEventListener("change", () => {
+                calculateVehiclePrice();
+                calculateTotalAmount();
+                clearRentalDaysErrorIfNoVehicles();
+                clearStep2Error();
+                saveCurrentFormData(); // Save data when rental options change
+            });
         });
-    });
     
     // Add event listener for rental days dropdown
     const rentalDaysSelect = document.getElementById("rentalDays");
@@ -1005,6 +1013,7 @@
             if (rentalDaysSelect.value !== "") {
                 setError(rentalDaysSelect, "");
             }
+            saveCurrentFormData(); // Save data when rental days change
         });
     }
     
@@ -1017,6 +1026,7 @@
             updatePackagePrice();
             clearNumberOfDiversErrorIfNoDiving();
             clearStep2Error();
+            saveCurrentFormData(); // Save data when diving option changes
         });
     }
     
@@ -1030,6 +1040,7 @@
                 setError(touristCountInput, "");
             }
             // Package selection will handle availability based on tourist count
+            saveCurrentFormData(); // Save data when tourist count changes
         });
         
         // Ensure only positive numbers are entered
@@ -1064,6 +1075,7 @@
                 updateHotelsRowVisibility();
                 clearStep2Error();
                 clearTouristCountErrorIfNoTours();
+                saveCurrentFormData(); // Save data when package selection changes
             });
         });
     }
@@ -1080,6 +1092,7 @@
                 setTimeout(() => {
                     calculateTotalAmount();
                 }, 10);
+                saveCurrentFormData(); // Save data when hotel selection changes
             });
         });
     }
@@ -1100,6 +1113,7 @@
             if (numberOfDiversInput.value.trim() !== "") {
                 setError(numberOfDiversInput, "");
             }
+            saveCurrentFormData(); // Save data when number of divers changes
         });
         
         // Ensure only positive numbers are entered
@@ -1494,8 +1508,72 @@
             if (hotelErrorMessage && option.checked) {
                 hotelErrorMessage.style.display = 'none';
             }
+            // Save current data when hotel selection changes
+            saveCurrentFormData();
         });
     });
+
+    // Function to save current form data to sessionStorage
+    function saveCurrentFormData() {
+        const formData = window.bookingFormData || {};
+        
+        // Collect van rental data
+        const destinationSelect = document.getElementById('destinationSelect')?.value || '';
+        let vanPlace = '';
+        let vanTripType = '';
+        let vanDays = '';
+        
+        if (destinationSelect === 'Within Puerto Galera') {
+            vanPlace = document.getElementById('placeSelect')?.value || '';
+            vanTripType = document.getElementById('withinTripTypeSelect')?.value || '';
+            vanDays = document.getElementById('withinNumberOfDays')?.value || '';
+        } else if (destinationSelect === 'Outside Puerto Galera') {
+            vanPlace = document.getElementById('outsidePlaceSelect')?.value || '';
+            vanTripType = document.getElementById('tripTypeSelect')?.value || '';
+            vanDays = document.getElementById('outsideNumberOfDays')?.value || '';
+        }
+        
+        const tourSelections = {
+            touristCount: document.getElementById('touristCount').value,
+            selectedPackage: document.querySelector('input[name="package-selection"]:checked')?.value || null,
+            selectedHotel: document.querySelector('input[name="hotel-selection"]:checked')?.value || null,
+            rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
+            rentalDays: document.getElementById('rentalDays').value,
+            diving: document.querySelector('.diving-option:checked') ? true : false,
+            numberOfDivers: document.getElementById('numberOfDiver').value,
+            // Van rental data
+            vanDestination: destinationSelect,
+            vanPlace: vanPlace,
+            vanTripType: vanTripType,
+            vanDays: vanDays,
+            vanAmount: document.getElementById('vanTotalAmount')?.value || '',
+            packageAmount: (() => {
+                const touristCount = parseInt(document.getElementById('touristCount').value) || 0;
+                const selectedPackage = document.querySelector('input[name="package-selection"]:checked')?.value || null;
+                const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked')?.value || null;
+                if (selectedPackage && touristCount >= 1) {
+                    const pricing = calculatePackagePricing(selectedPackage, touristCount, selectedHotel);
+                    return pricing.totalPrice > 0 ? `₱${pricing.totalPrice.toLocaleString()}.00` : '';
+                }
+                return '';
+            })(),
+            vehicleAmount: document.getElementById('amountOfVehicle').value,
+            divingAmount: document.getElementById('amountOfDiving').value,
+            totalAmount: document.getElementById('totalAmount').value
+        };
+        
+        // Store complete booking data for the summary page
+        const completeBookingData = {
+            ...formData,
+            ...tourSelections,
+            bookingType: 'package_only'
+        };
+        
+        sessionStorage.setItem('completeBookingData', JSON.stringify(completeBookingData));
+        sessionStorage.setItem('tourSelections', JSON.stringify(tourSelections));
+        
+        console.log('Form data saved to sessionStorage:', completeBookingData);
+    }
 
     // ----------------------------
     // VAN RENTAL DESTINATION HANDLING
@@ -1571,6 +1649,9 @@
                 outsideDaysContainer.style.display = 'block';
                 vanTotalAmountContainer.style.display = 'block';
             }
+            
+            // Save data when destination changes
+            saveCurrentFormData();
         });
     }
 
@@ -1603,9 +1684,9 @@
             calculateTotalAmount();
         }
         
-        placeSelect.addEventListener('change', updateWithinPrice);
-        withinTripTypeSelect.addEventListener('change', updateWithinPrice);
-        withinNumberOfDays.addEventListener('change', updateWithinPrice);
+        placeSelect.addEventListener('change', () => { updateWithinPrice(); saveCurrentFormData(); });
+        withinTripTypeSelect.addEventListener('change', () => { updateWithinPrice(); saveCurrentFormData(); });
+        withinNumberOfDays.addEventListener('change', () => { updateWithinPrice(); saveCurrentFormData(); });
     }
 
     // Handle Outside PG place, trip type, and days selection
@@ -1637,9 +1718,9 @@
             calculateTotalAmount();
         }
         
-        outsidePlaceSelect.addEventListener('change', updateOutsidePrice);
-        tripTypeSelect.addEventListener('change', updateOutsidePrice);
-        outsideNumberOfDays.addEventListener('change', updateOutsidePrice);
+        outsidePlaceSelect.addEventListener('change', () => { updateOutsidePrice(); saveCurrentFormData(); });
+        tripTypeSelect.addEventListener('change', () => { updateOutsidePrice(); saveCurrentFormData(); });
+        outsideNumberOfDays.addEventListener('change', () => { updateOutsidePrice(); saveCurrentFormData(); });
     }
 
     console.log("Tour booking form initialized successfully!");

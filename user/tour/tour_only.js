@@ -1333,6 +1333,8 @@
             if (tripTypeSelect) tripTypeSelect.value = '';
             if (outsideNumberOfDays) outsideNumberOfDays.value = '';
             if (vanAmountInput) vanAmountInput.value = '';
+            // Ensure total updates when van amount resets
+            calculateTotalAmount();
             
             // Show appropriate container based on selection
             if (selectedDestination === 'Within Puerto Galera') {
@@ -1358,6 +1360,8 @@
             
             if (!selectedPlace || !tripType || !days || !vanAmountInput) {
                 if (vanAmountInput) vanAmountInput.value = '';
+                // Keep total accurate when inputs are incomplete
+                calculateTotalAmount();
                 return;
             }
             
@@ -1392,6 +1396,8 @@
             
             if (!selectedPlace || !tripType || !days || !vanAmountInput) {
                 if (vanAmountInput) vanAmountInput.value = '';
+                // Keep total accurate when inputs are incomplete
+                calculateTotalAmount();
                 return;
             }
             
