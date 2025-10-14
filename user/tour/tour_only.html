@@ -17,7 +17,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-center align-items-center mb-3">
-                                    <img src="../../Images/logo.png" alt="OTG logo" class="img-fluid" style="max-height: 60px;">
+                                    <img src="../../Images/logo.png" alt="OTG logo" class="img-fluid logo-max-height">
                                 </div>
                                 <div class="text-center">
                                     <div class="mt-3">
@@ -316,7 +316,7 @@
                                             <h6 class="mb-0 text-dark fw-bold">Van Rental</h6>
                                         </div>
                                         
-                                        <div class="van-rental-container" style="width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box;">
+                                        <div class="van-rental-container">
                                             <div class="row g-2 van-fixed-row">
                                                 <!-- Column 1: Destination -->
                                                 <div class="col-4 van-fixed-col">
@@ -334,7 +334,7 @@
                                                 <!-- Column 2: Place Selection -->
                                                 <div class="col-4 van-fixed-col">
                                                     <!-- Dynamic field: Shows place selector for Within PG -->
-                                                    <div id="placeSelectionContainer" style="display: none;">
+                                                    <div id="placeSelectionContainer" class="hidden-display">
                                                         <label class="form-label fw-semibold small" for="placeSelect">
                                                             Select a Place
                                                         </label>
@@ -362,7 +362,7 @@
                                                 </div>
 
                                                 <!-- Field for Outside Puerto Galera destinations -->
-                                                <div id="outsidePlaceContainer" style="display: none;">
+                                                <div id="outsidePlaceContainer" class="hidden-display">
                                                     <label class="form-label fw-semibold small" for="outsidePlaceSelect">
                                                         Select a Place
                                                     </label>
@@ -391,7 +391,7 @@
                                                 <!-- Column 3: Trip Type (fixed width, content changes) -->
                                                 <div class="col-4 van-fixed-col">
                                                     <!-- Trip Type for Within PG -->
-                                                    <div id="withinTripTypeContainer" style="display: none;">
+                                                    <div id="withinTripTypeContainer" class="hidden-display">
                                                         <label class="form-label fw-semibold small" for="withinTripTypeSelect">
                                                             Trip Type
                                                         </label>
@@ -404,7 +404,7 @@
                                                     </div>
 
                                                     <!-- Trip Type for Outside PG -->
-                                                    <div id="tripTypeContainer" style="display: none;">
+                                                    <div id="tripTypeContainer" class="hidden-display">
                                                         <label class="form-label fw-semibold small" for="tripTypeSelect">
                                                             Trip Type
                                                         </label>
@@ -423,7 +423,7 @@
                                                 <!-- Column 1: Number of Days (aligned with Choose Destination) -->
                                                 <div class="col-4 van-fixed-col">
                                                     <!-- Number of Days for Within PG -->
-                                                    <div id="withinDaysContainer" style="display: none;">
+                                                    <div id="withinDaysContainer" class="hidden-display">
                                                         <label class="form-label fw-semibold small" for="withinNumberOfDays">
                                                             Number of Days
                                                         </label>
@@ -444,7 +444,7 @@
                                                     </div>
 
                                                     <!-- Number of Days for Outside PG -->
-                                                    <div id="outsideDaysContainer" style="display: none;">
+                                                    <div id="outsideDaysContainer" class="hidden-display">
                                                         <label class="form-label fw-semibold small" for="outsideNumberOfDays">
                                                             Number of Days
                                                         </label>
@@ -467,7 +467,7 @@
                                                 
                                                 <!-- Column 2: Total Amount -->
                                                 <div class="col-4 van-fixed-col">
-                                                    <div id="vanTotalAmountContainer" style="display: none;">
+                                                    <div id="vanTotalAmountContainer" class="hidden-display">
                                                         <label class="form-label fw-semibold small" for="amountOfVanRental">
                                                             Total Amount
                                                         </label>
@@ -537,13 +537,13 @@
                                     <div class="col-12">
                                         <div class="form-floating">
                                             <input type="text" class="form-control" id="totalAmount" placeholder="Total Amount" readonly>
-                                            <label for="totalAmount">Total Amount</label>
+                                            <label for="totalAmountTour">Total Amount</label>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Error Message for Step 2 -->
-                                <div id="step2-error-message" class="alert alert-danger mt-3" role="alert" style="display: none;">
+                                <div id="step2-error-message" class="alert alert-danger mt-3 hidden-display" role="alert">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
                                     <span id="step2-error-text"></span>
                                 </div>
@@ -551,12 +551,12 @@
                                 <!-- Navigation Buttons -->
                                 <div class="row mt-4">
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #6c757d; border-color: #6c757d; color: white;" onclick="previousStep()">
+                                        <button type="button" class="btn btn-gray w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">
                                         Previous
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" class="btn w-100 py-2 fs-6 fs-sm-5" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="nextStep()">
+                                        <button type="button" class="btn btn-red w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()">
                                             Proceed to Payment
                                         </button>
                                     </div>

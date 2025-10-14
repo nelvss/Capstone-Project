@@ -149,7 +149,7 @@ body {
     font-size: 0.85rem;
     transition: all 0.3s ease;
     height: auto;
-    min-height: auto;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -264,10 +264,7 @@ body {
     display: none;
 }
 
-/* Hide scrollbar for Firefox */
-.dropdown-menu {
-    scrollbar-width: none;
-}
+/* Hide scrollbar for Firefox - removed scrollbar-width for better compatibility */
 
 /* ===== FIELD ERROR STYLING ===== */
 .field-error {
@@ -880,4 +877,48 @@ body {
 .package-selection-options .form-check-label small {
     font-size: 0.75rem;
     opacity: 0.8;
+}
+
+/* ===== INLINE STYLES MOVED TO CSS ===== */
+/* Logo image styling */
+.logo-image {
+    max-height: 60px;
+}
+
+/* Package price styling */
+.package-price {
+    background-color: transparent !important;
+    color: black !important;
+}
+
+/* Van rental container styling */
+.van-rental-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Conditional display containers */
+.hidden-container {
+    display: none;
+}
+
+/* Error message styling */
+.hotel-error-message,
+.step2-error-message {
+    display: none;
+}
+
+/* Navigation button styling */
+.btn-previous-custom {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-next-custom {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: white;
 }

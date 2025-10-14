@@ -385,3 +385,22 @@ body {
 .border-danger {
     border-color: #dc2626 !important;
 }
+
+/* ===== INLINE STYLES MOVED FROM HTML ===== */
+
+/* Logo max-height style */
+.logo-max-height {
+    max-height: 60px;
+}
+
+/* Header spacer for centering */
+.header-spacer {
+    width: 40px;
+}
+
+/* Button red style */
+.btn-red {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
