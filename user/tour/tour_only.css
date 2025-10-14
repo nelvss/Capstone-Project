@@ -783,3 +783,36 @@ body {
         padding: 0.2rem 0.3rem !important;
     }
 }
+
+/* ===== INLINE STYLES MOVED FROM HTML ===== */
+
+/* Logo max-height style */
+.logo-max-height {
+    max-height: 60px;
+}
+
+/* Van rental container styles */
+.van-rental-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Hidden display styles */
+.hidden-display {
+    display: none;
+}
+
+/* Button styles */
+.btn-gray {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-red {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
