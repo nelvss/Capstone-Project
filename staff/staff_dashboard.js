@@ -88,12 +88,18 @@ const bookings = [
   }
 ];
 
-// Render table with status column and action buttons
+let currentStatusFilter = 'all';
+
+// Render main table with status column and action buttons
 function renderTable() {
   const tbody = document.getElementById('booking-table-body');
   tbody.innerHTML = '';
   
-  bookings.forEach((booking, index) => {
+  const rows = bookings
+    .map((b, i) => ({ b, i }))
+    .filter(({ b }) => currentStatusFilter === 'all' ? true : b.status === currentStatusFilter);
+
+  rows.forEach(({ b: booking, i: index }) => {
     const tr = document.createElement('tr');
     
     // Get status display with appropriate styling
@@ -120,6 +126,9 @@ function renderTable() {
     `;
     tbody.appendChild(tr);
   });
+
+  updateStats();
+  renderBuckets();
 }
 
 // Get status display with proper styling
@@ -133,18 +142,16 @@ function getStatusDisplay(status) {
 function confirmBooking(index) {
   const booking = bookings[index];
   if (booking && confirm(`Confirm booking for ${booking.name}?`)) {
-    alert(`Booking for ${booking.name} has been confirmed!`);
-    // In a real app, this would update the database
-    console.log(`Confirmed booking for ${booking.name}`);
+    booking.status = 'confirmed';
+    renderTable();
   }
 }
 
 function cancelBooking(index) {
   const booking = bookings[index];
   if (booking && confirm(`Are you sure you want to cancel the booking for ${booking.name}?`)) {
-    alert(`Booking for ${booking.name} has been cancelled!`);
-    // In a real app, this would update the database
-    console.log(`Cancelled booking for ${booking.name}`);
+    booking.status = 'cancelled';
+    renderTable();
   }
 }
 
@@ -157,10 +164,105 @@ function rescheduleBooking(index) {
     if (newArrival && newDeparture) {
       booking.arrival = newArrival;
       booking.departure = newDeparture;
-      alert(`Booking for ${booking.name} has been rescheduled!`);
+      booking.status = 'rescheduled';
       renderTable(); // Refresh the table to show updated dates
     }
   }
+}
+
+// Render status buckets (Confirmed / Cancelled / Rescheduled)
+function renderBuckets() {
+  const containers = {
+    confirmed: document.getElementById('confirmed-list'),
+    cancelled: document.getElementById('cancelled-list'),
+    rescheduled: document.getElementById('rescheduled-list')
+  };
+  const counters = {
+    confirmed: document.getElementById('confirmed-count'),
+    cancelled: document.getElementById('cancelled-count'),
+    rescheduled: document.getElementById('rescheduled-count')
+  };
+
+  Object.values(containers).forEach(el => el && (el.innerHTML = ''));
+
+  const grouped = { confirmed: [], cancelled: [], rescheduled: [] };
+  bookings.forEach((b, i) => {
+    if (grouped[b.status]) grouped[b.status].push({ b, i });
+  });
+
+  Object.keys(grouped).forEach(status => {
+    const list = containers[status];
+    const count = counters[status];
+    if (!list) return;
+
+    grouped[status].forEach(({ b, i }) => {
+      const li = document.createElement('li');
+      li.className = 'bucket-item';
+      li.innerHTML = `
+        <div class="name">${b.name}</div>
+        <div class="meta">${b.arrival} → ${b.departure} • ${b.services}</div>
+      `;
+      li.addEventListener('click', () => showDetails(i));
+      list.appendChild(li);
+    });
+
+    if (count) count.textContent = grouped[status].length;
+  });
+}
+
+// Status filter from dropdown
+function filterBookings() {
+  const sel = document.getElementById('status-filter');
+  currentStatusFilter = sel ? sel.value : 'all';
+  renderTable();
+}
+
+// Update top statistic cards
+function updateStats() {
+  const totals = bookings.reduce((acc, b) => {
+    acc.total += 1;
+    acc[b.status] = (acc[b.status] || 0) + 1;
+    return acc;
+  }, { total: 0, pending: 0, confirmed: 0, cancelled: 0, rescheduled: 0 });
+
+  const byId = id => document.getElementById(id);
+  const set = (id, val) => { const el = byId(id); if (el) el.textContent = String(val); };
+  set('total-bookings', totals.total);
+  set('pending-bookings', totals.pending);
+  set('confirmed-bookings', totals.confirmed);
+  set('cancelled-bookings', totals.cancelled);
+}
+
+// Modal helpers
+function showDetails(index) {
+  const b = bookings[index];
+  const modal = document.getElementById('details-modal');
+  const body = document.getElementById('details-body');
+  if (!b || !modal || !body) return;
+
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px">
+      <div><strong>Name:</strong></div><div>${b.name}</div>
+      <div><strong>Email:</strong></div><div>${b.email}</div>
+      <div><strong>Contact:</strong></div><div>${b.contact}</div>
+      <div><strong>Services:</strong></div><div>${b.services}</div>
+      <div><strong>Rental:</strong></div><div>${b.rental}</div>
+      <div><strong>Hotel:</strong></div><div>${b.hotel}</div>
+      <div><strong>Arrival:</strong></div><div>${b.arrival}</div>
+      <div><strong>Departure:</strong></div><div>${b.departure}</div>
+      <div><strong>Total Price:</strong></div><div>${b.price}</div>
+      <div><strong>Status:</strong></div><div>${b.status.toUpperCase()}</div>
+    </div>
+  `;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeDetails() {
+  const modal = document.getElementById('details-modal');
+  if (!modal) return;
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
 }
 
 // Sidebar toggle functionality (same as owner dashboard)
@@ -229,11 +331,76 @@ function checkSession() {
   }
 }
 
+// Search functionality
+function filterTable(searchTerm) {
+  const tbody = document.getElementById('booking-table-body');
+  tbody.innerHTML = '';
+  
+  const filteredBookings = bookings.filter(b => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      b.name.toLowerCase().includes(searchLower) ||
+      b.services.toLowerCase().includes(searchLower) ||
+      b.rental.toLowerCase().includes(searchLower) ||
+      b.arrival.toLowerCase().includes(searchLower) ||
+      b.departure.toLowerCase().includes(searchLower) ||
+      b.hotel.toLowerCase().includes(searchLower) ||
+      b.price.toLowerCase().includes(searchLower) ||
+      b.contact.toLowerCase().includes(searchLower) ||
+      b.email.toLowerCase().includes(searchLower)
+    );
+  });
+  
+  filteredBookings.forEach(b => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${b.name}</td>
+      <td>${b.services}</td>
+      <td>${b.rental}</td>
+      <td>${b.arrival}</td>
+      <td>${b.departure}</td>
+      <td>${b.hotel}</td>
+      <td>${b.price}</td>
+      <td>${b.contact}</td>
+      <td>${b.email}</td>
+      <td><span class="status-badge status-${b.status}">${b.status.toUpperCase()}</span></td>
+      <td>
+        <div class="action-buttons">
+          <button class="action-btn btn-confirm" data-action="confirm">Confirm</button>
+          <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          <button class="action-btn btn-reschedule" data-action="reschedule">Reschedule</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  // Show message if no results found
+  if (filteredBookings.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="11" style="text-align: center; padding: 20px; color: #64748b;">No bookings found matching "${searchTerm}"</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
 // Initialize staff dashboard when page loads
 document.addEventListener('DOMContentLoaded', function() {
   // Check session before loading dashboard
   if (checkSession()) {
     renderTable();
+    
+    // Add search functionality
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.trim();
+        if (searchTerm === '') {
+          renderTable(); // Show all bookings if search is empty
+        } else {
+          filterTable(searchTerm);
+        }
+      });
+    }
     
     // Set staff welcome message
     console.log('Staff Dashboard loaded successfully');

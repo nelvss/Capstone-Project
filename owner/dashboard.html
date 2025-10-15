@@ -34,19 +34,19 @@
     </header>
     <section class="stats">
       <div class="stat-card stat-blue">
-        <div class="stat-value">7</div>
+        <div class="stat-value" id="owner-total-bookings">7</div>
         <div class="stat-label">Total Bookings</div>
       </div>
       <div class="stat-card stat-yellow">
-        <div class="stat-value">7</div>
+        <div class="stat-value" id="owner-pending-bookings">7</div>
         <div class="stat-label">Pending Bookings</div>
       </div>
       <div class="stat-card stat-green">
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="owner-confirmed-bookings">0</div>
         <div class="stat-label">Confirmed Booking</div>
       </div>
       <div class="stat-card stat-red">
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="owner-cancelled-bookings">0</div>
         <div class="stat-label">Cancelled Booking</div>
       </div>
     </section>
@@ -54,6 +54,16 @@
       <div class="search-container">
         <input type="text" id="searchInput" class="search-input" placeholder="Search by name, service, rental, date, hotel, email...">
         <span class="search-icon">🔍</span>
+      </div>
+      <div class="filter-container" style="margin-top:12px;">
+        <label for="owner-status-filter" style="margin-right:8px;color:#475569;font-weight:500;">Status:</label>
+        <select id="owner-status-filter" onchange="ownerFilterChange()">
+          <option value="all">All</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="rescheduled">Rescheduled</option>
+          <option value="pending">Pending</option>
+        </select>
       </div>
     </section>
     <section class="table-section">

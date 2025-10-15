@@ -27,6 +27,241 @@ function checkSession() {
   }
 }
 
+// Chart instances storage
+const chartInstances = {};
+
+// Filter data structure with weekly breakdowns
+const weeklyData = {
+    'Jan': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [70000, 68000, 72000, 70000],
+        bookings: [36, 35, 38, 36],
+        tourData: {
+            snorkeling: [7, 8, 7, 6],
+            islandHopping: [6, 7, 6, 6],
+            inlandTour: [5, 4, 5, 4],
+            vehicleRental: [4, 3, 4, 4],
+            hotels: [8, 9, 8, 7],
+            diving: [3, 2, 3, 2]
+        },
+        packageData: {
+            package1: [7, 8, 7, 6],
+            package2: [6, 7, 6, 6],
+            package3: [5, 4, 5, 4],
+            package4: [4, 3, 4, 4]
+        }
+    },
+    'Feb': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [80000, 82000, 78000, 80000],
+        bookings: [42, 43, 40, 42],
+        tourData: {
+            snorkeling: [8, 9, 7, 8],
+            islandHopping: [7, 8, 6, 7],
+            inlandTour: [5, 6, 4, 5],
+            vehicleRental: [4, 5, 3, 4],
+            hotels: [9, 10, 8, 8],
+            diving: [3, 4, 2, 3]
+        },
+        packageData: {
+            package1: [8, 9, 7, 8],
+            package2: [7, 8, 6, 7],
+            package3: [5, 6, 4, 5],
+            package4: [4, 5, 3, 4]
+        }
+    },
+    'Mar': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [87500, 88000, 87000, 87500],
+        bookings: [47, 48, 46, 48],
+        tourData: {
+            snorkeling: [9, 9, 8, 9],
+            islandHopping: [8, 8, 7, 7],
+            inlandTour: [6, 5, 6, 5],
+            vehicleRental: [5, 4, 5, 4],
+            hotels: [10, 9, 10, 9],
+            diving: [4, 3, 4, 3]
+        },
+        packageData: {
+            package1: [9, 9, 8, 9],
+            package2: [8, 8, 7, 7],
+            package3: [6, 5, 6, 5],
+            package4: [5, 4, 5, 4]
+        }
+    },
+    'Apr': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [45000, 46000, 44000, 45000],
+        bookings: [24, 25, 24, 25],
+        tourData: {
+            snorkeling: [6, 7, 6, 6],
+            islandHopping: [6, 5, 6, 5],
+            inlandTour: [4, 4, 4, 4],
+            vehicleRental: [3, 3, 3, 3],
+            hotels: [7, 7, 7, 7],
+            diving: [2, 2, 2, 3]
+        },
+        packageData: {
+            package1: [6, 7, 6, 6],
+            package2: [6, 5, 6, 5],
+            package3: [4, 4, 4, 4],
+            package4: [3, 3, 3, 3]
+        }
+    },
+    'May': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [30000, 31000, 29000, 30000],
+        bookings: [17, 17, 16, 17],
+        tourData: {
+            snorkeling: [5, 5, 5, 5],
+            islandHopping: [5, 4, 5, 4],
+            inlandTour: [3, 4, 3, 3],
+            vehicleRental: [3, 2, 3, 2],
+            hotels: [6, 6, 6, 6],
+            diving: [2, 2, 1, 2]
+        },
+        packageData: {
+            package1: [5, 5, 5, 5],
+            package2: [5, 4, 5, 4],
+            package3: [3, 4, 3, 3],
+            package4: [3, 2, 3, 2]
+        }
+    },
+    'Jun': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [23750, 24000, 23500, 23750],
+        bookings: [13, 14, 13, 14],
+        tourData: {
+            snorkeling: [5, 4, 5, 4],
+            islandHopping: [4, 4, 4, 4],
+            inlandTour: [3, 3, 2, 3],
+            vehicleRental: [2, 2, 2, 2],
+            hotels: [5, 5, 5, 5],
+            diving: [2, 1, 2, 1]
+        },
+        packageData: {
+            package1: [5, 4, 5, 4],
+            package2: [4, 4, 4, 4],
+            package3: [3, 3, 2, 3],
+            package4: [2, 2, 2, 2]
+        }
+    },
+    'Jul': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [27500, 28000, 27000, 27500],
+        bookings: [15, 16, 15, 16],
+        tourData: {
+            snorkeling: [6, 5, 6, 5],
+            islandHopping: [5, 5, 5, 5],
+            inlandTour: [4, 3, 4, 3],
+            vehicleRental: [3, 3, 2, 3],
+            hotels: [6, 7, 6, 6],
+            diving: [2, 2, 2, 2]
+        },
+        packageData: {
+            package1: [6, 5, 6, 5],
+            package2: [5, 5, 5, 5],
+            package3: [4, 3, 4, 3],
+            package4: [3, 3, 2, 3]
+        }
+    },
+    'Aug': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [32500, 33000, 32000, 32500],
+        bookings: [18, 18, 17, 18],
+        tourData: {
+            snorkeling: [7, 6, 7, 6],
+            islandHopping: [6, 6, 6, 6],
+            inlandTour: [4, 4, 4, 4],
+            vehicleRental: [3, 3, 3, 4],
+            hotels: [7, 8, 7, 7],
+            diving: [3, 2, 3, 2]
+        },
+        packageData: {
+            package1: [7, 6, 7, 6],
+            package2: [6, 6, 6, 6],
+            package3: [4, 4, 4, 4],
+            package4: [3, 3, 3, 4]
+        }
+    },
+    'Sep': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [36250, 36500, 36000, 36250],
+        bookings: [21, 21, 20, 21],
+        tourData: {
+            snorkeling: [8, 7, 8, 7],
+            islandHopping: [7, 7, 6, 7],
+            inlandTour: [5, 4, 5, 4],
+            vehicleRental: [4, 4, 3, 4],
+            hotels: [8, 9, 8, 8],
+            diving: [3, 3, 3, 3]
+        },
+        packageData: {
+            package1: [8, 7, 8, 7],
+            package2: [7, 7, 6, 7],
+            package3: [5, 4, 5, 4],
+            package4: [4, 4, 3, 4]
+        }
+    },
+    'Oct': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [41250, 41500, 41000, 41250],
+        bookings: [23, 24, 23, 24],
+        tourData: {
+            snorkeling: [8, 9, 8, 8],
+            islandHopping: [7, 8, 7, 7],
+            inlandTour: [5, 5, 5, 5],
+            vehicleRental: [4, 4, 4, 4],
+            hotels: [9, 9, 9, 9],
+            diving: [3, 3, 4, 3]
+        },
+        packageData: {
+            package1: [8, 9, 8, 8],
+            package2: [7, 8, 7, 7],
+            package3: [5, 5, 5, 5],
+            package4: [4, 4, 4, 4]
+        }
+    },
+    'Nov': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [55000, 55500, 54500, 55000],
+        bookings: [32, 33, 31, 32],
+        tourData: {
+            snorkeling: [9, 9, 9, 9],
+            islandHopping: [8, 8, 8, 8],
+            inlandTour: [6, 5, 6, 5],
+            vehicleRental: [5, 4, 5, 4],
+            hotels: [10, 10, 10, 10],
+            diving: [4, 4, 3, 4]
+        },
+        packageData: {
+            package1: [9, 9, 9, 9],
+            package2: [8, 8, 8, 8],
+            package3: [6, 5, 6, 5],
+            package4: [5, 4, 5, 4]
+        }
+    },
+    'Dec': {
+        weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        revenue: [96250, 96500, 96000, 96250],
+        bookings: [50, 51, 50, 50],
+        tourData: {
+            snorkeling: [10, 10, 10, 10],
+            islandHopping: [9, 9, 8, 9],
+            inlandTour: [6, 6, 6, 6],
+            vehicleRental: [5, 5, 5, 5],
+            hotels: [11, 12, 11, 11],
+            diving: [4, 5, 4, 4]
+        },
+        packageData: {
+            package1: [10, 10, 10, 10],
+            package2: [9, 9, 8, 9],
+            package3: [6, 6, 6, 6],
+            package4: [5, 5, 5, 5]
+        }
+    }
+};
+
 // Analytics Dashboard JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     // Check session before loading analytics
@@ -39,6 +274,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize charts
     initializeCharts();
+    
+    // Initialize filters
+    initializeFilters();
     
     // Load data and populate tables
     loadAnalyticsData();
@@ -158,10 +396,331 @@ function initializeCharts() {
     createBookingTrendsChart();
 }
 
+// Initialize filter dropdowns
+function initializeFilters() {
+    const months = Object.keys(weeklyData);
+    
+    // Populate all year filters
+    const yearFilters = [
+        'revenueTrendYearFilter',
+        'bookingTrendsYearFilter',
+        'tourOnlyYearFilter',
+        'packageTourYearFilter',
+        'revenueForecastYearFilter',
+        'demandPredictionYearFilter'
+    ];
+    
+    yearFilters.forEach(filterId => {
+        const select = document.getElementById(filterId);
+        if (select) {
+            // Add more years if needed
+            const years = [2023, 2024, 2025, 2026];
+            
+            // Clear existing options except the default
+            const hasDefaultOptions = select.querySelectorAll('option').length > 0;
+            if (!hasDefaultOptions) {
+                years.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    if (year === 2025) option.selected = true;
+                    select.appendChild(option);
+                });
+            }
+            
+            // Add change event listener
+            select.addEventListener('change', (e) => handleYearFilter(e, filterId));
+        }
+    });
+    
+    // Populate all month filters
+    const monthFilters = [
+        'revenueTrendMonthFilter',
+        'bookingTrendsMonthFilter',
+        'tourOnlyMonthFilter',
+        'packageTourMonthFilter',
+        'revenueForecastMonthFilter',
+        'demandPredictionMonthFilter'
+    ];
+    
+    monthFilters.forEach(filterId => {
+        const select = document.getElementById(filterId);
+        if (select) {
+            months.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = month;
+                select.appendChild(option);
+            });
+            
+            // Add change event listener
+            select.addEventListener('change', (e) => handleMonthFilter(e, filterId));
+        }
+    });
+    
+    // Add event listeners for week filters
+    const weekFilters = [
+        'revenueTrendWeekFilter',
+        'bookingTrendsWeekFilter',
+        'tourOnlyWeekFilter',
+        'packageTourWeekFilter',
+        'revenueForecastWeekFilter',
+        'demandPredictionWeekFilter'
+    ];
+    
+    weekFilters.forEach(filterId => {
+        const select = document.getElementById(filterId);
+        if (select) {
+            select.addEventListener('change', (e) => handleWeekFilter(e, filterId));
+        }
+    });
+}
+
+// Handle year filter change
+function handleYearFilter(event, filterId) {
+    const year = event.target.value;
+    const monthFilterId = filterId.replace('YearFilter', 'MonthFilter');
+    const weekFilterId = filterId.replace('YearFilter', 'WeekFilter');
+    
+    // Reset month and week filters
+    const monthSelect = document.getElementById(monthFilterId);
+    const weekSelect = document.getElementById(weekFilterId);
+    
+    if (monthSelect) monthSelect.value = 'all';
+    if (weekSelect) {
+        weekSelect.innerHTML = '<option value="all">All Weeks</option>';
+    }
+    
+    // Update the corresponding chart
+    updateChart(monthFilterId, 'all', 'all', year);
+}
+
+// Handle month filter change
+function handleMonthFilter(event, filterId) {
+    const month = event.target.value;
+    const weekFilterId = filterId.replace('MonthFilter', 'WeekFilter');
+    const yearFilterId = filterId.replace('MonthFilter', 'YearFilter');
+    const weekSelect = document.getElementById(weekFilterId);
+    const yearSelect = document.getElementById(yearFilterId);
+    const year = yearSelect ? yearSelect.value : '2025';
+    
+    // Clear week filter
+    weekSelect.innerHTML = '<option value="all">All Weeks</option>';
+    
+    if (month !== 'all' && weeklyData[month]) {
+        // Populate week options
+        weeklyData[month].weeks.forEach((week, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = week;
+            weekSelect.appendChild(option);
+        });
+    }
+    
+    // Update the corresponding chart
+    updateChart(filterId, month, 'all', year);
+}
+
+// Handle week filter change
+function handleWeekFilter(event, filterId) {
+    const week = event.target.value;
+    const monthFilterId = filterId.replace('WeekFilter', 'MonthFilter');
+    const yearFilterId = filterId.replace('WeekFilter', 'YearFilter');
+    const monthSelect = document.getElementById(monthFilterId);
+    const yearSelect = document.getElementById(yearFilterId);
+    const month = monthSelect.value;
+    const year = yearSelect ? yearSelect.value : '2025';
+    
+    // Update the corresponding chart
+    updateChart(monthFilterId, month, week, year);
+}
+
+// Update chart based on filters
+function updateChart(monthFilterId, month, week, year) {
+    let chartKey = '';
+    
+    if (monthFilterId.includes('revenueTrend')) {
+        chartKey = 'revenueTrendChart';
+        updateRevenueTrendChart(month, week, year);
+    } else if (monthFilterId.includes('bookingTrends')) {
+        chartKey = 'bookingTrendsChart';
+        updateBookingTrendsChart(month, week, year);
+    } else if (monthFilterId.includes('tourOnly')) {
+        chartKey = 'tourOnlyChart';
+        updateTourOnlyChart(month, week, year);
+    } else if (monthFilterId.includes('packageTour')) {
+        chartKey = 'packageTourChart';
+        updatePackageTourChart(month, week, year);
+    } else if (monthFilterId.includes('revenueForecast')) {
+        chartKey = 'revenueForecastChart';
+        updateRevenueForecastChart(month, week, year);
+    } else if (monthFilterId.includes('demandPrediction')) {
+        chartKey = 'demandPredictionChart';
+        updateDemandPredictionChart(month, week, year);
+    }
+}
+
+// Update Revenue Trend Chart
+function updateRevenueTrendChart(month, week, year) {
+    const chart = chartInstances['revenueTrendChart'];
+    if (!chart) return;
+    
+    // Add year label to chart title
+    const yearSuffix = year ? ` (${year})` : '';
+    
+    if (month === 'all') {
+        // Show all months
+        chart.data.labels = analyticsData.monthlyRevenue.map(d => d.month + yearSuffix);
+        chart.data.datasets[0].data = analyticsData.monthlyRevenue.map(d => d.revenue);
+    } else if (week === 'all') {
+        // Show selected month only
+        const monthData = analyticsData.monthlyRevenue.find(d => d.month === month);
+        chart.data.labels = [month + yearSuffix];
+        chart.data.datasets[0].data = [monthData.revenue];
+    } else {
+        // Show selected week
+        const weekIndex = parseInt(week);
+        chart.data.labels = [weeklyData[month].weeks[weekIndex] + yearSuffix];
+        chart.data.datasets[0].data = [weeklyData[month].revenue[weekIndex]];
+    }
+    
+    chart.update();
+}
+
+// Update Booking Trends Chart
+function updateBookingTrendsChart(month, week, year) {
+    const chart = chartInstances['bookingTrendsChart'];
+    if (!chart) return;
+    
+    const yearSuffix = year ? ` (${year})` : '';
+    
+    if (month === 'all') {
+        // Show all months
+        chart.data.labels = analyticsData.monthlyRevenue.map(d => d.month + yearSuffix);
+        chart.data.datasets[0].data = analyticsData.monthlyRevenue.map(d => d.bookings);
+    } else if (week === 'all') {
+        // Show selected month only
+        const monthData = analyticsData.monthlyRevenue.find(d => d.month === month);
+        chart.data.labels = [month + yearSuffix];
+        chart.data.datasets[0].data = [monthData.bookings];
+    } else {
+        // Show selected week
+        const weekIndex = parseInt(week);
+        chart.data.labels = [weeklyData[month].weeks[weekIndex] + yearSuffix];
+        chart.data.datasets[0].data = [weeklyData[month].bookings[weekIndex]];
+    }
+    
+    chart.update();
+}
+
+// Update Tour Only Chart
+function updateTourOnlyChart(month, week, year) {
+    const chart = chartInstances['tourOnlyChart'];
+    if (!chart) return;
+    
+    const yearSuffix = year ? ` ${year}` : '';
+    
+    if (month === 'all') {
+        // Show all months data - reset to original
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        chart.data.labels = months.map(m => m + yearSuffix);
+        
+        chart.data.datasets[0].data = [28, 32, 35, 25, 20, 18, 22, 26, 30, 33, 36, 40];
+        chart.data.datasets[1].data = [25, 28, 30, 22, 18, 16, 20, 24, 27, 29, 32, 35];
+        chart.data.datasets[2].data = [18, 20, 22, 16, 13, 11, 14, 16, 18, 20, 22, 24];
+        chart.data.datasets[3].data = [15, 16, 18, 12, 10, 8, 11, 13, 15, 16, 18, 20];
+        chart.data.datasets[4].data = [32, 35, 38, 28, 24, 20, 25, 29, 33, 36, 40, 45];
+        chart.data.datasets[5].data = [10, 12, 14, 9, 7, 6, 8, 10, 12, 13, 15, 17];
+    } else if (week === 'all') {
+        // Show selected month - all weeks
+        const weeks = weeklyData[month].weeks;
+        chart.data.labels = weeks.map(w => w + yearSuffix);
+        
+        chart.data.datasets[0].data = weeklyData[month].tourData.snorkeling;
+        chart.data.datasets[1].data = weeklyData[month].tourData.islandHopping;
+        chart.data.datasets[2].data = weeklyData[month].tourData.inlandTour;
+        chart.data.datasets[3].data = weeklyData[month].tourData.vehicleRental;
+        chart.data.datasets[4].data = weeklyData[month].tourData.hotels;
+        chart.data.datasets[5].data = weeklyData[month].tourData.diving;
+    } else {
+        // Show selected week only
+        const weekIndex = parseInt(week);
+        chart.data.labels = [weeklyData[month].weeks[weekIndex] + yearSuffix];
+        
+        chart.data.datasets[0].data = [weeklyData[month].tourData.snorkeling[weekIndex]];
+        chart.data.datasets[1].data = [weeklyData[month].tourData.islandHopping[weekIndex]];
+        chart.data.datasets[2].data = [weeklyData[month].tourData.inlandTour[weekIndex]];
+        chart.data.datasets[3].data = [weeklyData[month].tourData.vehicleRental[weekIndex]];
+        chart.data.datasets[4].data = [weeklyData[month].tourData.hotels[weekIndex]];
+        chart.data.datasets[5].data = [weeklyData[month].tourData.diving[weekIndex]];
+    }
+    
+    chart.update();
+}
+
+// Update Package Tour Chart
+function updatePackageTourChart(month, week, year) {
+    const chart = chartInstances['packageTourChart'];
+    if (!chart) return;
+    
+    const yearSuffix = year ? ` ${year}` : '';
+    
+    if (month === 'all') {
+        // Show all months data - reset to original
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        chart.data.labels = months.map(m => m + yearSuffix);
+        
+        chart.data.datasets[0].data = [28, 32, 35, 25, 20, 18, 22, 26, 30, 33, 36, 40];
+        chart.data.datasets[1].data = [25, 28, 30, 22, 18, 16, 20, 24, 27, 29, 32, 35];
+        chart.data.datasets[2].data = [18, 20, 22, 16, 13, 11, 14, 16, 18, 20, 22, 24];
+        chart.data.datasets[3].data = [15, 16, 18, 12, 10, 8, 11, 13, 15, 16, 18, 20];
+    } else if (week === 'all') {
+        // Show selected month - all weeks
+        const weeks = weeklyData[month].weeks;
+        chart.data.labels = weeks.map(w => w + yearSuffix);
+        
+        chart.data.datasets[0].data = weeklyData[month].packageData.package1;
+        chart.data.datasets[1].data = weeklyData[month].packageData.package2;
+        chart.data.datasets[2].data = weeklyData[month].packageData.package3;
+        chart.data.datasets[3].data = weeklyData[month].packageData.package4;
+    } else {
+        // Show selected week only
+        const weekIndex = parseInt(week);
+        chart.data.labels = [weeklyData[month].weeks[weekIndex] + yearSuffix];
+        
+        chart.data.datasets[0].data = [weeklyData[month].packageData.package1[weekIndex]];
+        chart.data.datasets[1].data = [weeklyData[month].packageData.package2[weekIndex]];
+        chart.data.datasets[2].data = [weeklyData[month].packageData.package3[weekIndex]];
+        chart.data.datasets[3].data = [weeklyData[month].packageData.package4[weekIndex]];
+    }
+    
+    chart.update();
+}
+
+// Update Revenue Forecast Chart (simple version since it's predictive)
+function updateRevenueForecastChart(month, week, year) {
+    const chart = chartInstances['revenueForecastChart'];
+    if (!chart) return;
+    
+    // For forecast, we'll just show filtered historical data
+    // You can enhance this with actual week-by-week forecasts
+    chart.update();
+}
+
+// Update Demand Prediction Chart (simple version since it's predictive)
+function updateDemandPredictionChart(month, week, year) {
+    const chart = chartInstances['demandPredictionChart'];
+    if (!chart) return;
+    
+    // For predictions, we'll keep it as is
+    // You can enhance this with month/week specific predictions
+    chart.update();
+}
+
 // Revenue Trend Chart
 function createRevenueTrendChart() {
     const ctx = document.getElementById('revenueTrendChart').getContext('2d');
-    new Chart(ctx, {
+    chartInstances['revenueTrendChart'] = new Chart(ctx, {
         type: 'line',
         data: {
             labels: analyticsData.monthlyRevenue.map(d => d.month),
@@ -475,7 +1034,7 @@ function createRevenueForecastChart() {
     const historicalData = analyticsData.monthlyRevenue.slice(-6).map(d => d.revenue);
     const forecastData = analyticsData.predictions.nextSixMonths.map(d => d.predicted);
     
-    new Chart(ctx, {
+    chartInstances['revenueForecastChart'] = new Chart(ctx, {
         type: 'line',
         data: {
             labels: [
@@ -521,7 +1080,7 @@ function createDemandPredictionChart() {
     const ctx = document.getElementById('demandPredictionChart').getContext('2d');
     const serviceNames = Object.keys(analyticsData.services).slice(0, 6);
     
-    new Chart(ctx, {
+    chartInstances['demandPredictionChart'] = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: serviceNames.map(formatServiceName),
@@ -727,7 +1286,7 @@ function createServiceDistributionChart() {
     // Sample data showing trend over 12 months for Tour Only services
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
-    new Chart(ctx, {
+    chartInstances['tourOnlyChart'] = new Chart(ctx, {
         type: 'line',
         data: {
             labels: months,
@@ -829,7 +1388,7 @@ function createServiceDistributionChart2() {
     // Sample data showing trend over 12 months for Package Tours
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
-    new Chart(ctx, {
+    chartInstances['packageTourChart'] = new Chart(ctx, {
         type: 'line',
         data: {
             labels: months,
@@ -937,7 +1496,7 @@ function createBookingTrendsChart() {
         bookings: d.bookings
     }));
 
-    new Chart(ctx, {
+    chartInstances['bookingTrendsChart'] = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: data.map(d => d.month),

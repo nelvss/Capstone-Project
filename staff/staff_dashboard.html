@@ -11,8 +11,7 @@
 <body>
   <div class="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-logo">👥</span>
-      <span class="sidebar-title">Staff Portal</span>
+      <img src="../Images/logo.png" alt="Logo" class="sidebar-logo-img">
     </div>
     <nav>
       <ul>
@@ -52,15 +51,22 @@
         <div class="stat-label">Cancelled Bookings</div>
       </div>
     </section>
+    <section class="search-section">
+      <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by name, service, rental, date, hotel, email...">
+        <span class="search-icon">🔍</span>
+      </div>
+    </section>
     <section class="table-section">
       <div class="table-header">
         <h2>Booking Management</h2>
         <div class="filter-controls">
-          <select id="status-filter" onchange="filterBookings()">
+          <select id="status-filter" onchange="filterBookings()" title="Filter bookings by status">
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="cancelled">Cancelled</option>
+            <option value="rescheduled">Rescheduled</option>
           </select>
         </div>
       </div>
@@ -85,6 +91,46 @@
         </tbody>
       </table>
     </section>
+
+    <!-- Status buckets: Confirmed, Cancelled, Rescheduled -->
+    <section class="buckets">
+      <div class="bucket" id="confirmed-bucket">
+        <div class="bucket-header">
+          <h3>Confirmed</h3>
+          <span class="bucket-count" id="confirmed-count">0</span>
+        </div>
+        <ul class="bucket-list" id="confirmed-list"></ul>
+      </div>
+      <div class="bucket" id="cancelled-bucket">
+        <div class="bucket-header">
+          <h3>Cancelled</h3>
+          <span class="bucket-count" id="cancelled-count">0</span>
+        </div>
+        <ul class="bucket-list" id="cancelled-list"></ul>
+      </div>
+      <div class="bucket" id="rescheduled-bucket">
+        <div class="bucket-header">
+          <h3>Rescheduled</h3>
+          <span class="bucket-count" id="rescheduled-count">0</span>
+        </div>
+        <ul class="bucket-list" id="rescheduled-list"></ul>
+      </div>
+    </section>
+
+    <!-- Tourist info modal -->
+    <div class="modal" id="details-modal" aria-hidden="true">
+      <div class="modal-backdrop" onclick="closeDetails()"></div>
+      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="details-title">
+        <div class="modal-header">
+          <h3 id="details-title">Tourist Information</h3>
+          <button class="modal-close" onclick="closeDetails()">✕</button>
+        </div>
+        <div class="modal-body" id="details-body"></div>
+        <div class="modal-footer">
+          <button class="modal-btn" onclick="closeDetails()">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 </html>

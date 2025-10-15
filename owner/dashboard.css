@@ -356,6 +356,21 @@ td:last-child {
   align-items: center;
 }
 
+/* Inline badge for action column statuses */
+.action-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.action-badge.cancelled {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
 th {
   font-weight: 600;
   color: #475569;
