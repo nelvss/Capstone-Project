@@ -226,23 +226,47 @@
     
     window.handleFileUpload = function(event) {
         const file = event.target.files[0];
-        if (file) {
-            // Show uploaded files section
-            document.getElementById('uploadArea').classList.add('d-none');
-            document.getElementById('uploadedFiles').classList.remove('d-none');
-            
-            // Enable submit button
-            document.getElementById('submitBookingBtn').disabled = false;
-            
-            // Show file preview
-            const previewContainer = document.getElementById('filePreviewContainer');
-            previewContainer.innerHTML = `
-                <div class="bg-light rounded p-3 text-center">
-                    <i class="fas fa-file-image text-primary fa-2x mb-2"></i>
-                    <div class="small text-muted">${file.name}</div>
-                    <div class="small text-muted">${(file.size / 1024).toFixed(1)} KB</div>
-                </div>
-            `;
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file.');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            alert('File size must be less than 5MB.');
+            return;
+        }
+        
+        // Show success state
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadedFiles = document.getElementById('uploadedFiles');
+        const filePreviewContainer = document.getElementById('filePreviewContainer');
+        
+        if (uploadArea) uploadArea.classList.add('d-none');
+        if (uploadedFiles) uploadedFiles.classList.remove('d-none');
+        
+        // Create file preview
+        if (filePreviewContainer) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                filePreviewContainer.innerHTML = `
+                    <div class="text-center">
+                        <img src="${e.target.result}" alt="Receipt Preview" class="img-fluid rounded shadow-sm" style="max-height: 200px;">
+                        <p class="text-muted small mt-2 mb-0">${file.name}</p>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Enable submit button
+        const submitBtn = document.getElementById('submitBookingBtn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
         }
     };
 
@@ -250,9 +274,40 @@
     // BOOKING SUBMISSION
     // ----------------------------
     
+    // Generate booking reference with year and counter
+    function generateBookingReference() {
+        const currentYear = new Date().getFullYear().toString().slice(-2); // Get 2-digit year
+        const storageKey = 'bookingCounter';
+        const yearKey = 'bookingYear';
+        
+        // Get stored values from localStorage
+        const storedYear = localStorage.getItem(yearKey);
+        const storedCounter = parseInt(localStorage.getItem(storageKey)) || 0;
+        
+        let counter = 1;
+        
+        // Check if year has changed
+        if (storedYear !== currentYear) {
+            // Year changed, reset counter to 1
+            counter = 1;
+        } else {
+            // Same year, increment counter
+            counter = storedCounter + 1;
+        }
+        
+        // Store updated values
+        localStorage.setItem(yearKey, currentYear);
+        localStorage.setItem(storageKey, counter.toString());
+        
+        // Format counter with leading zeros (001, 002, etc.)
+        const formattedCounter = counter.toString().padStart(3, '0');
+        
+        return `${currentYear}-${formattedCounter}`;
+    }
+
     window.submitBooking = function() {
         // Generate booking reference
-        const bookingRef = 'TB-' + Date.now().toString().slice(-6);
+        const bookingRef = generateBookingReference();
         
         // Store final booking data
         const finalBookingData = {
@@ -265,8 +320,14 @@
         sessionStorage.setItem('finalBookingData', JSON.stringify(finalBookingData));
         
         // Update booking reference displays
-        document.getElementById('bookingReference').textContent = bookingRef;
-        document.getElementById('finalBookingReference').textContent = bookingRef;
+        const bookingRefElement = document.getElementById('bookingReference');
+        const finalBookingRefElement = document.getElementById('finalBookingReference');
+        if (bookingRefElement) {
+            bookingRefElement.textContent = bookingRef;
+        }
+        if (finalBookingRefElement) {
+            finalBookingRefElement.textContent = bookingRef;
+        }
         
         // Move to confirmation step
         currentStep = 7;
@@ -339,16 +400,11 @@
             paymentNextBtn.disabled = false;
         }
         
-        // Move to upload receipt step
-        currentStep = 6;
-        showStep(currentStep);
-        
-        // Update payment method display
-        const selectedMethod = sessionStorage.getItem('selectedPaymentMethod') || 'GCASH';
-        const paidAmount = sessionStorage.getItem('paidAmount') || '₱0.00';
-        
-        document.getElementById('selectedPaymentMethod').textContent = selectedMethod.toUpperCase();
-        document.getElementById('paidAmount').textContent = paidAmount;
+        // Update payment instructions
+        const paymentInstructions = document.getElementById('paymentInstructions');
+        if (paymentInstructions) {
+            paymentInstructions.innerHTML = '<i class="fas fa-check-circle me-1 text-success"></i>Payment confirmed! You can now proceed to the next step.';
+        }
     };
 
     // ----------------------------

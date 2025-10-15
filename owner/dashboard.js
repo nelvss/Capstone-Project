@@ -295,7 +295,8 @@ function checkSession() {
     // Update welcome message if element exists
     const welcomeElement = document.querySelector('.user-welcome');
     if (welcomeElement) {
-      welcomeElement.textContent = `Welcome, ${session.username}`;
+      const displayName = session.email || 'User';
+      welcomeElement.textContent = `Welcome, ${displayName}`;
     }
     
     return true;
