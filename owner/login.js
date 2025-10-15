@@ -3,7 +3,7 @@
 function handleLogin(event) {
     event.preventDefault();
 
-    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
     const loginButton = document.getElementById('loginButton');
 
@@ -11,26 +11,26 @@ function handleLogin(event) {
     loginButton.classList.add('loading');
     loginButton.disabled = true;
 
-    const ownerUser = { username : "owner", password : "owner123"  };
-    const staffUser = { username : "staff", password : "staff123"  };
+    const ownerUser = { email : "owner@example.com", password : "owner123"  };
+    const staffUser = { email : "staff@example.com", password : "staff123"  };
 
     // Simulate loading delay for better UX
     setTimeout(() => {
-        if (username === ownerUser.username && password === ownerUser.password) {
+        if (email === ownerUser.email && password === ownerUser.password) {
             // Store owner session
             localStorage.setItem('userSession', JSON.stringify({
                 type: 'owner',
-                username: username,
+                email: email,
                 loginTime: new Date().toISOString()
             }));
             // Successful login - redirect to owner dashboard
             window.location.href = 'dashboard.html';
         }
-        else if (username === staffUser.username && password === staffUser.password) {
+        else if (email === staffUser.email && password === staffUser.password) {
             // Store staff session
             localStorage.setItem('userSession', JSON.stringify({
                 type: 'staff',
-                username: username,
+                email: email,
                 loginTime: new Date().toISOString()
             }));
             // Successful login - redirect to staff dashboard
@@ -42,15 +42,15 @@ function handleLogin(event) {
             loginButton.disabled = false;
             
             // Add visual feedback for error
-            const usernameField = document.getElementById('username');
+            const emailField = document.getElementById('email');
             const passwordField = document.getElementById('password');
             
-            usernameField.classList.add('error');
+            emailField.classList.add('error');
             passwordField.classList.add('error');
             
             // Remove error styling after 3 seconds
             setTimeout(() => {
-                usernameField.classList.remove('error');
+                emailField.classList.remove('error');
                 passwordField.classList.remove('error');
             }, 3000);
         }
@@ -60,5 +60,5 @@ function handleLogin(event) {
 // Forgot Password Function
 function handleForgotPassword(event) {
     event.preventDefault();
-    alert('Please contact the administrator to reset your password.\n\nOwner credentials: username: owner, password: owner123\nStaff credentials: username: staff, password: staff123');
+    alert('Please contact the administrator to reset your password.\n\nOwner credentials: email: owner@example.com, password: owner123\nStaff credentials: email: staff@example.com, password: staff123');
 }

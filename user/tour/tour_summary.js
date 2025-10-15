@@ -414,10 +414,41 @@ function handleFileUpload(event) {
     }
 }
 
+// Generate booking reference with year and counter
+function generateBookingReference() {
+    const currentYear = new Date().getFullYear().toString().slice(-2); // Get 2-digit year
+    const storageKey = 'bookingCounter';
+    const yearKey = 'bookingYear';
+    
+    // Get stored values from localStorage
+    const storedYear = localStorage.getItem(yearKey);
+    const storedCounter = parseInt(localStorage.getItem(storageKey)) || 0;
+    
+    let counter = 1;
+    
+    // Check if year has changed
+    if (storedYear !== currentYear) {
+        // Year changed, reset counter to 1
+        counter = 1;
+    } else {
+        // Same year, increment counter
+        counter = storedCounter + 1;
+    }
+    
+    // Store updated values
+    localStorage.setItem(yearKey, currentYear);
+    localStorage.setItem(storageKey, counter.toString());
+    
+    // Format counter with leading zeros (001, 002, etc.)
+    const formattedCounter = counter.toString().padStart(3, '0');
+    
+    return `${currentYear}-${formattedCounter}`;
+}
+
 // Submit booking
 function submitBooking() {
     // Generate booking reference
-    const bookingRef = 'TB-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    const bookingRef = generateBookingReference();
     
     // Store booking data
     let bookingData = {};
@@ -432,6 +463,16 @@ function submitBooking() {
     
     // Save updated booking data
     sessionStorage.setItem('completeBookingData', JSON.stringify(bookingData));
+    
+    // Update booking reference displays
+    const bookingRefElement = document.getElementById('bookingReference');
+    const finalBookingRefElement = document.getElementById('finalBookingReference');
+    if (bookingRefElement) {
+        bookingRefElement.textContent = bookingRef;
+    }
+    if (finalBookingRefElement) {
+        finalBookingRefElement.textContent = bookingRef;
+    }
     
     // Move to confirmation step
     nextStep();
