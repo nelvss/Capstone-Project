@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings - Owner Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="settings.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script defer src="settings.js"></script>
 </head>
@@ -363,7 +363,7 @@ Transportation Included</textarea>
           <div class="gallery-section">
             <h3>Hotel Images</h3>
             <div class="image-upload-area">
-              <input type="file" id="hotel-images" multiple accept="image/*" style="display: none;">
+              <input type="file" id="hotel-images" multiple accept="image/*" class="hidden-file-input" title="Upload hotel images">
               <button class="upload-btn" onclick="document.getElementById('hotel-images').click()">
                 📁 Upload Hotel Images
               </button>
@@ -389,7 +389,7 @@ Transportation Included</textarea>
           <div class="gallery-section">
             <h3>Car Rental Images</h3>
             <div class="image-upload-area">
-              <input type="file" id="car-images" multiple accept="image/*" style="display: none;">
+              <input type="file" id="car-images" multiple accept="image/*" class="hidden-file-input" title="Upload car rental images">
               <button class="upload-btn" onclick="document.getElementById('car-images').click()">
                 📁 Upload Car Images
               </button>
@@ -415,7 +415,7 @@ Transportation Included</textarea>
           <div class="gallery-section">
             <h3>Tour Destination Images</h3>
             <div class="image-upload-area">
-              <input type="file" id="tour-images" multiple accept="image/*" style="display: none;">
+              <input type="file" id="tour-images" multiple accept="image/*" class="hidden-file-input" title="Upload tour destination images">
               <button class="upload-btn" onclick="document.getElementById('tour-images').click()">
                 📁 Upload Tour Images
               </button>
