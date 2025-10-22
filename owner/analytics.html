@@ -134,13 +134,13 @@
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="card-title mb-0">Revenue Trend (Last 12 Months)</h5>
               <div class="d-flex gap-2">
-                <select class="form-select form-select-sm" id="revenueTrendYearFilter" style="width: 120px;">
+                <select class="form-select form-select-sm filter-select-year" id="revenueTrendYearFilter" title="Select year for revenue trend">
                   <option value="2025">2025</option>
                 </select>
-                <select class="form-select form-select-sm" id="revenueTrendMonthFilter" style="width: 150px;">
+                <select class="form-select form-select-sm filter-select-month" id="revenueTrendMonthFilter" title="Select month for revenue trend">
                   <option value="all">All Months</option>
                 </select>
-                <select class="form-select form-select-sm" id="revenueTrendWeekFilter" style="width: 150px;">
+                <select class="form-select form-select-sm filter-select-week" id="revenueTrendWeekFilter" title="Select week for revenue trend">
                   <option value="all">All Weeks</option>
                 </select>
               </div>
@@ -154,13 +154,13 @@
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="card-title mb-0">Booking Trends (Last 12 Months)</h5>
               <div class="d-flex gap-2">
-                <select class="form-select form-select-sm" id="bookingTrendsYearFilter" style="width: 120px;">
+                <select class="form-select form-select-sm filter-select-year" id="bookingTrendsYearFilter" title="Select year for booking trends">
                   <option value="2025">2025</option>
                 </select>
-                <select class="form-select form-select-sm" id="bookingTrendsMonthFilter" style="width: 150px;">
+                <select class="form-select form-select-sm filter-select-month" id="bookingTrendsMonthFilter" title="Select month for booking trends">
                   <option value="all">All Months</option>
                 </select>
-                <select class="form-select form-select-sm" id="bookingTrendsWeekFilter" style="width: 150px;">
+                <select class="form-select form-select-sm filter-select-week" id="bookingTrendsWeekFilter" title="Select week for booking trends">
                   <option value="all">All Weeks</option>
                 </select>
               </div>
@@ -179,19 +179,19 @@
                     <i class="fas fa-chart-line me-2"></i>Tour Only
                   </h5>
                   <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" id="tourOnlyYearFilter" style="width: 120px;">
+                    <select class="form-select form-select-sm filter-select-year" id="tourOnlyYearFilter" title="Select year for tour only chart">
                       <option value="2025">2025</option>
                     </select>
-                    <select class="form-select form-select-sm" id="tourOnlyMonthFilter" style="width: 150px;">
+                    <select class="form-select form-select-sm filter-select-month" id="tourOnlyMonthFilter" title="Select month for tour only chart">
                       <option value="all">All Months</option>
                     </select>
-                    <select class="form-select form-select-sm" id="tourOnlyWeekFilter" style="width: 150px;">
+                    <select class="form-select form-select-sm filter-select-week" id="tourOnlyWeekFilter" title="Select week for tour only chart">
                       <option value="all">All Weeks</option>
                     </select>
                   </div>
                 </div>
                 <div class="card-body">
-                  <canvas id="chartdiv" style="width: 100%; height: 400px;"></canvas>
+                  <canvas id="chartdiv" class="chart-canvas"></canvas>
                 </div>
               </div>
             </div>
@@ -205,19 +205,19 @@
                     <i class="fas fa-chart-line me-2"></i>Package Tour
                   </h5>
                   <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" id="packageTourYearFilter" style="width: 120px;">
+                    <select class="form-select form-select-sm filter-select-year" id="packageTourYearFilter" title="Select year for package tour chart">
                       <option value="2025">2025</option>
                     </select>
-                    <select class="form-select form-select-sm" id="packageTourMonthFilter" style="width: 150px;">
+                    <select class="form-select form-select-sm filter-select-month" id="packageTourMonthFilter" title="Select month for package tour chart">
                       <option value="all">All Months</option>
                     </select>
-                    <select class="form-select form-select-sm" id="packageTourWeekFilter" style="width: 150px;">
+                    <select class="form-select form-select-sm filter-select-week" id="packageTourWeekFilter" title="Select week for package tour chart">
                       <option value="all">All Weeks</option>
                     </select>
                   </div>
                 </div>
                 <div class="card-body">
-                  <canvas id="chartdiv2" style="width: 100%; height: 400px;"></canvas>
+                  <canvas id="chartdiv2" class="chart-canvas"></canvas>
                 </div>
               </div>
             </div>
@@ -232,14 +232,14 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">Revenue Forecast (Next 6 Months)</h5>
                   <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" id="revenueForecastYearFilter" style="width: 120px;">
+                    <select class="form-select form-select-sm filter-select-year" id="revenueForecastYearFilter" title="Select year for revenue forecast">
                       <option value="2025">2025</option>
                       <option value="2026">2026</option>
                     </select>
-                    <select class="form-select form-select-sm" id="revenueForecastMonthFilter" style="width: 150px;">
+                    <select class="form-select form-select-sm filter-select-month" id="revenueForecastMonthFilter" title="Select month for revenue forecast">
                       <option value="all">All Months</option>
                     </select>
-                    <select class="form-select form-select-sm" id="revenueForecastWeekFilter" style="width: 150px;">
+                    <select class="form-select form-select-sm filter-select-week" id="revenueForecastWeekFilter" title="Select week for revenue forecast">
                       <option value="all">All Weeks</option>
                     </select>
                   </div>
@@ -275,14 +275,14 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">Demand Prediction by Service</h5>
                   <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" id="demandPredictionYearFilter" style="width: 120px;">
+                    <select class="form-select form-select-sm filter-select-year" id="demandPredictionYearFilter" title="Select year for demand prediction">
                       <option value="2025">2025</option>
                       <option value="2026">2026</option>
                     </select>
-                    <select class="form-select form-select-sm" id="demandPredictionMonthFilter" style="width: 150px;">
+                    <select class="form-select form-select-sm filter-select-month" id="demandPredictionMonthFilter" title="Select month for demand prediction">
                       <option value="all">All Months</option>
                     </select>
-                    <select class="form-select form-select-sm" id="demandPredictionWeekFilter" style="width: 150px;">
+                    <select class="form-select form-select-sm filter-select-week" id="demandPredictionWeekFilter" title="Select week for demand prediction">
                       <option value="all">All Weeks</option>
                     </select>
                   </div>
