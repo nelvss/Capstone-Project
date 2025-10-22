@@ -122,70 +122,64 @@ async function sendEmail(action, booking) {
 
 // Handle confirm button click
 async function handleConfirm(booking, button) {
-  if (confirm(`Are you sure you want to confirm the booking for ${booking.name}?`)) {
-    // Disable button and show loading state
-    button.disabled = true;
-    button.textContent = 'Sending...';
-    
-    const result = await sendEmail('confirm', booking);
-    
-    if (result.success) {
-      alert(`✅ Confirmation email sent successfully to ${booking.email}`);
-      button.textContent = '✓ Confirmed';
-      button.style.backgroundColor = '#10b981';
-      booking.status = 'confirmed';
-      renderTable();
-    } else {
-      alert(`❌ Failed to send email: ${result.message}`);
-      button.disabled = false;
-      button.textContent = 'Confirm';
-    }
+  // Disable button and show loading state
+  button.disabled = true;
+  button.textContent = 'Sending...';
+  
+  const result = await sendEmail('confirm', booking);
+  
+  if (result.success) {
+    console.log(`Confirmation email sent successfully to ${booking.email}`);
+    button.textContent = '✓ Confirmed';
+    button.style.backgroundColor = '#10b981';
+    booking.status = 'confirmed';
+    renderTable();
+  } else {
+    console.warn(`Failed to send confirmation email: ${result.message}`);
+    button.disabled = false;
+    button.textContent = 'Confirm';
   }
 }
 
 // Handle cancel button click
 async function handleCancel(booking, button) {
-  if (confirm(`Are you sure you want to cancel the booking for ${booking.name}?`)) {
-    // Disable button and show loading state
-    button.disabled = true;
-    button.textContent = 'Sending...';
-    
-    const result = await sendEmail('cancel', booking);
-    
-    if (result.success) {
-      alert(`✅ Cancellation email sent successfully to ${booking.email}`);
-      button.textContent = '✓ Cancelled';
-      button.style.backgroundColor = '#ef4444';
-      booking.status = 'cancelled';
-      renderTable();
-    } else {
-      alert(`❌ Failed to send email: ${result.message}`);
-      button.disabled = false;
-      button.textContent = 'Cancel';
-    }
+  // Disable button and show loading state
+  button.disabled = true;
+  button.textContent = 'Sending...';
+  
+  const result = await sendEmail('cancel', booking);
+  
+  if (result.success) {
+    console.log(`Cancellation email sent successfully to ${booking.email}`);
+    button.textContent = '✓ Cancelled';
+    button.style.backgroundColor = '#ef4444';
+    booking.status = 'cancelled';
+    renderTable();
+  } else {
+    console.warn(`Failed to send cancellation email: ${result.message}`);
+    button.disabled = false;
+    button.textContent = 'Cancel';
   }
 }
 
 // Handle reschedule button click
 async function handleReschedule(booking, button) {
-  if (confirm(`Are you sure you want to send a reschedule request for ${booking.name}?`)) {
-    // Disable button and show loading state
-    button.disabled = true;
-    button.textContent = 'Sending...';
-    
-    const result = await sendEmail('reschedule', booking);
-    
-    if (result.success) {
-      alert(`✅ Reschedule email sent successfully to ${booking.email}`);
-      button.textContent = '✓ Rescheduled';
-      button.style.backgroundColor = '#3b82f6';
-      booking.status = 'rescheduled';
-      renderTable();
-    } else {
-      alert(`❌ Failed to send email: ${result.message}`);
-      button.disabled = false;
-      button.textContent = 'Reschedule';
-    }
+  // Disable button and show loading state
+  button.disabled = true;
+  button.textContent = 'Sending...';
+  
+  const result = await sendEmail('reschedule', booking);
+  
+  if (result.success) {
+    console.log(`Reschedule email sent successfully to ${booking.email}`);
+    button.textContent = '✓ Rescheduled';
+    button.style.backgroundColor = '#3b82f6';
+    booking.status = 'rescheduled';
+    renderTable();
+  } else {
+    console.warn(`Failed to send reschedule email: ${result.message}`);
+    button.disabled = false;
+    button.textContent = 'Reschedule';
   }
 }
 
@@ -418,8 +412,7 @@ function checkSession() {
     // Update welcome message if element exists
     const welcomeElement = document.querySelector('.user-welcome');
     if (welcomeElement) {
-      const displayName = session.email || 'User';
-      welcomeElement.textContent = `Welcome, ${displayName}`;
+      welcomeElement.textContent = `Welcome, ${session.username}`;
     }
     
     return true;
@@ -474,12 +467,8 @@ function navigateWithTransition(url) {
 
 // Logout functionality
 function handleLogout() {
-  // Show confirmation dialog
-  if (confirm('Are you sure you want to logout?')) {
-    // Clear stored session data
-    localStorage.removeItem('userSession');
-    
-    // Redirect to login page
-    window.location.href = 'login.html';
-  }
+  // Clear stored session data
+  localStorage.removeItem('userSession');
+  // Redirect to login page
+  window.location.href = 'login.html';
 }
