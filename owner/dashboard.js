@@ -431,24 +431,60 @@ function checkSession() {
   }
 }
 
+// Loading screen functionality
+function showLoadingScreen() {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.style.display = 'flex';
+    loadingScreen.classList.remove('fade-out');
+  }
+}
+
+function hideLoadingScreen() {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.classList.add('fade-out');
+    // Remove the loading screen from DOM after animation completes
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
+    }, 800);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  // Show loading screen immediately
+  showLoadingScreen();
+  
   // Check session before loading dashboard
   if (checkSession()) {
-    renderTable();
-    updateOwnerStats();
-    
-    // Add search functionality
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-      searchInput.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.trim();
-        if (searchTerm === '') {
-          renderTable(); // Show all bookings if search is empty
-        } else {
-          filterTable(searchTerm);
-        }
-      });
-    }
+    // Simulate loading time for better UX
+    setTimeout(() => {
+      renderTable();
+      updateOwnerStats();
+      
+      // Add search functionality
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.trim();
+          if (searchTerm === '') {
+            renderTable(); // Show all bookings if search is empty
+          } else {
+            filterTable(searchTerm);
+          }
+        });
+      }
+      
+      // Hide loading screen after everything is loaded
+      setTimeout(() => {
+        hideLoadingScreen();
+      }, 500);
+    }, 2000); // 2 second loading time
+  } else {
+    // If no session, hide loading screen immediately
+    setTimeout(() => {
+      hideLoadingScreen();
+    }, 1000);
   }
 });
 

@@ -1,10 +1,17 @@
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcryptjs');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Supabase configuration
+const supabaseUrl = 'https://vjeykmpzwxqonkfnzbjw.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqZXlrbXB6d3hxb25rZm56Ymp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDM0NzAsImV4cCI6MjA3NjA3OTQ3MH0.qDBNgf1Ot3mmQrIBkPGXoPRC1J00Vy6r8iaPGDjQKec';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
 app.use(cors());
@@ -212,6 +219,90 @@ const emailTemplates = {
     `
   })
 };
+
+// API endpoint for user login
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email and password are required' 
+      });
+    }
+    
+    console.log(`🔍 Attempting login for email: ${email}`);
+    
+    // First, let's check if the table exists and has any data
+    const { data: allUsers, error: tableError } = await supabase
+      .from('users')
+      .select('*')
+      .limit(5);
+    
+    console.log('📊 All users in table:', allUsers);
+    console.log('📊 Table error:', tableError);
+    
+    // Query user from Supabase database
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, email, password_hash, role')
+      .eq('email', email)
+      .single();
+    
+    console.log('📊 User query result:', { user, error });
+    
+    if (error || !user) {
+      console.log('❌ User not found:', error?.message || 'No user found');
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid credentials' 
+      });
+    }
+    
+    console.log('✅ User found:', { id: user.id, email: user.email, role: user.role });
+    
+    // Verify password using bcrypt
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    
+    if (!isValidPassword) {
+      console.log('❌ Invalid password for user:', email);
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid credentials' 
+      });
+    }
+    
+    console.log('✅ Password verified successfully for user:', email);
+    
+    // Update last_login timestamp
+    await supabase
+      .from('users')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id', user.id);
+    
+    // Return user data (without password_hash)
+    res.json({ 
+      success: true, 
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        loginTime: new Date().toISOString()
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+});
 
 // API endpoint to send email
 app.post('/api/send-email', async (req, res) => {

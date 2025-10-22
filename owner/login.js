@@ -1,6 +1,6 @@
 // Login User
 
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
 
     const email = document.getElementById('email').value.trim();
@@ -11,50 +11,77 @@ function handleLogin(event) {
     loginButton.classList.add('loading');
     loginButton.disabled = true;
 
-    const ownerUser = { email : "owner@example.com", password : "owner123"  };
-    const staffUser = { email : "staff@example.com", password : "staff123"  };
+    try {
+        // Call Express API for authentication
+        const response = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password })
+        });
 
-    // Simulate loading delay for better UX
-    setTimeout(() => {
-        if (email === ownerUser.email && password === ownerUser.password) {
-            // Store owner session
-            localStorage.setItem('userSession', JSON.stringify({
-                type: 'owner',
-                email: email,
-                loginTime: new Date().toISOString()
-            }));
-            // Successful login - redirect to owner dashboard
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Login failed');
+        }
+
+        // Store user session
+        localStorage.setItem('userSession', JSON.stringify({
+            type: data.user.role,
+            email: data.user.email,
+            userId: data.user.id,
+            loginTime: data.user.loginTime
+        }));
+
+        // Redirect based on role
+        if (data.user.role === 'owner') {
             window.location.href = 'dashboard.html';
-        }
-        else if (email === staffUser.email && password === staffUser.password) {
-            // Store staff session
-            localStorage.setItem('userSession', JSON.stringify({
-                type: 'staff',
-                email: email,
-                loginTime: new Date().toISOString()
-            }));
-            // Successful login - redirect to staff dashboard
+        } else if (data.user.role === 'staff') {
             window.location.href = '../staff/staff_dashboard.html';
+        } else {
+            throw new Error('Invalid user role');
         }
-        else {
-            // Invalid credentials - remove loading state and show error
-            loginButton.classList.remove('loading');
-            loginButton.disabled = false;
-            
-            // Add visual feedback for error
-            const emailField = document.getElementById('email');
-            const passwordField = document.getElementById('password');
-            
-            emailField.classList.add('error');
-            passwordField.classList.add('error');
-            
-            // Remove error styling after 3 seconds
-            setTimeout(() => {
-                emailField.classList.remove('error');
-                passwordField.classList.remove('error');
-            }, 3000);
-        }
-    }, 1500); // 1.5 second loading delay
+
+    } catch (error) {
+        console.error('Login error:', error);
+        
+        // Remove loading state and show error
+        loginButton.classList.remove('loading');
+        loginButton.disabled = false;
+        
+        // Add visual feedback for error
+        const emailField = document.getElementById('email');
+        const passwordField = document.getElementById('password');
+        
+        emailField.classList.add('error');
+        passwordField.classList.add('error');
+        
+        // Remove error styling after 3 seconds
+        setTimeout(() => {
+            emailField.classList.remove('error');
+            passwordField.classList.remove('error');
+        }, 3000);
+    }
+}
+
+// Password Toggle Function
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('passwordToggle');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+        toggleIcon.classList.add('active');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+        toggleIcon.classList.remove('active');
+    }
 }
 
 // Forgot Password Function
