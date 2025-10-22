@@ -110,59 +110,53 @@ async function sendEmail(action, booking) {
 }
 
 async function handleConfirm(booking, button) {
-  if (confirm(`Are you sure you want to confirm the booking for ${booking.name}?`)) {
-    button.disabled = true;
-    button.textContent = 'Sending...';
-    const result = await sendEmail('confirm', booking);
-    if (result.success) {
-      alert(`✅ Confirmation email sent successfully to ${booking.email}`);
-      button.textContent = '✓ Confirmed';
-      button.style.backgroundColor = '#10b981';
-      booking.status = 'confirmed';
-      renderTable();
-    } else {
-      alert(`❌ Failed to send email: ${result.message}`);
-      button.disabled = false;
-      button.textContent = 'Confirm';
-    }
+  button.disabled = true;
+  button.textContent = 'Sending...';
+  const result = await sendEmail('confirm', booking);
+  if (result.success) {
+    console.log(`Confirmation email sent successfully to ${booking.email}`);
+    button.textContent = '✓ Confirmed';
+    button.style.backgroundColor = '#10b981';
+    booking.status = 'confirmed';
+    renderTable();
+  } else {
+    console.warn(`Failed to send confirmation email: ${result.message}`);
+    button.disabled = false;
+    button.textContent = 'Confirm';
   }
 }
 
 async function handleCancel(booking, button) {
-  if (confirm(`Are you sure you want to cancel the booking for ${booking.name}?`)) {
-    button.disabled = true;
-    button.textContent = 'Sending...';
-    const result = await sendEmail('cancel', booking);
-    if (result.success) {
-      alert(`✅ Cancellation email sent successfully to ${booking.email}`);
-      button.textContent = '✓ Cancelled';
-      button.style.backgroundColor = '#ef4444';
-      booking.status = 'cancelled';
-      renderTable();
-    } else {
-      alert(`❌ Failed to send email: ${result.message}`);
-      button.disabled = false;
-      button.textContent = 'Cancel';
-    }
+  button.disabled = true;
+  button.textContent = 'Sending...';
+  const result = await sendEmail('cancel', booking);
+  if (result.success) {
+    console.log(`Cancellation email sent successfully to ${booking.email}`);
+    button.textContent = '✓ Cancelled';
+    button.style.backgroundColor = '#ef4444';
+    booking.status = 'cancelled';
+    renderTable();
+  } else {
+    console.warn(`Failed to send cancellation email: ${result.message}`);
+    button.disabled = false;
+    button.textContent = 'Cancel';
   }
 }
 
 async function handleReschedule(booking, button) {
-  if (confirm(`Are you sure you want to send a reschedule request for ${booking.name}?`)) {
-    button.disabled = true;
-    button.textContent = 'Sending...';
-    const result = await sendEmail('reschedule', booking);
-    if (result.success) {
-      alert(`✅ Reschedule email sent successfully to ${booking.email}`);
-      button.textContent = '✓ Rescheduled';
-      button.style.backgroundColor = '#3b82f6';
-      booking.status = 'rescheduled';
-      renderTable();
-    } else {
-      alert(`❌ Failed to send email: ${result.message}`);
-      button.disabled = false;
-      button.textContent = 'Reschedule';
-    }
+  button.disabled = true;
+  button.textContent = 'Sending...';
+  const result = await sendEmail('reschedule', booking);
+  if (result.success) {
+    console.log(`Reschedule email sent successfully to ${booking.email}`);
+    button.textContent = '✓ Rescheduled';
+    button.style.backgroundColor = '#3b82f6';
+    booking.status = 'rescheduled';
+    renderTable();
+  } else {
+    console.warn(`Failed to send reschedule email: ${result.message}`);
+    button.disabled = false;
+    button.textContent = 'Reschedule';
   }
 }
 
@@ -371,10 +365,8 @@ function navigateWithTransition(url) {
 }
 
 function handleLogout() {
-  if (confirm('Are you sure you want to logout?')) {
-    localStorage.removeItem('userSession');
-    window.location.href = '../owner/login.html';
-  }
+  localStorage.removeItem('userSession');
+  window.location.href = '../owner/login.html';
 }
 
 function checkSession() {

@@ -50,11 +50,11 @@
     </section>
     <section class="search-section">
       <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search by name, service, rental, date, hotel, email...">
-        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search">
+        <span class="search-icon"></span>
       </div>
-      <div class="filter-container filter-container-spacing">
-        <label for="staff-status-filter" class="filter-label">Status:</label>
+      <div class="filter-container">
+        <label for="staff-status-filter" style="margin-right:8px;color:#475569;font-weight:500;">Status:</label>
         <select id="staff-status-filter" onchange="staffFilterChange()">
           <option value="all">All</option>
           <option value="confirmed">Confirmed</option>
