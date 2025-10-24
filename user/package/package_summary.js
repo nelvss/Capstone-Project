@@ -408,6 +408,41 @@
                 }
             }
             
+            // Submit vehicle bookings if selected
+            if (bookingData.selectedVehicles && bookingData.selectedVehicles.length > 0) {
+                const vehiclePromises = bookingData.selectedVehicles.map(vehicle => {
+                    const vehiclePayload = {
+                        booking_id: bookingId,
+                        vehicle_name: vehicle.name,
+                        rental_days: vehicle.days || 1,
+                        total_amount: vehicle.price || 0
+                    };
+                    
+                    return fetch('http://localhost:3000/api/booking-vehicles', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(vehiclePayload)
+                    });
+                });
+                
+                try {
+                    const vehicleResponses = await Promise.all(vehiclePromises);
+                    const vehicleResults = await Promise.all(vehicleResponses.map(r => r.json()));
+                    
+                    vehicleResults.forEach((result, index) => {
+                        if (!result.success) {
+                            console.warn(`Vehicle booking ${index + 1} failed:`, result.message);
+                        } else {
+                            console.log(`Vehicle booking ${index + 1} created successfully`);
+                        }
+                    });
+                } catch (error) {
+                    console.warn('Vehicle booking submission error:', error);
+                }
+            }
+            
             // Store final booking data with API response
             const finalBookingData = {
                 ...bookingData,

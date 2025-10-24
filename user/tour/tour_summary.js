@@ -584,12 +584,9 @@ async function submitTourBookings(bookingId, bookingData) {
         bookingData.selectedVehicles.forEach(vehicle => {
             const vehiclePayload = {
                 booking_id: bookingId,
-                vehicle_id: getVehicleIdByName(vehicle.name),
+                vehicle_name: vehicle.name,
                 rental_days: vehicle.days || 1,
-                rental_start_date: bookingData.arrivalDate,
-                rental_end_date: bookingData.departureDate,
-                total_price: vehicle.price || 0,
-                notes: `Vehicle: ${vehicle.name}`
+                total_amount: vehicle.price || 0
             };
             
             promises.push(
@@ -664,10 +661,6 @@ function getSelectedServices(bookingData) {
     return services.join(', ') || 'None';
 }
 
-function getVehicleIdByName(vehicleName) {
-    // Placeholder - implement based on your vehicle data
-    return null;
-}
 
 function getDestinationIdByName(destinationName) {
     // Placeholder - implement based on your destination data

@@ -922,20 +922,17 @@ app.post('/api/booking-vehicles', async (req, res) => {
   try {
     const { 
       booking_id, 
-      vehicle_id, 
-      rental_days, 
-      rental_start_date, 
-      rental_end_date,
-      total_price,
-      notes = ''
+      vehicle_name, 
+      rental_days,
+      total_amount
     } = req.body;
     
-    console.log('📝 Creating vehicle booking:', { booking_id, vehicle_id, rental_days });
+    console.log('📝 Creating vehicle booking:', { booking_id, vehicle_name, rental_days });
     
-    if (!booking_id || !vehicle_id || !rental_days || !rental_start_date || !rental_end_date) {
+    if (!booking_id || !vehicle_name || !rental_days) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: booking_id, vehicle_id, rental_days, rental_start_date, rental_end_date' 
+        message: 'Missing required fields: booking_id, vehicle_name, rental_days' 
       });
     }
     
@@ -943,13 +940,9 @@ app.post('/api/booking-vehicles', async (req, res) => {
       .from('booking_vehicles')
       .insert([{
         booking_id,
-        vehicle_id,
+        vehicle_name,
         rental_days,
-        rental_start_date,
-        rental_end_date,
-        total_price: total_price || 0,
-        notes,
-        created_at: new Date().toISOString()
+        total_amount: total_amount || 0
       }])
       .select();
     

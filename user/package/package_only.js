@@ -1143,6 +1143,34 @@
         const tourSelections = {
             touristCount: document.getElementById('touristCount').value,
             selectedPackage: document.querySelector('input[name="package-selection"]:checked')?.value || null,
+            selectedVehicles: (() => {
+                const selectedVehicles = [];
+                const rentalDays = parseInt(document.getElementById('rentalDays').value) || 0;
+                const selectedVehicleOptions = document.querySelectorAll('.rental-option:checked');
+                
+                selectedVehicleOptions.forEach(vehicle => {
+                    const vehicleType = vehicle.value;
+                    let dailyRate = 0;
+                    
+                    switch (vehicleType) {
+                        case "ADV": dailyRate = 1000; break;
+                        case "NMAX": dailyRate = 1000; break;
+                        case "VERSYS 650": dailyRate = 2000; break;
+                        case "VERSYS 1000": dailyRate = 2500; break;
+                        case "TUKTUK": dailyRate = 1800; break;
+                        case "CAR": dailyRate = 3000; break;
+                    }
+                    
+                    if (dailyRate > 0 && rentalDays > 0) {
+                        selectedVehicles.push({
+                            name: vehicleType,
+                            days: rentalDays,
+                            price: dailyRate * rentalDays
+                        });
+                    }
+                });
+                return selectedVehicles;
+            })(),
             rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
             rentalDays: document.getElementById('rentalDays').value,
             diving: document.querySelector('.diving-option:checked') ? true : false,
@@ -1181,6 +1209,34 @@
         const tourSelections = {
             touristCount: document.getElementById('touristCount').value,
             selectedPackage: document.querySelector('input[name="package-selection"]:checked')?.value || null,
+            selectedVehicles: (() => {
+                const selectedVehicles = [];
+                const rentalDays = parseInt(document.getElementById('rentalDays').value) || 0;
+                const selectedVehicleOptions = document.querySelectorAll('.rental-option:checked');
+                
+                selectedVehicleOptions.forEach(vehicle => {
+                    const vehicleType = vehicle.value;
+                    let dailyRate = 0;
+                    
+                    switch (vehicleType) {
+                        case "ADV": dailyRate = 1000; break;
+                        case "NMAX": dailyRate = 1000; break;
+                        case "VERSYS 650": dailyRate = 2000; break;
+                        case "VERSYS 1000": dailyRate = 2500; break;
+                        case "TUKTUK": dailyRate = 1800; break;
+                        case "CAR": dailyRate = 3000; break;
+                    }
+                    
+                    if (dailyRate > 0 && rentalDays > 0) {
+                        selectedVehicles.push({
+                            name: vehicleType,
+                            days: rentalDays,
+                            price: dailyRate * rentalDays
+                        });
+                    }
+                });
+                return selectedVehicles;
+            })(),
             rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
             rentalDays: document.getElementById('rentalDays').value,
             diving: document.querySelector('.diving-option:checked') ? true : false,
@@ -1260,6 +1316,34 @@
             touristCount: document.getElementById('touristCount').value,
             selectedPackage: document.querySelector('input[name="package-selection"]:checked')?.value || null,
             selectedHotel: document.querySelector('input[name="hotel-selection"]:checked')?.value || null,
+            selectedVehicles: (() => {
+                const selectedVehicles = [];
+                const rentalDays = parseInt(document.getElementById('rentalDays').value) || 0;
+                const selectedVehicleOptions = document.querySelectorAll('.rental-option:checked');
+                
+                selectedVehicleOptions.forEach(vehicle => {
+                    const vehicleType = vehicle.value;
+                    let dailyRate = 0;
+                    
+                    switch (vehicleType) {
+                        case "ADV": dailyRate = 1000; break;
+                        case "NMAX": dailyRate = 1000; break;
+                        case "VERSYS 650": dailyRate = 2000; break;
+                        case "VERSYS 1000": dailyRate = 2500; break;
+                        case "TUKTUK": dailyRate = 1800; break;
+                        case "CAR": dailyRate = 3000; break;
+                    }
+                    
+                    if (dailyRate > 0 && rentalDays > 0) {
+                        selectedVehicles.push({
+                            name: vehicleType,
+                            days: rentalDays,
+                            price: dailyRate * rentalDays
+                        });
+                    }
+                });
+                return selectedVehicles;
+            })(),
             rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
             rentalDays: document.getElementById('rentalDays').value,
             diving: document.querySelector('.diving-option:checked') ? true : false,
@@ -1625,6 +1709,34 @@
             touristCount: document.getElementById('touristCount').value,
             selectedPackage: document.querySelector('input[name="package-selection"]:checked')?.value || null,
             selectedHotel: document.querySelector('input[name="hotel-selection"]:checked')?.value || null,
+            selectedVehicles: (() => {
+                const selectedVehicles = [];
+                const rentalDays = parseInt(document.getElementById('rentalDays').value) || 0;
+                const selectedVehicleOptions = document.querySelectorAll('.rental-option:checked');
+                
+                selectedVehicleOptions.forEach(vehicle => {
+                    const vehicleType = vehicle.value;
+                    let dailyRate = 0;
+                    
+                    switch (vehicleType) {
+                        case "ADV": dailyRate = 1000; break;
+                        case "NMAX": dailyRate = 1000; break;
+                        case "VERSYS 650": dailyRate = 2000; break;
+                        case "VERSYS 1000": dailyRate = 2500; break;
+                        case "TUKTUK": dailyRate = 1800; break;
+                        case "CAR": dailyRate = 3000; break;
+                    }
+                    
+                    if (dailyRate > 0 && rentalDays > 0) {
+                        selectedVehicles.push({
+                            name: vehicleType,
+                            days: rentalDays,
+                            price: dailyRate * rentalDays
+                        });
+                    }
+                });
+                return selectedVehicles;
+            })(),
             rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
             rentalDays: document.getElementById('rentalDays').value,
             diving: document.querySelector('.diving-option:checked') ? true : false,

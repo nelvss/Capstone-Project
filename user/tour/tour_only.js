@@ -1091,12 +1091,54 @@
         
         // Combine form data from step 1 and tour selections
         const formData = window.bookingFormData || {};
+        
+        // Collect detailed vehicle information with individual pricing
+        const selectedVehicles = [];
+        const rentalDays = parseInt(document.getElementById('rentalDays').value) || 0;
+        const selectedVehicleOptions = document.querySelectorAll('.rental-option:checked');
+        
+        selectedVehicleOptions.forEach(vehicle => {
+            const vehicleType = vehicle.value;
+            let dailyRate = 0;
+            
+            // Get daily rate for each vehicle type
+            switch (vehicleType) {
+                case "ADV":
+                    dailyRate = 1000;
+                    break;
+                case "NMAX":
+                    dailyRate = 1000;
+                    break;
+                case "VERSYS 650":
+                    dailyRate = 2000;
+                    break;
+                case "VERSYS 1000":
+                    dailyRate = 2500;
+                    break;
+                case "TUKTUK":
+                    dailyRate = 1800;
+                    break;
+                case "CAR":
+                    dailyRate = 3000;
+                    break;
+            }
+            
+            if (dailyRate > 0 && rentalDays > 0) {
+                selectedVehicles.push({
+                    name: vehicleType,
+                    days: rentalDays,
+                    price: dailyRate * rentalDays
+                });
+            }
+        });
+        
         const tourSelections = {
             touristCount: document.getElementById('touristCount').value,
             islandTours: Array.from(document.querySelectorAll('.island-option:checked')).map(option => option.value),
             inlandTours: Array.from(document.querySelectorAll('.inland-option:checked')).map(option => option.value),
             snorkelTours: Array.from(document.querySelectorAll('.snorkel-option:checked')).map(option => option.value),
-            rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
+            selectedVehicles: selectedVehicles, // New detailed vehicle objects
+            rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value), // Keep for backward compatibility
             rentalDays: document.getElementById('rentalDays').value,
             diving: document.querySelector('.diving-option:checked') ? true : false,
             numberOfDivers: document.getElementById('numberOfDiver').value,
