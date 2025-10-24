@@ -985,19 +985,25 @@ app.post('/api/booking-diving', async (req, res) => {
   try {
     const { 
       booking_id, 
-      diving_type, 
       number_of_divers, 
-      diving_date, 
-      total_price,
-      notes = ''
+      total_amount,
+      booking_type = 'package_only' // Default to package_only for backwards compatibility
     } = req.body;
     
-    console.log('📝 Creating diving booking:', { booking_id, diving_type, number_of_divers });
+    console.log('📝 Creating diving booking:', { booking_id, number_of_divers, total_amount, booking_type });
     
-    if (!booking_id || !diving_type || !number_of_divers || !diving_date) {
+    if (!booking_id || !number_of_divers || total_amount === undefined) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: booking_id, diving_type, number_of_divers, diving_date' 
+        message: 'Missing required fields: booking_id, number_of_divers, total_amount' 
+      });
+    }
+    
+    // Validate booking_type
+    if (!['package_only', 'tour_only'].includes(booking_type)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid booking_type. Must be either "package_only" or "tour_only"' 
       });
     }
     
@@ -1005,12 +1011,9 @@ app.post('/api/booking-diving', async (req, res) => {
       .from('bookings_diving')
       .insert([{
         booking_id,
-        diving_type,
         number_of_divers,
-        diving_date,
-        total_price: total_price || 0,
-        notes,
-        created_at: new Date().toISOString()
+        total_amount: total_amount || 0,
+        booking_type
       }])
       .select();
     

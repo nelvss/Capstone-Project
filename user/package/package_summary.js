@@ -382,6 +382,32 @@
                 }
             }
             
+            // Submit diving bookings if selected
+            if (bookingData.diving && bookingData.numberOfDivers) {
+                const divingPayload = {
+                    booking_id: bookingId,
+                    number_of_divers: parseInt(bookingData.numberOfDivers) || 1,
+                    total_amount: parseFloat(bookingData.divingAmount?.replace(/[₱,]/g, '') || 0),
+                    booking_type: 'package_only' // Track that this came from Package Only booking
+                };
+                
+                const divingResponse = await fetch('http://localhost:3000/api/booking-diving', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(divingPayload)
+                });
+                
+                const divingResult = await divingResponse.json();
+                
+                if (!divingResult.success) {
+                    console.warn('Diving booking failed:', divingResult.message);
+                } else {
+                    console.log('Diving booking created successfully');
+                }
+            }
+            
             // Store final booking data with API response
             const finalBookingData = {
                 ...bookingData,

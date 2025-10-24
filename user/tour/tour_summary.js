@@ -603,25 +603,21 @@ async function submitTourBookings(bookingId, bookingData) {
     }
     
     // Submit diving bookings
-    if (bookingData.selectedDiving && bookingData.selectedDiving.length > 0) {
-        bookingData.selectedDiving.forEach(diving => {
-            const divingPayload = {
-                booking_id: bookingId,
-                diving_type: diving.type,
-                number_of_divers: bookingData.touristCount || 1,
-                diving_date: bookingData.arrivalDate,
-                total_price: diving.price || 0,
-                notes: `Diving: ${diving.name}`
-            };
-            
-            promises.push(
-                fetch('http://localhost:3000/api/booking-diving', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(divingPayload)
-                })
-            );
-        });
+    if (bookingData.diving && bookingData.numberOfDivers) {
+        const divingPayload = {
+            booking_id: bookingId,
+            number_of_divers: parseInt(bookingData.numberOfDivers) || 1,
+            total_amount: parseFloat(bookingData.divingAmount?.replace(/[₱,]/g, '') || 0),
+            booking_type: 'tour_only' // Track that this came from Tour Only booking
+        };
+        
+        promises.push(
+            fetch('http://localhost:3000/api/booking-diving', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(divingPayload)
+            })
+        );
     }
     
     // Submit van rental bookings
