@@ -1,96 +1,65 @@
 // Staff Dashboard JavaScript - mirror Owner Dashboard behavior, adapted for staff
 
-const bookings = [
-  {
-    name: 'Elizabeth Lopez',
-    services: 'Hotel Booking, Car Rental',
-    rental: 'Car Rental',
-    arrival: '2023-10-01',
-    departure: '2023-10-05',
-    hotel: 'Grand Hotel',
-    price: '$500',
-    contact: '123-456-7890',
-    email: 'ceddreyes21@gmail.com',
-    status: 'pending',
-  },
-  {
-    name: 'Mathew Martinez',
-    services: 'Hotel Booking',
-    rental: 'None',
-    arrival: '2023-11-01',
-    departure: '2023-11-05',
-    hotel: 'City Inn',
-    price: '$350',
-    contact: '555-123-4567',
-    email: 'mmartinez1997@gmail.com',
-    status: 'pending',
-  },
-  {
-    name: 'Elizabeth Hall',
-    services: 'Car Rental',
-    rental: 'Car Rental',
-    arrival: '2023-12-10',
-    departure: '2023-12-15',
-    hotel: 'None',
-    price: '$200',
-    contact: '555-234-5678',
-    email: 'elizabeth_hall_1999@gmail.com',
-    status: 'pending',
-  },
-  {
-    name: 'Maria White',
-    services: 'Hotel Booking',
-    rental: 'None',
-    arrival: '2023-09-20',
-    departure: '2023-09-25',
-    hotel: 'Sunrise Hotel',
-    price: '$400',
-    contact: '555-345-6789',
-    email: 'maria_white@hotmail.com',
-    status: 'pending',
-  },
-  {
-    name: 'Elizabeth Watson',
-    services: 'Hotel Booking, Car Rental',
-    rental: 'Car Rental',
-    arrival: '2023-08-05',
-    departure: '2023-08-10',
-    hotel: 'Ocean View',
-    price: '$600',
-    contact: '555-456-7890',
-    email: 'ewatson@yahoo.com',
-    status: 'pending',
-  },
-  {
-    name: 'Elizabeth Allen',
-    services: 'Hotel Booking',
-    rental: 'None',
-    arrival: '2023-07-15',
-    departure: '2023-07-20',
-    hotel: 'Mountain Lodge',
-    price: '$300',
-    contact: '555-567-8901',
-    email: 'eallen@gmail.com',
-    status: 'pending',
-  },
-  {
-    name: 'Caleb Jones',
-    services: 'Car Rental',
-    rental: 'Car Rental',
-    arrival: '2023-06-10',
-    departure: '2023-06-15',
-    hotel: 'None',
-    price: '$150',
-    contact: '555-678-9012',
-    email: 'calebjones@gmail.com',
-    status: 'pending',
-  },
-];
+// Dynamic bookings array - will be populated from API
+let bookings = [];
 
 let staffStatusFilter = 'all';
 
 // API Configuration (same endpoint if used by owners)
 const API_URL = 'http://localhost:3000';
+
+// Load bookings from API
+async function loadBookings() {
+  try {
+    console.log('📊 Loading bookings from API...');
+    
+    const response = await fetch(`${API_URL}/api/bookings`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load bookings');
+    }
+    
+    // Transform API data to match the expected format
+    bookings = result.bookings.map(booking => ({
+      id: booking.booking_id,
+      name: `${booking.customer_first_name} ${booking.customer_last_name}`,
+      services: booking.booking_preferences || 'N/A',
+      rental: 'N/A', // This would need to be determined from related tables
+      arrival: booking.arrival_date,
+      departure: booking.departure_date,
+      hotel: booking.hotels?.name || 'No Hotel Selected',
+      price: '₱0', // No total_price column in bookings table
+      contact: booking.customer_contact,
+      email: booking.customer_email,
+      status: booking.status
+    }));
+    
+    console.log('✅ Bookings loaded successfully:', bookings.length, 'bookings');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error loading bookings:', error);
+    
+    // Fallback to empty array or show error message
+    bookings = [];
+    
+    // Show error message to user
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'alert alert-danger';
+    errorMessage.innerHTML = `
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      Failed to load bookings: ${error.message}
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    if (container) {
+      container.insertBefore(errorMessage, container.firstChild);
+    }
+    
+    return false;
+  }
+}
 
 async function sendEmail(action, booking) {
   try {
@@ -112,51 +81,126 @@ async function sendEmail(action, booking) {
 async function handleConfirm(booking, button) {
   button.disabled = true;
   button.textContent = 'Sending...';
-  const result = await sendEmail('confirm', booking);
-  if (result.success) {
-    console.log(`Confirmation email sent successfully to ${booking.email}`);
-    button.textContent = '✓ Confirmed';
-    button.style.backgroundColor = '#10b981';
-    booking.status = 'confirmed';
-    renderTable();
-  } else {
-    console.warn(`Failed to send confirmation email: ${result.message}`);
+  
+  try {
+    // Update booking status in database
+    const statusResponse = await fetch(`${API_URL}/api/bookings/${booking.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'confirmed' })
+    });
+    
+    const statusResult = await statusResponse.json();
+    
+    if (!statusResult.success) {
+      throw new Error(statusResult.message || 'Failed to update booking status');
+    }
+    
+    // Send confirmation email
+    const result = await sendEmail('confirm', booking);
+    
+    if (result.success) {
+      console.log(`Confirmation email sent successfully to ${booking.email}`);
+      button.textContent = '✓ Confirmed';
+      button.style.backgroundColor = '#10b981';
+      booking.status = 'confirmed';
+      renderTable();
+    } else {
+      console.warn(`Failed to send confirmation email: ${result.message}`);
+      button.disabled = false;
+      button.textContent = 'Confirm';
+    }
+  } catch (error) {
+    console.error('Error confirming booking:', error);
     button.disabled = false;
     button.textContent = 'Confirm';
+    alert('Failed to confirm booking: ' + error.message);
   }
 }
 
 async function handleCancel(booking, button) {
   button.disabled = true;
   button.textContent = 'Sending...';
-  const result = await sendEmail('cancel', booking);
-  if (result.success) {
-    console.log(`Cancellation email sent successfully to ${booking.email}`);
-    button.textContent = '✓ Cancelled';
-    button.style.backgroundColor = '#ef4444';
-    booking.status = 'cancelled';
-    renderTable();
-  } else {
-    console.warn(`Failed to send cancellation email: ${result.message}`);
+  
+  try {
+    // Update booking status in database
+    const statusResponse = await fetch(`${API_URL}/api/bookings/${booking.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'cancelled' })
+    });
+    
+    const statusResult = await statusResponse.json();
+    
+    if (!statusResult.success) {
+      throw new Error(statusResult.message || 'Failed to update booking status');
+    }
+    
+    // Send cancellation email
+    const result = await sendEmail('cancel', booking);
+    
+    if (result.success) {
+      console.log(`Cancellation email sent successfully to ${booking.email}`);
+      button.textContent = '✓ Cancelled';
+      button.style.backgroundColor = '#ef4444';
+      booking.status = 'cancelled';
+      renderTable();
+    } else {
+      console.warn(`Failed to send cancellation email: ${result.message}`);
+      button.disabled = false;
+      button.textContent = 'Cancel';
+    }
+  } catch (error) {
+    console.error('Error cancelling booking:', error);
     button.disabled = false;
     button.textContent = 'Cancel';
+    alert('Failed to cancel booking: ' + error.message);
   }
 }
 
 async function handleReschedule(booking, button) {
   button.disabled = true;
   button.textContent = 'Sending...';
-  const result = await sendEmail('reschedule', booking);
-  if (result.success) {
-    console.log(`Reschedule email sent successfully to ${booking.email}`);
-    button.textContent = '✓ Rescheduled';
-    button.style.backgroundColor = '#3b82f6';
-    booking.status = 'rescheduled';
-    renderTable();
-  } else {
-    console.warn(`Failed to send reschedule email: ${result.message}`);
+  
+  try {
+    // Update booking status in database
+    const statusResponse = await fetch(`${API_URL}/api/bookings/${booking.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'rescheduled' })
+    });
+    
+    const statusResult = await statusResponse.json();
+    
+    if (!statusResult.success) {
+      throw new Error(statusResult.message || 'Failed to update booking status');
+    }
+    
+    // Send reschedule email
+    const result = await sendEmail('reschedule', booking);
+    
+    if (result.success) {
+      console.log(`Reschedule email sent successfully to ${booking.email}`);
+      button.textContent = '✓ Rescheduled';
+      button.style.backgroundColor = '#3b82f6';
+      booking.status = 'rescheduled';
+      renderTable();
+    } else {
+      console.warn(`Failed to send reschedule email: ${result.message}`);
+      button.disabled = false;
+      button.textContent = 'Reschedule';
+    }
+  } catch (error) {
+    console.error('Error rescheduling booking:', error);
     button.disabled = false;
     button.textContent = 'Reschedule';
+    alert('Failed to reschedule booking: ' + error.message);
   }
 }
 
@@ -385,15 +429,25 @@ function checkSession() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   if (checkSession()) {
-    renderTable();
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-      searchInput.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.trim();
-        if (searchTerm === '') { renderTable(); } else { filterTable(searchTerm); }
-      });
+    try {
+      // Load bookings from API
+      const bookingsLoaded = await loadBookings();
+      
+      if (bookingsLoaded) {
+        renderTable();
+        
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.trim();
+            if (searchTerm === '') { renderTable(); } else { filterTable(searchTerm); }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing staff dashboard:', error);
     }
   }
 });

@@ -30,7 +30,58 @@ function checkSession() {
 // Chart instances storage
 const chartInstances = {};
 
-// Filter data structure with weekly breakdowns
+// API Configuration
+const API_URL = 'http://localhost:3000';
+
+// Dynamic analytics data - will be populated from API
+let analyticsData = {};
+
+// Load analytics data from API
+async function loadAnalyticsData() {
+  try {
+    console.log('📊 Loading analytics data from API...');
+    
+    // Load revenue data
+    const revenueResponse = await fetch(`${API_URL}/api/analytics/revenue`);
+    const revenueResult = await revenueResponse.json();
+    
+    // Load booking counts
+    const countsResponse = await fetch(`${API_URL}/api/analytics/bookings-count`);
+    const countsResult = await countsResponse.json();
+    
+    // Load popular services
+    const servicesResponse = await fetch(`${API_URL}/api/analytics/popular-services`);
+    const servicesResult = await servicesResponse.json();
+    
+    if (!revenueResult.success || !countsResult.success || !servicesResult.success) {
+      throw new Error('Failed to load analytics data');
+    }
+    
+    // Transform API data to match the expected format
+    analyticsData = {
+      revenue: revenueResult.analytics,
+      counts: countsResult.counts,
+      services: servicesResult.services
+    };
+    
+    console.log('✅ Analytics data loaded successfully');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error loading analytics data:', error);
+    
+    // Fallback to empty data
+    analyticsData = {
+      revenue: { total_revenue: 0, total_bookings: 0, confirmed_bookings: 0 },
+      counts: { total: 0, pending: 0, confirmed: 0, cancelled: 0, rescheduled: 0, completed: 0 },
+      services: { tours: {}, vehicles: 0, diving: {} }
+    };
+    
+    return false;
+  }
+}
+
+// Filter data structure with weekly breakdowns (fallback data)
 const weeklyData = {
     'Jan': {
         weeks: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
@@ -263,7 +314,7 @@ const weeklyData = {
 };
 
 // Analytics Dashboard JavaScript
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Check session before loading analytics
     if (!checkSession()) {
         return;
@@ -272,14 +323,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Navigation functionality
     initializeNavigation();
     
-    // Initialize charts
-    initializeCharts();
-    
     // Initialize filters
     initializeFilters();
     
-    // Load data and populate tables
-    loadAnalyticsData();
+    // Load data from API and populate tables
+    const dataLoaded = await loadAnalyticsData();
+    
+    if (dataLoaded) {
+        // Initialize charts with real data
+        initializeCharts();
+    } else {
+        // Initialize charts with fallback data
+        initializeCharts();
+    }
     
     // Setup event listeners
     setupEventListeners();
@@ -1669,34 +1725,67 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-// Load feedback from localStorage
-function loadFeedback() {
+// Load feedback from API
+async function loadFeedback() {
     const feedbackContainer = document.getElementById('feedback-container');
     if (!feedbackContainer) return;
     
-    const feedbackList = JSON.parse(localStorage.getItem('feedbackList')) || [];
+    // Show loading state
+    feedbackContainer.innerHTML = `
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+            <p>Loading feedback...</p>
+        </div>
+    `;
     
-    // Clear existing feedback items
-    feedbackContainer.innerHTML = '';
-    
-    // Add feedback items from localStorage
-    if (feedbackList.length === 0) {
+    try {
+        // Fetch feedback from API
+        const response = await fetch('http://localhost:3000/api/feedback');
+        const result = await response.json();
+        
+        // Clear existing feedback items
+        feedbackContainer.innerHTML = '';
+        
+        if (!result.success || !result.feedback || result.feedback.length === 0) {
+            feedbackContainer.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p>No feedback messages yet.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Convert Supabase feedback to the format expected by createFeedbackItem
+        result.feedback.forEach((feedback) => {
+            const formattedFeedback = {
+                name: feedback.anonymous_name,
+                message: feedback.message,
+                date: new Date(feedback.date).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                }),
+                timestamp: feedback.feedback_id,
+                status: 'unread' // Default status for new feedback
+            };
+            
+            const feedbackItem = createFeedbackItem(formattedFeedback);
+            feedbackContainer.insertAdjacentHTML('beforeend', feedbackItem);
+        });
+        
+        // Attach event listeners
+        attachFeedbackListeners();
+        
+    } catch (error) {
+        console.error('Error loading feedback:', error);
         feedbackContainer.innerHTML = `
             <div class="text-center text-muted py-5">
-                <i class="fas fa-inbox fa-3x mb-3"></i>
-                <p>No feedback messages yet.</p>
+                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                <p>Failed to load feedback. Please try again later.</p>
             </div>
         `;
-        return;
     }
-    
-    feedbackList.forEach((feedback) => {
-        const feedbackItem = createFeedbackItem(feedback);
-        feedbackContainer.insertAdjacentHTML('beforeend', feedbackItem);
-    });
-    
-    // Attach event listeners
-    attachFeedbackListeners();
 }
 
 // Create feedback item HTML
@@ -1778,23 +1867,49 @@ function attachFeedbackListeners() {
 }
 
 // Update feedback status
-function updateFeedbackStatus(timestamp, status) {
-    let feedbackList = JSON.parse(localStorage.getItem('feedbackList')) || [];
-    const index = feedbackList.findIndex(f => f.timestamp == timestamp);
-    
-    if (index !== -1) {
-        feedbackList[index].status = status;
-        localStorage.setItem('feedbackList', JSON.stringify(feedbackList));
-        loadFeedback();
+async function updateFeedbackStatus(timestamp, status) {
+    try {
+        const response = await fetch(`http://localhost:3000/api/feedback/${timestamp}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Reload feedback to show updated status
+            loadFeedback();
+        } else {
+            console.error('Failed to update feedback status:', result.message);
+        }
+    } catch (error) {
+        console.error('Error updating feedback status:', error);
     }
 }
 
 // Delete feedback
-function deleteFeedback(timestamp) {
-    let feedbackList = JSON.parse(localStorage.getItem('feedbackList')) || [];
-    feedbackList = feedbackList.filter(f => f.timestamp != timestamp);
-    localStorage.setItem('feedbackList', JSON.stringify(feedbackList));
-    loadFeedback();
+async function deleteFeedback(timestamp) {
+    try {
+        const response = await fetch(`http://localhost:3000/api/feedback/${timestamp}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Reload feedback to show updated list
+            loadFeedback();
+        } else {
+            console.error('Failed to delete feedback:', result.message);
+            alert('Failed to delete feedback. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error deleting feedback:', error);
+        alert('Failed to delete feedback. Please try again.');
+    }
 }
 
 // Filter feedback

@@ -305,34 +305,196 @@
         return `${currentYear}-${formattedCounter}`;
     }
 
-    window.submitBooking = function() {
-        // Generate booking reference
-        const bookingRef = generateBookingReference();
-        
-        // Store final booking data
-        const finalBookingData = {
-            ...bookingData,
-            bookingReference: bookingRef,
-            submissionDate: new Date().toISOString(),
-            status: 'pending_review'
-        };
-        
-        sessionStorage.setItem('finalBookingData', JSON.stringify(finalBookingData));
-        
-        // Update booking reference displays
-        const bookingRefElement = document.getElementById('bookingReference');
-        const finalBookingRefElement = document.getElementById('finalBookingReference');
-        if (bookingRefElement) {
-            bookingRefElement.textContent = bookingRef;
+    window.submitBooking = async function() {
+        try {
+            // Show loading state
+            const submitBtn = document.querySelector('button[onclick="submitBooking()"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+            }
+            
+            // Generate booking reference
+            const bookingRef = generateBookingReference();
+            
+            // Prepare booking data for API (matching actual database schema)
+            const bookingPayload = {
+                booking_id: bookingRef, // Send the generated booking ID
+                customer_first_name: bookingData.firstName,
+                customer_last_name: bookingData.lastName,
+                customer_email: bookingData.emailAddress,
+                customer_contact: bookingData.contactNo,
+                booking_type: 'package_only',
+                booking_preferences: `Package Only: ${bookingData.selectedPackage || 'N/A'}`, // Store in the specified format
+                arrival_date: bookingData.arrivalDate,
+                departure_date: bookingData.departureDate,
+                number_of_tourist: parseInt(bookingData.touristCount || 1),
+                package_only_id: getPackageIdByName(bookingData.selectedPackage),
+                hotel_id: bookingData.selectedHotel ? getHotelIdByName(bookingData.selectedHotel) : null,
+                hotel_nights: bookingData.selectedHotel ? calculateHotelNights(bookingData.arrivalDate, bookingData.departureDate) : null,
+                status: 'pending'
+            };
+            
+            console.log('Submitting booking to API:', bookingPayload);
+            
+            // Submit main booking to API
+            const bookingResponse = await fetch('http://localhost:3000/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bookingPayload)
+            });
+            
+            const bookingResult = await bookingResponse.json();
+            
+            if (!bookingResult.success) {
+                throw new Error(bookingResult.message || 'Failed to create booking');
+            }
+            
+            const bookingId = bookingResult.booking.booking_id || bookingResult.booking.id;
+            console.log('Booking created successfully with ID:', bookingId);
+            
+            // Submit package booking details
+            if (bookingData.selectedPackage) {
+                const packagePayload = {
+                    booking_id: bookingId,
+                    package_id: getPackageIdByName(bookingData.selectedPackage),
+                    package_name: bookingData.selectedPackage,
+                    package_price: parseFloat(bookingData.packageAmount?.replace(/[₱,]/g, '') || 0),
+                    notes: `Tourists: ${bookingData.touristCount || 0}`
+                };
+                
+                const packageResponse = await fetch('http://localhost:3000/api/package-booking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(packagePayload)
+                });
+                
+                const packageResult = await packageResponse.json();
+                
+                if (!packageResult.success) {
+                    console.warn('Package booking failed:', packageResult.message);
+                } else {
+                    console.log('Package booking created successfully');
+                }
+            }
+            
+            // Store final booking data with API response
+            const finalBookingData = {
+                ...bookingData,
+                bookingReference: bookingRef,
+                bookingId: bookingId,
+                submissionDate: new Date().toISOString(),
+                status: 'pending'
+            };
+            
+            sessionStorage.setItem('finalBookingData', JSON.stringify(finalBookingData));
+            
+            // Update booking reference displays
+            const bookingRefElement = document.getElementById('bookingReference');
+            const finalBookingRefElement = document.getElementById('finalBookingReference');
+            if (bookingRefElement) {
+                bookingRefElement.textContent = bookingRef;
+            }
+            if (finalBookingRefElement) {
+                finalBookingRefElement.textContent = bookingRef;
+            }
+            
+            // Show success message
+            alert('✅ Booking submitted successfully! Your booking reference is: ' + bookingRef);
+            
+            // Move to confirmation step
+            currentStep = 7;
+            showStep(currentStep);
+            
+        } catch (error) {
+            console.error('Booking submission error:', error);
+            alert('❌ Failed to submit booking: ' + error.message);
+            
+            // Reset button state
+            const submitBtn = document.querySelector('button[onclick="submitBooking()"]');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit Booking';
+            }
         }
-        if (finalBookingRefElement) {
-            finalBookingRefElement.textContent = bookingRef;
-        }
-        
-        // Move to confirmation step
-        currentStep = 7;
-        showStep(currentStep);
     };
+    
+    // ----------------------------
+    // HOTEL DATA MANAGEMENT
+    // ----------------------------
+    
+    // Global variable to store hotels data
+    let hotelsData = [];
+    
+    // Function to fetch hotels from API
+    async function fetchHotels() {
+        try {
+            console.log('🏨 Fetching hotels from API...');
+            const response = await fetch('http://localhost:3000/api/hotels');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.hotels) {
+                hotelsData = data.hotels;
+                console.log('✅ Hotels loaded successfully:', hotelsData.length, 'hotels');
+                return hotelsData;
+            } else {
+                throw new Error('Invalid response format');
+            }
+        } catch (error) {
+            console.error('❌ Error fetching hotels:', error);
+            // Fallback to hardcoded hotels if API fails
+            hotelsData = [
+                { hotel_id: '1', name: 'Ilaya', description: 'Beachfront resort with modern amenities', base_price_per_night: 2000, image_urls: ['Images/ilaya.jpg'] },
+                { hotel_id: '2', name: 'Bliss', description: 'Luxury beachfront resort', base_price_per_night: 1500, image_urls: ['Images/bliss.jpg'] },
+                { hotel_id: '3', name: 'The Mangyan Grand Hotel', description: 'Elegant hotel in the heart of Puerto Galera', base_price_per_night: 2500, image_urls: ['Images/the_mangyan_grand_hotel.png'] },
+                { hotel_id: '4', name: 'Transient House', description: 'Comfortable and affordable accommodation', base_price_per_night: 1500, image_urls: ['Images/mangyan.jpg'] },
+                { hotel_id: '5', name: 'SouthView', description: 'Cozy lodge with panoramic views', base_price_per_night: 3000, image_urls: ['Images/southview.jpg'] }
+            ];
+            return hotelsData;
+        }
+    }
+    
+    // Helper function to get hotel ID by name
+    function getHotelIdByName(hotelName) {
+        if (!hotelName || !hotelsData.length) {
+            console.warn('No hotel name provided or hotels data not loaded');
+            return null;
+        }
+        
+        const hotel = hotelsData.find(h => h.name === hotelName);
+        if (hotel) {
+            console.log(`Found hotel ID for "${hotelName}":`, hotel.hotel_id);
+            return hotel.hotel_id;
+        } else {
+            console.warn(`Hotel not found: "${hotelName}"`);
+            return null;
+        }
+    }
+    
+    // Helper function to get package ID by name (you may need to implement this based on your package data)
+    function getPackageIdByName(packageName) {
+        // This is a placeholder - you should implement this based on your package data structure
+        // For now, return null or a default ID
+        return null;
+    }
+    
+    // Helper function to calculate hotel nights
+    function calculateHotelNights(arrivalDate, departureDate) {
+        const arrival = new Date(arrivalDate);
+        const departure = new Date(departureDate);
+        const timeDiff = departure.getTime() - arrival.getTime();
+        const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        return nights > 0 ? nights : 1;
+    }
 
     window.goToHomePage = function() {
         // Clear session storage
@@ -412,8 +574,11 @@
     // ----------------------------
     
     // Initialize the page
-    function init() {
+    async function init() {
         console.log('Package Summary page initializing...');
+        
+        // Fetch hotels data first
+        await fetchHotels();
         
         if (loadBookingData()) {
             console.log('Booking data loaded successfully');

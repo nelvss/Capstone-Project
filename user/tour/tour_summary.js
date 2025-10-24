@@ -446,36 +446,236 @@ function generateBookingReference() {
 }
 
 // Submit booking
-function submitBooking() {
-    // Generate booking reference
-    const bookingRef = generateBookingReference();
-    
-    // Store booking data
-    let bookingData = {};
+async function submitBooking() {
     try {
-        bookingData = JSON.parse(sessionStorage.getItem('completeBookingData') || '{}');
-    } catch {}
-    
-    // Add booking reference and submission timestamp
-    bookingData.bookingReference = bookingRef;
-    bookingData.submissionDate = new Date().toISOString();
-    bookingData.status = 'pending';
-    
-    // Save updated booking data
-    sessionStorage.setItem('completeBookingData', JSON.stringify(bookingData));
-    
-    // Update booking reference displays
-    const bookingRefElement = document.getElementById('bookingReference');
-    const finalBookingRefElement = document.getElementById('finalBookingReference');
-    if (bookingRefElement) {
-        bookingRefElement.textContent = bookingRef;
+        // Show loading state
+        const submitBtn = document.getElementById('submitBookingBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+        }
+        
+        // Generate booking reference
+        const bookingRef = generateBookingReference();
+        
+        // Store booking data
+        let bookingData = {};
+        try {
+            bookingData = JSON.parse(sessionStorage.getItem('completeBookingData') || '{}');
+        } catch {}
+        
+        // Determine the primary tour type selected
+        const getPrimaryTourType = (bookingData) => {
+            const islandTours = bookingData.islandTours || [];
+            const inlandTours = bookingData.inlandTours || [];
+            const snorkelTours = bookingData.snorkelTours || [];
+            
+            if (inlandTours.length > 0) return 'Inland Tour';
+            if (islandTours.length > 0) return 'Island Tour';
+            if (snorkelTours.length > 0) return 'Snorkeling Tour';
+            return 'Tour Only';
+        };
+        
+        // Prepare main booking data for API (matching actual database schema)
+        const bookingPayload = {
+            booking_id: bookingRef, // Send the generated booking ID
+            customer_first_name: bookingData.firstName,
+            customer_last_name: bookingData.lastName,
+            customer_email: bookingData.emailAddress,
+            customer_contact: bookingData.contactNo,
+            booking_type: 'tour_only',
+            booking_preferences: `Tour Only: ${getPrimaryTourType(bookingData)}`, // Store in the specified format
+            arrival_date: bookingData.arrivalDate,
+            departure_date: bookingData.departureDate,
+            number_of_tourist: parseInt(bookingData.touristCount || 1),
+            hotel_id: null, // Tour bookings typically don't include hotels
+            status: 'pending'
+        };
+        
+        console.log('Submitting tour booking to API:', bookingPayload);
+        
+        // Submit main booking to API
+        const bookingResponse = await fetch('http://localhost:3000/api/bookings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(bookingPayload)
+        });
+        
+        const bookingResult = await bookingResponse.json();
+        
+        if (!bookingResult.success) {
+            throw new Error(bookingResult.message || 'Failed to create booking');
+        }
+        
+        const bookingId = bookingResult.booking.booking_id || bookingResult.booking.id;
+        console.log('Tour booking created successfully with ID:', bookingId);
+        
+        // Submit tour-specific bookings
+        await submitTourBookings(bookingId, bookingData);
+        
+        // Add booking reference and submission timestamp
+        bookingData.bookingReference = bookingRef;
+        bookingData.bookingId = bookingId;
+        bookingData.submissionDate = new Date().toISOString();
+        bookingData.status = 'pending';
+        
+        // Save updated booking data
+        sessionStorage.setItem('completeBookingData', JSON.stringify(bookingData));
+        
+        // Update booking reference displays
+        const bookingRefElement = document.getElementById('bookingReference');
+        const finalBookingRefElement = document.getElementById('finalBookingReference');
+        if (bookingRefElement) {
+            bookingRefElement.textContent = bookingRef;
+        }
+        if (finalBookingRefElement) {
+            finalBookingRefElement.textContent = bookingRef;
+        }
+        
+        // Show success message
+        alert('✅ Tour booking submitted successfully! Your booking reference is: ' + bookingRef);
+        
+        // Move to confirmation step
+        nextStep();
+        
+    } catch (error) {
+        console.error('Tour booking submission error:', error);
+        alert('❌ Failed to submit tour booking: ' + error.message);
+        
+        // Reset button state
+        const submitBtn = document.getElementById('submitBookingBtn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Submit Booking';
+        }
     }
-    if (finalBookingRefElement) {
-        finalBookingRefElement.textContent = bookingRef;
+}
+
+// Helper function to submit tour-specific bookings
+async function submitTourBookings(bookingId, bookingData) {
+    const promises = [];
+    
+    // Submit tour bookings
+    if (bookingData.selectedTours && bookingData.selectedTours.length > 0) {
+        bookingData.selectedTours.forEach(tour => {
+            const tourPayload = {
+                booking_id: bookingId,
+                tour_type: tour.type,
+                tourist_count: bookingData.touristCount || 1,
+                tour_date: bookingData.arrivalDate,
+                total_price: tour.price || 0,
+                notes: `Tour: ${tour.name}`
+            };
+            
+            promises.push(
+                fetch('http://localhost:3000/api/booking-tour', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tourPayload)
+                })
+            );
+        });
     }
     
-    // Move to confirmation step
-    nextStep();
+    // Submit vehicle bookings
+    if (bookingData.selectedVehicles && bookingData.selectedVehicles.length > 0) {
+        bookingData.selectedVehicles.forEach(vehicle => {
+            const vehiclePayload = {
+                booking_id: bookingId,
+                vehicle_id: getVehicleIdByName(vehicle.name),
+                rental_days: vehicle.days || 1,
+                rental_start_date: bookingData.arrivalDate,
+                rental_end_date: bookingData.departureDate,
+                total_price: vehicle.price || 0,
+                notes: `Vehicle: ${vehicle.name}`
+            };
+            
+            promises.push(
+                fetch('http://localhost:3000/api/booking-vehicles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(vehiclePayload)
+                })
+            );
+        });
+    }
+    
+    // Submit diving bookings
+    if (bookingData.selectedDiving && bookingData.selectedDiving.length > 0) {
+        bookingData.selectedDiving.forEach(diving => {
+            const divingPayload = {
+                booking_id: bookingId,
+                diving_type: diving.type,
+                number_of_divers: bookingData.touristCount || 1,
+                diving_date: bookingData.arrivalDate,
+                total_price: diving.price || 0,
+                notes: `Diving: ${diving.name}`
+            };
+            
+            promises.push(
+                fetch('http://localhost:3000/api/booking-diving', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(divingPayload)
+                })
+            );
+        });
+    }
+    
+    // Submit van rental bookings
+    if (bookingData.selectedVanRental) {
+        const vanPayload = {
+            booking_id: bookingId,
+            destination_id: getDestinationIdByName(bookingData.selectedVanRental.destination),
+            rental_days: bookingData.selectedVanRental.days || 1,
+            rental_start_date: bookingData.arrivalDate,
+            rental_end_date: bookingData.departureDate,
+            total_price: bookingData.selectedVanRental.price || 0,
+            notes: `Van rental to: ${bookingData.selectedVanRental.destination}`
+        };
+        
+        promises.push(
+            fetch('http://localhost:3000/api/booking-van-rental', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(vanPayload)
+            })
+        );
+    }
+    
+    // Execute all promises
+    const results = await Promise.allSettled(promises);
+    
+    // Log results
+    results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+            console.log(`Tour booking ${index + 1} submitted successfully`);
+        } else {
+            console.error(`Tour booking ${index + 1} failed:`, result.reason);
+        }
+    });
+}
+
+// Helper functions (placeholders - implement based on your data structure)
+function getSelectedServices(bookingData) {
+    const services = [];
+    if (bookingData.selectedTours) services.push('Tours');
+    if (bookingData.selectedVehicles) services.push('Vehicles');
+    if (bookingData.selectedDiving) services.push('Diving');
+    if (bookingData.selectedVanRental) services.push('Van Rental');
+    return services.join(', ') || 'None';
+}
+
+function getVehicleIdByName(vehicleName) {
+    // Placeholder - implement based on your vehicle data
+    return null;
+}
+
+function getDestinationIdByName(destinationName) {
+    // Placeholder - implement based on your destination data
+    return null;
 }
 
 // Go to home page

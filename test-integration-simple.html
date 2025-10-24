@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotels Integration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .hotel { border: 1px solid #ccc; margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .loading { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🏨 Hotels Integration Test</h1>
+    <div id="status" class="loading">Loading hotels...</div>
+    <div id="hotels-container"></div>
+    
+    <script>
+        async function testHotelsIntegration() {
+            const statusEl = document.getElementById('status');
+            const containerEl = document.getElementById('hotels-container');
+            
+            try {
+                console.log('🧪 Testing hotels integration...');
+                statusEl.textContent = 'Fetching hotels from API...';
+                statusEl.className = 'loading';
+                
+                const response = await fetch('http://localhost:3000/api/hotels');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.hotels) {
+                    statusEl.textContent = `✅ Successfully loaded ${data.hotels.length} hotels from database!`;
+                    statusEl.className = 'success';
+                    
+                    // Display hotels
+                    data.hotels.forEach(hotel => {
+                        const hotelDiv = document.createElement('div');
+                        hotelDiv.className = 'hotel';
+                        hotelDiv.innerHTML = `
+                            <h3>${hotel.name}</h3>
+                            <p><strong>ID:</strong> ${hotel.hotel_id}</p>
+                            <p><strong>Description:</strong> ${hotel.description}</p>
+                            <p><strong>Base Price:</strong> ₱${hotel.base_price_per_night.toLocaleString()}/night</p>
+                        `;
+                        containerEl.appendChild(hotelDiv);
+                    });
+                    
+                    console.log('✅ Hotels integration test passed!');
+                    console.log('📊 Hotels loaded:', data.hotels.length);
+                    
+                } else {
+                    throw new Error('Invalid response format');
+                }
+                
+            } catch (error) {
+                console.error('❌ Hotels integration test failed:', error);
+                statusEl.textContent = `❌ Error: ${error.message}`;
+                statusEl.className = 'error';
+            }
+        }
+        
+        // Run test when page loads
+        document.addEventListener('DOMContentLoaded', testHotelsIntegration);
+    </script>
+</body>
+</html>

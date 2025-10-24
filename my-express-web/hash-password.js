@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 
 // Simple script to hash passwords for your Supabase users table
-const password = 'test123'; // Change this to your desired password
+const password = 'staff123'; // Change this to your desired password
 const hashedPassword = bcrypt.hashSync(password, 10);
 
 console.log('Password:', password);

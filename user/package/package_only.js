@@ -302,11 +302,11 @@
         let pricePerPax = 0;
         
         // If no hotel is selected, return default Ilaya pricing (first hotel in list)
-        const hotel = selectedHotel || 'Ilaya Resort';
+        const hotel = selectedHotel || 'Ilaya';
         
         // Define pricing structure for all hotels and packages
         const hotelPricing = {
-            'Ilaya Resort': {
+            'Ilaya': {
                 'Package 1': {
                     1: 6400, 2: 3200, '3-4': 2950, '5-6': 2650, '7-9': 2350, '10+': 2100
                 },
@@ -320,7 +320,7 @@
                     1: 6600, 2: 3300, 3: 3150, 4: 3000, '5-6': 2700, '7-9': 2400, '10+': 2100
                 }
             },
-            'Bliss Beach Resort': {
+            'Bliss': {
                 'Package 1': {
                     1: 6800, 2: 3400, '3-4': 3150, '5-6': 2850, '7-9': 2550, '10+': 2300
                 },
@@ -348,7 +348,7 @@
                     1: 10800, 2: 5400, '3-4': 4800, '5-8': 4200, '9+': 4000
                 }
             },
-            'Mindoro Transient House': { // Casa De Honcho
+            'Transient House': { // Casa De Honcho
                 'Package 1': {
                     1: 6900, 2: 3450, '3-4': 3300, '5-6': 3100, '7-9': 2900, '10+': 2600
                 },
@@ -362,7 +362,7 @@
                     1: 9200, 2: 4600, '3-4': 4400, '5-6': 4100, '7-9': 3800, '10+': 3500
                 }
             },
-            'Southview Lodge': {
+            'SouthView': {
                 'Package 1': {
                     1: 7000, 2: 3500, '3-4': 3150, '5-6': 2850, '7-9': 2550, '10+': 2300
                 },
@@ -1486,6 +1486,91 @@
     }
 
     // ----------------------------
+    // HOTEL DATA MANAGEMENT
+    // ----------------------------
+    
+    // Global variable to store hotels data
+    let hotelsData = [];
+    
+    // Function to fetch hotels from API
+    async function fetchHotels() {
+        try {
+            console.log('🏨 Fetching hotels from API...');
+            const response = await fetch('http://localhost:3000/api/hotels');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.hotels) {
+                hotelsData = data.hotels;
+                console.log('✅ Hotels loaded successfully:', hotelsData.length, 'hotels');
+                generateHotelOptions();
+                return hotelsData;
+            } else {
+                throw new Error('Invalid response format');
+            }
+        } catch (error) {
+            console.error('❌ Error fetching hotels:', error);
+            // Fallback to hardcoded hotels if API fails
+            hotelsData = [
+                { hotel_id: '1', name: 'Ilaya', description: 'Beachfront resort with modern amenities', base_price_per_night: 2000, image_urls: ['Images/ilaya.jpg'] },
+                { hotel_id: '2', name: 'Bliss', description: 'Luxury beachfront resort', base_price_per_night: 1500, image_urls: ['Images/bliss.jpg'] },
+                { hotel_id: '3', name: 'The Mangyan Grand Hotel', description: 'Elegant hotel in the heart of Puerto Galera', base_price_per_night: 2500, image_urls: ['Images/the_mangyan_grand_hotel.png'] },
+                { hotel_id: '4', name: 'Transient House', description: 'Comfortable and affordable accommodation', base_price_per_night: 1500, image_urls: ['Images/mangyan.jpg'] },
+                { hotel_id: '5', name: 'SouthView', description: 'Cozy lodge with panoramic views', base_price_per_night: 3000, image_urls: ['Images/southview.jpg'] }
+            ];
+            generateHotelOptions();
+            return hotelsData;
+        }
+    }
+    
+    // Function to generate hotel options dynamically
+    function generateHotelOptions() {
+        const hotelsContainer = document.getElementById('hotels-options');
+        if (!hotelsContainer || !hotelsData.length) {
+            console.warn('Hotels container not found or no hotels data');
+            return;
+        }
+        
+        // Clear existing options
+        hotelsContainer.innerHTML = '';
+        
+        // Generate hotel options
+        hotelsData.forEach((hotel, index) => {
+            const hotelOption = document.createElement('div');
+            hotelOption.className = 'form-check mb-2';
+            
+            const hotelId = `hotel-${hotel.hotel_id}`;
+            const isIlaya = hotel.name === 'Ilaya Resort';
+            
+            hotelOption.innerHTML = `
+                <input class="form-check-input hotels-option" type="radio" name="hotel-selection" id="${hotelId}" value="${hotel.name}">
+                <label class="form-check-label" for="${hotelId}">
+                    <strong>${hotel.name}</strong>
+                    ${isIlaya ? '<small>    (No Additional Charge)</small>' : ''}
+                    ${hotel.description ? `<br><small class="text-muted">${hotel.description}</small>` : ''}
+                </label>
+            `;
+            
+            hotelsContainer.appendChild(hotelOption);
+        });
+        
+        // Re-attach event listeners to new hotel options
+        attachHotelSelectionListeners();
+        
+        console.log('✅ Hotel options generated successfully');
+    }
+    
+    // Function to get hotel ID by name
+    function getHotelIdByName(hotelName) {
+        const hotel = hotelsData.find(h => h.name === hotelName);
+        return hotel ? hotel.hotel_id : null;
+    }
+
+    // ----------------------------
     // INITIALIZATION
     // ----------------------------
     
@@ -1499,6 +1584,9 @@
     
     // Restore tour selections if returning to this page
     restoreTourSelections();
+    
+    // Fetch hotels from API
+    fetchHotels();
 
     // Add event listeners to hotel options to clear error message when selected
     const hotelOptions = document.querySelectorAll('.hotels-option');

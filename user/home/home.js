@@ -214,10 +214,33 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Auto-expand feedback textarea functionality
+  const feedbackTextarea = document.getElementById('feedback');
+  if (feedbackTextarea) {
+    // Function to auto-resize textarea
+    function autoResizeTextarea() {
+      // Reset height to auto to get the correct scrollHeight
+      feedbackTextarea.style.height = 'auto';
+      
+      // Set the new height based on content (no maximum limit)
+      feedbackTextarea.style.height = feedbackTextarea.scrollHeight + 'px';
+    }
+    
+    // Add event listeners for auto-resize
+    feedbackTextarea.addEventListener('input', autoResizeTextarea);
+    feedbackTextarea.addEventListener('paste', function() {
+      // Small delay to allow paste content to be processed
+      setTimeout(autoResizeTextarea, 10);
+    });
+    
+    // Initial resize in case there's existing content
+    autoResizeTextarea();
+  }
+
   // Send feedback functionality
   const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
   if (sendFeedbackBtn) {
-    sendFeedbackBtn.addEventListener('click', function() {
+    sendFeedbackBtn.addEventListener('click', async function() {
       const feedbackText = document.getElementById('feedback').value.trim();
       
       if (!feedbackText) {
@@ -225,29 +248,43 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       
-      // Get existing feedback from localStorage or initialize empty array
-      let feedbackList = JSON.parse(localStorage.getItem('feedbackList')) || [];
+      // Disable button to prevent multiple submissions
+      sendFeedbackBtn.disabled = true;
+      sendFeedbackBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SENDING...';
       
-      // Create new feedback object
-      const newFeedback = {
-        name: 'Anonymous',
-        message: feedbackText,
-        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-        timestamp: new Date().getTime(),
-        status: 'unread'
-      };
-      
-      // Add to beginning of array (newest first)
-      feedbackList.unshift(newFeedback);
-      
-      // Save to localStorage
-      localStorage.setItem('feedbackList', JSON.stringify(feedbackList));
-      
-      // Clear the textarea
-      document.getElementById('feedback').value = '';
-      
-      // Show success message
-      alert('Thank you for your feedback! Your message has been sent successfully.');
+      try {
+        // Send feedback to API
+        const response = await fetch('http://localhost:3000/api/submit-feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: feedbackText
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Clear the textarea
+          document.getElementById('feedback').value = '';
+          
+          // Show success message
+          alert('Thank you for your feedback! Your message has been sent successfully.');
+        } else {
+          // Show error message
+          alert(`Failed to send feedback: ${result.message}`);
+        }
+        
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        alert('Failed to send feedback. Please try again later.');
+      } finally {
+        // Re-enable button
+        sendFeedbackBtn.disabled = false;
+        sendFeedbackBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> SEND MESSAGE';
+      }
     });
   }
 });
