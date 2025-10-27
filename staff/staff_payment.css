@@ -28,6 +28,32 @@
   margin: 0;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-record-payment {
+  padding: 10px 20px;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+}
+
+.btn-record-payment:hover {
+  background: #059669;
+}
+
 .filter-buttons {
   display: flex;
   gap: 8px;
@@ -176,18 +202,54 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0,0,0,0.9);
 }
 
-.modal-content {
-  background-color: #fff;
-  margin: 2% auto;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+.modal-receipt-fullscreen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 95vw;
+  max-height: 95vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 0 30px rgba(255,255,255,0.3);
+  border-radius: 8px;
+}
+
+/* Ensure modal image loads properly */
+#modalReceiptImage {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Prevent image from being too small */
+#modalReceiptImage:not([src]), 
+#modalReceiptImage[src=""] {
+  display: none;
+}
+
+#receiptModal .close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1001;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+  background: rgba(0,0,0,0.7);
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+#receiptModal .close:hover {
+  background: rgba(0,0,0,0.9);
 }
 
 .modal-header {
@@ -289,6 +351,96 @@
   background: #e0a800;
 }
 
+/* Payment Form Styles */
+.payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.form-control {
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #f44336;
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+}
+
+.form-control:invalid {
+  border-color: #f44336;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: #6b7280;
+  color: #fff;
+}
+
+.btn-cancel:hover {
+  background: #4b5563;
+}
+
+.btn-submit {
+  background: #10b981;
+  color: #fff;
+}
+
+.btn-submit:hover {
+  background: #059669;
+}
+
+.balance-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.no-receipt {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-weight: 500;
+  border: 2px dashed #d1d5db;
+}
+
 /* Responsive styles for payment page */
 @media (max-width: 768px) {
   .receipts-gallery {
@@ -299,6 +451,11 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .filter-buttons {
@@ -315,5 +472,13 @@
 
   .modal-actions {
     justify-content: center;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
   }
 }

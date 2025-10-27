@@ -87,8 +87,7 @@ VALUES (
 ALTER TABLE bookings ALTER COLUMN booking_id DROP DEFAULT;
 
 -- Step 2: If the column is UUID type, change it to VARCHAR to accept custom IDs
--- (Uncomment the line below if your booking_id column is currently UUID type)
--- ALTER TABLE bookings ALTER COLUMN booking_id TYPE VARCHAR(50);
+ALTER TABLE bookings ALTER COLUMN booking_id TYPE VARCHAR(50);
 
 -- Step 3: Make sure the column can accept custom values
 ALTER TABLE bookings ALTER COLUMN booking_id SET NOT NULL;
@@ -178,7 +177,58 @@ FOREIGN KEY (van_destination_id) REFERENCES van_destinations(id)
 ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- =====================================================
--- SECTION 7: VERIFICATION QUERIES
+-- SECTION 7: PAYMENTS TABLE SETUP
+-- =====================================================
+
+-- Create payments table if it doesn't exist
+-- Drop existing payments table if structure differs to ensure clean setup
+DROP TABLE IF EXISTS payments CASCADE;
+
+-- Create payments table with the specified schema
+CREATE TABLE payments (
+  payment_id SERIAL PRIMARY KEY,
+  booking_id VARCHAR(50) NOT NULL,
+  payment_method VARCHAR(50) NOT NULL,
+  total_booking_amount DECIMAL(10, 2) NOT NULL,
+  paid_amount DECIMAL(10, 2) NOT NULL,
+  remaining_balance DECIMAL(10, 2) NOT NULL,
+  receipt_image_url TEXT,
+  payment_option VARCHAR(50) NOT NULL,
+  payment_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  -- Foreign key constraint to bookings table
+  CONSTRAINT fk_payments_booking_id 
+    FOREIGN KEY (booking_id) 
+    REFERENCES bookings(booking_id) 
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+);
+
+-- Add indexes for better query performance
+CREATE INDEX idx_payments_booking_id ON payments(booking_id);
+CREATE INDEX idx_payments_payment_date ON payments(payment_date);
+CREATE INDEX idx_payments_payment_method ON payments(payment_method);
+
+-- Add comments to document column purposes
+COMMENT ON TABLE payments IS 'Stores payment records linked to bookings';
+COMMENT ON COLUMN payments.payment_id IS 'Primary key, auto-incrementing payment ID';
+COMMENT ON COLUMN payments.booking_id IS 'Foreign key to bookings table';
+COMMENT ON COLUMN payments.payment_method IS 'Method of payment (Credit Card, Cash, Bank Transfer, etc.)';
+COMMENT ON COLUMN payments.total_booking_amount IS 'Total amount for the booking';
+COMMENT ON COLUMN payments.paid_amount IS 'Amount paid in this transaction';
+COMMENT ON COLUMN payments.remaining_balance IS 'Remaining balance after payment';
+COMMENT ON COLUMN payments.receipt_image_url IS 'URL to uploaded receipt image';
+COMMENT ON COLUMN payments.payment_option IS 'Payment type (Full Payment, Partial Payment)';
+COMMENT ON COLUMN payments.payment_date IS 'Date and time when payment was recorded';
+
+-- Verify the payments table was created
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns 
+WHERE table_name = 'payments' 
+ORDER BY ordinal_position;
+
+-- =====================================================
+-- SECTION 8: VERIFICATION QUERIES
 -- =====================================================
 
 -- Verify vehicles table structure and data

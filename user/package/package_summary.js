@@ -483,6 +483,104 @@
                 }
             }
             
+            // Submit payment if payment information is provided
+            const paymentOption = document.querySelector('input[name="paymentOption"]:checked')?.value;
+            if (paymentOption) {
+                const totalAmount = bookingData.totalAmount || '₱0.00';
+                const totalNumeric = parseFloat(totalAmount.replace(/[₱,]/g, '')) || 0;
+                let paidAmount = totalNumeric;
+                let paymentOptionValue = 'Full Payment';
+                
+                if (paymentOption === 'down') {
+                    const downPaymentInput = document.getElementById('downPaymentAmount');
+                    paidAmount = parseFloat(downPaymentInput?.value) || 0;
+                    paymentOptionValue = 'Partial Payment';
+                }
+                
+                // Get receipt file if uploaded
+                const receiptFile = document.getElementById('receiptFile')?.files[0];
+                let receiptUrl = '';
+                
+                if (receiptFile) {
+                    // Upload receipt image to Supabase Storage
+                    const reader = new FileReader();
+                    receiptUrl = await new Promise((resolve, reject) => {
+                        reader.onload = async function(e) {
+                            try {
+                                const base64Data = e.target.result;
+                                const uploadResponse = await fetch('http://localhost:3000/api/payments/upload-receipt', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        imageData: base64Data,
+                                        fileName: receiptFile.name,
+                                        bookingId: bookingId
+                                    })
+                                });
+                                
+                                const uploadResult = await uploadResponse.json();
+                                if (uploadResult.success) {
+                                    resolve(uploadResult.imageUrl);
+                                } else {
+                                    console.warn('Receipt upload failed:', uploadResult.message);
+                                    resolve(''); // Continue without receipt
+                                }
+                            } catch (error) {
+                                console.warn('Receipt upload error:', error);
+                                resolve(''); // Continue without receipt
+                            }
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(receiptFile);
+                    });
+                }
+                
+                // Get selected payment method from sessionStorage
+                const selectedPaymentMethod = sessionStorage.getItem('selectedPaymentMethod');
+                console.log('Selected payment method from sessionStorage:', selectedPaymentMethod);
+                
+                // Map payment method codes to display names
+                const paymentMethodMap = {
+                    'gcash': 'GCash',
+                    'paymaya': 'PayMaya',
+                    'banking': 'Online Banking',
+                    'cash': 'Cash'
+                };
+                const displayPaymentMethod = selectedPaymentMethod ? paymentMethodMap[selectedPaymentMethod.toLowerCase()] || selectedPaymentMethod : 'Cash';
+                
+                console.log('Final payment method to be stored:', displayPaymentMethod);
+                
+                const paymentPayload = {
+                    booking_id: bookingId,
+                    payment_method: displayPaymentMethod,
+                    total_booking_amount: totalNumeric,
+                    paid_amount: paidAmount,
+                    payment_option: paymentOptionValue,
+                    receipt_image_url: receiptUrl
+                };
+                
+                try {
+                    const paymentResponse = await fetch('http://localhost:3000/api/payments', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(paymentPayload)
+                    });
+                    
+                    const paymentResult = await paymentResponse.json();
+                    if (paymentResult.success) {
+                        console.log('✅ Payment recorded successfully');
+                    } else {
+                        console.warn('⚠️ Payment recording failed:', paymentResult.message);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Payment recording error:', error);
+                }
+            }
+            
             // Store final booking data with API response
             const finalBookingData = {
                 ...bookingData,

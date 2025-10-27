@@ -26,6 +26,10 @@ function checkStaffSession() {
   }
 }
 
+// Global state
+let allPayments = [];
+let currentFilter = 'all';
+
 // Smooth page navigation with transition
 function navigateWithTransition(url) {
   document.body.classList.add('page-transition');
@@ -50,8 +54,101 @@ function handleLogout() {
   }
 }
 
+// Load payments from API
+async function loadPayments() {
+  try {
+    console.log('Loading payments...');
+    
+    const response = await fetch('http://localhost:3000/api/payments');
+    const result = await response.json();
+    
+    if (!result.success) {
+      console.error('Failed to load payments:', result.message);
+      document.getElementById('receipts-gallery').innerHTML = '<p>Failed to load payments. Please try again later.</p>';
+      return;
+    }
+    
+    allPayments = result.payments || [];
+    console.log('Payments loaded:', allPayments.length);
+    
+    renderPayments(allPayments);
+    
+  } catch (error) {
+    console.error('Error loading payments:', error);
+    document.getElementById('receipts-gallery').innerHTML = '<p>Error loading payments. Please refresh the page.</p>';
+  }
+}
+
+// Render payment cards
+function renderPayments(payments) {
+  const gallery = document.getElementById('receipts-gallery');
+  
+  if (!gallery) {
+    console.error('Receipts gallery element not found');
+    return;
+  }
+  
+  if (payments.length === 0) {
+    gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">No payments found. Use the "Record Payment" button to add a payment.</p>';
+    return;
+  }
+  
+  gallery.innerHTML = payments.map(payment => {
+    const booking = payment.bookings || {};
+    const customerName = booking.customer_first_name && booking.customer_last_name
+      ? `${booking.customer_first_name} ${booking.customer_last_name}`
+      : 'Unknown Customer';
+    
+    const paymentDate = new Date(payment.payment_date);
+    const formattedDate = paymentDate.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    // Use data attribute for safer handling of URLs
+    const receiptImage = payment.receipt_image_url 
+      ? `<img src="${payment.receipt_image_url}" alt="Receipt" class="receipt-image" data-receipt-url="${payment.receipt_image_url}">`
+      : '<div class="no-receipt">No Receipt</div>';
+    
+    return `
+      <div class="receipt-item" data-date="${paymentDate.toISOString().split('T')[0]}" data-customer="${customerName.toLowerCase()}">
+        <div class="receipt-header">
+          <span class="receipt-id">${formattedDate}</span>
+          <span class="receipt-date">${payment.booking_id}</span>
+        </div>
+        <div class="receipt-preview">
+          ${receiptImage}
+        </div>
+        <div class="receipt-details">
+          <p class="customer-name">${customerName}</p>
+          <p class="amount">₱${parseFloat(payment.paid_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
+          <span class="payment-method">${payment.payment_method}</span>
+          <div class="balance-info" style="margin-top: 8px; font-size: 0.85rem; color: #666;">
+            ${payment.remaining_balance > 0 
+              ? `<span style="color: #ef4444;">Balance: ₱${parseFloat(payment.remaining_balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`
+              : '<span style="color: #10b981;">Fully Paid</span>'}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // Add event listeners to receipt images
+  const receiptImages = gallery.querySelectorAll('.receipt-image');
+  receiptImages.forEach(img => {
+    img.addEventListener('click', function() {
+      const imageUrl = this.getAttribute('data-receipt-url');
+      if (imageUrl) {
+        openReceiptModal(imageUrl);
+      }
+    });
+  });
+}
+
 // Receipt filtering functionality
 function filterReceipts(period) {
+  currentFilter = period;
   const receipts = document.querySelectorAll('.receipt-item');
   const buttons = document.querySelectorAll('.filter-btn');
   
@@ -94,7 +191,7 @@ function searchReceipts() {
   
   receipts.forEach(receipt => {
     const customer = receipt.getAttribute('data-customer').toLowerCase();
-    const receiptId = receipt.querySelector('.receipt-id').textContent.toLowerCase();
+    const receiptId = receipt.querySelector('.receipt-id')?.textContent.toLowerCase() || '';
     
     if (customer.includes(searchTerm) || receiptId.includes(searchTerm)) {
       receipt.style.display = 'block';
@@ -105,20 +202,42 @@ function searchReceipts() {
 }
 
 // Modal functionality
-function openReceiptModal(imageSrc, customer, receiptId, amount) {
+function openReceiptModal(imageUrl) {
   const modal = document.getElementById('receiptModal');
   const modalImage = document.getElementById('modalReceiptImage');
-  const modalCustomer = document.getElementById('modalCustomer');
-  const modalReceiptId = document.getElementById('modalReceiptId');
-  const modalAmount = document.getElementById('modalAmount');
   
-  modalImage.src = imageSrc;
-  modalCustomer.textContent = customer;
-  modalReceiptId.textContent = receiptId;
-  modalAmount.textContent = amount;
-  
-  modal.style.display = 'block';
-  document.body.style.overflow = 'hidden';
+  // Only show receipt image if it exists
+  if (modalImage && imageUrl) {
+    console.log('Opening modal with image URL:', imageUrl);
+    
+    // Reset the image
+    modalImage.src = '';
+    modalImage.style.display = 'none';
+    
+    // Show the modal first
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Load the image
+    modalImage.onload = function() {
+      console.log('Image loaded successfully');
+      modalImage.style.display = 'block';
+      this.onerror = null; // Clear any existing error handlers
+    };
+    
+    // Add error handling for failed image loads
+    modalImage.onerror = function() {
+      console.error('Failed to load image:', imageUrl);
+      alert('Failed to load the receipt image. Please check if the image URL is valid.');
+      closeReceiptModal();
+    };
+    
+    // Set the src after handlers are attached
+    modalImage.src = imageUrl;
+  } else {
+    alert('No receipt image available for this payment.');
+    return;
+  }
 }
 
 function closeReceiptModal() {
@@ -154,14 +273,18 @@ function emailReceipt() {
   const receiptId = document.getElementById('modalReceiptId').textContent;
   
   alert(`Email functionality would send receipt ${receiptId} to ${customer}'s email address.`);
-  // In a real application, this would integrate with an email service
 }
 
-// Close modal when clicking outside
+// Close modals when clicking outside
 window.onclick = function(event) {
-  const modal = document.getElementById('receiptModal');
-  if (event.target === modal) {
+  const receiptModal = document.getElementById('receiptModal');
+  const recordModal = document.getElementById('recordPaymentModal');
+  
+  if (event.target === receiptModal) {
     closeReceiptModal();
+  }
+  if (event.target === recordModal) {
+    closeRecordPaymentModal();
   }
 }
 
@@ -171,5 +294,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!checkStaffSession()) {
     return;
   }
+  
   console.log('Staff Payment page loaded successfully');
+  
+  // Load payments from API
+  loadPayments();
 });

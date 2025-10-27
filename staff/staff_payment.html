@@ -51,126 +51,16 @@
         </div>
       </div>
 
-      <div class="receipts-gallery">
-        <div class="receipt-item" data-date="2024-01-15" data-customer="elizabeth lopez">
-          <div class="receipt-header">
-            <span class="receipt-id">#R001</span>
-            <span class="receipt-date">Jan 15, 2024</span>
-          </div>
-          <div class="receipt-preview">
-            <img src="../Images/receipt1.jpg" alt="E-Receipt #R001" class="receipt-image" onclick="openReceiptModal('../Images/receipt1.jpg', 'Elizabeth Lopez', '#R001', '$500.00')">
-          </div>
-          <div class="receipt-details">
-            <p class="customer-name">Elizabeth Lopez</p>
-            <p class="amount">$500.00</p>
-            <span class="payment-method">Credit Card</span>
-          </div>
-        </div>
-
-        <div class="receipt-item" data-date="2024-01-14" data-customer="mathew martinez">
-          <div class="receipt-header">
-            <span class="receipt-id">#R002</span>
-            <span class="receipt-date">Jan 14, 2024</span>
-          </div>
-          <div class="receipt-preview">
-            <img src="../Images/receipt2.jpg" alt="E-Receipt #R002" class="receipt-image" onclick="openReceiptModal('../Images/receipt2.jpg', 'Mathew Martinez', '#R002', '$350.00')">
-          </div>
-          <div class="receipt-details">
-            <p class="customer-name">Mathew Martinez</p>
-            <p class="amount">$350.00</p>
-            <span class="payment-method">Bank Transfer</span>
-          </div>
-        </div>
-
-        <div class="receipt-item" data-date="2024-01-13" data-customer="elizabeth hall">
-          <div class="receipt-header">
-            <span class="receipt-id">#R003</span>
-            <span class="receipt-date">Jan 13, 2024</span>
-          </div>
-          <div class="receipt-preview">
-            <img src="../Images/receipt3.jpg" alt="E-Receipt #R003" class="receipt-image" onclick="openReceiptModal('../Images/receipt3.jpg', 'Elizabeth Hall', '#R003', '$200.00')">
-          </div>
-          <div class="receipt-details">
-            <p class="customer-name">Elizabeth Hall</p>
-            <p class="amount">$200.00</p>
-            <span class="payment-method">PayPal</span>
-          </div>
-        </div>
-
-        <div class="receipt-item" data-date="2024-01-12" data-customer="maria white">
-          <div class="receipt-header">
-            <span class="receipt-id">#R004</span>
-            <span class="receipt-date">Jan 12, 2024</span>
-          </div>
-          <div class="receipt-preview">
-            <img src="../Images/receipt4.jpg" alt="E-Receipt #R004" class="receipt-image" onclick="openReceiptModal('../Images/receipt4.jpg', 'Maria White', '#R004', '$400.00')">
-          </div>
-          <div class="receipt-details">
-            <p class="customer-name">Maria White</p>
-            <p class="amount">$400.00</p>
-            <span class="payment-method">Cash</span>
-          </div>
-        </div>
-
-        <div class="receipt-item" data-date="2024-01-11" data-customer="elizabeth watson">
-          <div class="receipt-header">
-            <span class="receipt-id">#R005</span>
-            <span class="receipt-date">Jan 11, 2024</span>
-          </div>
-          <div class="receipt-preview">
-            <img src="../Images/receipt5.jpg" alt="E-Receipt #R005" class="receipt-image" onclick="openReceiptModal('../Images/receipt5.jpg', 'Elizabeth Watson', '#R005', '$600.00')">
-          </div>
-          <div class="receipt-details">
-            <p class="customer-name">Elizabeth Watson</p>
-            <p class="amount">$600.00</p>
-            <span class="payment-method">Credit Card</span>
-          </div>
-        </div>
-
-        <div class="receipt-item" data-date="2024-01-10" data-customer="caleb jones">
-          <div class="receipt-header">
-            <span class="receipt-id">#R006</span>
-            <span class="receipt-date">Jan 10, 2024</span>
-          </div>
-          <div class="receipt-preview">
-            <img src="../Images/receipt6.jpg" alt="E-Receipt #R006" class="receipt-image" onclick="openReceiptModal('../Images/receipt6.jpg', 'Caleb Jones', '#R006', '$150.00')">
-          </div>
-          <div class="receipt-details">
-            <p class="customer-name">Caleb Jones</p>
-            <p class="amount">$150.00</p>
-            <span class="payment-method">Apple Pay</span>
-          </div>
-        </div>
+      <div class="receipts-gallery" id="receipts-gallery">
+        <!-- Payment cards will be dynamically loaded here -->
       </div>
 
       <!-- Receipt Modal -->
       <div id="receiptModal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3 id="modalTitle">Receipt Details</h3>
-            <span class="close" onclick="closeReceiptModal()">&times;</span>
-          </div>
-          <div class="modal-body">
-            <img id="modalReceiptImage" src="" alt="Receipt" class="modal-receipt-image">
-            <div class="modal-receipt-info">
-              <div class="info-item">
-                <strong>Customer:</strong> <span id="modalCustomer"></span>
-              </div>
-              <div class="info-item">
-                <strong>Receipt ID:</strong> <span id="modalReceiptId"></span>
-              </div>
-              <div class="info-item">
-                <strong>Amount:</strong> <span id="modalAmount"></span>
-              </div>
-              <div class="modal-actions">
-                <button class="btn-print" onclick="printReceipt()">🖨️ Print</button>
-                <button class="btn-download" onclick="downloadReceipt()">💾 Download</button>
-                <button class="btn-email" onclick="emailReceipt()">📧 Email</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <span class="close" onclick="closeReceiptModal()">&times;</span>
+        <img id="modalReceiptImage" src="" alt="Receipt" class="modal-receipt-fullscreen">
       </div>
+
     </section>
   </div>
 </body>

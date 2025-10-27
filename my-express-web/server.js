@@ -15,8 +15,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL || 'https://vjeykmpzwxqonkfnzbjw.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqZXlrbXB6d3hxb25rZm56Ymp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDM0NzAsImV4cCI6MjA3NjA3OTQ3MH0.qDBNgf1Ot3mmQrIBkPGXoPRC1J00Vy6r8iaPGDjQKec';
+// SECURITY: Remove hardcoded fallback values. Use .env file for credentials.
+// For production hosting, set these as environment variables on your hosting platform.
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
 // Debug environment variables
 console.log('🔍 Environment check:');
@@ -27,11 +29,33 @@ console.log('Using fallback values:', !process.env.SUPABASE_URL || !process.env.
 // List all environment variables that start with SUPABASE
 console.log('All SUPABASE env vars:', Object.keys(process.env).filter(key => key.startsWith('SUPABASE')));
 
+// Validate Supabase configuration
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ CRITICAL ERROR: Missing Supabase configuration!');
+  console.error('Please set SUPABASE_URL and SUPABASE_KEY environment variables.');
+  process.exit(1);
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Test Supabase connection on startup
+console.log('🔗 Testing Supabase connection...');
+supabase
+  .from('users')
+  .select('count')
+  .limit(1)
+  .then(() => {
+    console.log('✅ Supabase connection successful');
+  })
+  .catch((error) => {
+    console.error('❌ Supabase connection failed:', error.message);
+    console.error('⚠️ Server will continue but database operations may fail');
+  });
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Increased limit for base64 image uploads
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Create email transporter
 // Configure with your email service (Gmail, Outlook, etc.)
@@ -900,10 +924,11 @@ app.delete('/api/bookings/:id', async (req, res) => {
     
     console.log(`📝 Deleting booking with ID: ${id}`);
     
+    // FIXED: Use 'booking_id' instead of 'id' to match actual table schema
     const { error } = await supabase
       .from('bookings')
       .delete()
-      .eq('id', id);
+      .eq('booking_id', id);
     
     if (error) {
       console.error('❌ Error deleting booking:', error);
@@ -1628,39 +1653,114 @@ app.get('/api/analytics/popular-services', async (req, res) => {
 // PAYMENT API ENDPOINTS
 // ========================================
 
+// Upload receipt image
+app.post('/api/payments/upload-receipt', async (req, res) => {
+  try {
+    // Get the image file from request (will be sent as base64 or form data)
+    const { imageData, fileName, bookingId } = req.body;
+    
+    if (!imageData || !fileName) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing image data or filename' 
+      });
+    }
+    
+    // Convert base64 to buffer
+    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // Generate unique filename with booking ID
+    const fileExtension = fileName.split('.').pop();
+    const uniqueFileName = `receipts/${bookingId || 'unknown'}-${Date.now()}.${fileExtension}`;
+    
+    console.log('📤 Uploading receipt image:', uniqueFileName);
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('receipts')
+      .upload(uniqueFileName, buffer, {
+        contentType: `image/${fileExtension}`,
+        upsert: false
+      });
+    
+    if (error) {
+      console.error('❌ Storage upload error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to upload receipt image',
+        error: error.message 
+      });
+    }
+    
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('receipts')
+      .getPublicUrl(uniqueFileName);
+    
+    console.log('✅ Receipt uploaded successfully');
+    
+    res.json({
+      success: true,
+      message: 'Receipt uploaded successfully',
+      imageUrl: urlData.publicUrl,
+      fileName: uniqueFileName
+    });
+    
+  } catch (error) {
+    console.error('❌ Receipt upload error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+});
+
 // Record payment
 app.post('/api/payments', async (req, res) => {
   try {
     const { 
-      booking_id, 
-      amount, 
-      payment_method, 
-      payment_status = 'completed',
-      transaction_id,
-      notes = ''
+      booking_id,
+      payment_method,
+      total_booking_amount,
+      paid_amount,
+      payment_option,
+      receipt_image_url
     } = req.body;
     
-    console.log('💰 Recording payment:', { booking_id, amount, payment_method });
+    console.log('💰 Recording payment:', { booking_id, payment_method, total_booking_amount, paid_amount });
     
-    if (!booking_id || !amount || !payment_method) {
+    // Validate required fields
+    if (!booking_id || !payment_method || total_booking_amount === undefined || paid_amount === undefined || !payment_option) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: booking_id, amount, payment_method' 
+        message: 'Missing required fields: booking_id, payment_method, total_booking_amount, paid_amount, payment_option' 
       });
+    }
+    
+    // Calculate remaining balance
+    const remaining_balance = parseFloat(total_booking_amount) - parseFloat(paid_amount);
+    
+    // Build payment data with new schema
+    const paymentData = {
+      booking_id,
+      payment_method,
+      total_booking_amount: parseFloat(total_booking_amount),
+      paid_amount: parseFloat(paid_amount),
+      remaining_balance,
+      payment_option,
+      payment_date: new Date().toISOString()
+    };
+    
+    // Add receipt image URL if provided
+    if (receipt_image_url) {
+      paymentData.receipt_image_url = receipt_image_url;
     }
     
     const { data, error } = await supabase
       .from('payments')
-      .insert([{
-        booking_id,
-        amount: parseFloat(amount),
-        payment_method,
-        payment_status,
-        transaction_id: transaction_id || null,
-        notes,
-        payment_date: new Date().toISOString(),
-        created_at: new Date().toISOString()
-      }])
+      .insert([paymentData])
       .select();
     
     if (error) {
@@ -1693,25 +1793,41 @@ app.post('/api/payments', async (req, res) => {
 // Get payment history
 app.get('/api/payments', async (req, res) => {
   try {
-    const { booking_id, limit = 100, offset = 0 } = req.query;
+    const { booking_id, payment_method, start_date, end_date, limit = 100, offset = 0 } = req.query;
     
-    console.log('💰 Fetching payment history:', { booking_id, limit, offset });
+    console.log('💰 Fetching payment history:', { booking_id, payment_method, start_date, end_date, limit, offset });
     
     let query = supabase
       .from('payments')
       .select(`
         *,
         bookings:booking_id (
-          customer_name,
-          email
+          customer_first_name,
+          customer_last_name,
+          customer_email,
+          arrival_date,
+          departure_date
         )
       `)
       .order('payment_date', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
     
     // Filter by booking_id if provided
     if (booking_id) {
       query = query.eq('booking_id', booking_id);
+    }
+    
+    // Filter by payment_method if provided
+    if (payment_method) {
+      query = query.eq('payment_method', payment_method);
+    }
+    
+    // Filter by date range if provided
+    if (start_date) {
+      query = query.gte('payment_date', start_date);
+    }
+    if (end_date) {
+      query = query.lte('payment_date', end_date);
     }
     
     const { data, error } = await query;
@@ -1742,37 +1858,174 @@ app.get('/api/payments', async (req, res) => {
   }
 });
 
-// Get payments for specific booking
-app.get('/api/payments/booking/:id', async (req, res) => {
+// Get single payment by ID
+app.get('/api/payments/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    console.log('💰 Fetching payments for booking ID:', id);
+    console.log('💰 Fetching payment details for ID:', id);
     
-    const { data, error } = await supabase
+    const { data: payment, error } = await supabase
       .from('payments')
-      .select('*')
-      .eq('booking_id', id)
-      .order('payment_date', { ascending: false });
+      .select(`
+        *,
+        bookings:booking_id (
+          customer_first_name,
+          customer_last_name,
+          customer_email,
+          customer_contact,
+          arrival_date,
+          departure_date
+        )
+      `)
+      .eq('payment_id', id)
+      .single();
     
     if (error) {
-      console.error('❌ Error fetching booking payments:', error);
+      console.error('❌ Error fetching payment:', error);
       return res.status(500).json({ 
         success: false, 
-        message: 'Failed to fetch booking payments', 
+        message: 'Failed to fetch payment details', 
         error: error.message 
       });
     }
     
-    console.log('✅ Booking payments fetched successfully');
+    if (!payment) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Payment not found' 
+      });
+    }
+    
+    console.log('✅ Payment details fetched successfully');
     
     res.json({ 
       success: true, 
-      payments: data || []
+      payment
     });
     
   } catch (error) {
-    console.error('❌ Booking payments fetch error:', error);
+    console.error('❌ Payment fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+});
+
+// Update payment record
+app.put('/api/payments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      paid_amount,
+      receipt_image_url,
+      payment_method,
+      payment_option
+    } = req.body;
+    
+    console.log(`📝 Updating payment ID: ${id}`, { paid_amount, receipt_image_url, payment_method, payment_option });
+    
+    // Fetch existing payment to calculate remaining balance
+    const { data: existingPayment, error: fetchError } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('payment_id', id)
+      .single();
+    
+    if (fetchError || !existingPayment) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Payment not found' 
+      });
+    }
+    
+    // Build update data
+    const updateData = {};
+    
+    if (paid_amount !== undefined) {
+      updateData.paid_amount = parseFloat(paid_amount);
+      // Recalculate remaining balance
+      updateData.remaining_balance = existingPayment.total_booking_amount - parseFloat(paid_amount);
+    }
+    
+    if (receipt_image_url !== undefined) {
+      updateData.receipt_image_url = receipt_image_url;
+    }
+    
+    if (payment_method !== undefined) {
+      updateData.payment_method = payment_method;
+    }
+    
+    if (payment_option !== undefined) {
+      updateData.payment_option = payment_option;
+    }
+    
+    // Update payment
+    const { data, error } = await supabase
+      .from('payments')
+      .update(updateData)
+      .eq('payment_id', id)
+      .select();
+    
+    if (error) {
+      console.error('❌ Error updating payment:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update payment', 
+        error: error.message 
+      });
+    }
+    
+    console.log('✅ Payment updated successfully');
+    
+    res.json({ 
+      success: true, 
+      message: 'Payment updated successfully',
+      payment: data[0]
+    });
+    
+  } catch (error) {
+    console.error('❌ Payment update error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+});
+
+// Delete payment record
+app.delete('/api/payments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log(`📝 Deleting payment with ID: ${id}`);
+    
+    const { error } = await supabase
+      .from('payments')
+      .delete()
+      .eq('payment_id', id);
+    
+    if (error) {
+      console.error('❌ Error deleting payment:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete payment', 
+        error: error.message 
+      });
+    }
+    
+    console.log('✅ Payment deleted successfully');
+    
+    res.json({ 
+      success: true, 
+      message: 'Payment deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Payment deletion error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Internal server error',
