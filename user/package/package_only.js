@@ -10,6 +10,74 @@
         numberOfDiver: "Number of Divers"
     };
 
+    // ----------------------------
+    // VEHICLE DATA MANAGEMENT
+    // ----------------------------
+    
+    let vehiclesData = [];
+    
+    // Fetch vehicles from database
+    async function fetchVehicles() {
+        try {
+            const response = await fetch('http://localhost:3000/api/vehicles');
+            const result = await response.json();
+            
+            if (result.success) {
+                vehiclesData = result.vehicles;
+                console.log('✅ Vehicles loaded:', vehiclesData);
+                return vehiclesData;
+            } else {
+                console.error('❌ Failed to fetch vehicles:', result.message);
+                return [];
+            }
+        } catch (error) {
+            console.error('❌ Error fetching vehicles:', error);
+            return [];
+        }
+    }
+    
+    // Get vehicle by name (for backward compatibility)
+    function getVehicleByName(vehicleName) {
+        // If no vehicles data loaded, return null
+        if (!vehiclesData || vehiclesData.length === 0) {
+            console.warn('No vehicles data available, using fallback pricing');
+            return null;
+        }
+        
+        // Try exact match first
+        let vehicle = vehiclesData.find(v => v.name === vehicleName);
+        
+        // If no exact match, try case-insensitive match
+        if (!vehicle) {
+            vehicle = vehiclesData.find(v => 
+                v.name && v.name.toLowerCase() === vehicleName.toLowerCase()
+            );
+        }
+        
+        // If still no match, try partial match
+        if (!vehicle) {
+            vehicle = vehiclesData.find(v => 
+                v.name && v.name.toLowerCase().includes(vehicleName.toLowerCase())
+            );
+        }
+        
+        console.log(`Looking for vehicle: "${vehicleName}", found:`, vehicle);
+        return vehicle;
+    }
+    
+    // Fallback pricing for when database data is not available
+    function getFallbackPricing(vehicleType) {
+        const fallbackRates = {
+            "ADV": 1000,
+            "NMAX": 1000,
+            "VERSYS 650": 2000,
+            "VERSYS 1000": 2500,
+            "TUKTUK": 1800,
+            "CAR": 3000
+        };
+        return fallbackRates[vehicleType] || 0;
+    }
+
     function setError(inputEl, message) {
         // error holder is the next sibling after .form-floating
         const errorHolder = inputEl.closest(".form-floating")?.nextElementSibling;
@@ -1150,23 +1218,21 @@
                 
                 selectedVehicleOptions.forEach(vehicle => {
                     const vehicleType = vehicle.value;
-                    let dailyRate = 0;
+                    const vehicleData = getVehicleByName(vehicleType);
                     
-                    switch (vehicleType) {
-                        case "ADV": dailyRate = 1000; break;
-                        case "NMAX": dailyRate = 1000; break;
-                        case "VERSYS 650": dailyRate = 2000; break;
-                        case "VERSYS 1000": dailyRate = 2500; break;
-                        case "TUKTUK": dailyRate = 1800; break;
-                        case "CAR": dailyRate = 3000; break;
-                    }
-                    
-                    if (dailyRate > 0 && rentalDays > 0) {
-                        selectedVehicles.push({
-                            name: vehicleType,
-                            days: rentalDays,
-                            price: dailyRate * rentalDays
-                        });
+                    if (rentalDays > 0) {
+                        if (vehicleData) {
+                            // Use database data with vehicle_id
+                            selectedVehicles.push({
+                                id: vehicleData.vehicle_id, // Always include vehicle_id from database
+                                name: vehicleData.name,
+                                days: rentalDays,
+                                price: vehicleData.price_per_day * rentalDays
+                            });
+                        } else {
+                            // If no database match, skip this vehicle (don't allow booking without vehicle_id)
+                            console.warn(`Vehicle "${vehicleType}" not found in database - skipping`);
+                        }
                     }
                 });
                 return selectedVehicles;
@@ -1216,23 +1282,21 @@
                 
                 selectedVehicleOptions.forEach(vehicle => {
                     const vehicleType = vehicle.value;
-                    let dailyRate = 0;
+                    const vehicleData = getVehicleByName(vehicleType);
                     
-                    switch (vehicleType) {
-                        case "ADV": dailyRate = 1000; break;
-                        case "NMAX": dailyRate = 1000; break;
-                        case "VERSYS 650": dailyRate = 2000; break;
-                        case "VERSYS 1000": dailyRate = 2500; break;
-                        case "TUKTUK": dailyRate = 1800; break;
-                        case "CAR": dailyRate = 3000; break;
-                    }
-                    
-                    if (dailyRate > 0 && rentalDays > 0) {
-                        selectedVehicles.push({
-                            name: vehicleType,
-                            days: rentalDays,
-                            price: dailyRate * rentalDays
-                        });
+                    if (rentalDays > 0) {
+                        if (vehicleData) {
+                            // Use database data with vehicle_id
+                            selectedVehicles.push({
+                                id: vehicleData.vehicle_id, // Always include vehicle_id from database
+                                name: vehicleData.name,
+                                days: rentalDays,
+                                price: vehicleData.price_per_day * rentalDays
+                            });
+                        } else {
+                            // If no database match, skip this vehicle (don't allow booking without vehicle_id)
+                            console.warn(`Vehicle "${vehicleType}" not found in database - skipping`);
+                        }
                     }
                 });
                 return selectedVehicles;
@@ -1323,23 +1387,21 @@
                 
                 selectedVehicleOptions.forEach(vehicle => {
                     const vehicleType = vehicle.value;
-                    let dailyRate = 0;
+                    const vehicleData = getVehicleByName(vehicleType);
                     
-                    switch (vehicleType) {
-                        case "ADV": dailyRate = 1000; break;
-                        case "NMAX": dailyRate = 1000; break;
-                        case "VERSYS 650": dailyRate = 2000; break;
-                        case "VERSYS 1000": dailyRate = 2500; break;
-                        case "TUKTUK": dailyRate = 1800; break;
-                        case "CAR": dailyRate = 3000; break;
-                    }
-                    
-                    if (dailyRate > 0 && rentalDays > 0) {
-                        selectedVehicles.push({
-                            name: vehicleType,
-                            days: rentalDays,
-                            price: dailyRate * rentalDays
-                        });
+                    if (rentalDays > 0) {
+                        if (vehicleData) {
+                            // Use database data with vehicle_id
+                            selectedVehicles.push({
+                                id: vehicleData.vehicle_id, // Always include vehicle_id from database
+                                name: vehicleData.name,
+                                days: rentalDays,
+                                price: vehicleData.price_per_day * rentalDays
+                            });
+                        } else {
+                            // If no database match, skip this vehicle (don't allow booking without vehicle_id)
+                            console.warn(`Vehicle "${vehicleType}" not found in database - skipping`);
+                        }
                     }
                 });
                 return selectedVehicles;
@@ -1716,23 +1778,21 @@
                 
                 selectedVehicleOptions.forEach(vehicle => {
                     const vehicleType = vehicle.value;
-                    let dailyRate = 0;
+                    const vehicleData = getVehicleByName(vehicleType);
                     
-                    switch (vehicleType) {
-                        case "ADV": dailyRate = 1000; break;
-                        case "NMAX": dailyRate = 1000; break;
-                        case "VERSYS 650": dailyRate = 2000; break;
-                        case "VERSYS 1000": dailyRate = 2500; break;
-                        case "TUKTUK": dailyRate = 1800; break;
-                        case "CAR": dailyRate = 3000; break;
-                    }
-                    
-                    if (dailyRate > 0 && rentalDays > 0) {
-                        selectedVehicles.push({
-                            name: vehicleType,
-                            days: rentalDays,
-                            price: dailyRate * rentalDays
-                        });
+                    if (rentalDays > 0) {
+                        if (vehicleData) {
+                            // Use database data with vehicle_id
+                            selectedVehicles.push({
+                                id: vehicleData.vehicle_id, // Always include vehicle_id from database
+                                name: vehicleData.name,
+                                days: rentalDays,
+                                price: vehicleData.price_per_day * rentalDays
+                            });
+                        } else {
+                            // If no database match, skip this vehicle (don't allow booking without vehicle_id)
+                            console.warn(`Vehicle "${vehicleType}" not found in database - skipping`);
+                        }
                     }
                 });
                 return selectedVehicles;
@@ -1922,6 +1982,11 @@
         tripTypeSelect.addEventListener('change', () => { updateOutsidePrice(); saveCurrentFormData(); });
         outsideNumberOfDays.addEventListener('change', () => { updateOutsidePrice(); saveCurrentFormData(); });
     }
+
+    // Initialize vehicles data when page loads
+    fetchVehicles().then(() => {
+        console.log("Vehicles loaded successfully!");
+    });
 
     console.log("Tour booking form initialized successfully!");
 })();

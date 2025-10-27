@@ -584,6 +584,7 @@ async function submitTourBookings(bookingId, bookingData) {
         bookingData.selectedVehicles.forEach(vehicle => {
             const vehiclePayload = {
                 booking_id: bookingId,
+                vehicle_id: vehicle.id,
                 vehicle_name: vehicle.name,
                 rental_days: vehicle.days || 1,
                 total_amount: vehicle.price || 0
@@ -619,23 +620,29 @@ async function submitTourBookings(bookingId, bookingData) {
     
     // Submit van rental bookings
     if (bookingData.selectedVanRental) {
-        const vanPayload = {
-            booking_id: bookingId,
-            destination_id: getDestinationIdByName(bookingData.selectedVanRental.destination),
-            rental_days: bookingData.selectedVanRental.days || 1,
-            rental_start_date: bookingData.arrivalDate,
-            rental_end_date: bookingData.departureDate,
-            total_price: bookingData.selectedVanRental.price || 0,
-            notes: `Van rental to: ${bookingData.selectedVanRental.destination}`
-        };
+        const destinationId = await getDestinationIdByName(bookingData.selectedVanRental.destination);
         
-        promises.push(
-            fetch('http://localhost:3000/api/booking-van-rental', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(vanPayload)
-            })
-        );
+        if (destinationId) {
+            const vanPayload = {
+                booking_id: bookingId,
+                destination_id: destinationId,
+                rental_days: bookingData.selectedVanRental.days || 1,
+                total_price: bookingData.selectedVanRental.price || 0,
+                rental_start_date: null,
+                rental_end_date: null,
+                notes: ''
+            };
+            
+            promises.push(
+                fetch('http://localhost:3000/api/booking-van-rental', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(vanPayload)
+                })
+            );
+        } else {
+            console.warn('Van rental skipped: destination not found in database');
+        }
     }
     
     // Execute all promises
@@ -662,9 +669,46 @@ function getSelectedServices(bookingData) {
 }
 
 
-function getDestinationIdByName(destinationName) {
-    // Placeholder - implement based on your destination data
-    return null;
+// Cache for van destinations to avoid repeated API calls
+let vanDestinationsCache = null;
+
+async function getDestinationIdByName(destinationName) {
+    try {
+        // Load destinations from cache or API
+        if (!vanDestinationsCache) {
+            const response = await fetch('http://localhost:3000/api/van-destinations');
+            const result = await response.json();
+            
+            if (result.success && result.destinations) {
+                vanDestinationsCache = result.destinations;
+            } else {
+                console.warn('Failed to load van destinations:', result.message);
+                return null;
+            }
+        }
+        
+        // Find destination by name (case-insensitive) - try multiple possible column names
+        const destination = vanDestinationsCache.find(dest => {
+            // Try different possible column names for destination name
+            const nameField = dest.destination_name || dest.name || dest.destination || dest.place;
+            return nameField && nameField.toLowerCase() === destinationName.toLowerCase();
+        });
+        
+        if (destination) {
+            // Try different possible column names for ID
+            return destination.id || destination.van_destination_id || destination.destination_id;
+        } else {
+            console.warn(`Van destination not found: ${destinationName}`);
+            console.log('Available destinations:', vanDestinationsCache.map(d => ({
+                id: d.id || d.van_destination_id || d.destination_id,
+                name: d.destination_name || d.name || d.destination || d.place
+            })));
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching destination ID:', error);
+        return null;
+    }
 }
 
 // Go to home page

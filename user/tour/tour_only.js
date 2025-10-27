@@ -10,6 +10,74 @@
         numberOfDiver: "Number of Divers"
     };
 
+    // ----------------------------
+    // VEHICLE DATA MANAGEMENT
+    // ----------------------------
+    
+    let vehiclesData = [];
+    
+    // Fetch vehicles from database
+    async function fetchVehicles() {
+        try {
+            const response = await fetch('http://localhost:3000/api/vehicles');
+            const result = await response.json();
+            
+            if (result.success) {
+                vehiclesData = result.vehicles;
+                console.log('✅ Vehicles loaded:', vehiclesData);
+                return vehiclesData;
+            } else {
+                console.error('❌ Failed to fetch vehicles:', result.message);
+                return [];
+            }
+        } catch (error) {
+            console.error('❌ Error fetching vehicles:', error);
+            return [];
+        }
+    }
+    
+    // Get vehicle by name (for backward compatibility)
+    function getVehicleByName(vehicleName) {
+        // If no vehicles data loaded, return null
+        if (!vehiclesData || vehiclesData.length === 0) {
+            console.warn('No vehicles data available, using fallback pricing');
+            return null;
+        }
+        
+        // Try exact match first
+        let vehicle = vehiclesData.find(v => v.name === vehicleName);
+        
+        // If no exact match, try case-insensitive match
+        if (!vehicle) {
+            vehicle = vehiclesData.find(v => 
+                v.name && v.name.toLowerCase() === vehicleName.toLowerCase()
+            );
+        }
+        
+        // If still no match, try partial match
+        if (!vehicle) {
+            vehicle = vehiclesData.find(v => 
+                v.name && v.name.toLowerCase().includes(vehicleName.toLowerCase())
+            );
+        }
+        
+        console.log(`Looking for vehicle: "${vehicleName}", found:`, vehicle);
+        return vehicle;
+    }
+    
+    // Fallback pricing for when database data is not available
+    function getFallbackPricing(vehicleType) {
+        const fallbackRates = {
+            "ADV": 1000,
+            "NMAX": 1000,
+            "VERSYS 650": 2000,
+            "VERSYS 1000": 2500,
+            "TUKTUK": 1800,
+            "CAR": 3000
+        };
+        return fallbackRates[vehicleType] || 0;
+    }
+
     function setError(inputEl, message) {
         // error holder is the next sibling after .form-floating
         const errorHolder = inputEl.closest(".form-floating")?.nextElementSibling;
@@ -1099,39 +1167,61 @@
         
         selectedVehicleOptions.forEach(vehicle => {
             const vehicleType = vehicle.value;
-            let dailyRate = 0;
+            const vehicleData = getVehicleByName(vehicleType);
             
-            // Get daily rate for each vehicle type
-            switch (vehicleType) {
-                case "ADV":
-                    dailyRate = 1000;
-                    break;
-                case "NMAX":
-                    dailyRate = 1000;
-                    break;
-                case "VERSYS 650":
-                    dailyRate = 2000;
-                    break;
-                case "VERSYS 1000":
-                    dailyRate = 2500;
-                    break;
-                case "TUKTUK":
-                    dailyRate = 1800;
-                    break;
-                case "CAR":
-                    dailyRate = 3000;
-                    break;
-            }
-            
-            if (dailyRate > 0 && rentalDays > 0) {
-                selectedVehicles.push({
-                    name: vehicleType,
-                    days: rentalDays,
-                    price: dailyRate * rentalDays
-                });
+            if (rentalDays > 0) {
+                if (vehicleData) {
+                    // Use database data with vehicle_id
+                    selectedVehicles.push({
+                        id: vehicleData.vehicle_id, // Always include vehicle_id from database
+                        name: vehicleData.name,
+                        days: rentalDays,
+                        price: vehicleData.price_per_day * rentalDays
+                    });
+                } else {
+                    // If no database match, skip this vehicle (don't allow booking without vehicle_id)
+                    console.warn(`Vehicle "${vehicleType}" not found in database - skipping`);
+                }
             }
         });
         
+        // Collect van rental data
+        const selectedVanRental = (() => {
+            const destinationSelect = document.getElementById('destinationSelect');
+            const placeSelect = document.getElementById('placeSelect');
+            const outsidePlaceSelect = document.getElementById('outsidePlaceSelect');
+            const withinTripTypeSelect = document.getElementById('withinTripTypeSelect');
+            const tripTypeSelect = document.getElementById('tripTypeSelect');
+            const vanDaysInput = document.getElementById('vanDays');
+            const vanTotalAmount = document.getElementById('amountOfVanRental');
+            
+            if (!destinationSelect || !destinationSelect.value) return null;
+            
+            let destination = '';
+            let tripType = '';
+            
+            if (destinationSelect.value === 'Within Puerto Galera') {
+                if (placeSelect && placeSelect.value) {
+                    destination = placeSelect.value;
+                    tripType = withinTripTypeSelect?.value || '';
+                }
+            } else if (destinationSelect.value === 'Outside Puerto Galera') {
+                if (outsidePlaceSelect && outsidePlaceSelect.value) {
+                    destination = outsidePlaceSelect.value;
+                    tripType = tripTypeSelect?.value || '';
+                }
+            }
+            
+            if (!destination) return null;
+            
+            return {
+                destination: destination,
+                tripType: tripType,
+                days: parseInt(vanDaysInput?.value) || 1,
+                price: parseFloat(vanTotalAmount?.value?.replace(/[₱,]/g, '') || 0)
+            };
+        })();
+
         const tourSelections = {
             touristCount: document.getElementById('touristCount').value,
             islandTours: Array.from(document.querySelectorAll('.island-option:checked')).map(option => option.value),
@@ -1147,7 +1237,8 @@
             vehicleAmount: document.getElementById('amountOfVehicle').value,
             vanRentalAmount: document.getElementById('amountOfVanRental')?.value || '',
             divingAmount: document.getElementById('amountOfDiving').value,
-            totalAmount: document.getElementById('totalAmount').value
+            totalAmount: document.getElementById('totalAmount').value,
+            selectedVanRental: selectedVanRental // Add van rental data
         };
         
         // Store complete booking data for the next page
@@ -1464,6 +1555,11 @@
         tripTypeSelect.addEventListener('change', updateOutsidePrice);
         outsideNumberOfDays.addEventListener('change', updateOutsidePrice);
     }
+
+    // Initialize vehicles data when page loads
+    fetchVehicles().then(() => {
+        console.log("Vehicles loaded successfully!");
+    });
 
     console.log("Tour booking form initialized successfully!");
 })();

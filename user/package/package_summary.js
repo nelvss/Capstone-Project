@@ -413,6 +413,7 @@
                 const vehiclePromises = bookingData.selectedVehicles.map(vehicle => {
                     const vehiclePayload = {
                         booking_id: bookingId,
+                        vehicle_id: vehicle.id,
                         vehicle_name: vehicle.name,
                         rental_days: vehicle.days || 1,
                         total_amount: vehicle.price || 0
@@ -440,6 +441,45 @@
                     });
                 } catch (error) {
                     console.warn('Vehicle booking submission error:', error);
+                }
+            }
+            
+            // Submit van rental booking if selected
+            if (bookingData.vanDestination && bookingData.vanPlace) {
+                try {
+                    const destinationId = await getDestinationIdByName(bookingData.vanPlace);
+                    
+                    if (destinationId) {
+                        const vanPayload = {
+                            booking_id: bookingId,
+                            destination_id: destinationId,
+                            rental_days: parseInt(bookingData.vanDays) || 1,
+                            total_price: parseFloat(bookingData.vanAmount?.replace(/[₱,]/g, '') || 0),
+                            rental_start_date: null,
+                            rental_end_date: null,
+                            notes: ''
+                        };
+                        
+                        const vanResponse = await fetch('http://localhost:3000/api/booking-van-rental', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(vanPayload)
+                        });
+                        
+                        const vanResult = await vanResponse.json();
+                        
+                        if (!vanResult.success) {
+                            console.warn('Van rental booking failed:', vanResult.message);
+                        } else {
+                            console.log('Van rental booking created successfully');
+                        }
+                    } else {
+                        console.warn('Van rental skipped: destination not found in database');
+                    }
+                } catch (error) {
+                    console.warn('Van rental booking submission error:', error);
                 }
             }
             
@@ -555,6 +595,47 @@
         const timeDiff = departure.getTime() - arrival.getTime();
         const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
         return nights > 0 ? nights : 1;
+    }
+    
+    // Cache for van destinations
+    let vanDestinationsCache = null;
+    
+    // Helper function to get destination ID by name
+    async function getDestinationIdByName(destinationName) {
+        try {
+            // Load destinations from cache or API
+            if (!vanDestinationsCache) {
+                const response = await fetch('http://localhost:3000/api/van-destinations');
+                const result = await response.json();
+                
+                if (result.success && result.destinations) {
+                    vanDestinationsCache = result.destinations;
+                } else {
+                    console.warn('Failed to load van destinations:', result.message);
+                    return null;
+                }
+            }
+            
+            // Find destination by name (case-insensitive)
+            const destination = vanDestinationsCache.find(dest => {
+                const nameField = dest.destination_name || dest.name || dest.destination;
+                return nameField && nameField.toLowerCase() === destinationName.toLowerCase();
+            });
+            
+            if (destination) {
+                return destination.id || destination.van_destination_id || destination.destination_id;
+            } else {
+                console.warn(`Van destination not found: ${destinationName}`);
+                console.log('Available destinations:', vanDestinationsCache.map(d => ({
+                    id: d.id || d.van_destination_id || d.destination_id,
+                    name: d.destination_name || d.name || d.destination
+                })));
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching destination ID:', error);
+            return null;
+        }
     }
 
     window.goToHomePage = function() {

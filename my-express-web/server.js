@@ -673,17 +673,61 @@ app.get('/api/bookings', async (req, res) => {
       }
     }
     
-    // Merge hotel data with bookings
-    const bookingsWithHotels = bookings.map(booking => ({
+    // Get vehicle bookings for all bookings
+    const bookingIds = bookings.map(b => b.booking_id);
+    let vehicleBookingsData = {};
+    if (bookingIds.length > 0) {
+      const { data: vehicleBookings, error: vehicleBookingsError } = await supabase
+        .from('booking_vehicles')
+        .select('booking_id, vehicle_id, vehicle_name, rental_days, total_amount')
+        .in('booking_id', bookingIds);
+      
+      if (!vehicleBookingsError && vehicleBookings) {
+        // Get unique vehicle IDs
+        const vehicleIds = [...new Set(vehicleBookings.map(vb => vb.vehicle_id).filter(id => id))];
+        
+        // Fetch vehicle data for all unique vehicle IDs
+        let vehiclesData = {};
+        if (vehicleIds.length > 0) {
+          const { data: vehicles, error: vehiclesError } = await supabase
+            .from('vehicles')
+            .select('vehicle_id, name, price_per_day')
+            .in('vehicle_id', vehicleIds);
+          
+          if (!vehiclesError && vehicles) {
+            vehiclesData = vehicles.reduce((acc, vehicle) => {
+              acc[vehicle.vehicle_id] = vehicle;
+              return acc;
+            }, {});
+          }
+        }
+        
+        // Group vehicle bookings by booking_id and merge with vehicle data
+        vehicleBookingsData = vehicleBookings.reduce((acc, vb) => {
+          if (!acc[vb.booking_id]) {
+            acc[vb.booking_id] = [];
+          }
+          acc[vb.booking_id].push({
+            ...vb,
+            vehicle: vb.vehicle_id ? vehiclesData[vb.vehicle_id] : null
+          });
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Merge hotel and vehicle data with bookings
+    const bookingsWithDetails = bookings.map(booking => ({
       ...booking,
-      hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null
+      hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
+      vehicle_bookings: vehicleBookingsData[booking.booking_id] || []
     }));
     
-    console.log('✅ Bookings fetched successfully:', bookingsWithHotels?.length || 0, 'bookings');
+    console.log('✅ Bookings fetched successfully:', bookingsWithDetails?.length || 0, 'bookings');
     
     res.json({ 
       success: true, 
-      bookings: bookingsWithHotels || []
+      bookings: bookingsWithDetails || []
     });
     
   } catch (error) {
@@ -732,17 +776,52 @@ app.get('/api/bookings/:id', async (req, res) => {
       }
     }
     
-    // Merge hotel data with booking
-    const bookingWithHotel = {
+    // Fetch vehicle bookings for this booking
+    let vehicleBookingsData = [];
+    const { data: vehicleBookings, error: vehicleBookingsError } = await supabase
+      .from('booking_vehicles')
+      .select('booking_id, vehicle_id, vehicle_name, rental_days, total_amount')
+      .eq('booking_id', booking.booking_id);
+    
+    if (!vehicleBookingsError && vehicleBookings && vehicleBookings.length > 0) {
+      // Get unique vehicle IDs
+      const vehicleIds = [...new Set(vehicleBookings.map(vb => vb.vehicle_id).filter(id => id))];
+      
+      // Fetch vehicle data for all unique vehicle IDs
+      let vehiclesData = {};
+      if (vehicleIds.length > 0) {
+        const { data: vehicles, error: vehiclesError } = await supabase
+          .from('vehicles')
+          .select('vehicle_id, name, price_per_day')
+          .in('vehicle_id', vehicleIds);
+        
+        if (!vehiclesError && vehicles) {
+          vehiclesData = vehicles.reduce((acc, vehicle) => {
+            acc[vehicle.vehicle_id] = vehicle;
+            return acc;
+          }, {});
+        }
+      }
+      
+      // Merge vehicle data with vehicle bookings
+      vehicleBookingsData = vehicleBookings.map(vb => ({
+        ...vb,
+        vehicle: vb.vehicle_id ? vehiclesData[vb.vehicle_id] : null
+      }));
+    }
+    
+    // Merge hotel and vehicle data with booking
+    const bookingWithDetails = {
       ...booking,
-      hotels: hotelData
+      hotels: hotelData,
+      vehicle_bookings: vehicleBookingsData
     };
     
     console.log('✅ Booking details fetched successfully');
     
     res.json({ 
       success: true, 
-      booking: bookingWithHotel
+      booking: bookingWithDetails
     });
     
   } catch (error) {
@@ -922,28 +1001,54 @@ app.post('/api/booking-vehicles', async (req, res) => {
   try {
     const { 
       booking_id, 
+      vehicle_id,
       vehicle_name, 
       rental_days,
       total_amount
     } = req.body;
     
-    console.log('📝 Creating vehicle booking:', { booking_id, vehicle_name, rental_days });
+    console.log('📝 Creating vehicle booking:', { booking_id, vehicle_id, vehicle_name, rental_days });
     
-    if (!booking_id || !vehicle_name || !rental_days) {
+    // Debug: Log the vehicle_id value
+    if (vehicle_id) {
+      console.log('✅ Vehicle ID provided:', vehicle_id);
+    } else {
+      console.log('⚠️ No vehicle_id provided, using vehicle_name fallback');
+    }
+    
+    if (!booking_id || !rental_days) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: booking_id, vehicle_name, rental_days' 
+        message: 'Missing required fields: booking_id, rental_days' 
       });
     }
     
+    // Require vehicle_id to be provided (NOT NULL constraint)
+    if (!vehicle_id) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'vehicle_id is required - vehicle must be found in database' 
+      });
+    }
+    
+    // Build booking data - vehicle_id is required
+    const bookingData = {
+      booking_id,
+      vehicle_id, // Required - will always be provided
+      rental_days,
+      total_amount: total_amount || 0
+    };
+    
+    // Always include vehicle_name for reference
+    if (vehicle_name) {
+      bookingData.vehicle_name = vehicle_name;
+    }
+    
+    console.log('✅ Storing vehicle_id:', vehicle_id);
+    
     const { data, error } = await supabase
       .from('booking_vehicles')
-      .insert([{
-        booking_id,
-        vehicle_name,
-        rental_days,
-        total_amount: total_amount || 0
-      }])
+      .insert([bookingData])
       .select();
     
     if (error) {
@@ -1044,18 +1149,18 @@ app.post('/api/booking-van-rental', async (req, res) => {
       booking_id, 
       destination_id, 
       rental_days, 
-      rental_start_date, 
-      rental_end_date,
       total_price,
-      notes = ''
+      rental_start_date,
+      rental_end_date,
+      notes
     } = req.body;
     
     console.log('📝 Creating van rental booking:', { booking_id, destination_id, rental_days });
     
-    if (!booking_id || !destination_id || !rental_days || !rental_start_date || !rental_end_date) {
+    if (!booking_id || !destination_id || !rental_days) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: booking_id, destination_id, rental_days, rental_start_date, rental_end_date' 
+        message: 'Missing required fields: booking_id, destination_id, rental_days' 
       });
     }
     
@@ -1063,13 +1168,11 @@ app.post('/api/booking-van-rental', async (req, res) => {
       .from('bookings_van_rental')
       .insert([{
         booking_id,
-        destination_id,
-        rental_days,
-        rental_start_date,
-        rental_end_date,
-        total_price: total_price || 0,
-        notes,
-        created_at: new Date().toISOString()
+        van_destination_id: destination_id,
+        number_of_days: rental_days,
+        total_amount: total_price || 0,
+        trip_type: 'oneway',
+        choose_destination: 'Within Puerto Galera'
       }])
       .select();
     
@@ -1206,8 +1309,7 @@ app.get('/api/vehicles', async (req, res) => {
     
     const { data, error } = await supabase
       .from('vehicles')
-      .select('*')
-      .order('vehicle_name');
+      .select('*');
     
     if (error) {
       console.error('❌ Error fetching vehicles:', error);

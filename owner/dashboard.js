@@ -19,19 +19,34 @@ async function loadBookings() {
     }
     
     // Transform API data to match the expected format
-    bookings = result.bookings.map(booking => ({
-      id: booking.booking_id,
-      name: `${booking.customer_first_name} ${booking.customer_last_name}`,
-      services: booking.booking_preferences || 'N/A',
-      rental: 'N/A', // This would need to be determined from related tables
-      arrival: booking.arrival_date,
-      departure: booking.departure_date,
-      hotel: booking.hotels?.name || 'No Hotel Selected',
-      price: '₱0', // No total_price column in bookings table
-      contact: booking.customer_contact,
-      email: booking.customer_email,
-      status: booking.status
-    }));
+    bookings = result.bookings.map(booking => {
+      // Format vehicle information
+      let vehicleInfo = 'No Vehicle Selected';
+      if (booking.vehicle_bookings && booking.vehicle_bookings.length > 0) {
+        const vehicleNames = booking.vehicle_bookings.map(vb => {
+          if (vb.vehicle) {
+            return `${vb.vehicle.name} (${vb.rental_days} day${vb.rental_days > 1 ? 's' : ''})`;
+          } else {
+            return `${vb.vehicle_name} (${vb.rental_days} day${vb.rental_days > 1 ? 's' : ''})`;
+          }
+        });
+        vehicleInfo = vehicleNames.join(', ');
+      }
+      
+      return {
+        id: booking.booking_id,
+        name: `${booking.customer_first_name} ${booking.customer_last_name}`,
+        services: booking.booking_preferences || 'N/A',
+        rental: vehicleInfo,
+        arrival: booking.arrival_date,
+        departure: booking.departure_date,
+        hotel: booking.hotels?.name || 'No Hotel Selected',
+        price: '₱0', // No total_price column in bookings table
+        contact: booking.customer_contact,
+        email: booking.customer_email,
+        status: booking.status
+      };
+    });
     
     console.log('✅ Bookings loaded successfully:', bookings.length, 'bookings');
     return true;
