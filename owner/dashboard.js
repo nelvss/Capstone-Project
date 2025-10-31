@@ -238,6 +238,7 @@ async function handleReschedule(booking, button) {
 
 function renderTable() {
   const tbody = document.getElementById('booking-table-body');
+  if (!tbody) return; // Not on dashboard page
   tbody.innerHTML = '';
   const rows = bookings.filter(b => ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter));
   rows.forEach(b => {
@@ -341,6 +342,7 @@ function updateOwnerStats() {
 // Search functionality
 function filterTable(searchTerm) {
   const tbody = document.getElementById('booking-table-body');
+  if (!tbody) return; // Not on dashboard page
   tbody.innerHTML = '';
   
   const filteredBookings = bookings.filter(b => {
@@ -498,6 +500,12 @@ function hideLoadingScreen() {
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
+  // Only initialize on dashboard where table exists
+  const dashboardTable = document.getElementById('booking-table-body');
+  if (!dashboardTable) {
+    return; // Skip initialization on non-dashboard pages
+  }
+
   // Show loading screen immediately
   showLoadingScreen();
   

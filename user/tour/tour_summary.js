@@ -2,6 +2,33 @@
 let currentStep = 3;
 const totalSteps = 8;
 
+// API Base URL
+const API_BASE_URL = 'http://localhost:3000/api';
+
+// Store QR codes data
+let qrCodesData = [];
+
+// Load QR codes from database
+async function loadQRCodes() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/settings/qr-codes`);
+        const result = await response.json();
+        
+        if (result.success) {
+            qrCodesData = result.qr_codes;
+            console.log('✅ QR codes loaded:', qrCodesData.length);
+        }
+    } catch (error) {
+        console.error('Error loading QR codes:', error);
+        // Continue with default placeholders
+    }
+}
+
+// Initialize QR codes on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadQRCodes();
+});
+
 function showStep(step) {
     const steps = document.querySelectorAll('.form-step');
     steps.forEach((el, index) => {
@@ -340,6 +367,22 @@ function showPaymentQR(paymentType) {
     const config = paymentConfig[paymentType] || paymentConfig.gcash;
     
     if (paymentIcon) paymentIcon.className = config.icon + ' me-2';
+    
+    // Load QR code image from database if available
+    const qrData = qrCodesData.find(qr => qr.payment_method === paymentType);
+    const qrContainer = document.querySelector('.qr-code-container');
+    
+    if (qrContainer && qrData && qrData.qr_image_url) {
+        qrContainer.innerHTML = `<img src="${qrData.qr_image_url}" alt="${config.name} QR Code" style="max-width: 100%; height: auto;">`;
+    } else if (qrContainer) {
+        // Show default placeholder if no QR code is uploaded
+        qrContainer.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-qrcode fa-4x text-danger mb-2"></i>
+                <p class="text-muted small mb-0">QR Code</p>
+            </div>
+        `;
+    }
     if (paymentMethodName) paymentMethodName.textContent = config.name;
     if (instructionApp) instructionApp.textContent = config.app;
     if (modalPaymentAmount) modalPaymentAmount.textContent = paymentAmount;
@@ -418,7 +461,7 @@ function handleFileUpload(event) {
     }
 }
 
-// Generate booking reference with year and counter
+// Generate booking reference with year and counter (4 digits)
 function generateBookingReference() {
     const currentYear = new Date().getFullYear().toString().slice(-2); // Get 2-digit year
     const storageKey = 'bookingCounter';
@@ -443,8 +486,8 @@ function generateBookingReference() {
     localStorage.setItem(yearKey, currentYear);
     localStorage.setItem(storageKey, counter.toString());
     
-    // Format counter with leading zeros (001, 002, etc.)
-    const formattedCounter = counter.toString().padStart(3, '0');
+  // Format counter with leading zeros (0001, 0002, etc.)
+  const formattedCounter = counter.toString().padStart(4, '0');
     
     return `${currentYear}-${formattedCounter}`;
 }

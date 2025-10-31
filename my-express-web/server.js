@@ -3,7 +3,9 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
+const path = require('path');
+// Load .env from this backend directory explicitly (works regardless of CWD)
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 // Test if dotenv is working
 console.log('🔍 Dotenv test:');
@@ -15,24 +17,41 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Supabase configuration
-// SECURITY: Remove hardcoded fallback values. Use .env file for credentials.
-// For production hosting, set these as environment variables on your hosting platform.
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+// Using SUPABASE_KEY for backend server-side operations
+// This allows the server to perform operations without Row Level Security restrictions
+// The service role key is kept secure on the server and never exposed to clients
+const rawSupabaseUrl = process.env.SUPABASE_URL || '';
+// Trim and remove accidental surrounding quotes from env values
+const supabaseUrl = rawSupabaseUrl.trim().replace(/^['"]|['"]$/g, '');
+const supabaseKey = (process.env.SUPABASE_KEY || '').trim();
 
 // Debug environment variables
 console.log('🔍 Environment check:');
 console.log('SUPABASE_URL from env:', process.env.SUPABASE_URL ? '✅ Set' : '❌ Missing');
-console.log('SUPABASE_KEY from env:', process.env.SUPABASE_KEY ? '✅ Set' : '❌ Missing');
-console.log('Using fallback values:', !process.env.SUPABASE_URL || !process.env.SUPABASE_KEY ? '✅ Yes' : '❌ No');
+console.log('SUPABASE_KEY from env:', process.env.SUPABASE_KEY ? '✅ Present' : '❌ Missing');
+console.log('Using fallback values:', !process.env.SUPABASE_URL || !supabaseKey ? '✅ Yes' : '❌ No');
 
-// List all environment variables that start with SUPABASE
-console.log('All SUPABASE env vars:', Object.keys(process.env).filter(key => key.startsWith('SUPABASE')));
+// List which SUPABASE key will be used (do not print the actual keys)
+console.log('Supabase client will use: SUPABASE_KEY from environment (server-side only)');
 
 // Validate Supabase configuration
 if (!supabaseUrl || !supabaseKey) {
   console.error('❌ CRITICAL ERROR: Missing Supabase configuration!');
   console.error('Please set SUPABASE_URL and SUPABASE_KEY environment variables.');
+  process.exit(1);
+}
+
+// Validate URL format early to avoid cryptic errors inside the client
+try {
+  const parsed = new URL(supabaseUrl);
+  if (!/^https?:$/.test(parsed.protocol)) {
+    throw new Error('URL must start with http:// or https://');
+  }
+} catch (e) {
+  console.error('❌ Invalid SUPABASE_URL value.');
+  console.error('Received:', JSON.stringify(supabaseUrl));
+  console.error('Hint: It should look like https://your-project-ref.supabase.co');
+  console.error('Details:', e.message);
   process.exit(1);
 }
 
@@ -556,6 +575,37 @@ app.delete('/api/feedback/:id', async (req, res) => {
 // BOOKING MANAGEMENT API ENDPOINTS
 // ========================================
 
+// Helper to generate a unique booking ID with format YY-XXXX
+async function generateNextBookingId() {
+  const currentYear = new Date().getFullYear().toString().slice(-2);
+  const prefix = `${currentYear}-`;
+
+  // Fetch latest booking_id for current year, order desc to get the highest counter
+  const { data: rows, error } = await supabase
+    .from('bookings')
+    .select('booking_id')
+    .ilike('booking_id', `${prefix}%`)
+    .order('booking_id', { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.warn('⚠️ Could not query latest booking_id, defaulting to 001:', error.message);
+  }
+
+  let nextCounter = 1;
+  if (rows && rows.length > 0) {
+    const latestId = rows[0].booking_id || '';
+    const match = latestId.match(/^(\d{2})-(\d{4,})$/);
+    if (match) {
+      const lastCounter = parseInt(match[2], 10) || 0;
+      nextCounter = lastCounter + 1;
+    }
+  }
+
+  const padded = String(nextCounter).padStart(4, '0');
+  return `${prefix}${padded}`;
+}
+
 // Create main booking record
 app.post('/api/bookings', async (req, res) => {
   try {
@@ -572,7 +622,7 @@ app.post('/api/bookings', async (req, res) => {
       package_only_id,
       hotel_id, 
       hotel_nights,
-      booking_id, // Custom booking ID from frontend
+      booking_id, // Optional booking ID from frontend
       status = 'pending'
     } = req.body;
     
@@ -581,10 +631,10 @@ app.post('/api/bookings', async (req, res) => {
     
     // Validate required fields based on actual schema
     if (!customer_first_name || !customer_last_name || !customer_email || !customer_contact || 
-        !booking_type || !booking_preferences || !arrival_date || !departure_date || !number_of_tourist || !booking_id) {
+        !booking_type || !booking_preferences || !arrival_date || !departure_date || !number_of_tourist) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: customer_first_name, customer_last_name, customer_email, customer_contact, booking_type, booking_preferences, arrival_date, departure_date, number_of_tourist, booking_id' 
+        message: 'Missing required fields: customer_first_name, customer_last_name, customer_email, customer_contact, booking_type, booking_preferences, arrival_date, departure_date, number_of_tourist' 
       });
     }
     
@@ -596,9 +646,11 @@ app.post('/api/bookings', async (req, res) => {
       });
     }
     
+    // Resolve booking_id (prefer frontend value; otherwise generate)
+    let resolvedBookingId = booking_id && String(booking_id).trim() ? String(booking_id).trim() : await generateNextBookingId();
+
     // Build booking object matching the actual database schema
-    const bookingData = {
-      booking_id, // Use custom booking ID from frontend
+    const bookingDataBase = {
       customer_first_name,
       customer_last_name,
       customer_email,
@@ -612,17 +664,39 @@ app.post('/api/bookings', async (req, res) => {
     };
     
     // Add optional fields
-    if (package_only_id) bookingData.package_only_id = package_only_id;
-    if (hotel_id) bookingData.hotel_id = hotel_id;
-    if (hotel_nights) bookingData.hotel_nights = hotel_nights;
-    
-    // Insert into bookings table
-    const { data, error } = await supabase
-      .from('bookings')
-      .insert([bookingData])
-      .select();
-    
-    if (error) {
+    const optionalFields = {};
+    if (package_only_id) optionalFields.package_only_id = package_only_id;
+    if (hotel_id) optionalFields.hotel_id = hotel_id;
+    if (hotel_nights) optionalFields.hotel_nights = hotel_nights;
+
+    // Try insert, on duplicate key generate a new server-side ID and retry a few times
+    let attempt = 0;
+    const maxAttempts = 5;
+    while (attempt < maxAttempts) {
+      attempt += 1;
+      const bookingData = { booking_id: resolvedBookingId, ...bookingDataBase, ...optionalFields };
+
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([bookingData])
+        .select();
+
+      if (!error) {
+        console.log('✅ Booking created successfully:', data[0]);
+        return res.json({ 
+          success: true, 
+          message: 'Booking created successfully',
+          booking: data[0]
+        });
+      }
+
+      // If duplicate key, generate next ID and retry
+      if (error && error.code === '23505') {
+        console.warn(`⚠️ Duplicate booking_id (${resolvedBookingId}). Generating a new one and retrying...`);
+        resolvedBookingId = await generateNextBookingId();
+        continue;
+      }
+
       console.error('❌ Error creating booking:', error);
       return res.status(500).json({ 
         success: false, 
@@ -630,13 +704,10 @@ app.post('/api/bookings', async (req, res) => {
         error: error.message 
       });
     }
-    
-    console.log('✅ Booking created successfully:', data[0]);
-    
-    res.json({ 
-      success: true, 
-      message: 'Booking created successfully',
-      booking: data[0]
+
+    return res.status(409).json({
+      success: false,
+      message: 'Could not allocate a unique booking ID after several attempts'
     });
     
   } catch (error) {
@@ -1180,37 +1251,60 @@ app.post('/api/booking-van-rental', async (req, res) => {
       notes
     } = req.body;
     
-    console.log('📝 Creating van rental booking:', { booking_id, destination_id, rental_days });
+    console.log('📝 Van rental booking request received');
+    console.log('📦 Request body:', req.body);
+    console.log('🔑 Parsed values:', { 
+      booking_id, 
+      destination_id, 
+      rental_days, 
+      total_price 
+    });
     
     if (!booking_id || !destination_id || !rental_days) {
+      console.error('❌ Missing required fields');
+      console.error('Validation:', { 
+        has_booking_id: !!booking_id, 
+        has_destination_id: !!destination_id, 
+        has_rental_days: !!rental_days 
+      });
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: booking_id, destination_id, rental_days' 
+        message: 'Missing required fields: booking_id, destination_id, rental_days',
+        received: { booking_id, destination_id, rental_days }
       });
     }
+    
+    const insertData = {
+      booking_id,
+      van_destination_id: destination_id,
+      number_of_days: rental_days,
+      total_amount: total_price || 0,
+      trip_type: 'oneway',
+      choose_destination: 'Within Puerto Galera'
+    };
+    
+    console.log('📤 Inserting to database:', insertData);
     
     const { data, error } = await supabase
       .from('bookings_van_rental')
-      .insert([{
-        booking_id,
-        van_destination_id: destination_id,
-        number_of_days: rental_days,
-        total_amount: total_price || 0,
-        trip_type: 'oneway',
-        choose_destination: 'Within Puerto Galera'
-      }])
+      .insert([insertData])
       .select();
     
     if (error) {
-      console.error('❌ Error creating van rental booking:', error);
+      console.error('❌ Database error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error details:', error.details);
+      console.error('Error hint:', error.hint);
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to create van rental booking', 
-        error: error.message 
+        error: error.message,
+        errorCode: error.code,
+        errorDetails: error.details
       });
     }
     
-    console.log('✅ Van rental booking created successfully');
+    console.log('✅ Van rental booking created successfully:', data[0]);
     
     res.json({ 
       success: true, 
@@ -1220,6 +1314,7 @@ app.post('/api/booking-van-rental', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Van rental booking creation error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       message: 'Internal server error',
@@ -1666,21 +1761,68 @@ app.post('/api/payments/upload-receipt', async (req, res) => {
       });
     }
     
+    // Extract MIME type from data URL if present
+    let mimeType = 'application/octet-stream';
+    const mimeMatch = imageData.match(/^data:(.*?);base64,/);
+    if (mimeMatch && mimeMatch[1]) {
+      mimeType = mimeMatch[1].toLowerCase();
+    }
+
     // Convert base64 to buffer
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+    const base64Data = imageData.replace(/^data:[^;]+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
-    
+
     // Generate unique filename with booking ID
-    const fileExtension = fileName.split('.').pop();
-    const uniqueFileName = `receipts/${bookingId || 'unknown'}-${Date.now()}.${fileExtension}`;
-    
-    console.log('📤 Uploading receipt image:', uniqueFileName);
-    
+    const fileExtension = (fileName.split('.').pop() || '').toLowerCase();
+    let finalExtension = fileExtension || 'bin';
+
+    // Normalize/Map common image extensions to correct MIME types if data URL was missing
+    const extensionToMime = {
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      webp: 'image/webp',
+      gif: 'image/gif',
+      bmp: 'image/bmp',
+      heic: 'image/heic',
+      heif: 'image/heif'
+    };
+    const mimeToExtension = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+      'image/bmp': 'bmp',
+      'image/heic': 'heic',
+      'image/heif': 'heif'
+    };
+
+    // Normalize incorrect but common MIME values
+    if (mimeType === 'image/jpg') {
+      mimeType = 'image/jpeg';
+    }
+
+    // If MIME missing or not one of our known ones, try mapping from extension
+    const allowedMimes = new Set(Object.keys(mimeToExtension));
+    if (!allowedMimes.has(mimeType)) {
+      const mapped = extensionToMime[fileExtension];
+      if (mapped) mimeType = mapped;
+    }
+
+    // Keep filename extension consistent with final MIME if needed
+    if (allowedMimes.has(mimeType)) {
+      finalExtension = mimeToExtension[mimeType] || finalExtension;
+    }
+
+    const uniqueFileName = `receipts/${bookingId || 'unknown'}-${Date.now()}.${finalExtension}`;
+
+    console.log('📤 Uploading receipt image:', uniqueFileName, 'with MIME:', mimeType);
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from('receipts')
       .upload(uniqueFileName, buffer, {
-        contentType: `image/${fileExtension}`,
+        contentType: mimeType,
         upsert: false
       });
     

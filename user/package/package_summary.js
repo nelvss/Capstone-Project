@@ -2,6 +2,28 @@
 (() => {
     let currentStep = 3; // Start at step 3 (summary)
     let bookingData = null;
+    
+    // API Base URL
+    const API_BASE_URL = 'http://localhost:3000/api';
+    
+    // Store QR codes data
+    let qrCodesData = [];
+    
+    // Load QR codes from database
+    async function loadQRCodes() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/settings/qr-codes`);
+            const result = await response.json();
+            
+            if (result.success) {
+                qrCodesData = result.qr_codes;
+                console.log('✅ QR codes loaded:', qrCodesData.length);
+            }
+        } catch (error) {
+            console.error('Error loading QR codes:', error);
+            // Continue with default placeholders
+        }
+    }
 
     // ----------------------------
     // DATA LOADING AND INITIALIZATION
@@ -12,7 +34,14 @@
         if (completeBookingDataString) {
             try {
                 bookingData = JSON.parse(completeBookingDataString);
-                console.log('Loaded booking data:', bookingData);
+                console.log('✅ Loaded booking data:', bookingData);
+                console.log('🚐 Van Rental Info:', {
+                    vanDestination: bookingData.vanDestination,
+                    vanPlace: bookingData.vanPlace,
+                    vanTripType: bookingData.vanTripType,
+                    vanDays: bookingData.vanDays,
+                    vanAmount: bookingData.vanAmount
+                });
                 populateSummary();
                 return true;
             } catch (error) {
@@ -274,7 +303,7 @@
     // BOOKING SUBMISSION
     // ----------------------------
     
-    // Generate booking reference with year and counter
+    // Generate booking reference with year and counter (4 digits)
     function generateBookingReference() {
         const currentYear = new Date().getFullYear().toString().slice(-2); // Get 2-digit year
         const storageKey = 'bookingCounter';
@@ -299,13 +328,16 @@
         localStorage.setItem(yearKey, currentYear);
         localStorage.setItem(storageKey, counter.toString());
         
-        // Format counter with leading zeros (001, 002, etc.)
-        const formattedCounter = counter.toString().padStart(3, '0');
+        // Format counter with leading zeros (0001, 0002, etc.)
+        const formattedCounter = counter.toString().padStart(4, '0');
         
         return `${currentYear}-${formattedCounter}`;
     }
 
     window.submitBooking = async function() {
+        console.log('🎯 Starting booking submission...');
+        console.log('📋 Full booking data:', bookingData);
+        
         try {
             // Show loading state
             const submitBtn = document.querySelector('button[onclick="submitBooking()"]');
@@ -445,9 +477,19 @@
             }
             
             // Submit van rental booking if selected
+            console.log('🚐 Checking van rental data:', {
+                vanDestination: bookingData.vanDestination,
+                vanPlace: bookingData.vanPlace,
+                vanDays: bookingData.vanDays,
+                vanAmount: bookingData.vanAmount,
+                vanTripType: bookingData.vanTripType
+            });
+            
             if (bookingData.vanDestination && bookingData.vanPlace) {
                 try {
+                    console.log('🔍 Looking up destination ID for:', bookingData.vanPlace);
                     const destinationId = await getDestinationIdByName(bookingData.vanPlace);
+                    console.log('📍 Destination ID found:', destinationId);
                     
                     if (destinationId) {
                         const vanPayload = {
@@ -460,6 +502,8 @@
                             notes: ''
                         };
                         
+                        console.log('📦 Sending van rental payload:', vanPayload);
+                        
                         const vanResponse = await fetch('http://localhost:3000/api/booking-van-rental', {
                             method: 'POST',
                             headers: {
@@ -469,18 +513,24 @@
                         });
                         
                         const vanResult = await vanResponse.json();
+                        console.log('📥 Van rental API response:', vanResult);
                         
                         if (!vanResult.success) {
-                            console.warn('Van rental booking failed:', vanResult.message);
+                            console.error('❌ Van rental booking failed:', vanResult.message);
+                            console.error('Error details:', vanResult.error);
                         } else {
-                            console.log('Van rental booking created successfully');
+                            console.log('✅ Van rental booking created successfully:', vanResult.van_rental_booking);
                         }
                     } else {
-                        console.warn('Van rental skipped: destination not found in database');
+                        console.warn('⚠️ Van rental skipped: destination not found in database');
+                        console.warn('Searched for:', bookingData.vanPlace);
                     }
                 } catch (error) {
-                    console.warn('Van rental booking submission error:', error);
+                    console.error('❌ Van rental booking submission error:', error);
+                    console.error('Error stack:', error.stack);
                 }
+            } else {
+                console.log('ℹ️ Van rental not selected - skipping');
             }
             
             // Submit payment if payment information is provided
@@ -642,7 +692,8 @@
             const data = await response.json();
             
             if (data.success && data.hotels) {
-                hotelsData = data.hotels;
+                // Filter out N/A hotels
+                hotelsData = data.hotels.filter(hotel => hotel.name && hotel.name !== 'N/A');
                 console.log('✅ Hotels loaded successfully:', hotelsData.length, 'hotels');
                 return hotelsData;
             } else {
@@ -701,37 +752,57 @@
     // Helper function to get destination ID by name
     async function getDestinationIdByName(destinationName) {
         try {
+            console.log('🔍 getDestinationIdByName called with:', destinationName);
+            
             // Load destinations from cache or API
             if (!vanDestinationsCache) {
+                console.log('📡 Fetching van destinations from API...');
                 const response = await fetch('http://localhost:3000/api/van-destinations');
                 const result = await response.json();
                 
+                console.log('📥 API response:', result);
+                
                 if (result.success && result.destinations) {
                     vanDestinationsCache = result.destinations;
+                    console.log('✅ Van destinations cached:', vanDestinationsCache.length, 'destinations');
                 } else {
-                    console.warn('Failed to load van destinations:', result.message);
+                    console.warn('❌ Failed to load van destinations:', result.message);
                     return null;
                 }
+            } else {
+                console.log('📦 Using cached van destinations');
             }
+            
+            console.log('🔎 Searching for destination:', destinationName);
+            console.log('🗂️ Available destinations:', vanDestinationsCache.map(d => ({
+                id: d.id || d.van_destination_id || d.destination_id,
+                name: d.destination_name || d.name || d.destination,
+                fullObject: d
+            })));
             
             // Find destination by name (case-insensitive)
             const destination = vanDestinationsCache.find(dest => {
                 const nameField = dest.destination_name || dest.name || dest.destination;
-                return nameField && nameField.toLowerCase() === destinationName.toLowerCase();
+                const matches = nameField && nameField.toLowerCase() === destinationName.toLowerCase();
+                console.log(`  Comparing "${nameField}" with "${destinationName}": ${matches}`);
+                return matches;
             });
             
             if (destination) {
-                return destination.id || destination.van_destination_id || destination.destination_id;
+                const foundId = destination.id || destination.van_destination_id || destination.destination_id;
+                console.log('✅ Destination found:', destination);
+                console.log('📍 Using ID:', foundId);
+                return foundId;
             } else {
-                console.warn(`Van destination not found: ${destinationName}`);
-                console.log('Available destinations:', vanDestinationsCache.map(d => ({
-                    id: d.id || d.van_destination_id || d.destination_id,
-                    name: d.destination_name || d.name || d.destination
-                })));
+                console.warn(`❌ Van destination not found: "${destinationName}"`);
+                console.warn('💡 Available destination names:', vanDestinationsCache.map(d => 
+                    d.destination_name || d.name || d.destination
+                ));
                 return null;
             }
         } catch (error) {
-            console.error('Error fetching destination ID:', error);
+            console.error('❌ Error fetching destination ID:', error);
+            console.error('Error stack:', error.stack);
             return null;
         }
     }
@@ -819,6 +890,9 @@
         
         // Fetch hotels data first
         await fetchHotels();
+        
+        // Load QR codes from database
+        await loadQRCodes();
         
         if (loadBookingData()) {
             console.log('Booking data loaded successfully');

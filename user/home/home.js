@@ -1,8 +1,48 @@
 
 // home.js
 // Handles pop-up modal for 'More Info' buttons with enhanced image gallery
+// + Dynamic content loading from database
+
+// API Base URL
+const API_BASE_URL = 'http://localhost:3000/api';
+
+// Load dynamic content from database
+async function loadDynamicContent() {
+  try {
+    // Load site content (mission, vision)
+    const contentResponse = await fetch(`${API_BASE_URL}/settings/content`);
+    const contentResult = await contentResponse.json();
+    
+    if (contentResult.success) {
+      const content = {};
+      contentResult.content.forEach(item => {
+        content[item.section_key] = item.content;
+      });
+      
+      // Update Mission
+      const missionElement = document.querySelector('#mission-vision .card:first-child .card-text');
+      if (missionElement && content.mission) {
+        missionElement.textContent = content.mission;
+      }
+      
+      // Update Vision
+      const visionElement = document.querySelector('#mission-vision .card:last-child .card-text');
+      if (visionElement && content.vision) {
+        visionElement.textContent = content.vision;
+      }
+      
+      console.log('✅ Site content loaded dynamically');
+    }
+  } catch (error) {
+    console.error('Error loading dynamic content:', error);
+    // Fail silently - use hardcoded content as fallback
+  }
+}
 
 document.addEventListener('DOMContentLoaded', function () {
+  // Load dynamic content first
+  loadDynamicContent();
+
   
   // Image collections for each service
   const serviceImages = {

@@ -30,27 +30,33 @@ function checkSession() {
 // Chart instances storage
 const chartInstances = {};
 
-// API Configuration
-const API_URL = 'http://localhost:3000';
+// API Configuration (shared across pages)
+window.API_URL = window.API_URL || 'http://localhost:3000';
+// Toggle to use API or fallback sample data
+window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? window.USE_ANALYTICS_API : false;
 
 // Dynamic analytics data - will be populated from API
 let analyticsData = {};
 
 // Load analytics data from API
-async function loadAnalyticsData() {
+async function fetchAnalyticsDataFromApi() {
+    if (!window.USE_ANALYTICS_API) {
+        console.warn('ℹ️ Using fallback analytics data (API disabled).');
+        return false;
+    }
   try {
     console.log('📊 Loading analytics data from API...');
     
     // Load revenue data
-    const revenueResponse = await fetch(`${API_URL}/api/analytics/revenue`);
+    const revenueResponse = await fetch(`${window.API_URL}/api/analytics/revenue`);
     const revenueResult = await revenueResponse.json();
     
     // Load booking counts
-    const countsResponse = await fetch(`${API_URL}/api/analytics/bookings-count`);
+    const countsResponse = await fetch(`${window.API_URL}/api/analytics/bookings-count`);
     const countsResult = await countsResponse.json();
     
     // Load popular services
-    const servicesResponse = await fetch(`${API_URL}/api/analytics/popular-services`);
+    const servicesResponse = await fetch(`${window.API_URL}/api/analytics/popular-services`);
     const servicesResult = await servicesResponse.json();
     
     if (!revenueResult.success || !countsResult.success || !servicesResult.success) {
@@ -68,7 +74,7 @@ async function loadAnalyticsData() {
     return true;
     
   } catch (error) {
-    console.error('❌ Error loading analytics data:', error);
+    console.warn('❌ Error loading analytics data, using fallback:', error);
     
     // Fallback to empty data
     analyticsData = {
@@ -327,25 +333,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeFilters();
     
     // Load data from API and populate tables
-    const dataLoaded = await loadAnalyticsData();
+    const dataLoaded = await fetchAnalyticsDataFromApi();
     
-    if (dataLoaded) {
-        // Initialize charts with real data
-        initializeCharts();
-    } else {
-        // Initialize charts with fallback data
-        initializeCharts();
-    }
+    // Populate UI metrics and initialize charts
+    populateAnalyticsUI();
+    initializeCharts();
     
     // Setup event listeners
     setupEventListeners();
     
-    // Load feedback from localStorage
+    // Load feedback from API/localStorage
     loadFeedback();
 });
 
-// Sample data for analytics
-const analyticsData = {
+// Sample data for analytics - fallback data
+const sampleAnalyticsData = {
     overview: {
         totalBookings: 1247,
         totalRevenue: 2400000,
@@ -414,32 +416,83 @@ const analyticsData = {
     }
 };
 
+// Initialize analyticsData with sample data
+if (typeof analyticsData === 'undefined') {
+    analyticsData = sampleAnalyticsData;
+} else {
+    // Merge with sample data structure for missing fields
+    analyticsData = { ...sampleAnalyticsData, ...analyticsData };
+}
+
 // Navigation functionality
 function initializeNavigation() {
     const navLinks = document.querySelectorAll('.analytics-sidebar .nav-link[data-section]');
     const sections = document.querySelectorAll('.analytics-section');
     
+    console.log('🔍 Found nav links:', navLinks.length);
+    console.log('🔍 Found sections:', sections.length);
+    
+    // Function to show a specific section
+    function showSection(sectionId) {
+        console.log('📍 Showing section:', sectionId);
+        
+        // Remove active class from all links
+        navLinks.forEach(l => l.classList.remove('active'));
+        
+        // Add active class to corresponding link
+        const activeLink = document.querySelector(`.analytics-sidebar .nav-link[data-section="${sectionId}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+        
+        // Hide all sections
+        sections.forEach(section => {
+            section.classList.add('d-none');
+            section.classList.remove('fade-in');
+        });
+        
+        // Show target section
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            console.log('✅ Displaying section:', sectionId);
+            targetSection.classList.remove('d-none');
+            // Force reflow for animation
+            void targetSection.offsetWidth;
+            targetSection.classList.add('fade-in');
+        } else {
+            console.error('❌ Section not found:', sectionId);
+        }
+    }
+    
+    // Handle click events
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            
-            // Remove active class from all links
-            navLinks.forEach(l => l.classList.remove('active'));
-            
-            // Add active class to clicked link
-            link.classList.add('active');
-            
-            // Hide all sections
-            sections.forEach(section => section.classList.add('d-none'));
-            
-            // Show target section
-            const targetSection = document.getElementById(link.dataset.section);
-            if (targetSection) {
-                targetSection.classList.remove('d-none');
-                targetSection.classList.add('fade-in');
-            }
+            const sectionId = link.dataset.section;
+            showSection(sectionId);
+            // Update URL hash
+            window.location.hash = sectionId;
         });
     });
+    
+    // Handle URL hash on page load
+    function handleHashChange() {
+        const hash = window.location.hash.substring(1); // Remove the # symbol
+        console.log('🔗 URL hash:', hash);
+        
+        if (hash && document.getElementById(hash)) {
+            showSection(hash);
+        } else if (!hash) {
+            // Default to overview if no hash
+            showSection('overview');
+        }
+    }
+    
+    // Check hash on page load
+    handleHashChange();
+    
+    // Listen for hash changes (back/forward buttons)
+    window.addEventListener('hashchange', handleHashChange);
 }
 
 // Initialize all charts
@@ -626,11 +679,13 @@ function updateRevenueTrendChart(month, week, year) {
     
     if (month === 'all') {
         // Show all months
-        chart.data.labels = analyticsData.monthlyRevenue.map(d => d.month + yearSuffix);
-        chart.data.datasets[0].data = analyticsData.monthlyRevenue.map(d => d.revenue);
+        const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
+        chart.data.labels = monthlyData.map(d => d.month + yearSuffix);
+        chart.data.datasets[0].data = monthlyData.map(d => d.revenue);
     } else if (week === 'all') {
         // Show selected month only
-        const monthData = analyticsData.monthlyRevenue.find(d => d.month === month);
+        const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
+        const monthData = monthlyData.find(d => d.month === month);
         chart.data.labels = [month + yearSuffix];
         chart.data.datasets[0].data = [monthData.revenue];
     } else {
@@ -652,11 +707,13 @@ function updateBookingTrendsChart(month, week, year) {
     
     if (month === 'all') {
         // Show all months
-        chart.data.labels = analyticsData.monthlyRevenue.map(d => d.month + yearSuffix);
-        chart.data.datasets[0].data = analyticsData.monthlyRevenue.map(d => d.bookings);
+        const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
+        chart.data.labels = monthlyData.map(d => d.month + yearSuffix);
+        chart.data.datasets[0].data = monthlyData.map(d => d.bookings);
     } else if (week === 'all') {
         // Show selected month only
-        const monthData = analyticsData.monthlyRevenue.find(d => d.month === month);
+        const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
+        const monthData = monthlyData.find(d => d.month === month);
         chart.data.labels = [month + yearSuffix];
         chart.data.datasets[0].data = [monthData.bookings];
     } else {
@@ -776,13 +833,14 @@ function updateDemandPredictionChart(month, week, year) {
 // Revenue Trend Chart
 function createRevenueTrendChart() {
     const ctx = document.getElementById('revenueTrendChart').getContext('2d');
+    const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
     chartInstances['revenueTrendChart'] = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: analyticsData.monthlyRevenue.map(d => d.month),
+            labels: monthlyData.map(d => d.month),
             datasets: [{
                 label: 'Revenue (₱)',
-                data: analyticsData.monthlyRevenue.map(d => d.revenue),
+                data: monthlyData.map(d => d.revenue),
                 borderColor: '#dc3545',
                 backgroundColor: 'rgba(220, 53, 69, 0.1)',
                 borderWidth: 3,
@@ -1087,15 +1145,17 @@ function createWeatherImpactChart() {
 // Revenue Forecast Chart
 function createRevenueForecastChart() {
     const ctx = document.getElementById('revenueForecastChart').getContext('2d');
-    const historicalData = analyticsData.monthlyRevenue.slice(-6).map(d => d.revenue);
-    const forecastData = analyticsData.predictions.nextSixMonths.map(d => d.predicted);
+    const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
+    const predictions = analyticsData.predictions || sampleAnalyticsData.predictions;
+    const historicalData = monthlyData.slice(-6).map(d => d.revenue);
+    const forecastData = predictions.nextSixMonths.map(d => d.predicted);
     
     chartInstances['revenueForecastChart'] = new Chart(ctx, {
         type: 'line',
         data: {
             labels: [
-                ...analyticsData.monthlyRevenue.slice(-6).map(d => d.month),
-                ...analyticsData.predictions.nextSixMonths.map(d => d.month)
+                ...monthlyData.slice(-6).map(d => d.month),
+                ...predictions.nextSixMonths.map(d => d.month)
             ],
             datasets: [
                 {
@@ -1134,7 +1194,8 @@ function createRevenueForecastChart() {
 // Demand Prediction Chart
 function createDemandPredictionChart() {
     const ctx = document.getElementById('demandPredictionChart').getContext('2d');
-    const serviceNames = Object.keys(analyticsData.services).slice(0, 6);
+    const services = analyticsData.services || sampleAnalyticsData.services;
+    const serviceNames = Object.keys(services).slice(0, 6);
     
     chartInstances['demandPredictionChart'] = new Chart(ctx, {
         type: 'bar',
@@ -1143,12 +1204,12 @@ function createDemandPredictionChart() {
             datasets: [
                 {
                     label: 'Current Demand',
-                    data: serviceNames.map(name => analyticsData.services[name].bookings),
+                    data: serviceNames.map(name => services[name].bookings),
                     backgroundColor: '#6c757d'
                 },
                 {
                     label: 'Predicted Demand',
-                    data: serviceNames.map(name => Math.round(analyticsData.services[name].bookings * (1 + analyticsData.services[name].growth / 100))),
+                    data: serviceNames.map(name => Math.round(services[name].bookings * (1 + services[name].growth / 100))),
                     backgroundColor: '#28a745'
                 }
             ]
@@ -1165,8 +1226,8 @@ function createDemandPredictionChart() {
     });
 }
 
-// Load analytics data and populate tables
-function loadAnalyticsData() {
+// Populate analytics UI with current data
+function populateAnalyticsUI() {
     populateServiceMetricsTable();
     updateOverviewMetrics();
 }
@@ -1176,7 +1237,8 @@ function populateServiceMetricsTable() {
     const tableBody = document.getElementById('serviceMetricsTable');
     if (!tableBody) return;
     
-    const serviceEntries = Object.entries(analyticsData.services);
+    const services = analyticsData.services || sampleAnalyticsData.services;
+    const serviceEntries = Object.entries(services);
     
     tableBody.innerHTML = serviceEntries.map(([name, data]) => `
         <tr>
@@ -1200,12 +1262,17 @@ function populateServiceMetricsTable() {
 
 // Update overview metrics
 function updateOverviewMetrics() {
-    const overview = analyticsData.overview;
+    const overview = analyticsData.overview || sampleAnalyticsData.overview;
     
-    document.getElementById('total-bookings').textContent = overview.totalBookings.toLocaleString();
-    document.getElementById('total-revenue').textContent = `₱${(overview.totalRevenue / 1000000).toFixed(1)}M`;
-    document.getElementById('total-customers').textContent = overview.activeCustomers.toLocaleString();
-    document.getElementById('avg-rating').textContent = overview.averageRating.toFixed(1);
+    const totalBookingsEl = document.getElementById('total-bookings');
+    const totalRevenueEl = document.getElementById('total-revenue');
+    const totalCustomersEl = document.getElementById('total-customers');
+    const avgRatingEl = document.getElementById('avg-rating');
+    
+    if (totalBookingsEl) totalBookingsEl.textContent = overview.totalBookings.toLocaleString();
+    if (totalRevenueEl) totalRevenueEl.textContent = `₱${(overview.totalRevenue / 1000000).toFixed(1)}M`;
+    if (totalCustomersEl) totalCustomersEl.textContent = overview.activeCustomers.toLocaleString();
+    if (avgRatingEl) avgRatingEl.textContent = overview.averageRating.toFixed(1);
 }
 
 // Setup event listeners
@@ -1242,9 +1309,9 @@ function refreshData() {
 // Export data functionality
 function exportData() {
     const data = {
-        overview: analyticsData.overview,
-        services: analyticsData.services,
-        seasonal: analyticsData.seasonal,
+        overview: analyticsData.overview || sampleAnalyticsData.overview,
+        services: analyticsData.services || sampleAnalyticsData.services,
+        seasonal: analyticsData.seasonal || sampleAnalyticsData.seasonal,
         exportDate: new Date().toISOString()
     };
     
@@ -1303,11 +1370,15 @@ function showNotification(message, type = 'info') {
 function initializeRealTimeUpdates() {
     setInterval(() => {
         // Simulate real-time data updates
-        const randomService = Object.keys(analyticsData.services)[Math.floor(Math.random() * Object.keys(analyticsData.services).length)];
-        analyticsData.services[randomService].bookings += Math.floor(Math.random() * 3);
+        const services = analyticsData.services || sampleAnalyticsData.services;
+        const randomService = Object.keys(services)[Math.floor(Math.random() * Object.keys(services).length)];
+        if (services[randomService]) {
+            services[randomService].bookings += Math.floor(Math.random() * 3);
+        }
         
         // Update display if on overview section
-        if (!document.getElementById('overview').classList.contains('d-none')) {
+        const overviewSection = document.getElementById('overview');
+        if (overviewSection && !overviewSection.classList.contains('d-none')) {
             updateOverviewMetrics();
         }
     }, 30000); // Update every 30 seconds
@@ -1547,7 +1618,8 @@ function createBookingTrendsChart() {
     const ctx = document.getElementById('bookingTrendsChart').getContext('2d');
     
     // Use data from analyticsData
-    const data = analyticsData.monthlyRevenue.map(d => ({
+    const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
+    const data = monthlyData.map(d => ({
         month: d.month,
         bookings: d.bookings
     }));
@@ -1624,107 +1696,6 @@ function createBookingTrendsChart() {
     });
 }
 
-// Feedback/Messages Section Functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Filter buttons
-    const filterButtons = document.querySelectorAll('[data-filter]');
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active class from all buttons
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            // Add active class to clicked button
-            this.classList.add('active');
-            
-            // Filter feedback items
-            const filter = this.dataset.filter;
-            const feedbackItems = document.querySelectorAll('.feedback-item');
-            
-            feedbackItems.forEach(item => {
-                if (filter === 'all') {
-                    item.style.display = 'block';
-                } else if (filter === 'unread' && item.classList.contains('unread')) {
-                    item.style.display = 'block';
-                } else if (filter === 'read' && item.classList.contains('read')) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    });
-    
-    // Mark as Read functionality
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.mark-read')) {
-            const feedbackItem = e.target.closest('.feedback-item');
-            feedbackItem.classList.remove('unread');
-            feedbackItem.classList.add('read');
-            
-            const badge = feedbackItem.querySelector('.badge');
-            badge.classList.remove('bg-danger');
-            badge.classList.add('bg-secondary');
-            badge.textContent = 'Read';
-            
-            // Replace button
-            const button = e.target.closest('.mark-read');
-            button.outerHTML = `
-                <button class="btn btn-sm btn-outline-secondary mark-unread">
-                    <i class="fas fa-envelope me-1"></i>Mark as Unread
-                </button>
-            `;
-        }
-    });
-    
-    // Mark as Unread functionality
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.mark-unread')) {
-            const feedbackItem = e.target.closest('.feedback-item');
-            feedbackItem.classList.remove('read');
-            feedbackItem.classList.add('unread');
-            
-            const badge = feedbackItem.querySelector('.badge');
-            badge.classList.remove('bg-secondary');
-            badge.classList.add('bg-danger');
-            badge.textContent = 'Unread';
-            
-            // Replace button
-            const button = e.target.closest('.mark-unread');
-            button.outerHTML = `
-                <button class="btn btn-sm btn-outline-primary mark-read">
-                    <i class="fas fa-check me-1"></i>Mark as Read
-                </button>
-            `;
-        }
-    });
-    
-    // Delete feedback functionality
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.delete-feedback')) {
-            if (confirm('Are you sure you want to delete this feedback?')) {
-                const feedbackItem = e.target.closest('.feedback-item');
-                feedbackItem.style.transition = 'all 0.3s ease';
-                feedbackItem.style.opacity = '0';
-                feedbackItem.style.transform = 'translateX(-20px)';
-                
-                setTimeout(() => {
-                    feedbackItem.remove();
-                    
-                    // Check if there are any feedback items left
-                    const remainingItems = document.querySelectorAll('.feedback-item');
-                    if (remainingItems.length === 0) {
-                        const container = document.getElementById('feedback-container');
-                        container.innerHTML = `
-                            <div class="feedback-empty">
-                                <i class="fas fa-inbox"></i>
-                                <p>No feedback messages</p>
-                            </div>
-                        `;
-                    }
-                }, 300);
-            }
-        }
-    });
-});
 // Load feedback from API
 async function loadFeedback() {
     const feedbackContainer = document.getElementById('feedback-container');
@@ -1740,7 +1711,7 @@ async function loadFeedback() {
     
     try {
         // Fetch feedback from API
-        const response = await fetch('http://localhost:3000/api/feedback');
+        const response = await fetch(`${window.API_URL}/api/feedback`);
         const result = await response.json();
         
         // Clear existing feedback items
@@ -1869,7 +1840,7 @@ function attachFeedbackListeners() {
 // Update feedback status
 async function updateFeedbackStatus(timestamp, status) {
     try {
-        const response = await fetch(`http://localhost:3000/api/feedback/${timestamp}/status`, {
+        const response = await fetch(`${window.API_URL}/api/feedback/${timestamp}/status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1893,7 +1864,7 @@ async function updateFeedbackStatus(timestamp, status) {
 // Delete feedback
 async function deleteFeedback(timestamp) {
     try {
-        const response = await fetch(`http://localhost:3000/api/feedback/${timestamp}`, {
+        const response = await fetch(`${window.API_URL}/api/feedback/${timestamp}`, {
             method: 'DELETE'
         });
         

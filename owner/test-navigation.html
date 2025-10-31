@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Navigation Test</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        #console-output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .test-button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Analytics Dashboard - Navigation Test</h1>
+    <p class="lead">This page tests the navigation functionality of the analytics dashboard.</p>
+
+    <div class="test-section">
+        <h2>📋 Test Instructions</h2>
+        <ol>
+            <li>Open <code>analytics.html</code> in your browser</li>
+            <li>Open the Developer Console (F12)</li>
+            <li>Click on "Predictions" in the left sidebar</li>
+            <li>Click on "Feedback/Messages" in the left sidebar</li>
+            <li>Click on "Overview" to return</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Expected Results</h2>
+        <div class="test-result info">
+            <strong>When clicking "Predictions":</strong>
+            <ul>
+                <li>Console shows: "📍 Clicked section: predictive"</li>
+                <li>Console shows: "✅ Showing section: predictive"</li>
+                <li>Revenue Forecast chart appears</li>
+                <li>Prediction Confidence meter shows</li>
+                <li>Demand Prediction chart displays</li>
+                <li>AI-Powered Recommendations show</li>
+            </ul>
+        </div>
+        <div class="test-result info">
+            <strong>When clicking "Feedback/Messages":</strong>
+            <ul>
+                <li>Console shows: "📍 Clicked section: feedback"</li>
+                <li>Console shows: "✅ Showing section: feedback"</li>
+                <li>Filter buttons (All, Unread, Read) appear</li>
+                <li>Customer feedback messages display</li>
+                <li>Mark as Read/Unread buttons work</li>
+                <li>Delete buttons work</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🐛 Common Issues & Solutions</h2>
+        <div class="accordion" id="troubleshootingAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#issue1">
+                        Issue: Sections not showing at all
+                    </button>
+                </h2>
+                <div id="issue1" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <strong>Solution:</strong>
+                        <ul>
+                            <li>Check browser console for JavaScript errors</li>
+                            <li>Verify all script files are loaded (dashboard.js, analytics.js)</li>
+                            <li>Clear browser cache and reload</li>
+                            <li>Check that Bootstrap CSS and JS are loaded</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue2">
+                        Issue: Charts not displaying
+                    </button>
+                </h2>
+                <div id="issue2" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <strong>Solution:</strong>
+                        <ul>
+                            <li>Verify Chart.js is loaded from CDN</li>
+                            <li>Check console for chart initialization errors</li>
+                            <li>Ensure canvas elements exist in HTML</li>
+                            <li>Wait for page to fully load before clicking navigation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue3">
+                        Issue: Feedback section is empty
+                    </button>
+                </h2>
+                <div id="issue3" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <strong>Solution:</strong>
+                        <ul>
+                            <li>Check if API server is running (http://localhost:3000)</li>
+                            <li>Verify feedback API endpoint is accessible</li>
+                            <li>Check network tab for failed API requests</li>
+                            <li>Sample feedback should display even if API fails</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue4">
+                        Issue: Navigation clicks do nothing
+                    </button>
+                </h2>
+                <div id="issue4" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <strong>Solution:</strong>
+                        <ul>
+                            <li>Check if initializeNavigation() is being called</li>
+                            <li>Look for console messages starting with "🔍"</li>
+                            <li>Verify event listeners are attached (check Elements > Event Listeners)</li>
+                            <li>Ensure DOMContentLoaded event has fired</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Quick Links</h2>
+        <a href="analytics.html" class="btn btn-primary test-button" target="_blank">
+            Open Analytics Dashboard
+        </a>
+        <a href="ANALYTICS_FIX_NOTES.md" class="btn btn-secondary test-button" target="_blank">
+            View Fix Notes
+        </a>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Files Modified</h2>
+        <div class="test-result success">
+            <strong>✅ Fixed Files:</strong>
+            <ul>
+                <li><code>owner/analytics.js</code> - JavaScript fixes applied</li>
+            </ul>
+        </div>
+        <div class="test-result success">
+            <strong>✅ No Changes Needed:</strong>
+            <ul>
+                <li><code>owner/analytics.html</code> - HTML structure is correct</li>
+                <li><code>owner/analytics.css</code> - CSS styles are correct</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>💡 Key Fixes Applied</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <strong>Problem 1:</strong> Variable Conflict
+                    </div>
+                    <div class="card-body">
+                        <p><code>analyticsData</code> was declared twice</p>
+                        <p class="text-success"><strong>Fixed:</strong> Renamed to <code>sampleAnalyticsData</code> with proper initialization</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <strong>Problem 2:</strong> Missing Fallbacks
+                    </div>
+                    <div class="card-body">
+                        <p>Functions didn't handle API failures</p>
+                        <p class="text-success"><strong>Fixed:</strong> Added fallback data handling throughout</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <strong>Problem 3:</strong> Duplicate Events
+                    </div>
+                    <div class="card-body">
+                        <p>Duplicate DOMContentLoaded listeners</p>
+                        <p class="text-success"><strong>Fixed:</strong> Removed duplicate event listener</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <strong>Problem 4:</strong> No Debug Info
+                    </div>
+                    <div class="card-body">
+                        <p>Hard to diagnose navigation issues</p>
+                        <p class="text-success"><strong>Fixed:</strong> Added console logging for navigation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info mt-4">
+        <h4>🎯 Next Steps:</h4>
+        <ol>
+            <li>Open <strong>analytics.html</strong> in your browser</li>
+            <li>Open Developer Console (F12) to see debug messages</li>
+            <li>Test clicking on each navigation item</li>
+            <li>Verify sections display correctly</li>
+            <li>If issues persist, check console for error messages</li>
+        </ol>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

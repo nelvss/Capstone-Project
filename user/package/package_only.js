@@ -1684,8 +1684,10 @@
         // Clear existing options
         hotelsContainer.innerHTML = '';
         
-        // Generate hotel options
-        hotelsData.forEach((hotel, index) => {
+        // Filter out N/A hotels and generate hotel options
+        const validHotels = hotelsData.filter(hotel => hotel.name && hotel.name !== 'N/A');
+        
+        validHotels.forEach((hotel, index) => {
             const hotelOption = document.createElement('div');
             hotelOption.className = 'form-check mb-2';
             
