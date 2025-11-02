@@ -16,6 +16,275 @@
     
     let vehiclesData = [];
     
+    // Global variable to store diving data
+    let divingData = [];
+    
+    // Global variable to store van destinations data
+    let vanDestinationsData = [];
+
+    // Fetch diving records from database
+    async function fetchDiving() {
+        try {
+            console.log('🔄 Fetching diving records from API...');
+            const response = await fetch('http://localhost:3000/api/diving', { cache: 'no-cache' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.diving) {
+                divingData = result.diving;
+                console.log('✅ Diving records loaded:', divingData.length, 'records');
+                // Try to render immediately
+                renderDivingOptions();
+                // Also set up a backup render in case container isn't ready
+                setTimeout(() => {
+                    const container = document.getElementById('diving-options');
+                    if (container && container.textContent.includes('Loading')) {
+                        renderDivingOptions();
+                    }
+                }, 500);
+                return divingData;
+            } else {
+                console.error('❌ Failed to fetch diving records:', result.message || 'Unknown error');
+                renderDivingOptionsError(result.message || 'Failed to load diving records');
+                return [];
+            }
+        } catch (error) {
+            console.error('❌ Error fetching diving records:', error);
+            renderDivingOptionsError(`Error: ${error.message}`);
+            return [];
+        }
+    }
+
+    // Render diving options dynamically from database
+    function renderDivingOptions(retryCount = 0) {
+        const divingOptionsContainer = document.getElementById('diving-options');
+        if (!divingOptionsContainer) {
+            if (retryCount < 5) {
+                console.warn(`⚠️ Diving options container not found. Retrying... (${retryCount + 1}/5)`);
+                setTimeout(() => {
+                    renderDivingOptions(retryCount + 1);
+                }, 500);
+            } else {
+                console.error('❌ Diving options container not found after 5 retries');
+            }
+            return;
+        }
+
+        // Clear existing content
+        divingOptionsContainer.innerHTML = '';
+
+        if (!divingData || divingData.length === 0) {
+            divingOptionsContainer.innerHTML = '<div class="text-center text-muted py-3"><small>No diving services available</small></div>';
+            return;
+        }
+
+        // Filter out invalid diving records
+        const validDiving = divingData.filter(diving => diving.name && diving.name.trim() !== '' && diving.name.toUpperCase() !== 'N/A');
+        
+        if (validDiving.length === 0) {
+            divingOptionsContainer.innerHTML = '<div class="text-center text-muted py-3"><small>No diving services available</small></div>';
+            return;
+        }
+        
+        // Render each diving option from database
+        validDiving.forEach((diving, index) => {
+            const divingId = `diving-${diving.diving_id || `diving-${index}`}`;
+            const divingName = diving.name || 'Unknown Diving Service';
+            const isLast = index === validDiving.length - 1;
+            
+            const divingOption = document.createElement('div');
+            divingOption.className = `form-check ${isLast ? '' : 'mb-2'}`;
+            
+            // Create input element
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.className = 'form-check-input diving-option';
+            input.id = divingId;
+            input.value = divingName;
+            input.dataset.divingId = diving.diving_id; // Store diving_id for reference
+            input.dataset.pricePerHead = diving.price_per_head || 0; // Store price for calculation
+            
+            // Create label element with for attribute
+            const label = document.createElement('label');
+            label.className = 'form-check-label d-flex align-items-center';
+            label.htmlFor = divingId;
+            
+            // Create span for label text
+            const span = document.createElement('span');
+            span.innerHTML = `${divingName} <small class="text-muted ms-2">(₱${(diving.price_per_head || 0).toLocaleString()}/head)</small>`;
+            
+            // Add input and label as siblings
+            divingOption.appendChild(input);
+            label.appendChild(span);
+            divingOption.appendChild(label);
+            
+            divingOptionsContainer.appendChild(divingOption);
+        });
+
+        // Re-attach event listeners for diving selection
+        attachDivingEventListeners();
+    }
+
+    // Render error message in diving options
+    function renderDivingOptionsError(errorMessage) {
+        const divingOptionsContainer = document.getElementById('diving-options');
+        if (!divingOptionsContainer) {
+            console.warn('⚠️ Diving options container not found for error display');
+            return;
+        }
+        divingOptionsContainer.innerHTML = `<div class="text-center text-danger py-3"><small>${errorMessage}</small><br><small class="text-muted">Please refresh the page.</small></div>`;
+    }
+
+    // Attach event listeners to diving options
+    function attachDivingEventListeners() {
+        const divingOptions = document.querySelectorAll('.diving-option');
+        divingOptions.forEach(option => {
+            // Remove existing listeners by cloning
+            const newOption = option.cloneNode(true);
+            option.parentNode.replaceChild(newOption, option);
+            
+            // Add new listener
+            newOption.addEventListener('change', () => {
+                calculateDivingPrice();
+                clearNumberOfDiversErrorIfNoDiving();
+            });
+        });
+    }
+
+    // Get diving by name or ID
+    function getDivingByName(divingName) {
+        if (!divingData || divingData.length === 0) {
+            console.warn('No diving data available');
+            return null;
+        }
+        
+        // Try exact match first
+        let diving = divingData.find(d => d.name === divingName);
+        
+        // If no exact match, try case-insensitive match
+        if (!diving) {
+            diving = divingData.find(d => 
+                d.name && d.name.toLowerCase() === divingName.toLowerCase()
+            );
+        }
+        
+        return diving;
+    }
+
+    // Fetch van destinations from database
+    async function fetchVanDestinations() {
+        try {
+            console.log('🔄 Fetching van destinations from API...');
+            const response = await fetch('http://localhost:3000/api/van-destinations', { cache: 'no-cache' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.destinations) {
+                vanDestinationsData = result.destinations;
+                console.log('✅ Van destinations loaded:', vanDestinationsData.length, 'destinations');
+                // Populate dropdowns immediately
+                populateVanDestinationDropdowns();
+                return vanDestinationsData;
+            } else {
+                console.error('❌ Failed to fetch van destinations:', result.message || 'Unknown error');
+                return [];
+            }
+        } catch (error) {
+            console.error('❌ Error fetching van destinations:', error);
+            return [];
+        }
+    }
+
+    // Populate van destination dropdowns based on location type
+    function populateVanDestinationDropdowns() {
+        const placeSelect = document.getElementById('placeSelect');
+        const outsidePlaceSelect = document.getElementById('outsidePlaceSelect');
+        
+        if (!vanDestinationsData || vanDestinationsData.length === 0) {
+            console.warn('⚠️ No van destinations data available');
+            return;
+        }
+
+        // Clear existing options (keep the first "Select place..." option)
+        if (placeSelect) {
+            // Keep the first option and remove the rest
+            while (placeSelect.options.length > 1) {
+                placeSelect.remove(1);
+            }
+        }
+
+        if (outsidePlaceSelect) {
+            // Keep the first option and remove the rest
+            while (outsidePlaceSelect.options.length > 1) {
+                outsidePlaceSelect.remove(1);
+            }
+        }
+
+        // Populate "Within Puerto Galera" destinations
+        const withinDestinations = vanDestinationsData.filter(dest => 
+            dest.location_type && dest.location_type.toLowerCase() === 'within puerto galera'
+        );
+
+        withinDestinations.forEach(dest => {
+            if (placeSelect && dest.destination_name) {
+                const option = document.createElement('option');
+                option.value = dest.destination_name;
+                option.textContent = dest.destination_name;
+                option.dataset.vanDestinationId = dest.van_destination_id;
+                option.dataset.onewayPrice = dest.oneway_price || 0;
+                option.dataset.roundtripPrice = dest.roundtrip_price || 0;
+                placeSelect.appendChild(option);
+            }
+        });
+
+        // Populate "Outside Puerto Galera" destinations
+        const outsideDestinations = vanDestinationsData.filter(dest => 
+            dest.location_type && dest.location_type.toLowerCase() === 'outside puerto galera'
+        );
+
+        outsideDestinations.forEach(dest => {
+            if (outsidePlaceSelect && dest.destination_name) {
+                const option = document.createElement('option');
+                option.value = dest.destination_name;
+                option.textContent = dest.destination_name;
+                option.dataset.vanDestinationId = dest.van_destination_id;
+                option.dataset.onewayPrice = dest.oneway_price || 0;
+                option.dataset.roundtripPrice = dest.roundtrip_price || 0;
+                outsidePlaceSelect.appendChild(option);
+            }
+        });
+
+        console.log(`✅ Populated ${withinDestinations.length} Within PG and ${outsideDestinations.length} Outside PG destinations`);
+    }
+
+    // Get van destination by name
+    function getVanDestinationByName(destinationName) {
+        if (!vanDestinationsData || vanDestinationsData.length === 0) {
+            console.warn('No van destinations data available');
+            return null;
+        }
+        
+        // Try exact match first
+        let destination = vanDestinationsData.find(d => d.destination_name === destinationName);
+        
+        // If no exact match, try case-insensitive match
+        if (!destination) {
+            destination = vanDestinationsData.find(d => 
+                d.destination_name && d.destination_name.toLowerCase() === destinationName.toLowerCase()
+            );
+        }
+        
+        return destination;
+    }
+
     // Fetch vehicles from database
     async function fetchVehicles() {
         try {
@@ -979,8 +1248,22 @@
             return 0;
         }
 
-        // Diving service pricing (per diver)
-        const pricePerDiver = 3500;
+        // Get price from database (stored in data attribute)
+        let pricePerDiver = parseFloat(selectedDiving.dataset.pricePerHead) || 0;
+        
+        // Fallback: if no price in data attribute, try to get from diving data
+        if (pricePerDiver === 0) {
+            const divingName = selectedDiving.value;
+            const divingDataItem = getDivingByName(divingName);
+            if (divingDataItem && divingDataItem.price_per_head) {
+                pricePerDiver = divingDataItem.price_per_head;
+            } else {
+                // Ultimate fallback to old hardcoded price
+                console.warn('⚠️ Using fallback diving price (3500) - diving data not available');
+                pricePerDiver = 3500;
+            }
+        }
+        
         const totalDivingPrice = pricePerDiver * numberOfDivers;
 
         divingAmountInput.value = totalDivingPrice > 0 ? `₱${totalDivingPrice.toLocaleString()}.00` : "";
@@ -1414,10 +1697,31 @@
             rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
             rentalDays: document.getElementById('rentalDays').value,
             diving: document.querySelector('.diving-option:checked') ? true : false,
+            divingId: (() => {
+                const selectedDiving = document.querySelector('.diving-option:checked');
+                return selectedDiving ? selectedDiving.dataset.divingId : null;
+            })(),
+            divingName: (() => {
+                const selectedDiving = document.querySelector('.diving-option:checked');
+                return selectedDiving ? selectedDiving.value : null;
+            })(),
             numberOfDivers: document.getElementById('numberOfDiver').value,
             // Van rental data
             vanDestination: destinationSelect,
             vanPlace: vanPlace,
+            vanDestinationId: (() => {
+                // Get van_destination_id from selected option
+                if (destinationSelect === 'Within Puerto Galera') {
+                    const selectEl = document.getElementById('placeSelect');
+                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                    return selectedOption?.dataset.vanDestinationId || null;
+                } else if (destinationSelect === 'Outside Puerto Galera') {
+                    const selectEl = document.getElementById('outsidePlaceSelect');
+                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                    return selectedOption?.dataset.vanDestinationId || null;
+                }
+                return null;
+            })(),
             vanTripType: vanTripType,
             vanDays: vanDays,
             vanAmount: document.getElementById('vanTotalAmount')?.value || '',
@@ -1432,7 +1736,7 @@
         // Go back to option page
         window.location.href = '../option/option_page.html';
     };
-
+    
     window.nextStep = function() {
         console.log("Next button clicked!");
         
@@ -1519,10 +1823,31 @@
             rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
             rentalDays: document.getElementById('rentalDays').value,
             diving: document.querySelector('.diving-option:checked') ? true : false,
+            divingId: (() => {
+                const selectedDiving = document.querySelector('.diving-option:checked');
+                return selectedDiving ? selectedDiving.dataset.divingId : null;
+            })(),
+            divingName: (() => {
+                const selectedDiving = document.querySelector('.diving-option:checked');
+                return selectedDiving ? selectedDiving.value : null;
+            })(),
             numberOfDivers: document.getElementById('numberOfDiver').value,
             // Van rental data
             vanDestination: destinationSelect,
             vanPlace: vanPlace,
+            vanDestinationId: (() => {
+                // Get van_destination_id from selected option
+                if (destinationSelect === 'Within Puerto Galera') {
+                    const selectEl = document.getElementById('placeSelect');
+                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                    return selectedOption?.dataset.vanDestinationId || null;
+                } else if (destinationSelect === 'Outside Puerto Galera') {
+                    const selectEl = document.getElementById('outsidePlaceSelect');
+                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                    return selectedOption?.dataset.vanDestinationId || null;
+                }
+                return null;
+            })(),
             vanTripType: vanTripType,
             vanDays: vanDays,
             vanAmount: document.getElementById('vanTotalAmount')?.value || '',
@@ -1912,10 +2237,31 @@
             rentalVehicles: Array.from(document.querySelectorAll('.rental-option:checked')).map(option => option.value),
             rentalDays: document.getElementById('rentalDays').value,
             diving: document.querySelector('.diving-option:checked') ? true : false,
+            divingId: (() => {
+                const selectedDiving = document.querySelector('.diving-option:checked');
+                return selectedDiving ? selectedDiving.dataset.divingId : null;
+            })(),
+            divingName: (() => {
+                const selectedDiving = document.querySelector('.diving-option:checked');
+                return selectedDiving ? selectedDiving.value : null;
+            })(),
             numberOfDivers: document.getElementById('numberOfDiver').value,
             // Van rental data
             vanDestination: destinationSelect,
             vanPlace: vanPlace,
+            vanDestinationId: (() => {
+                // Get van_destination_id from selected option
+                if (destinationSelect === 'Within Puerto Galera') {
+                    const selectEl = document.getElementById('placeSelect');
+                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                    return selectedOption?.dataset.vanDestinationId || null;
+                } else if (destinationSelect === 'Outside Puerto Galera') {
+                    const selectEl = document.getElementById('outsidePlaceSelect');
+                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                    return selectedOption?.dataset.vanDestinationId || null;
+                }
+                return null;
+            })(),
             vanTripType: vanTripType,
             vanDays: vanDays,
             vanAmount: document.getElementById('vanTotalAmount')?.value || '',
@@ -2041,14 +2387,16 @@
             
             let basePrice = 0;
             if (tripType === 'oneway') {
-                basePrice = selectedPlace.getAttribute('data-oneway');
+                // Use database price from data attribute
+                basePrice = parseFloat(selectedPlace.dataset.onewayPrice) || 0;
             } else if (tripType === 'roundtrip') {
-                basePrice = selectedPlace.getAttribute('data-roundtrip');
+                // Use database price from data attribute
+                basePrice = parseFloat(selectedPlace.dataset.roundtripPrice) || 0;
             }
             
-            if (basePrice) {
-                const totalPrice = parseInt(basePrice) * days;
-                vanAmountInput.value = `₱${totalPrice.toLocaleString()}.00`;
+            if (basePrice && basePrice > 0) {
+                const totalPrice = basePrice * days;
+                vanAmountInput.value = `₱${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             } else {
                 vanAmountInput.value = '';
             }
@@ -2075,14 +2423,16 @@
             
             let basePrice = 0;
             if (tripType === 'oneway') {
-                basePrice = selectedPlace.getAttribute('data-oneway');
+                // Use database price from data attribute
+                basePrice = parseFloat(selectedPlace.dataset.onewayPrice) || 0;
             } else if (tripType === 'roundtrip') {
-                basePrice = selectedPlace.getAttribute('data-roundtrip');
+                // Use database price from data attribute
+                basePrice = parseFloat(selectedPlace.dataset.roundtripPrice) || 0;
             }
             
-            if (basePrice) {
-                const totalPrice = parseInt(basePrice) * days;
-                vanAmountInput.value = `₱${totalPrice.toLocaleString()}.00`;
+            if (basePrice && basePrice > 0) {
+                const totalPrice = basePrice * days;
+                vanAmountInput.value = `₱${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             } else {
                 vanAmountInput.value = '';
             }
@@ -2110,12 +2460,32 @@
             });
         }, 100);
     }
+
+    function initializeDiving() {
+        setTimeout(() => {
+            fetchDiving().then(() => {
+                console.log("Diving records loaded successfully!");
+                // Retry rendering if container wasn't available initially
+                if (!document.getElementById('diving-options')) {
+                    setTimeout(() => renderDivingOptions(), 1000);
+                }
+            }).catch(error => {
+                console.error("Error loading diving records:", error);
+            });
+        }, 100);
+    }
     
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeVehicles);
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeVehicles();
+            initializeDiving();
+            initializeVanDestinations();
+        });
     } else {
         // DOM is already loaded
         initializeVehicles();
+        initializeDiving();
+        initializeVanDestinations();
     }
 
     console.log("Tour booking form initialized successfully!");

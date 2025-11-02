@@ -69,11 +69,101 @@
 
     <section id="van-tab" class="tab-content">
       <div class="settings-section">
-        <div class="empty-state">
-          <div class="empty-icon" aria-hidden="true">🚐</div>
-          <h2>Van Rental</h2>
-          <p>Manage fleet information, driver assignments, and van-specific pricing. Integrate booking controls when you are ready.</p>
+        <div class="section-heading">
+          <div>
+            <h2>Van Rental Settings</h2>
+            <p class="section-subtitle">Manage the van destinations synced with Supabase. Update location types, destination names, and pricing stored in the <code>van_destinations</code> table.</p>
+          </div>
+          <div class="vehicle-actions-bar">
+            <button id="van-add-btn" class="btn-primary" type="button">➕ Add Destination</button>
+            <button id="van-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
+            <span id="van-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
+          </div>
         </div>
+
+        <div id="van-error" class="vehicle-error" role="alert" hidden></div>
+
+        <div id="van-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
+          <header class="vehicle-card-header">
+            <div>
+              <h3>New Destination</h3>
+              <p class="vehicle-id">Creating new...</p>
+            </div>
+            <span class="vehicle-status-tag">New</span>
+          </header>
+          <div class="vehicle-card-body">
+            <div class="vehicle-form">
+              <label class="form-field">
+                <span>Location Type</span>
+                <select id="new-van-location-type">
+                  <option value="">Select location type</option>
+                  <option value="Within Puerto Galera">Within Puerto Galera</option>
+                  <option value="Outside Puerto Galera">Outside Puerto Galera</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Destination Name</span>
+                <input type="text" id="new-van-destination-name" placeholder="e.g., Boracay Beach">
+              </label>
+              <label class="form-field">
+                <span>One-way Price (₱)</span>
+                <input type="number" min="0" step="0.01" id="new-van-oneway-price" placeholder="0.00">
+              </label>
+              <label class="form-field">
+                <span>Round-trip Price (₱)</span>
+                <input type="number" min="0" step="0.01" id="new-van-roundtrip-price" placeholder="0.00">
+              </label>
+              <div class="vehicle-form-actions">
+                <button type="button" id="new-van-save-btn" class="btn-primary">Create Destination</button>
+                <button type="button" id="new-van-cancel-btn" class="btn-secondary">Cancel</button>
+                <span id="new-van-status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="van-list" class="vehicle-list" role="list"></div>
+
+        <template id="van-card-template">
+          <article class="vehicle-card" role="listitem">
+            <header class="vehicle-card-header">
+              <div>
+                <h3 class="vehicle-name"></h3>
+                <p class="vehicle-id"></p>
+              </div>
+              <span class="vehicle-status-tag" aria-live="polite"></span>
+            </header>
+            <div class="vehicle-card-body">
+              <div class="vehicle-form">
+                <label class="form-field">
+                  <span>Location Type</span>
+                  <select class="van-location-type">
+                    <option value="">Select location type</option>
+                    <option value="Within Puerto Galera">Within Puerto Galera</option>
+                    <option value="Outside Puerto Galera">Outside Puerto Galera</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Destination Name</span>
+                  <input type="text" class="van-destination-name" placeholder="e.g., Boracay Beach">
+                </label>
+                <label class="form-field">
+                  <span>One-way Price (₱)</span>
+                  <input type="number" min="0" step="0.01" class="van-oneway-price" placeholder="0.00">
+                </label>
+                <label class="form-field">
+                  <span>Round-trip Price (₱)</span>
+                  <input type="number" min="0" step="0.01" class="van-roundtrip-price" placeholder="0.00">
+                </label>
+                <div class="vehicle-form-actions">
+                  <button type="button" class="btn-primary van-save-btn">Save Changes</button>
+                  <button type="button" class="btn-danger van-delete-btn">🗑️ Delete</button>
+                  <span class="vehicle-inline-status" aria-live="polite"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </template>
       </div>
     </section>
 
@@ -179,11 +269,93 @@
 
     <section id="diving-tab" class="tab-content">
       <div class="settings-section">
-        <div class="empty-state">
-          <div class="empty-icon" aria-hidden="true">🤿</div>
-          <h2>Diving</h2>
-          <p>Outline dive packages, certification requirements, and equipment rentals. Embed safety guidelines or waiver forms here.</p>
+        <div class="section-heading">
+          <div>
+            <h2>Diving Settings</h2>
+            <p class="section-subtitle">Manage the diving inventory synced with Supabase. Update pricing and images stored in the <code>diving</code> table.</p>
+          </div>
+          <div class="vehicle-actions-bar">
+            <button id="diving-add-btn" class="btn-primary" type="button">➕ Add Diving</button>
+            <button id="diving-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
+            <span id="diving-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
+          </div>
         </div>
+
+        <div id="diving-error" class="vehicle-error" role="alert" hidden></div>
+
+        <div id="diving-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
+          <header class="vehicle-card-header">
+            <div>
+              <h3>New Diving</h3>
+              <p class="vehicle-id">Creating new...</p>
+            </div>
+            <span class="vehicle-status-tag">New</span>
+          </header>
+          <div class="vehicle-card-body">
+            <div class="vehicle-media">
+              <div class="vehicle-image-wrapper">
+                <img class="vehicle-image" src="../Images/logo.png" alt="Diving image">
+                <div class="vehicle-image-actions">
+                  <button type="button" id="new-diving-upload-btn" class="btn-secondary vehicle-upload-btn">Upload Image</button>
+                  <input type="file" id="new-diving-file-input" class="vehicle-file-input" accept="image/*" hidden>
+                  <small class="vehicle-image-hint">Stored in Supabase bucket <code>diving-image</code></small>
+                </div>
+              </div>
+            </div>
+            <div class="vehicle-form">
+              <label class="form-field">
+                <span>Diving Name</span>
+                <input type="text" id="new-diving-name" placeholder="e.g., Scuba Diving Adventure">
+              </label>
+              <label class="form-field">
+                <span>Price per head (₱)</span>
+                <input type="number" min="0" step="0.01" id="new-diving-price" placeholder="0.00">
+              </label>
+              <div class="vehicle-form-actions">
+                <button type="button" id="new-diving-save-btn" class="btn-primary">Create Diving</button>
+                <button type="button" id="new-diving-cancel-btn" class="btn-secondary">Cancel</button>
+                <span id="new-diving-status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="diving-list" class="vehicle-list" role="list"></div>
+
+        <template id="diving-card-template">
+          <article class="vehicle-card" role="listitem">
+            <header class="vehicle-card-header">
+              <div>
+                <h3 class="vehicle-name"></h3>
+                <p class="vehicle-id"></p>
+              </div>
+              <span class="vehicle-status-tag" aria-live="polite"></span>
+            </header>
+            <div class="vehicle-card-body">
+              <div class="vehicle-media">
+                <div class="vehicle-image-wrapper">
+                  <img class="vehicle-image" alt="Diving image">
+                  <div class="vehicle-image-actions">
+                    <button type="button" class="btn-secondary vehicle-upload-btn">Upload Image</button>
+                    <input type="file" class="vehicle-file-input" accept="image/*" hidden>
+                    <small class="vehicle-image-hint">Stored in Supabase bucket <code>diving-image</code></small>
+                  </div>
+                </div>
+              </div>
+              <div class="vehicle-form">
+                <label class="form-field">
+                  <span>Price per head (₱)</span>
+                  <input type="number" min="0" step="0.01" class="vehicle-price" placeholder="0.00">
+                </label>
+                <div class="vehicle-form-actions">
+                  <button type="button" class="btn-primary vehicle-save-btn">Save Changes</button>
+                  <button type="button" class="btn-danger vehicle-delete-btn">🗑️ Delete</button>
+                  <span class="vehicle-inline-status" aria-live="polite"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </template>
       </div>
     </section>
   </div>

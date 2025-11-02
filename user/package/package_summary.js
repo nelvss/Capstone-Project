@@ -420,7 +420,9 @@
                     booking_id: bookingId,
                     number_of_divers: parseInt(bookingData.numberOfDivers) || 1,
                     total_amount: parseFloat(bookingData.divingAmount?.replace(/[₱,]/g, '') || 0),
-                    booking_type: 'package_only' // Track that this came from Package Only booking
+                    booking_type: 'package_only', // Track that this came from Package Only booking
+                    diving_id: bookingData.divingId || null, // Include diving_id from selected diving service
+                    diving_name: bookingData.divingName || null // Include diving_name for reference
                 };
                 
                 const divingResponse = await fetch('http://localhost:3000/api/booking-diving', {
@@ -480,50 +482,41 @@
             console.log('🚐 Checking van rental data:', {
                 vanDestination: bookingData.vanDestination,
                 vanPlace: bookingData.vanPlace,
+                vanDestinationId: bookingData.vanDestinationId,
                 vanDays: bookingData.vanDays,
                 vanAmount: bookingData.vanAmount,
                 vanTripType: bookingData.vanTripType
             });
             
-            if (bookingData.vanDestination && bookingData.vanPlace) {
+            if (bookingData.vanDestination && bookingData.vanPlace && bookingData.vanDestinationId) {
                 try {
-                    console.log('🔍 Looking up destination ID for:', bookingData.vanPlace);
-                    const destinationId = await getDestinationIdByName(bookingData.vanPlace);
-                    console.log('📍 Destination ID found:', destinationId);
+                    const vanPayload = {
+                        booking_id: bookingId,
+                        van_destination_id: bookingData.vanDestinationId,
+                        number_of_days: parseInt(bookingData.vanDays) || 1,
+                        total_amount: parseFloat(bookingData.vanAmount?.replace(/[₱,]/g, '') || 0),
+                        trip_type: bookingData.vanTripType || 'oneway',
+                        choose_destination: bookingData.vanPlace
+                    };
                     
-                    if (destinationId) {
-                        const vanPayload = {
-                            booking_id: bookingId,
-                            destination_id: destinationId,
-                            rental_days: parseInt(bookingData.vanDays) || 1,
-                            total_price: parseFloat(bookingData.vanAmount?.replace(/[₱,]/g, '') || 0),
-                            rental_start_date: null,
-                            rental_end_date: null,
-                            notes: ''
-                        };
-                        
-                        console.log('📦 Sending van rental payload:', vanPayload);
-                        
-                        const vanResponse = await fetch('http://localhost:3000/api/booking-van-rental', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(vanPayload)
-                        });
-                        
-                        const vanResult = await vanResponse.json();
-                        console.log('📥 Van rental API response:', vanResult);
-                        
-                        if (!vanResult.success) {
-                            console.error('❌ Van rental booking failed:', vanResult.message);
-                            console.error('Error details:', vanResult.error);
-                        } else {
-                            console.log('✅ Van rental booking created successfully:', vanResult.van_rental_booking);
-                        }
+                    console.log('📦 Sending van rental payload:', vanPayload);
+                    
+                    const vanResponse = await fetch('http://localhost:3000/api/booking-van-rental', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(vanPayload)
+                    });
+                    
+                    const vanResult = await vanResponse.json();
+                    console.log('📥 Van rental API response:', vanResult);
+                    
+                    if (!vanResult.success) {
+                        console.error('❌ Van rental booking failed:', vanResult.message);
+                        console.error('Error details:', vanResult.error);
                     } else {
-                        console.warn('⚠️ Van rental skipped: destination not found in database');
-                        console.warn('Searched for:', bookingData.vanPlace);
+                        console.log('✅ Van rental booking created successfully:', vanResult.van_rental_booking);
                     }
                 } catch (error) {
                     console.error('❌ Van rental booking submission error:', error);

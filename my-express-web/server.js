@@ -1393,9 +1393,14 @@ app.post('/api/booking-van-rental', async (req, res) => {
   try {
     const { 
       booking_id, 
-      destination_id, 
+      destination_id,
+      van_destination_id,
+      number_of_days,
       rental_days, 
+      total_amount,
       total_price,
+      trip_type,
+      choose_destination,
       rental_start_date,
       rental_end_date,
       notes
@@ -1403,34 +1408,40 @@ app.post('/api/booking-van-rental', async (req, res) => {
     
     console.log('📝 Van rental booking request received');
     console.log('📦 Request body:', req.body);
+    
+    // Support both old format (destination_id) and new format (van_destination_id)
+    const finalDestinationId = van_destination_id || destination_id;
+    const finalDays = number_of_days || rental_days;
+    const finalAmount = total_amount || total_price || 0;
+    
     console.log('🔑 Parsed values:', { 
       booking_id, 
-      destination_id, 
-      rental_days, 
-      total_price 
+      van_destination_id: finalDestinationId, 
+      number_of_days: finalDays, 
+      total_amount: finalAmount 
     });
     
-    if (!booking_id || !destination_id || !rental_days) {
+    if (!booking_id || !finalDestinationId || !finalDays) {
       console.error('❌ Missing required fields');
       console.error('Validation:', { 
         has_booking_id: !!booking_id, 
-        has_destination_id: !!destination_id, 
-        has_rental_days: !!rental_days 
+        has_destination_id: !!finalDestinationId, 
+        has_days: !!finalDays 
       });
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: booking_id, destination_id, rental_days',
-        received: { booking_id, destination_id, rental_days }
+        message: 'Missing required fields: booking_id, van_destination_id (or destination_id), number_of_days (or rental_days)',
+        received: { booking_id, van_destination_id: finalDestinationId, number_of_days: finalDays }
       });
     }
     
     const insertData = {
       booking_id,
-      van_destination_id: destination_id,
-      number_of_days: rental_days,
-      total_amount: total_price || 0,
-      trip_type: 'oneway',
-      choose_destination: 'Within Puerto Galera'
+      van_destination_id: finalDestinationId,
+      number_of_days: finalDays,
+      total_amount: finalAmount,
+      trip_type: trip_type || 'oneway',
+      choose_destination: choose_destination || ''
     };
     
     console.log('📤 Inserting to database:', insertData);
@@ -1967,6 +1978,398 @@ app.delete('/api/vehicles/:vehicleId', async (req, res) => {
   }
 });
 
+// Helper function to fix diving image URLs to include diving/ folder
+function fixDivingImageUrl(url) {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return url;
+  }
+  
+  // If URL already contains /diving/, return as is
+  if (url.includes('/diving/')) {
+    return url;
+  }
+  
+  // Extract the filename from the URL
+  // Format: https://...supabase.co/storage/v1/object/public/diving-image/filename.jpg
+  // Should become: https://...supabase.co/storage/v1/object/public/diving-image/diving/filename.jpg
+  const bucketName = 'diving-image';
+  const bucketPattern = new RegExp(`/${bucketName}/([^/]+)$`);
+  const match = url.match(bucketPattern);
+  
+  if (match && match[1]) {
+    const filename = match[1];
+    // Reconstruct URL with diving/ folder
+    const baseUrl = url.substring(0, url.indexOf(`/${bucketName}/`));
+    const newUrl = `${baseUrl}/${bucketName}/diving/${filename}`;
+    return newUrl;
+  }
+  
+  // If pattern doesn't match, return original URL
+  return url;
+}
+
+// Helper function to normalize diving ID (similar to normalizeVehicleId)
+function normalizeDivingId(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const trimmed = value.toString().trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  if (/^\d+$/.test(trimmed)) {
+    const numericId = Number(trimmed);
+    return Number.isFinite(numericId) ? numericId : null;
+  }
+
+  return trimmed;
+}
+
+// Get all diving records
+app.get('/api/diving', async (req, res) => {
+  try {
+    console.log('📊 Fetching diving records...');
+    
+    const { data, error } = await supabase
+      .from('diving')
+      .select('*');
+    
+    if (error) {
+      console.error('❌ Error fetching diving records:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch diving records', 
+        error: error.message 
+      });
+    }
+    
+    // Fix image URLs to include diving/ folder path
+    const divingRecords = (data || []).map(diving => {
+      if (diving.diving_image) {
+        diving.diving_image = fixDivingImageUrl(diving.diving_image);
+      }
+      return diving;
+    });
+    
+    if (divingRecords.length > 0) {
+      console.log('✅ Diving records fetched successfully:', divingRecords.length, 'records');
+    } else {
+      console.log('✅ Diving records fetched successfully: 0 records');
+    }
+    
+    res.json({ 
+      success: true, 
+      diving: divingRecords
+    });
+    
+  } catch (error) {
+    console.error('❌ Diving records fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+});
+
+// Create new diving record
+app.post('/api/diving', async (req, res) => {
+  try {
+    const { name, price_per_head } = req.body;
+
+    console.log('➕ Creating diving record:', { name, price_per_head });
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Diving name is required'
+      });
+    }
+
+    if (price_per_head === undefined || price_per_head === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price per head is required'
+      });
+    }
+
+    const parsedPrice = parseFloat(price_per_head);
+    if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'price_per_head must be a non-negative number'
+      });
+    }
+
+    const insertData = {
+      name: name.trim(),
+      price_per_head: parsedPrice,
+      diving_image: '' // Provide empty string as default to satisfy NOT NULL constraint
+    };
+
+    console.log('📝 Inserting diving record:', insertData);
+
+    const { data, error } = await supabase
+      .from('diving')
+      .insert([insertData])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error creating diving record:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create diving record',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Diving record created successfully:', data[0]);
+
+    res.json({
+      success: true,
+      message: 'Diving record created successfully',
+      diving: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Diving record creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Update diving record details
+app.put('/api/diving/:divingId', async (req, res) => {
+  try {
+    const { divingId } = req.params;
+    const normalizedDivingId = normalizeDivingId(divingId);
+
+    if (normalizedDivingId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid diving ID'
+      });
+    }
+
+    const { name, price_per_head, diving_image } = req.body;
+    const updates = {};
+
+    if (name !== undefined) {
+      updates.name = name.toString().trim();
+    }
+
+    if (price_per_head !== undefined) {
+      const parsedPrice = parseFloat(price_per_head);
+      if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'price_per_head must be a non-negative number'
+        });
+      }
+      updates.price_per_head = parsedPrice;
+    }
+
+    if (diving_image !== undefined) {
+      updates.diving_image = diving_image;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields provided for update'
+      });
+    }
+
+    const filterColumn = 'diving_id';
+    const filterValue = normalizedDivingId;
+
+    console.log('🛠️ Updating diving record:', normalizedDivingId, updates, `(filter column: ${filterColumn})`);
+
+    const { data, error } = await supabase
+      .from('diving')
+      .update(updates)
+      .eq(filterColumn, filterValue)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error updating diving record:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update diving record',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Diving record update result:', data);
+
+    // Fix image URL if present
+    const updatedDiving = data[0];
+    if (updatedDiving && updatedDiving.diving_image) {
+      updatedDiving.diving_image = fixDivingImageUrl(updatedDiving.diving_image);
+    }
+
+    res.json({
+      success: true,
+      message: 'Diving record updated successfully',
+      diving: updatedDiving
+    });
+  } catch (error) {
+    console.error('❌ Diving record update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Upload diving image and persist URL
+app.post('/api/diving/:divingId/upload-image', async (req, res) => {
+  try {
+    const { divingId } = req.params;
+    const normalizedDivingId = normalizeDivingId(divingId);
+    const { imageData, fileName } = req.body;
+
+    if (normalizedDivingId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid diving ID'
+      });
+    }
+
+    if (!imageData || !fileName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing image data or filename'
+      });
+    }
+
+    const filterColumn = 'diving_id';
+    const filterValue = normalizedDivingId;
+
+    const { publicUrl, filePath } = await uploadImageToStorage({
+      imageData,
+      fileName,
+      bucket: 'diving-image',
+      keyPrefix: 'diving',
+      identifier: `diving-${normalizedDivingId}`
+    });
+
+    const { data, error } = await supabase
+      .from('diving')
+      .update({ diving_image: publicUrl })
+      .eq(filterColumn, filterValue)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error saving diving image URL:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to store diving image URL',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Diving image update result:', data);
+
+    res.json({
+      success: true,
+      message: 'Diving image uploaded successfully',
+      imageUrl: publicUrl,
+      fileName: filePath,
+      diving: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Diving image upload error:', error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode === 400 ? error.message : 'Internal server error',
+      error: error.details?.message || error.message
+    });
+  }
+});
+
+// Delete diving record
+app.delete('/api/diving/:divingId', async (req, res) => {
+  try {
+    const { divingId } = req.params;
+    const normalizedDivingId = normalizeDivingId(divingId);
+
+    if (normalizedDivingId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid diving ID'
+      });
+    }
+
+    const filterColumn = 'diving_id';
+    const filterValue = normalizedDivingId;
+
+    console.log('🗑️ Deleting diving record:', normalizedDivingId);
+
+    // First, check if diving record exists and get its image URL for cleanup
+    const { data: existingDiving, error: fetchError } = await supabase
+      .from('diving')
+      .select('diving_id, diving_image, name')
+      .eq(filterColumn, filterValue)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('❌ Error checking diving record existence:', fetchError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify diving record before deletion',
+        error: fetchError.message
+      });
+    }
+
+    if (!existingDiving) {
+      return res.status(404).json({
+        success: false,
+        message: 'Diving record not found'
+      });
+    }
+
+    // Delete the diving record
+    const { error: deleteError } = await supabase
+      .from('diving')
+      .delete()
+      .eq(filterColumn, filterValue);
+
+    if (deleteError) {
+      console.error('❌ Error deleting diving record:', deleteError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete diving record',
+        error: deleteError.message
+      });
+    }
+
+    console.log('✅ Diving record deleted successfully:', existingDiving.name || normalizedDivingId);
+
+    res.json({
+      success: true,
+      message: 'Diving record deleted successfully',
+      deletedDiving: {
+        diving_id: existingDiving.diving_id,
+        name: existingDiving.name
+      }
+    });
+  } catch (error) {
+    console.error('❌ Diving record deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
 // Get van destinations
 app.get('/api/van-destinations', async (req, res) => {
   try {
@@ -1999,6 +2402,262 @@ app.get('/api/van-destinations', async (req, res) => {
       success: false, 
       message: 'Internal server error',
       error: error.message 
+    });
+  }
+});
+
+// Create van destination
+app.post('/api/van-destinations', async (req, res) => {
+  try {
+    const { location_type, destination_name, oneway_price, roundtrip_price } = req.body;
+
+    console.log('➕ Creating van destination:', { location_type, destination_name, oneway_price, roundtrip_price });
+
+    if (!destination_name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Destination name is required'
+      });
+    }
+
+    const insertData = {
+      destination_name: destination_name.trim()
+    };
+
+    // Validate and add one-way price (default to 0 if not provided)
+    if (oneway_price !== undefined && oneway_price !== null && oneway_price !== '') {
+      const parsedOnewayPrice = parseFloat(oneway_price);
+      if (Number.isNaN(parsedOnewayPrice) || parsedOnewayPrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'oneway_price must be a non-negative number'
+        });
+      }
+      insertData.oneway_price = parsedOnewayPrice;
+    } else {
+      // Set to 0 if no input provided
+      insertData.oneway_price = 0;
+    }
+
+    // Validate and add round-trip price (default to 0 if not provided)
+    if (roundtrip_price !== undefined && roundtrip_price !== null && roundtrip_price !== '') {
+      const parsedRoundtripPrice = parseFloat(roundtrip_price);
+      if (Number.isNaN(parsedRoundtripPrice) || parsedRoundtripPrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'roundtrip_price must be a non-negative number'
+        });
+      }
+      insertData.roundtrip_price = parsedRoundtripPrice;
+    } else {
+      // Set to 0 if no input provided
+      insertData.roundtrip_price = 0;
+    }
+
+    if (location_type !== undefined && location_type !== null) {
+      insertData.location_type = location_type.trim();
+    }
+
+    console.log('📝 Inserting van destination:', insertData);
+
+    const { data, error } = await supabase
+      .from('van_destinations')
+      .insert([insertData])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error creating van destination:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create van destination',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Van destination created successfully:', data[0]);
+
+    res.json({
+      success: true,
+      message: 'Van destination created successfully',
+      destination: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Van destination creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Update van destination
+app.put('/api/van-destinations/:destinationId', async (req, res) => {
+  try {
+    const { destinationId } = req.params;
+
+    if (!destinationId || destinationId.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid van destination ID'
+      });
+    }
+
+    const { location_type, destination_name, oneway_price, roundtrip_price } = req.body;
+    const updates = {};
+
+    if (location_type !== undefined) {
+      updates.location_type = location_type !== null ? location_type.toString().trim() : null;
+    }
+
+    if (destination_name !== undefined) {
+      updates.destination_name = destination_name.toString().trim();
+    }
+
+    if (oneway_price !== undefined) {
+      const parsedPrice = parseFloat(oneway_price);
+      if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'oneway_price must be a non-negative number'
+        });
+      }
+      updates.oneway_price = parsedPrice;
+    }
+
+    if (roundtrip_price !== undefined) {
+      const parsedPrice = parseFloat(roundtrip_price);
+      if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'roundtrip_price must be a non-negative number'
+        });
+      }
+      updates.roundtrip_price = parsedPrice;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields provided for update'
+      });
+    }
+
+    const filterColumn = 'van_destination_id';
+    const filterValue = destinationId.trim();
+
+    console.log('🛠️ Updating van destination:', filterValue, updates);
+
+    const { data, error } = await supabase
+      .from('van_destinations')
+      .update(updates)
+      .eq(filterColumn, filterValue)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error updating van destination:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update van destination',
+        error: error.message
+      });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Van destination not found'
+      });
+    }
+
+    console.log('✅ Van destination update result:', data);
+
+    res.json({
+      success: true,
+      message: 'Van destination updated successfully',
+      destination: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Van destination update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Delete van destination
+app.delete('/api/van-destinations/:destinationId', async (req, res) => {
+  try {
+    const { destinationId } = req.params;
+
+    if (!destinationId || destinationId.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid van destination ID'
+      });
+    }
+
+    const filterColumn = 'van_destination_id';
+    const filterValue = destinationId.trim();
+
+    console.log('🗑️ Deleting van destination:', filterValue);
+
+    // First, check if destination exists
+    const { data: existingDestination, error: fetchError } = await supabase
+      .from('van_destinations')
+      .select('van_destination_id, destination_name')
+      .eq(filterColumn, filterValue)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('❌ Error checking van destination existence:', fetchError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify van destination before deletion',
+        error: fetchError.message
+      });
+    }
+
+    if (!existingDestination) {
+      return res.status(404).json({
+        success: false,
+        message: 'Van destination not found'
+      });
+    }
+
+    // Delete the destination
+    const { error: deleteError } = await supabase
+      .from('van_destinations')
+      .delete()
+      .eq(filterColumn, filterValue);
+
+    if (deleteError) {
+      console.error('❌ Error deleting van destination:', deleteError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete van destination',
+        error: deleteError.message
+      });
+    }
+
+    console.log('✅ Van destination deleted successfully:', existingDestination.destination_name || filterValue);
+
+    res.json({
+      success: true,
+      message: 'Van destination deleted successfully',
+      deletedDestination: {
+        van_destination_id: existingDestination.van_destination_id,
+        destination_name: existingDestination.destination_name
+      }
+    });
+  } catch (error) {
+    console.error('❌ Van destination deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
     });
   }
 });

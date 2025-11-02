@@ -748,6 +748,8 @@ async function submitTourBookings(bookingId, bookingData) {
     // Submit diving bookings
     if (bookingData.diving && bookingData.numberOfDivers) {
         const divingPayload = {
+            diving_id: bookingData.divingId || null, // Include diving_id from selected diving service
+            diving_name: bookingData.divingName || null, // Include diving_name for reference
             booking_id: bookingId,
             number_of_divers: parseInt(bookingData.numberOfDivers) || 1,
             total_amount: parseFloat(bookingData.divingAmount?.replace(/[₱,]/g, '') || 0),
@@ -764,30 +766,25 @@ async function submitTourBookings(bookingId, bookingData) {
     }
     
     // Submit van rental bookings
-    if (bookingData.selectedVanRental) {
-        const destinationId = await getDestinationIdByName(bookingData.selectedVanRental.destination);
+    if (bookingData.selectedVanRental && bookingData.selectedVanRental.vanDestinationId) {
+        const vanPayload = {
+            booking_id: bookingId,
+            van_destination_id: bookingData.selectedVanRental.vanDestinationId,
+            number_of_days: bookingData.selectedVanRental.days || 1,
+            total_amount: bookingData.selectedVanRental.price || 0,
+            trip_type: bookingData.selectedVanRental.tripType || 'oneway',
+            choose_destination: bookingData.selectedVanRental.destination || ''
+        };
         
-        if (destinationId) {
-            const vanPayload = {
-                booking_id: bookingId,
-                destination_id: destinationId,
-                rental_days: bookingData.selectedVanRental.days || 1,
-                total_price: bookingData.selectedVanRental.price || 0,
-                rental_start_date: null,
-                rental_end_date: null,
-                notes: ''
-            };
-            
-            promises.push(
-                fetch('http://localhost:3000/api/booking-van-rental', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(vanPayload)
-                })
-            );
-        } else {
-            console.warn('Van rental skipped: destination not found in database');
-        }
+        promises.push(
+            fetch('http://localhost:3000/api/booking-van-rental', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(vanPayload)
+            })
+        );
+    } else if (bookingData.selectedVanRental) {
+        console.warn('Van rental skipped: van_destination_id not found');
     }
     
     // Execute all promises
