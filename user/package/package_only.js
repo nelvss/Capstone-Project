@@ -19,21 +19,132 @@
     // Fetch vehicles from database
     async function fetchVehicles() {
         try {
-            const response = await fetch('http://localhost:3000/api/vehicles');
+            console.log('🔄 Fetching vehicles from API...');
+            const response = await fetch('http://localhost:3000/api/vehicles', { cache: 'no-cache' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const result = await response.json();
             
-            if (result.success) {
+            if (result.success && result.vehicles) {
                 vehiclesData = result.vehicles;
-                console.log('✅ Vehicles loaded:', vehiclesData);
+                console.log('✅ Vehicles loaded:', vehiclesData.length, 'vehicles');
+                // Try to render immediately
+                renderVehicleOptions();
+                // Also set up a backup render in case container isn't ready
+                setTimeout(() => {
+                    const container = document.getElementById('rental-options');
+                    if (container && container.textContent.includes('Loading')) {
+                        renderVehicleOptions();
+                    }
+                }, 500);
                 return vehiclesData;
             } else {
-                console.error('❌ Failed to fetch vehicles:', result.message);
+                console.error('❌ Failed to fetch vehicles:', result.message || 'Unknown error');
+                renderVehicleOptionsError(result.message || 'Failed to load vehicles');
                 return [];
             }
         } catch (error) {
             console.error('❌ Error fetching vehicles:', error);
+            renderVehicleOptionsError(`Error: ${error.message}`);
             return [];
         }
+    }
+
+    // Render vehicle options dynamically from database
+    function renderVehicleOptions(retryCount = 0) {
+        const rentalOptionsContainer = document.getElementById('rental-options');
+        if (!rentalOptionsContainer) {
+            if (retryCount < 5) {
+                console.warn(`⚠️ Rental options container not found. Retrying... (${retryCount + 1}/5)`);
+                setTimeout(() => {
+                    renderVehicleOptions(retryCount + 1);
+                }, 500);
+            } else {
+                console.error('❌ Rental options container not found after 5 retries');
+            }
+            return;
+        }
+
+        // Clear existing content
+        rentalOptionsContainer.innerHTML = '';
+
+        if (!vehiclesData || vehiclesData.length === 0) {
+            rentalOptionsContainer.innerHTML = '<div class="text-center text-muted py-3"><small>No vehicles available</small></div>';
+            return;
+        }
+
+        // Filter out N/A vehicles
+        const validVehicles = vehiclesData.filter(vehicle => vehicle.name && vehicle.name.trim() !== '' && vehicle.name.toUpperCase() !== 'N/A');
+        
+        if (validVehicles.length === 0) {
+            rentalOptionsContainer.innerHTML = '<div class="text-center text-muted py-3"><small>No vehicles available</small></div>';
+            return;
+        }
+        
+        // Render each vehicle from database
+        validVehicles.forEach((vehicle, index) => {
+            const vehicleId = `rental-${vehicle.vehicle_id || `vehicle-${index}`}`;
+            const vehicleName = vehicle.name || 'Unknown Vehicle';
+            const isLast = index === validVehicles.length - 1;
+            
+            const vehicleOption = document.createElement('div');
+            vehicleOption.className = `form-check ${isLast ? '' : 'mb-2'}`;
+            
+            // Create input element
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.className = 'form-check-input rental-option';
+            input.id = vehicleId;
+            input.value = vehicleName;
+            
+            // Create label element with for attribute (Bootstrap form-check pattern)
+            const label = document.createElement('label');
+            label.className = 'form-check-label d-flex align-items-center';
+            label.htmlFor = vehicleId; // Associate label with input using for attribute
+            
+            // Create span for label text
+            const span = document.createElement('span');
+            span.innerHTML = `${vehicleName} <small class="text-muted ms-2">(₱${(vehicle.price_per_day || 0).toLocaleString()}/day)</small>`;
+            
+            // Add input and label as siblings (Bootstrap form-check pattern)
+            vehicleOption.appendChild(input);
+            label.appendChild(span);
+            vehicleOption.appendChild(label);
+            
+            rentalOptionsContainer.appendChild(vehicleOption);
+        });
+
+        // Re-attach event listeners for vehicle selection
+        attachVehicleEventListeners();
+    }
+
+    // Render error message in vehicle options
+    function renderVehicleOptionsError(errorMessage) {
+        const rentalOptionsContainer = document.getElementById('rental-options');
+        if (!rentalOptionsContainer) {
+            console.warn('⚠️ Rental options container not found for error display');
+            return;
+        }
+        rentalOptionsContainer.innerHTML = `<div class="text-center text-danger py-3"><small>${errorMessage}</small><br><small class="text-muted">Please refresh the page.</small></div>`;
+    }
+
+    // Attach event listeners to rental vehicle options
+    function attachVehicleEventListeners() {
+        const rentalOptions = document.querySelectorAll('.rental-option');
+        rentalOptions.forEach(option => {
+            // Remove existing listeners by cloning
+            const newOption = option.cloneNode(true);
+            option.parentNode.replaceChild(newOption, option);
+            
+            // Add new listener
+            newOption.addEventListener('change', () => {
+                calculateVehiclePrice();
+                clearRentalDaysErrorIfNoVehicles();
+            });
+        });
     }
     
     // Get vehicle by name (for backward compatibility)
@@ -657,25 +768,23 @@
             let isVanService = false;
             let vanPrice = 0;
             
-            switch (vehicleType) {
-                case "ADV":
-                    dailyRate = 1000;
-                    break;
-                case "NMAX":
-                    dailyRate = 1000;
-                    break;
-                case "VERSYS 650":
-                    dailyRate = 2000;
-                    break;
-                case "VERSYS 1000":
-                    dailyRate = 2500;
-                    break;
-                case "TUKTUK":
-                    dailyRate = 1800;
-                    break;
-                case "CAR":
-                    dailyRate = 3000;
-                    break;
+            // Try to get price from database first
+            const vehicleData = getVehicleByName(vehicleType);
+            if (vehicleData && vehicleData.price_per_day) {
+                dailyRate = vehicleData.price_per_day;
+            } else {
+                // Fallback to hardcoded pricing only for VAN services
+                // Regular vehicles should be in database, but handle gracefully
+                dailyRate = getFallbackPricing(vehicleType);
+                if (dailyRate === 0) {
+                    console.warn(`⚠️ Vehicle "${vehicleType}" not found in database and no fallback price available`);
+                }
+            }
+            
+            // Check if it's a VAN service (these are not in vehicles table)
+            if (vehicleType.startsWith("VAN -")) {
+                isVanService = true;
+                switch (vehicleType) {
                 // Within Puerto Galera Van Destinations (fixed prices, no daily multiplier)
                 case "VAN - Sabang":
                     isVanService = true;
@@ -840,6 +949,7 @@
                     break;
                 default:
                     dailyRate = 1000;
+            }
             }
             
             // Add price: vans have fixed price, vehicles multiply by rental days
@@ -1986,9 +2096,27 @@
     }
 
     // Initialize vehicles data when page loads
-    fetchVehicles().then(() => {
-        console.log("Vehicles loaded successfully!");
-    });
+    // Use a small delay to ensure all dynamic content is loaded
+    function initializeVehicles() {
+        setTimeout(() => {
+            fetchVehicles().then(() => {
+                console.log("Vehicles loaded successfully!");
+                // Retry rendering if container wasn't available initially
+                if (!document.getElementById('rental-options')) {
+                    setTimeout(() => renderVehicleOptions(), 1000);
+                }
+            }).catch(error => {
+                console.error("Error loading vehicles:", error);
+            });
+        }, 100);
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeVehicles);
+    } else {
+        // DOM is already loaded
+        initializeVehicles();
+    }
 
     console.log("Tour booking form initialized successfully!");
 })();

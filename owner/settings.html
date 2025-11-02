@@ -27,469 +27,162 @@
   </div>
   <div class="main-content">
     <header>
-      <button class="sidebar-toggle" onclick="toggleSidebar()">
-        <span class="hamburger-icon">☰</span>
-      </button>
-      <h1>Service Settings</h1>
-      <div class="header-actions">
-        <button class="btn-save" onclick="saveAllChanges()">💾 Save All Changes</button>
+      <div class="header-main">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+          <span class="hamburger-icon">☰</span>
+        </button>
+        <div class="header-text">
+          <h1>Service Settings</h1>
+          <p class="header-subtitle">Pick a service type below to start configuring details.</p>
+        </div>
       </div>
     </header>
     
     <section class="settings-tabs">
       <div class="tab-buttons">
-        <button class="tab-btn active" onclick="showTab('services')">🏨 Services & Prices</button>
-        <button class="tab-btn" onclick="showTab('gallery')">🖼️ Image Gallery</button>
-        <button class="tab-btn" onclick="showTab('general')">⚙️ General Settings</button>
+        <button class="tab-btn active" data-tab="package" onclick="showTab(event, 'package')">📦 Package Only</button>
+        <button class="tab-btn" data-tab="tour" onclick="showTab(event, 'tour')">🧭 Tour Only</button>
+        <button class="tab-btn" data-tab="van" onclick="showTab(event, 'van')">🚐 Van Rental</button>
+        <button class="tab-btn" data-tab="vehicle" onclick="showTab(event, 'vehicle')">🚗 Vehicle Rental</button>
+        <button class="tab-btn" data-tab="diving" onclick="showTab(event, 'diving')">🤿 Diving</button>
       </div>
     </section>
-
-    <!-- Services & Prices Tab -->
-    <section id="services-tab" class="tab-content active">
-      <!-- Hotel Services Section -->
+    <section id="package-tab" class="tab-content active">
       <div class="settings-section">
-        <h2>🏨 Hotel Services & Accommodations</h2>
-        <div class="services-grid">
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Standard Rooms</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Night:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="standard-room-price" value="80" min="0" step="5" title="Standard room price">
-                  <span class="per-unit">/ night</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="standard-room-description" rows="3" placeholder="Enter service description...">Comfortable standard rooms with essential amenities, perfect for budget-conscious travelers.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="standard-room-features" rows="4" placeholder="Enter features...">Free WiFi
-Air Conditioning
-Private Bathroom
-Daily Housekeeping
-Cable TV</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Deluxe Rooms</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Night:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="deluxe-room-price" value="120" min="0" step="5" title="Deluxe room price">
-                  <span class="per-unit">/ night</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="deluxe-room-description" rows="3" placeholder="Enter service description...">Spacious deluxe rooms with premium amenities, breakfast included, and ocean view.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="deluxe-room-features" rows="4" placeholder="Enter features...">Free WiFi
-Breakfast Included
-Ocean View
-Mini Bar
-24/7 Room Service</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Suite Rooms</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Night:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="suite-room-price" value="200" min="0" step="5" title="Suite room price">
-                  <span class="per-unit">/ night</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="suite-room-description" rows="3" placeholder="Enter service description...">Luxurious suite rooms with separate living area, premium amenities, and exclusive services.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="suite-room-features" rows="4" placeholder="Enter features...">Separate Living Area
-Premium Ocean View
-Complimentary Breakfast
-Personal Concierge
-Jacuzzi Tub</textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Vehicle Rental Section -->
-      <div class="settings-section">
-        <h2>🚗 Vehicle Rental Services</h2>
-        <div class="services-grid">
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Motorcycle Rental</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Day:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="motorcycle-price" value="25" min="0" step="5" title="Motorcycle rental price">
-                  <span class="per-unit">/ day</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="motorcycle-description" rows="3" placeholder="Enter service description...">Fuel-efficient motorcycles perfect for exploring the island, includes helmet and basic insurance.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="motorcycle-features" rows="4" placeholder="Enter features...">Helmet Included
-Basic Insurance
-Fuel Efficient
-Easy to Park
-Perfect for Island Exploration</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Car Rental</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Day:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="car-price" value="45" min="0" step="5" title="Car rental price">
-                  <span class="per-unit">/ day</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="car-description" rows="3" placeholder="Enter service description...">Modern cars with full insurance coverage, GPS navigation, and 24/7 roadside assistance.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="car-features" rows="4" placeholder="Enter features...">Full Insurance Coverage
-GPS Navigation
-24/7 Roadside Assistance
-Air Conditioning
-Free Airport Pickup</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Van Rental</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Day:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="van-price" value="80" min="0" step="5" title="Van rental price">
-                  <span class="per-unit">/ day</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="van-description" rows="3" placeholder="Enter service description...">Spacious vans ideal for group travel, equipped with comfortable seating and ample luggage space.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="van-features" rows="4" placeholder="Enter features...">Seats 8-12 People
-Ample Luggage Space
-Air Conditioning
-Professional Driver Available
-Group Travel Friendly</textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tour Packages Section -->
-      <div class="settings-section">
-        <h2>🌴 Tour Packages & Activities</h2>
-        <div class="services-grid">
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Island Hopping Tour</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Person:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="island-tour-price" value="75" min="0" step="5" title="Island tour price">
-                  <span class="per-unit">/ person</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="island-tour-description" rows="3" placeholder="Enter service description...">Full-day island hopping adventure visiting multiple pristine beaches and hidden lagoons with boat transportation.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="island-tour-features" rows="4" placeholder="Enter features...">Boat Transportation
-Visit 3-4 Islands
-Lunch Included
-Snorkeling Equipment
-Professional Guide</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Inland Adventure Tour</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Person:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="inland-tour-price" value="65" min="0" step="5" title="Inland tour price">
-                  <span class="per-unit">/ person</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="inland-tour-description" rows="3" placeholder="Enter service description...">Explore mountains, waterfalls, and cultural sites with hiking adventures and local village visits.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="inland-tour-features" rows="4" placeholder="Enter features...">Mountain Hiking
-Waterfall Visits
-Cultural Village Tour
-Local Lunch
-Transportation Included</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Snorkeling & Diving Tour</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Person:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="snorkel-tour-price" value="90" min="0" step="5" title="Snorkeling tour price">
-                  <span class="per-unit">/ person</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="snorkel-tour-description" rows="3" placeholder="Enter service description...">Underwater adventure exploring coral reefs and marine life with professional diving instruction.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="snorkel-tour-features" rows="4" placeholder="Enter features...">Professional Dive Instructor
-Complete Equipment Provided
-Coral Reef Exploration
-Marine Life Spotting
-Underwater Photography</textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="service-card">
-            <div class="service-header">
-              <h3>Sunset & Night Tour</h3>
-              <span class="service-status active">Active</span>
-            </div>
-            <div class="service-content">
-              <div class="price-editor">
-                <label>Price per Person:</label>
-                <div class="price-input-group">
-                  <span class="currency">$</span>
-                  <input type="number" id="sunset-tour-price" value="55" min="0" step="5" title="Sunset tour price">
-                  <span class="per-unit">/ person</span>
-                </div>
-              </div>
-              <div class="service-description">
-                <label>Service Description:</label>
-                <textarea id="sunset-tour-description" rows="3" placeholder="Enter service description...">Romantic sunset viewing and night market exploration with dinner and cultural entertainment.</textarea>
-              </div>
-              <div class="service-features">
-                <label>Features (one per line):</label>
-                <textarea id="sunset-tour-features" rows="4" placeholder="Enter features...">Scenic Sunset Viewing
-Night Market Visit
-Local Dinner Included
-Cultural Show
-Transportation Included</textarea>
-              </div>
-            </div>
-          </div>
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true">📦</div>
+          <h2>Package Only</h2>
+          <p>Create bundled offerings that combine lodging, transport, and activities. Add your forms, tables, or workflows here.</p>
         </div>
       </div>
     </section>
 
-    <!-- Image Gallery Tab -->
-    <section id="gallery-tab" class="tab-content">
+    <section id="tour-tab" class="tab-content">
       <div class="settings-section">
-        <h2>Manage Service Images</h2>
-        <div class="gallery-manager">
-          <div class="gallery-section">
-            <h3>Hotel Images</h3>
-            <div class="image-upload-area">
-              <input type="file" id="hotel-images" multiple accept="image/*" class="hidden-file-input" title="Upload hotel images">
-              <button class="upload-btn" onclick="document.getElementById('hotel-images').click()">
-                📁 Upload Hotel Images
-              </button>
-            </div>
-            <div class="image-grid" id="hotel-image-grid">
-              <div class="image-item">
-                <img src="Images/infinity_hotel.jpg" alt="Hotel 1">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-              </div>
-              <div class="image-item">
-                <img src="Images/the_mangyan_grand_hotel.png" alt="Hotel 2">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="gallery-section">
-            <h3>Car Rental Images</h3>
-            <div class="image-upload-area">
-              <input type="file" id="car-images" multiple accept="image/*" class="hidden-file-input" title="Upload car rental images">
-              <button class="upload-btn" onclick="document.getElementById('car-images').click()">
-                📁 Upload Car Images
-              </button>
-            </div>
-            <div class="image-grid" id="car-image-grid">
-              <div class="image-item">
-                <img src="Images/nmax.png" alt="Vehicle 1">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-              </div>
-              <div class="image-item">
-                <img src="Images/versys_650.png" alt="Vehicle 2">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="gallery-section">
-            <h3>Tour Destination Images</h3>
-            <div class="image-upload-area">
-              <input type="file" id="tour-images" multiple accept="image/*" class="hidden-file-input" title="Upload tour destination images">
-              <button class="upload-btn" onclick="document.getElementById('tour-images').click()">
-                📁 Upload Tour Images
-              </button>
-            </div>
-            <div class="image-grid" id="tour-image-grid">
-              <div class="image-item">
-                <img src="Images/white_beach.jpg" alt="Tour 1">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-              </div>
-              <div class="image-item">
-                <img src="Images/tamaraw_falls.jpg" alt="Tour 2">
-                <div class="image-overlay">
-                  <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-                  <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true">🧭</div>
+          <h2>Tour Only</h2>
+          <p>Design single-day or multi-day tour experiences. This tab is ready for itinerary details, pricing, and availability components.</p>
         </div>
       </div>
     </section>
 
-    <!-- General Settings Tab -->
-    <section id="general-tab" class="tab-content">
+    <section id="van-tab" class="tab-content">
       <div class="settings-section">
-        <h2>General Business Settings</h2>
-        <div class="general-settings">
-          <div class="setting-group">
-            <h3>Business Information</h3>
-            <div class="form-row">
-              <label for="business-name">Business Name:</label>
-              <input type="text" id="business-name" value="Travel Admin" placeholder="Enter business name">
-            </div>
-            <div class="form-row">
-              <label for="business-email">Contact Email:</label>
-              <input type="email" id="business-email" value="info@traveladmin.com" placeholder="Enter contact email">
-            </div>
-            <div class="form-row">
-              <label for="business-phone">Contact Phone:</label>
-              <input type="tel" id="business-phone" value="+1 (555) 123-4567" placeholder="Enter contact phone">
-            </div>
-            <div class="form-row">
-              <label for="business-address">Business Address:</label>
-              <textarea id="business-address" rows="3" placeholder="Enter business address">123 Travel Street, Tourism City, TC 12345</textarea>
-            </div>
-          </div>
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true">🚐</div>
+          <h2>Van Rental</h2>
+          <p>Manage fleet information, driver assignments, and van-specific pricing. Integrate booking controls when you are ready.</p>
+        </div>
+      </div>
+    </section>
 
-          <div class="setting-group">
-            <h3>Booking Settings</h3>
-            <div class="form-row">
-              <label for="cancellation-policy">Cancellation Policy (hours):</label>
-              <input type="number" id="cancellation-policy" value="24" min="1" max="168">
-              <small>Hours before check-in that cancellation is allowed</small>
+    <section id="vehicle-tab" class="tab-content">
+      <div class="settings-section">
+        <div class="section-heading">
+          <div>
+            <h2>Vehicle Rental Settings</h2>
+            <p class="section-subtitle">Manage the vehicle inventory synced with Supabase. Update pricing, descriptions, and images stored in the <code>vehicles</code> table.</p>
+          </div>
+          <div class="vehicle-actions-bar">
+            <button id="vehicle-add-btn" class="btn-primary" type="button">➕ Add Vehicle</button>
+            <button id="vehicle-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
+            <span id="vehicle-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
+          </div>
+        </div>
+
+        <div id="vehicle-error" class="vehicle-error" role="alert" hidden></div>
+
+        <div id="vehicle-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
+          <header class="vehicle-card-header">
+            <div>
+              <h3>New Vehicle</h3>
+              <p class="vehicle-id">Creating new...</p>
             </div>
-            <div class="form-row">
-              <label for="advance-booking">Advance Booking Limit (days):</label>
-              <input type="number" id="advance-booking" value="365" min="1" max="730">
-              <small>Maximum days in advance customers can book</small>
+            <span class="vehicle-status-tag">New</span>
+          </header>
+          <div class="vehicle-card-body">
+            <div class="vehicle-media">
+              <div class="vehicle-image-wrapper">
+                <img class="vehicle-image" src="../Images/logo.png" alt="Vehicle image">
+                <div class="vehicle-image-actions">
+                  <button type="button" id="new-vehicle-upload-btn" class="btn-secondary vehicle-upload-btn">Upload Image</button>
+                  <input type="file" id="new-vehicle-file-input" class="vehicle-file-input" accept="image/*" hidden>
+                  <small class="vehicle-image-hint">Stored in Supabase bucket <code>vehicle-rental</code></small>
+                </div>
+              </div>
             </div>
-            <div class="form-row">
-              <label>
-                <input type="checkbox" id="require-deposit" checked>
-                Require deposit for bookings
+            <div class="vehicle-form">
+              <label class="form-field">
+                <span>Vehicle Name</span>
+                <input type="text" id="new-vehicle-name" placeholder="e.g., Adventure Bike 200">
               </label>
-            </div>
-            <div class="form-row">
-              <label for="deposit-percentage">Deposit Percentage:</label>
-              <input type="number" id="deposit-percentage" value="25" min="0" max="100">
-              <span>%</span>
+              <label class="form-field">
+                <span>Price per day (₱)</span>
+                <input type="number" min="0" step="0.01" id="new-vehicle-price" placeholder="0.00">
+              </label>
+              <label class="form-field">
+                <span>Description</span>
+                <textarea id="new-vehicle-description" rows="4" placeholder="Describe the vehicle features and usage."></textarea>
+              </label>
+              <div class="vehicle-form-actions">
+                <button type="button" id="new-vehicle-save-btn" class="btn-primary">Create Vehicle</button>
+                <button type="button" id="new-vehicle-cancel-btn" class="btn-secondary">Cancel</button>
+                <span id="new-vehicle-status" aria-live="polite"></span>
+              </div>
             </div>
           </div>
+        </div>
+
+        <div id="vehicle-list" class="vehicle-list" role="list"></div>
+
+        <template id="vehicle-card-template">
+          <article class="vehicle-card" role="listitem">
+            <header class="vehicle-card-header">
+              <div>
+                <h3 class="vehicle-name"></h3>
+                <p class="vehicle-id"></p>
+              </div>
+              <span class="vehicle-status-tag" aria-live="polite"></span>
+            </header>
+            <div class="vehicle-card-body">
+              <div class="vehicle-media">
+                <div class="vehicle-image-wrapper">
+                  <img class="vehicle-image" alt="Vehicle image">
+                  <div class="vehicle-image-actions">
+                    <button type="button" class="btn-secondary vehicle-upload-btn">Upload Image</button>
+                    <input type="file" class="vehicle-file-input" accept="image/*" hidden>
+                    <small class="vehicle-image-hint">Stored in Supabase bucket <code>vehicle-rental</code></small>
+                  </div>
+                </div>
+              </div>
+              <div class="vehicle-form">
+                <label class="form-field">
+                  <span>Price per day (₱)</span>
+                  <input type="number" min="0" step="0.01" class="vehicle-price" placeholder="0.00">
+                </label>
+                <label class="form-field">
+                  <span>Description</span>
+                  <textarea class="vehicle-description" rows="4" placeholder="Add a short description owners can display to renters."></textarea>
+                </label>
+                <div class="vehicle-form-actions">
+                  <button type="button" class="btn-primary vehicle-save-btn">Save Changes</button>
+                  <button type="button" class="btn-danger vehicle-delete-btn">🗑️ Delete</button>
+                  <span class="vehicle-inline-status" aria-live="polite"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </template>
+      </div>
+    </section>
+
+    <section id="diving-tab" class="tab-content">
+      <div class="settings-section">
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true">🤿</div>
+          <h2>Diving</h2>
+          <p>Outline dive packages, certification requirements, and equipment rentals. Embed safety guidelines or waiver forms here.</p>
         </div>
       </div>
     </section>

@@ -76,6 +76,156 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 image uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Utility helpers
+function sanitizeIdentifier(value, fallback = 'file') {
+  if (!value) {
+    return fallback;
+  }
+  const cleaned = value
+    .toString()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+  return cleaned || fallback;
+}
+
+function sanitizeFileStem(fileName) {
+  if (!fileName) {
+    return 'image';
+  }
+  const stem = fileName
+    .toString()
+    .toLowerCase()
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+  return stem || 'image';
+}
+
+async function uploadImageToStorage({
+  imageData,
+  fileName,
+  bucket,
+  keyPrefix = '',
+  identifier = 'file'
+}) {
+  if (!imageData || !fileName) {
+    const error = new Error('Missing image data or filename');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  let mimeType = 'application/octet-stream';
+  const mimeMatch = imageData.match(/^data:(.*?);base64,/);
+  if (mimeMatch && mimeMatch[1]) {
+    mimeType = mimeMatch[1].toLowerCase();
+  }
+
+  const base64Data = imageData.replace(/^data:[^;]+;base64,/, '');
+  const buffer = Buffer.from(base64Data, 'base64');
+
+  const fileExtension = (fileName.split('.').pop() || '').toLowerCase();
+  const extensionToMime = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+    gif: 'image/gif',
+    bmp: 'image/bmp',
+    heic: 'image/heic',
+    heif: 'image/heif'
+  };
+  const mimeToExtension = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+    'image/bmp': 'bmp',
+    'image/heic': 'heic',
+    'image/heif': 'heif'
+  };
+
+  if (mimeType === 'image/jpg') {
+    mimeType = 'image/jpeg';
+  }
+
+  const allowedMimes = new Set(Object.keys(mimeToExtension));
+  if (!allowedMimes.has(mimeType)) {
+    const mapped = extensionToMime[fileExtension];
+    if (mapped) {
+      mimeType = mapped;
+    }
+  }
+
+  let finalExtension = fileExtension || 'bin';
+  if (allowedMimes.has(mimeType)) {
+    finalExtension = mimeToExtension[mimeType] || finalExtension;
+  }
+
+  const sanitizedIdentifier = sanitizeIdentifier(identifier, 'file');
+  const sanitizedStem = sanitizeFileStem(fileName);
+  const prefix = keyPrefix ? `${keyPrefix.replace(/\/+$/, '')}/` : '';
+  const uniqueFileName = `${prefix}${sanitizedIdentifier}-${sanitizedStem}-${Date.now()}.${finalExtension}`;
+
+  console.log(`📤 Uploading image to bucket "${bucket}" as ${uniqueFileName} (MIME: ${mimeType})`);
+
+  const { error: uploadError } = await supabase.storage
+    .from(bucket)
+    .upload(uniqueFileName, buffer, {
+      contentType: mimeType,
+      upsert: false
+    });
+
+  if (uploadError) {
+    console.error('❌ Storage upload error:', uploadError);
+    const error = new Error('Failed to upload image to storage');
+    error.statusCode = 500;
+    error.details = uploadError;
+    throw error;
+  }
+
+  const { data: urlData, error: urlError } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(uniqueFileName);
+
+  if (urlError) {
+    console.error('❌ Error retrieving public URL:', urlError);
+    const error = new Error('Failed to retrieve public URL for image');
+    error.statusCode = 500;
+    error.details = urlError;
+    throw error;
+  }
+
+  console.log('✅ Image uploaded successfully');
+
+  return {
+    publicUrl: urlData.publicUrl,
+    filePath: uniqueFileName,
+    mimeType
+  };
+}
+
+function normalizeVehicleId(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const trimmed = value.toString().trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  if (/^\d+$/.test(trimmed)) {
+    const numericId = Number(trimmed);
+    return Number.isFinite(numericId) ? numericId : null;
+  }
+
+  return trimmed;
+}
+
 // Create email transporter
 // Configure with your email service (Gmail, Outlook, etc.)
 const transporter = nodemailer.createTransport({
@@ -1422,6 +1572,36 @@ app.get('/api/hotels', async (req, res) => {
   }
 });
 
+// Helper function to fix vehicle image URLs to include vehicles/ folder
+function fixVehicleImageUrl(url) {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return url;
+  }
+  
+  // If URL already contains /vehicles/, return as is
+  if (url.includes('/vehicles/')) {
+    return url;
+  }
+  
+  // Extract the filename from the URL
+  // Format: https://...supabase.co/storage/v1/object/public/vehicle-rental/filename.jpg
+  // Should become: https://...supabase.co/storage/v1/object/public/vehicle-rental/vehicles/filename.jpg
+  const bucketName = 'vehicle-rental';
+  const bucketPattern = new RegExp(`/${bucketName}/([^/]+)$`);
+  const match = url.match(bucketPattern);
+  
+  if (match && match[1]) {
+    const filename = match[1];
+    // Reconstruct URL with vehicles/ folder
+    const baseUrl = url.substring(0, url.indexOf(`/${bucketName}/`));
+    const newUrl = `${baseUrl}/${bucketName}/vehicles/${filename}`;
+    return newUrl;
+  }
+  
+  // If pattern doesn't match, return original URL
+  return url;
+}
+
 // Get all vehicles
 app.get('/api/vehicles', async (req, res) => {
   try {
@@ -1440,11 +1620,23 @@ app.get('/api/vehicles', async (req, res) => {
       });
     }
     
-    console.log('✅ Vehicles fetched successfully:', data?.length || 0, 'vehicles');
+    // Fix image URLs to include vehicles/ folder path
+    const vehicles = (data || []).map(vehicle => {
+      if (vehicle.vehicle_image) {
+        vehicle.vehicle_image = fixVehicleImageUrl(vehicle.vehicle_image);
+      }
+      return vehicle;
+    });
+    
+    if (vehicles.length > 0) {
+      console.log('✅ Vehicles fetched successfully:', vehicles.length, 'vehicles');
+    } else {
+      console.log('✅ Vehicles fetched successfully: 0 vehicles');
+    }
     
     res.json({ 
       success: true, 
-      vehicles: data || []
+      vehicles: vehicles
     });
     
   } catch (error) {
@@ -1453,6 +1645,324 @@ app.get('/api/vehicles', async (req, res) => {
       success: false, 
       message: 'Internal server error',
       error: error.message 
+    });
+  }
+});
+
+// Create new vehicle
+app.post('/api/vehicles', async (req, res) => {
+  try {
+    const { name, price_per_day, description } = req.body;
+
+    console.log('➕ Creating vehicle:', { name, price_per_day, description });
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle name is required'
+      });
+    }
+
+    if (price_per_day === undefined || price_per_day === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price per day is required'
+      });
+    }
+
+    const parsedPrice = parseFloat(price_per_day);
+    if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'price_per_day must be a non-negative number'
+      });
+    }
+
+    const insertData = {
+      name: name.trim(),
+      price_per_day: parsedPrice,
+      vehicle_image: '' // Provide empty string as default to satisfy NOT NULL constraint
+    };
+
+    if (description !== undefined && description !== null) {
+      insertData.description = description;
+    }
+
+    console.log('📝 Inserting vehicle:', insertData);
+
+    const { data, error } = await supabase
+      .from('vehicles')
+      .insert([insertData])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error creating vehicle:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create vehicle',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Vehicle created successfully:', data[0]);
+
+    res.json({
+      success: true,
+      message: 'Vehicle created successfully',
+      vehicle: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Vehicle creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Update vehicle details
+app.put('/api/vehicles/:vehicleId', async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const normalizedVehicleId = normalizeVehicleId(vehicleId);
+
+    if (normalizedVehicleId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid vehicle ID'
+      });
+    }
+
+    const { name, price_per_day, description, vehicle_image } = req.body;
+    const updates = {};
+
+    if (name !== undefined) {
+      updates.name = name.toString().trim();
+    }
+
+    if (price_per_day !== undefined) {
+      const parsedPrice = parseFloat(price_per_day);
+      if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'price_per_day must be a non-negative number'
+        });
+      }
+      updates.price_per_day = parsedPrice;
+    }
+
+    if (description !== undefined) {
+      updates.description = description;
+    }
+
+    if (vehicle_image !== undefined) {
+      updates.vehicle_image = vehicle_image;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields provided for update'
+      });
+    }
+
+    const filterColumn = 'vehicle_id';
+    const filterValue = normalizedVehicleId;
+
+    console.log('🛠️ Updating vehicle:', normalizedVehicleId, updates, `(filter column: ${filterColumn})`);
+
+    const { data, error } = await supabase
+      .from('vehicles')
+      .update(updates)
+      .eq(filterColumn, filterValue)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error updating vehicle:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update vehicle',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Vehicle update result:', data);
+
+    // Fix image URL if present
+    const updatedVehicle = data[0];
+    if (updatedVehicle && updatedVehicle.vehicle_image) {
+      updatedVehicle.vehicle_image = fixVehicleImageUrl(updatedVehicle.vehicle_image);
+    }
+
+    res.json({
+      success: true,
+      message: 'Vehicle updated successfully',
+      vehicle: updatedVehicle
+    });
+  } catch (error) {
+    console.error('❌ Vehicle update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Upload vehicle image and persist URL
+app.post('/api/vehicles/:vehicleId/upload-image', async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const normalizedVehicleId = normalizeVehicleId(vehicleId);
+    const { imageData, fileName } = req.body;
+
+    if (normalizedVehicleId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid vehicle ID'
+      });
+    }
+
+    if (!imageData || !fileName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing image data or filename'
+      });
+    }
+
+    const filterColumn = 'vehicle_id';
+    const filterValue = normalizedVehicleId;
+
+    const { publicUrl, filePath } = await uploadImageToStorage({
+      imageData,
+      fileName,
+      bucket: 'vehicle-rental',
+      keyPrefix: 'vehicles',
+      identifier: `vehicle-${normalizedVehicleId}`
+    });
+
+    const { data, error } = await supabase
+      .from('vehicles')
+      .update({ vehicle_image: publicUrl })
+      .eq(filterColumn, filterValue)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error saving vehicle image URL:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to store vehicle image URL',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Vehicle image update result:', data);
+
+    res.json({
+      success: true,
+      message: 'Vehicle image uploaded successfully',
+      imageUrl: publicUrl,
+      fileName: filePath,
+      vehicle: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Vehicle image upload error:', error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode === 400 ? error.message : 'Internal server error',
+      error: error.details?.message || error.message
+    });
+  }
+});
+
+// Delete vehicle
+app.delete('/api/vehicles/:vehicleId', async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const normalizedVehicleId = normalizeVehicleId(vehicleId);
+
+    if (normalizedVehicleId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid vehicle ID'
+      });
+    }
+
+    const filterColumn = 'vehicle_id';
+    const filterValue = normalizedVehicleId;
+
+    console.log('🗑️ Deleting vehicle:', normalizedVehicleId);
+
+    // First, check if vehicle exists and get its image URL for cleanup
+    const { data: existingVehicle, error: fetchError } = await supabase
+      .from('vehicles')
+      .select('vehicle_id, vehicle_image, name')
+      .eq(filterColumn, filterValue)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('❌ Error checking vehicle existence:', fetchError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify vehicle before deletion',
+        error: fetchError.message
+      });
+    }
+
+    if (!existingVehicle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle not found'
+      });
+    }
+
+    // Delete the vehicle
+    const { error: deleteError } = await supabase
+      .from('vehicles')
+      .delete()
+      .eq(filterColumn, filterValue);
+
+    if (deleteError) {
+      console.error('❌ Error deleting vehicle:', deleteError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete vehicle',
+        error: deleteError.message
+      });
+    }
+
+    // Optionally delete the image from storage (commented out for safety)
+    // If you want to delete images when vehicle is deleted, uncomment this:
+    /*
+    if (existingVehicle.vehicle_image) {
+      try {
+        const imagePath = existingVehicle.vehicle_image.split('/').slice(-2).join('/');
+        await supabase.storage
+          .from('vehicle-rental')
+          .remove([imagePath]);
+      } catch (storageError) {
+        console.warn('⚠️ Could not delete vehicle image from storage:', storageError);
+      }
+    }
+    */
+
+    console.log('✅ Vehicle deleted successfully:', existingVehicle.name || normalizedVehicleId);
+
+    res.json({
+      success: true,
+      message: 'Vehicle deleted successfully',
+      deletedVehicle: {
+        vehicle_id: existingVehicle.vehicle_id,
+        name: existingVehicle.name
+      }
+    });
+  } catch (error) {
+    console.error('❌ Vehicle deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
     });
   }
 });
@@ -1751,110 +2261,35 @@ app.get('/api/analytics/popular-services', async (req, res) => {
 // Upload receipt image
 app.post('/api/payments/upload-receipt', async (req, res) => {
   try {
-    // Get the image file from request (will be sent as base64 or form data)
     const { imageData, fileName, bookingId } = req.body;
-    
+
     if (!imageData || !fileName) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Missing image data or filename' 
+      return res.status(400).json({
+        success: false,
+        message: 'Missing image data or filename'
       });
     }
-    
-    // Extract MIME type from data URL if present
-    let mimeType = 'application/octet-stream';
-    const mimeMatch = imageData.match(/^data:(.*?);base64,/);
-    if (mimeMatch && mimeMatch[1]) {
-      mimeType = mimeMatch[1].toLowerCase();
-    }
 
-    // Convert base64 to buffer
-    const base64Data = imageData.replace(/^data:[^;]+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
+    const { publicUrl, filePath } = await uploadImageToStorage({
+      imageData,
+      fileName,
+      bucket: 'receipts',
+      keyPrefix: 'receipts',
+      identifier: bookingId || 'unknown'
+    });
 
-    // Generate unique filename with booking ID
-    const fileExtension = (fileName.split('.').pop() || '').toLowerCase();
-    let finalExtension = fileExtension || 'bin';
-
-    // Normalize/Map common image extensions to correct MIME types if data URL was missing
-    const extensionToMime = {
-      jpg: 'image/jpeg',
-      jpeg: 'image/jpeg',
-      png: 'image/png',
-      webp: 'image/webp',
-      gif: 'image/gif',
-      bmp: 'image/bmp',
-      heic: 'image/heic',
-      heif: 'image/heif'
-    };
-    const mimeToExtension = {
-      'image/jpeg': 'jpg',
-      'image/png': 'png',
-      'image/webp': 'webp',
-      'image/gif': 'gif',
-      'image/bmp': 'bmp',
-      'image/heic': 'heic',
-      'image/heif': 'heif'
-    };
-
-    // Normalize incorrect but common MIME values
-    if (mimeType === 'image/jpg') {
-      mimeType = 'image/jpeg';
-    }
-
-    // If MIME missing or not one of our known ones, try mapping from extension
-    const allowedMimes = new Set(Object.keys(mimeToExtension));
-    if (!allowedMimes.has(mimeType)) {
-      const mapped = extensionToMime[fileExtension];
-      if (mapped) mimeType = mapped;
-    }
-
-    // Keep filename extension consistent with final MIME if needed
-    if (allowedMimes.has(mimeType)) {
-      finalExtension = mimeToExtension[mimeType] || finalExtension;
-    }
-
-    const uniqueFileName = `receipts/${bookingId || 'unknown'}-${Date.now()}.${finalExtension}`;
-
-    console.log('📤 Uploading receipt image:', uniqueFileName, 'with MIME:', mimeType);
-
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('receipts')
-      .upload(uniqueFileName, buffer, {
-        contentType: mimeType,
-        upsert: false
-      });
-    
-    if (error) {
-      console.error('❌ Storage upload error:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to upload receipt image',
-        error: error.message 
-      });
-    }
-    
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('receipts')
-      .getPublicUrl(uniqueFileName);
-    
-    console.log('✅ Receipt uploaded successfully');
-    
     res.json({
       success: true,
       message: 'Receipt uploaded successfully',
-      imageUrl: urlData.publicUrl,
-      fileName: uniqueFileName
+      imageUrl: publicUrl,
+      fileName: filePath
     });
-    
   } catch (error) {
     console.error('❌ Receipt upload error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Internal server error',
-      error: error.message 
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode === 400 ? error.message : 'Internal server error',
+      error: error.details?.message || error.message
     });
   }
 });

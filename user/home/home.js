@@ -6,6 +6,18 @@
 // API Base URL
 const API_BASE_URL = 'http://localhost:3000/api';
 
+function formatCurrency(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return '₱—';
+  }
+
+  return `₱${number.toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
 // Load dynamic content from database
 async function loadDynamicContent() {
   try {
@@ -39,89 +51,157 @@ async function loadDynamicContent() {
   }
 }
 
+async function loadVehicleRental() {
+  const priceElement = document.getElementById('vehicleRentalPrice');
+  const listElement = document.getElementById('vehicleRentalList');
+  const carouselInner = document.getElementById('vehicleRentalCarouselInner');
+  const moreInfoButton = document.getElementById('vehicleRentalMoreInfo');
+
+  if (!priceElement || !listElement || !carouselInner || !moreInfoButton) {
+    return;
+  }
+
+  const placeholderSlide = `
+    <div class="carousel-item active h-100">
+      <img src="../../Images/logo.png" class="d-block w-100 h-100 object-fit-cover" alt="Vehicle rental placeholder">
+    </div>
+  `;
+
+  priceElement.textContent = 'Loading latest rates...';
+  listElement.innerHTML = '<li class="vehicle-rental-list-item">Fetching vehicles from Supabase...</li>';
+  carouselInner.innerHTML = placeholderSlide;
+  moreInfoButton.dataset.info = '<strong>Vehicle Rental</strong><br>Loading vehicle list...';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicles`);
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to fetch vehicles');
+    }
+
+    const vehicles = (result.vehicles || []).filter(vehicle => {
+      const name = (vehicle?.name || '').trim().toLowerCase();
+      return name && name !== 'n/a';
+    });
+
+    if (vehicles.length === 0) {
+      priceElement.textContent = 'Currently unavailable';
+      listElement.innerHTML = '<li class="vehicle-rental-list-item">Vehicle rental options will appear here once available.</li>';
+      carouselInner.innerHTML = placeholderSlide;
+      moreInfoButton.dataset.info = '<strong>Vehicle Rental</strong><br>No vehicles are currently available. Please check back later.';
+      serviceImages['Vehicle Rental'] = [];
+      return;
+    }
+
+    vehicles.sort((a, b) => {
+      const priceA = Number(a.price_per_day);
+      const priceB = Number(b.price_per_day);
+      if (!Number.isFinite(priceA)) {
+        return 1;
+      }
+      if (!Number.isFinite(priceB)) {
+        return -1;
+      }
+      return priceA - priceB;
+    });
+
+    const minPricedVehicle = vehicles.find(vehicle => Number.isFinite(Number(vehicle.price_per_day)));
+    priceElement.textContent = minPricedVehicle
+      ? `Starting at ${formatCurrency(minPricedVehicle.price_per_day)}`
+      : 'Contact us for rates';
+
+    listElement.innerHTML = '';
+
+    vehicles.forEach(vehicle => {
+      const listItem = document.createElement('li');
+      listItem.className = 'vehicle-rental-list-item';
+
+      const vehicleName = vehicle.name || 'Vehicle';
+      const vehiclePrice = formatCurrency(vehicle.price_per_day);
+
+      listItem.innerHTML = `
+        <div class="vehicle-rental-item-header">
+          <span>${vehicleName}</span>
+          <span>${vehiclePrice}</span>
+        </div>
+      `;
+
+      listElement.appendChild(listItem);
+    });
+
+    carouselInner.innerHTML = '';
+
+    vehicles.forEach((vehicle, index) => {
+      const carouselItem = document.createElement('div');
+      carouselItem.className = `carousel-item h-100 ${index === 0 ? 'active' : ''}`;
+      const imageUrl = vehicle.vehicle_image || '../../Images/logo.png';
+      const altText = vehicle.name || 'Vehicle rental';
+      carouselItem.innerHTML = `
+        <img src="${imageUrl}" class="d-block w-100 h-100 object-fit-cover" alt="${altText}">
+      `;
+      carouselInner.appendChild(carouselItem);
+    });
+
+    if (carouselInner.children.length === 0) {
+      carouselInner.innerHTML = placeholderSlide;
+    }
+
+    const infoRows = vehicles.map(vehicle => {
+      const vehicleName = vehicle.name || 'Vehicle';
+      const vehiclePrice = formatCurrency(vehicle.price_per_day);
+      const description = vehicle.description ? vehicle.description : '';
+      return `
+        <tr>
+          <td>${vehicleName}</td>
+          <td>${vehiclePrice}</td>
+          <td>${description}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const infoHtml = `
+      <strong>Vehicle Rental Rates</strong>
+      <br>
+      <table class='table table-sm table-striped mt-2'>
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Price / Day</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>${infoRows}</tbody>
+      </table>
+      <small>All vehicles are for use within Puerto Galera only.</small>
+    `;
+
+    moreInfoButton.dataset.info = infoHtml;
+
+    const galleryImages = vehicles
+      .filter(vehicle => vehicle.vehicle_image)
+      .map(vehicle => ({
+        src: vehicle.vehicle_image,
+        alt: vehicle.name || 'Vehicle rental'
+      }));
+
+    if (galleryImages.length > 0) {
+      serviceImages['Vehicle Rental'] = galleryImages;
+    }
+  } catch (error) {
+    console.error('Error loading vehicle rentals:', error);
+    priceElement.textContent = 'Unable to load rates';
+    listElement.innerHTML = '<li class="vehicle-rental-list-item">We could not load vehicle data. Please try again later.</li>';
+    carouselInner.innerHTML = placeholderSlide;
+    moreInfoButton.dataset.info = '<strong>Vehicle Rental</strong><br>We were unable to load vehicle information at this time.';
+    serviceImages['Vehicle Rental'] = [];
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Load dynamic content first
   loadDynamicContent();
-
-  
-  // Image collections for each service
-  const serviceImages = {
-    'Snorkeling Tour': [
-      { src: '../Images/coral_garden.jpg', alt: 'Coral Garden' },
-      { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' },
-      { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams' },
-      { src: '../Images/white_beach.jpg', alt: 'White Beach' }
-    ],
-    'Inland Tour': [
-      { src: '../Images/tamaraw_falls.jpg', alt: 'Tamaraw Falls' },
-      { src: '../Images/virgin_beach.jpg', alt: 'Virgin Beach' },
-      { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' }
-    ],
-    'Island Hopping': [
-      { src: '../Images/long_beach.jpg', alt: 'Long Beach' },
-      { src: '../Images/white_beach.jpg', alt: 'White Beach' },
-      { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams' },
-      { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' }
-    ],
-    'Vehicle Rental': [
-      { src: '../Images/adv_160.png', alt: 'ADV 160' },
-      { src: '../Images/nmax.png', alt: 'NMAX' },
-      { src: '../Images/versys_650.png', alt: 'Versys 650' },
-      { src: '../Images/versys_1000.png', alt: 'Versys 1000' },
-      { src: '../Images/tuktuk.png', alt: 'Tuktuk' },
-      { src: '../Images/mirage.jpg', alt: 'Mirage' },
-      { src: '../Images/wigo.png', alt: 'Wigo' }
-    ],
-    'The Mangyan Grand Hotel': [
-      { src: '../Images/mangyan.jpg', alt: 'Mangyan Grand Hotel' },
-      { src: '../Images/mangyan2.jpg', alt: 'Mangyan Grand Hotel 2' },
-      { src: '../Images/mangyan3.jpg', alt: 'Mangyan Grand Hotel 3' },
-      { src: '../Images/mangyan4.jpg', alt: 'Mangyan Grand Hotel 4' },
-      { src: '../Images/mangyan5.jpg', alt: 'Mangyan Grand Hotel 5' },
-      { src: '../Images/mangyan6.jpg', alt: 'Mangyan Grand Hotel 6' },
-      { src: '../Images/mangyan7.jpg', alt: 'Mangyan Grand Hotel 7' },
-      { src: '../Images/mangyan8.jpg', alt: 'Mangyan Grand Hotel 8' }
-    ],
-    'SouthView': [
-      { src: '../Images/southview.jpg', alt: 'SouthView' },
-      { src: '../Images/southview2.jpg', alt: 'SouthView 2' },
-      { src: '../Images/southview3.jpg', alt: 'SouthView 3' },
-      { src: '../Images/southview4.jpg', alt: 'SouthView 4' },
-      { src: '../Images/southview5.jpg', alt: 'SouthView 5' },
-      { src: '../Images/southview6.jpg', alt: 'SouthView 6' }
-    ],
-    'Ilaya': [
-      { src: '../Images/ilaya.jpg', alt: 'Ilaya' },
-      { src: '../Images/ilaya2.jpg', alt: 'Ilaya 2' },
-      { src: '../Images/ilaya3.jpg', alt: 'Ilaya 3' },
-      { src: '../Images/ilaya4.jpg', alt: 'Ilaya 4' }
-    ],
-    'Transient House': [
-      { src: '../Images/tr1.jpg', alt: 'Transient House 1' },
-      { src: '../Images/tr2.jpg', alt: 'Transient House 2' },
-      { src: '../Images/tr3.jpg', alt: 'Transient House 3' },
-      { src: '../Images/tr4.jpg', alt: 'Transient House 4' },
-      { src: '../Images/tr5.jpg', alt: 'Transient House 5' },
-      { src: '../Images/tr7.jpg', alt: 'Transient House 7' },
-      { src: '../Images/tr8.jpg', alt: 'Transient House 8' },
-      { src: '../Images/tr9.jpg', alt: 'Transient House 9' },
-      { src: '../Images/tr10.jpg', alt: 'Transient House 10' },
-      { src: '../Images/tr11.jpg', alt: 'Transient House 11' },
-      { src: '../Images/tr12.jpg', alt: 'Transient House 12' }
-    ],
-    'Bliss': [
-      { src: '../Images/bliss.jpg', alt: 'Bliss 1' },
-      { src: '../Images/bliss2.jpg', alt: 'Bliss 2' },
-      { src: '../Images/bliss3.jpg', alt: 'Bliss 3' },
-      { src: '../Images/bliss4.jpg', alt: 'Bliss 4' },
-      { src: '../Images/bliss5.jpg', alt: 'Bliss 5' }
-    ],
-    'Diving': [
-      { src: '../Images/coral_garden.jpg', alt: 'Coral Garden Diving' },
-      { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams Diving' },
-      { src: '../Images/white_beach.jpg', alt: 'White Beach Diving' }
-    ]
-  };
+  loadVehicleRental();
 
   // Delegate click for all 'More Info' buttons
   document.body.addEventListener('click', function (e) {
@@ -328,3 +408,82 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+
+// Image collections for each service
+const serviceImages = {
+  'Snorkeling Tour': [
+    { src: '../Images/coral_garden.jpg', alt: 'Coral Garden' },
+    { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' },
+    { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams' },
+    { src: '../Images/white_beach.jpg', alt: 'White Beach' }
+  ],
+  'Inland Tour': [
+    { src: '../Images/tamaraw_falls.jpg', alt: 'Tamaraw Falls' },
+    { src: '../Images/virgin_beach.jpg', alt: 'Virgin Beach' },
+    { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' }
+  ],
+  'Island Hopping': [
+    { src: '../Images/long_beach.jpg', alt: 'Long Beach' },
+    { src: '../Images/white_beach.jpg', alt: 'White Beach' },
+    { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams' },
+    { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' }
+  ],
+  'Vehicle Rental': [
+    { src: '../Images/adv_160.png', alt: 'ADV 160' },
+    { src: '../Images/nmax.png', alt: 'NMAX' },
+    { src: '../Images/versys_650.png', alt: 'Versys 650' },
+    { src: '../Images/versys_1000.png', alt: 'Versys 1000' },
+    { src: '../Images/tuktuk.png', alt: 'Tuktuk' },
+    { src: '../Images/mirage.jpg', alt: 'Mirage' },
+    { src: '../Images/wigo.png', alt: 'Wigo' }
+  ],
+  'The Mangyan Grand Hotel': [
+    { src: '../Images/mangyan.jpg', alt: 'Mangyan Grand Hotel' },
+    { src: '../Images/mangyan2.jpg', alt: 'Mangyan Grand Hotel 2' },
+    { src: '../Images/mangyan3.jpg', alt: 'Mangyan Grand Hotel 3' },
+    { src: '../Images/mangyan4.jpg', alt: 'Mangyan Grand Hotel 4' },
+    { src: '../Images/mangyan5.jpg', alt: 'Mangyan Grand Hotel 5' },
+    { src: '../Images/mangyan6.jpg', alt: 'Mangyan Grand Hotel 6' },
+    { src: '../Images/mangyan7.jpg', alt: 'Mangyan Grand Hotel 7' },
+    { src: '../Images/mangyan8.jpg', alt: 'Mangyan Grand Hotel 8' }
+  ],
+  'SouthView': [
+    { src: '../Images/southview.jpg', alt: 'SouthView' },
+    { src: '../Images/southview2.jpg', alt: 'SouthView 2' },
+    { src: '../Images/southview3.jpg', alt: 'SouthView 3' },
+    { src: '../Images/southview4.jpg', alt: 'SouthView 4' },
+    { src: '../Images/southview5.jpg', alt: 'SouthView 5' },
+    { src: '../Images/southview6.jpg', alt: 'SouthView 6' }
+  ],
+  'Ilaya': [
+    { src: '../Images/ilaya.jpg', alt: 'Ilaya' },
+    { src: '../Images/ilaya2.jpg', alt: 'Ilaya 2' },
+    { src: '../Images/ilaya3.jpg', alt: 'Ilaya 3' },
+    { src: '../Images/ilaya4.jpg', alt: 'Ilaya 4' }
+  ],
+  'Transient House': [
+    { src: '../Images/tr1.jpg', alt: 'Transient House 1' },
+    { src: '../Images/tr2.jpg', alt: 'Transient House 2' },
+    { src: '../Images/tr3.jpg', alt: 'Transient House 3' },
+    { src: '../Images/tr4.jpg', alt: 'Transient House 4' },
+    { src: '../Images/tr5.jpg', alt: 'Transient House 5' },
+    { src: '../Images/tr7.jpg', alt: 'Transient House 7' },
+    { src: '../Images/tr8.jpg', alt: 'Transient House 8' },
+    { src: '../Images/tr9.jpg', alt: 'Transient House 9' },
+    { src: '../Images/tr10.jpg', alt: 'Transient House 10' },
+    { src: '../Images/tr11.jpg', alt: 'Transient House 11' },
+    { src: '../Images/tr12.jpg', alt: 'Transient House 12' }
+  ],
+  'Bliss': [
+    { src: '../Images/bliss.jpg', alt: 'Bliss 1' },
+    { src: '../Images/bliss2.jpg', alt: 'Bliss 2' },
+    { src: '../Images/bliss3.jpg', alt: 'Bliss 3' },
+    { src: '../Images/bliss4.jpg', alt: 'Bliss 4' },
+    { src: '../Images/bliss5.jpg', alt: 'Bliss 5' }
+  ],
+  'Diving': [
+    { src: '../Images/coral_garden.jpg', alt: 'Coral Garden Diving' },
+    { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams Diving' },
+    { src: '../Images/white_beach.jpg', alt: 'White Beach Diving' }
+  ]
+};

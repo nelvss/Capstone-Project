@@ -166,45 +166,8 @@ html {
     backdrop-filter: blur(3px);
 }
 
-/* Mission & Vision cards */
-#mission-vision .row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-    #mission-vision .row {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-#mission-vision .col {
-    display: flex;
-}
-
-#mission-vision .card {
-    width: 100%;
-    min-height: 260px;
-}
-
-#mission-vision .card-body {
-    min-height: 100%;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    flex-direction: column;
-}
-
-#mission-vision .card-title {
-    margin-bottom: 12px;
-}
-
-#mission-vision .card-text {
-    margin-bottom: 0;
-}
+/* Mission & Vision cards - OLD STYLES (Replaced by modern styles below) */
+/* These styles are kept for reference but overridden by the modern mission-vision styles */
 
 /* Parallelogram nav links */
 .nav-link.slant {
@@ -305,6 +268,54 @@ html {
     object-fit: cover;
 }
 
+/* Vehicle rental list styling */
+.vehicle-rental-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vehicle-rental-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vehicle-rental-list-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(220, 53, 69, 0.08);
+    border: 1px solid rgba(220, 53, 69, 0.15);
+}
+
+.vehicle-rental-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.vehicle-rental-item-description {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+@media (max-width: 576px) {
+    .vehicle-rental-item-header {
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+}
+
 /* Feedback textarea auto-expand styles */
 .feedback-area {
     min-height: 60px;
@@ -348,5 +359,1123 @@ nav.navbar {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
 }
 
+/* ============================================
+   MODERN MISSION & VISION SECTION STYLES
+   ============================================ */
+
+#mission-vision {
+    position: relative;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+}
+
+/* Section Header Styling */
+#mission-vision .display-4 {
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: -1px;
+}
+
+.section-header-line {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #dc3545, #ff6b6b);
+}
+
+/* Mission & Vision Card Container */
+.mission-vision-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(220, 53, 69, 0.1);
+}
+
+.mission-vision-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradient Overlay for Cards */
+.card-gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.03;
+    border-radius: 20px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.mission-gradient {
+    background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%);
+}
+
+.vision-gradient {
+    background: linear-gradient(135deg, #0066ff 0%, #00ccff 100%);
+}
+
+/* Icon Wrapper */
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.mission-icon {
+    background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%);
+    color: #ffffff;
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+}
+
+.vision-icon {
+    background: linear-gradient(135deg, #0066ff 0%, #00ccff 100%);
+    color: #ffffff;
+    box-shadow: 0 8px 25px rgba(0, 102, 255, 0.3);
+}
+
+.mission-vision-card:hover .icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Card Typography */
+.mission-vision-card .card-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: #2c3e50;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+.mission-vision-card .card-text {
+    color: #5a6c7d;
+    line-height: 1.8;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+}
+
+/* Decorative Line */
+.decorative-line {
+    width: 60px;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #dc3545, #ff6b6b);
+}
+
+.mission-vision-card:nth-child(2) .decorative-line {
+    background: linear-gradient(90deg, #0066ff, #00ccff);
+}
+
+/* Animation for cards on scroll */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mission-vision-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.mission-vision-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .mission-vision-card {
+        margin-bottom: 1rem;
+    }
+    
+    #mission-vision .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .icon-wrapper {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .icon-wrapper i {
+        font-size: 2rem !important;
+    }
+}
+
+@media (max-width: 767px) {
+    #mission-vision .display-4 {
+        font-size: 2rem;
+    }
+    
+    .mission-vision-card .card-body {
+        padding: 2rem 1.5rem !important;
+    }
+    
+    .icon-wrapper {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .icon-wrapper i {
+        font-size: 1.5rem !important;
+    }
+    
+    .mission-vision-card .card-title {
+        font-size: 1.75rem !important;
+    }
+    
+    .mission-vision-card .card-text {
+        font-size: 1rem !important;
+    }
+}
+
+/* Override old mission-vision styles to prevent conflicts */
+#mission-vision h1 {
+    text-shadow: none !important;
+    background-color: transparent !important;
+    color: inherit !important;
+    font-weight: inherit !important;
+    display: block !important;
+}
+
+/* ============================================
+   MODERN SERVICES SECTION STYLES
+   ============================================ */
+
+#services {
+    position: relative;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+}
+
+/* Services Section Typography */
+#services .display-4 {
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: -1px;
+}
+
+/* Service Cards */
+.service-card {
+    position: relative;
+    background: #ffffff !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(220, 53, 69, 0.1) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+    overflow: hidden;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Service Badge (replaces old header styles) */
+.service-badge {
+    position: absolute;
+    top: 20px;
+    right: -35px;
+    background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%);
+    color: #ffffff;
+    padding: 8px 45px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transform: rotate(45deg);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+    z-index: 10;
+}
+
+.service-badge.bestseller {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);
+}
+
+.service-badge.adventure {
+    background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.service-badge.rental {
+    background: linear-gradient(135deg, #007bff 0%, #5bc0de 100%);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+.service-badge.hotel {
+    background: linear-gradient(135deg, #6f42c1 0%, #9b59b6 100%);
+    box-shadow: 0 4px 15px rgba(111, 66, 193, 0.4);
+}
+
+/* Service Card Header */
+.service-card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+    border-bottom: 3px solid #dc3545 !important;
+    padding: 1.5rem 1.25rem !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
+}
+
+.service-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem !important;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 0.25rem 0 !important;
+    letter-spacing: 0.5px;
+}
+
+.service-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* Bestseller Card Special Styling */
+.bestseller-card {
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 12px 45px rgba(255, 215, 0, 0.2) !important;
+}
+
+.bestseller-card:hover {
+    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3) !important;
+}
+
+.bestseller-card .service-card-header {
+    border-bottom: 3px solid #ffd700 !important;
+}
+
+/* Service Card Body Enhancements */
+.service-card .card-body {
+    padding: 1.5rem;
+    background: #ffffff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.service-card .service-media {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover .service-media {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Price Tag Styling */
+.price-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    font-family: 'Poppins', sans-serif;
+}
+
+.price-tag-small {
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+/* Price Tag Color Variations */
+.price-tag.bestseller {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #000;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.price-tag.adventure {
+    background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.price-tag.rental {
+    background: linear-gradient(135deg, #007bff 0%, #5bc0de 100%);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.price-tag.hotel {
+    background: linear-gradient(135deg, #6f42c1 0%, #9b59b6 100%);
+    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+}
+
+/* Content Area Styling */
+.service-card .content {
+    background: rgba(248, 249, 250, 0.5);
+    padding: 1.25rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.service-card:hover .content {
+    background: rgba(220, 53, 69, 0.05);
+}
+
+.service-card .content p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Icon enhancements for service descriptions */
+.service-feature {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.service-feature i {
+    color: #dc3545;
+    font-size: 1rem;
+}
+
+/* Icon Color Variations */
+.service-card .content i.text-success {
+    color: #28a745 !important;
+}
+
+.service-card .content i.text-primary {
+    color: #007bff !important;
+}
+
+.service-card .content i.icon-hotel {
+    color: #6f42c1 !important;
+}
+
+/* More Info Button Styling */
+.service-card .btn-more-info {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.service-card .btn-more-info:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* Button Color Variations */
+.service-card .btn-more-info.btn-adventure {
+    background: linear-gradient(135deg, #28a745 0%, #20893a 100%);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.service-card .btn-more-info.btn-adventure:hover {
+    background: linear-gradient(135deg, #20893a 0%, #1e7e34 100%);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.service-card .btn-more-info.btn-rental {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.service-card .btn-more-info.btn-rental:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+.service-card .btn-more-info.btn-hotel {
+    background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+    box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
+}
+
+.service-card .btn-more-info.btn-hotel:hover {
+    background: linear-gradient(135deg, #5a32a3 0%, #4e2a8e 100%);
+    box-shadow: 0 6px 20px rgba(111, 66, 193, 0.4);
+}
+
+/* Carousel Enhancements for Service Cards */
+.service-card .carousel {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.service-card .carousel-item img {
+    transition: transform 0.5s ease;
+    filter: brightness(0.95);
+}
+
+.service-card .carousel-item:hover img {
+    transform: scale(1.05);
+    filter: brightness(1);
+}
+
+/* Carousel Controls Enhancement */
+.service-card .carousel-control-prev,
+.service-card .carousel-control-next {
+    width: 40px;
+    height: 40px;
+    background: rgba(220, 53, 69, 0.8);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover .carousel-control-prev,
+.service-card:hover .carousel-control-next {
+    opacity: 1;
+}
+
+.service-card .carousel-control-prev {
+    left: 10px;
+}
+
+.service-card .carousel-control-next {
+    right: 10px;
+}
+
+.service-card .carousel-control-prev:hover,
+.service-card .carousel-control-next:hover {
+    background: rgba(220, 53, 69, 1);
+}
+
+/* Content Text Styling */
+.service-card .content p {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    color: #495057;
+    line-height: 1.8;
+}
+
+/* Info Icon Styling */
+.info-highlight {
+    display: inline-block;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    padding: 4px 12px;
+    border-radius: 6px;
+    color: #1976d2;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 8px;
+}
+
+/* Logo in Service Cards */
+.service-card .logo-small {
+    max-width: 90px;
+    width: 90px;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.service-card:hover .logo-small {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Decorative Elements */
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #dc3545, #ff6b6b, #dc3545);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.service-card:hover::before {
+    opacity: 1;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Card Footer Enhancement */
+.service-card .card-footer {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-top: 1px solid rgba(220, 53, 69, 0.1);
+    padding: 1rem;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+/* Animation for service cards on scroll */
+@keyframes fadeInUpServices {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.service-card {
+    animation: fadeInUpServices 0.6s ease-out;
+}
+
+/* Staggered animation delay */
+.service-card:nth-child(1) { animation-delay: 0.1s; }
+.service-card:nth-child(2) { animation-delay: 0.2s; }
+.service-card:nth-child(3) { animation-delay: 0.3s; }
+.service-card:nth-child(4) { animation-delay: 0.4s; }
+.service-card:nth-child(5) { animation-delay: 0.5s; }
+.service-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+    .service-title {
+        font-size: 1.3rem !important;
+    }
+    
+    .service-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .service-badge {
+        padding: 6px 40px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 767px) {
+    #services .display-4 {
+        font-size: 2rem;
+    }
+    
+    .service-title {
+        font-size: 1.2rem !important;
+    }
+    
+    .service-subtitle {
+        font-size: 0.8rem;
+    }
+    
+    .service-badge {
+        padding: 5px 35px;
+        font-size: 10px;
+        top: 15px;
+        right: -30px;
+    }
+    
+    .service-card-header {
+        padding: 1rem !important;
+    }
+    
+    .service-card .card-body {
+        padding: 1rem;
+    }
+    
+    .service-card .carousel-control-prev,
+    .service-card .carousel-control-next {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+/* Additional Modern Enhancements */
+.service-card .ratio {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Hover glow effect */
+.service-card::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #dc3545, #ff6b6b);
+    border-radius: 22px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.service-card:hover::after {
+    opacity: 0.15;
+}
+
+/* Override old service heading styles */
+#services h1 {
+    text-shadow: none !important;
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+/* ============================================
+   MODERN CONTACT US SECTION STYLES
+   ============================================ */
+
+#contact-us {
+    position: relative;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+}
+
+/* Contact Section Typography */
+#contact-us .display-4 {
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: -1px;
+}
+
+/* Override old contact heading styles */
+#contact-us h1 {
+    text-shadow: none !important;
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+/* Contact Info Wrapper */
+.contact-info-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Contact Card */
+.contact-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(220, 53, 69, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.contact-card:hover {
+    transform: translateX(10px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.contact-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #dc3545 0%, #ff6b6b 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.contact-card:hover::before {
+    opacity: 1;
+}
+
+/* Contact Icon Wrapper */
+.contact-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.phone-icon {
+    background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.email-icon {
+    background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+}
+
+.location-icon {
+    background: linear-gradient(135deg, #007bff 0%, #5bc0de 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+}
+
+.contact-card:hover .contact-icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Contact Details */
+.contact-details {
+    flex: 1;
+}
+
+.contact-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.contact-link {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+    font-family: 'Poppins', sans-serif;
+}
+
+.contact-link:hover {
+    color: #dc3545;
+    transform: translateX(5px);
+}
+
+/* Social Media Card */
+.social-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.social-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #ffffff;
+    text-decoration: none;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.social-icon.facebook {
+    background: linear-gradient(135deg, #3b5998 0%, #4c70ba 100%);
+}
+
+.social-icon.instagram {
+    background: linear-gradient(135deg, #e1306c 0%, #fd1d1d 50%, #f77737 100%);
+}
+
+.social-icon:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Contact Form Wrapper */
+.contact-form-wrapper {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(220, 53, 69, 0.1);
+    height: 100%;
+}
+
+.contact-form-wrapper:hover {
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+}
+
+/* Form Header */
+.contact-form-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    padding: 2rem;
+    color: #ffffff;
+    text-align: center;
+}
+
+.form-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+.form-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    opacity: 0.95;
+    margin: 0;
+}
+
+/* Form Body */
+.contact-form-body {
+    padding: 2rem;
+}
+
+/* Form Labels */
+.contact-form-body .form-label {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Input Icon Wrapper */
+.input-icon-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 1rem;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.input-icon-wrapper:focus-within .input-icon {
+    color: #dc3545;
+}
+
+/* Modern Inputs */
+.modern-input {
+    padding: 12px 16px 12px 45px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.modern-input:focus {
+    background: #ffffff;
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+    outline: none;
+}
+
+/* Modern Textarea */
+.modern-textarea {
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.modern-textarea:focus {
+    background: #ffffff;
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+    outline: none;
+}
+
+/* Send Message Button */
+.btn-send-message {
+    position: relative;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 15px 30px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+    overflow: hidden;
+}
+
+.btn-send-message:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(220, 53, 69, 0.4);
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+}
+
+.btn-send-message:active {
+    transform: translateY(-1px);
+}
+
+/* Button Shine Effect */
+.btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s ease;
+}
+
+.btn-send-message:hover .btn-shine {
+    left: 100%;
+}
+
+/* Animation for contact cards */
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.contact-card {
+    animation: fadeInLeft 0.6s ease-out;
+}
+
+.contact-card:nth-child(1) { animation-delay: 0.1s; }
+.contact-card:nth-child(2) { animation-delay: 0.2s; }
+.contact-card:nth-child(3) { animation-delay: 0.3s; }
+.contact-card:nth-child(4) { animation-delay: 0.4s; }
+
+.contact-form-wrapper {
+    animation: fadeInRight 0.6s ease-out;
+    animation-delay: 0.2s;
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+    .contact-form-wrapper {
+        margin-top: 2rem;
+    }
+    
+    .contact-card:hover {
+        transform: translateX(5px);
+    }
+    
+    .form-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 767px) {
+    #contact-us .display-4 {
+        font-size: 2rem;
+    }
+    
+    .contact-form-header {
+        padding: 1.5rem;
+    }
+    
+    .contact-form-body {
+        padding: 1.5rem;
+    }
+    
+    .form-title {
+        font-size: 1.3rem;
+    }
+    
+    .form-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .contact-card {
+        padding: 1.25rem;
+    }
+    
+    .contact-icon-wrapper {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+    
+    .contact-title {
+        font-size: 1rem;
+    }
+    
+    .contact-link {
+        font-size: 0.85rem;
+    }
+    
+    .social-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+    
+    .btn-send-message {
+        font-size: 1rem;
+        padding: 12px 24px;
+    }
+}
+
+@media (max-width: 576px) {
+    .contact-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .contact-link:hover {
+        transform: translateX(0);
+    }
+}
 
 

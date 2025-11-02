@@ -1,321 +1,78 @@
 // Settings Page JavaScript - Connected to Owner Dashboard
 
-// Service data that can be edited
-let servicesData = {
-  // Hotel Services
-  standardRoom: {
-    price: 80,
-    description: "Comfortable standard rooms with essential amenities, perfect for budget-conscious travelers.",
-    features: ["Free WiFi", "Air Conditioning", "Private Bathroom", "Daily Housekeeping", "Cable TV"],
-    images: ["../Images/infinity_hotel.jpg"]
-  },
-  deluxeRoom: {
-    price: 120,
-    description: "Spacious deluxe rooms with premium amenities, breakfast included, and ocean view.",
-    features: ["Free WiFi", "Breakfast Included", "Ocean View", "Mini Bar", "24/7 Room Service"],
-    images: ["../Images/the_mangyan_grand_hotel.png"]
-  },
-  suiteRoom: {
-    price: 200,
-    description: "Luxurious suite rooms with separate living area, premium amenities, and exclusive services.",
-    features: ["Separate Living Area", "Premium Ocean View", "Complimentary Breakfast", "Personal Concierge", "Jacuzzi Tub"],
-    images: ["../Images/infinity_hotel.jpg"]
-  },
-  
-  // Vehicle Rentals
-  motorcycle: {
-    price: 25,
-    description: "Fuel-efficient motorcycles perfect for exploring the island, includes helmet and basic insurance.",
-    features: ["Helmet Included", "Basic Insurance", "Fuel Efficient", "Easy to Park", "Perfect for Island Exploration"],
-    images: ["../Images/nmax.png"]
-  },
-  car: {
-    price: 45,
-    description: "Modern cars with full insurance coverage, GPS navigation, and 24/7 roadside assistance.",
-    features: ["Full Insurance Coverage", "GPS Navigation", "24/7 Roadside Assistance", "Air Conditioning", "Free Airport Pickup"],
-    images: ["../Images/versys_650.png"]
-  },
-  van: {
-    price: 80,
-    description: "Spacious vans ideal for group travel, equipped with comfortable seating and ample luggage space.",
-    features: ["Seats 8-12 People", "Ample Luggage Space", "Air Conditioning", "Professional Driver Available", "Group Travel Friendly"],
-    images: ["../Images/versys_1000.png"]
-  },
-  
-  // Tour Packages
-  islandTour: {
-    price: 75,
-    description: "Full-day island hopping adventure visiting multiple pristine beaches and hidden lagoons with boat transportation.",
-    features: ["Boat Transportation", "Visit 3-4 Islands", "Lunch Included", "Snorkeling Equipment", "Professional Guide"],
-    images: ["../Images/white_beach.jpg", "../Images/virgin_beach.jpg"]
-  },
-  inlandTour: {
-    price: 65,
-    description: "Explore mountains, waterfalls, and cultural sites with hiking adventures and local village visits.",
-    features: ["Mountain Hiking", "Waterfall Visits", "Cultural Village Tour", "Local Lunch", "Transportation Included"],
-    images: ["../Images/tamaraw_falls.jpg"]
-  },
-  snorkelTour: {
-    price: 90,
-    description: "Underwater adventure exploring coral reefs and marine life with professional diving instruction.",
-    features: ["Professional Dive Instructor", "Complete Equipment Provided", "Coral Reef Exploration", "Marine Life Spotting", "Underwater Photography"],
-    images: ["../Images/coral_garden.jpg", "../Images/giant_clamps.jpg"]
-  },
-  sunsetTour: {
-    price: 55,
-    description: "Romantic sunset viewing and night market exploration with dinner and cultural entertainment.",
-    features: ["Scenic Sunset Viewing", "Night Market Visit", "Local Dinner Included", "Cultural Show", "Transportation Included"],
-    images: ["../Images/long_beach.jpg", "../Images/muelle_beach.jpg"]
-  }
+const API_BASE_URL = 'http://localhost:3000/api';
+
+const vehicleState = {
+  data: [],
+  byId: new Map(),
+  lastSynced: null,
+  isLoading: false
 };
 
-// Business settings data
-let businessSettings = {
-  name: "Travel Admin",
-  email: "info@traveladmin.com",
-  phone: "+1 (555) 123-4567",
-  address: "123 Travel Street, Tourism City, TC 12345",
-  cancellationPolicy: 24,
-  advanceBookingLimit: 365,
-  requireDeposit: true,
-  depositPercentage: 25
+let newVehicleImageFile = null;
+
+const vehicleUI = {
+  list: null,
+  error: null,
+  syncStatus: null,
+  refreshBtn: null,
+  template: null
 };
 
 // Tab switching functionality
-function showTab(tabName) {
-  // Hide all tab contents
+function showTab(event, tabName) {
   const tabContents = document.querySelectorAll('.tab-content');
   tabContents.forEach(tab => tab.classList.remove('active'));
-  
-  // Remove active class from all tab buttons
+
   const tabButtons = document.querySelectorAll('.tab-btn');
   tabButtons.forEach(btn => btn.classList.remove('active'));
-  
-  // Show selected tab and activate button
-  document.getElementById(tabName + '-tab').classList.add('active');
-  event.target.classList.add('active');
-}
 
-// Save all changes
-function saveAllChanges() {
-  try {
-    // Save hotel service prices and descriptions
-    servicesData.standardRoom.price = parseFloat(document.getElementById('standard-room-price').value);
-    servicesData.standardRoom.description = document.getElementById('standard-room-description').value;
-    servicesData.standardRoom.features = document.getElementById('standard-room-features').value.split('\n').filter(f => f.trim());
-    
-    servicesData.deluxeRoom.price = parseFloat(document.getElementById('deluxe-room-price').value);
-    servicesData.deluxeRoom.description = document.getElementById('deluxe-room-description').value;
-    servicesData.deluxeRoom.features = document.getElementById('deluxe-room-features').value.split('\n').filter(f => f.trim());
-    
-    servicesData.suiteRoom.price = parseFloat(document.getElementById('suite-room-price').value);
-    servicesData.suiteRoom.description = document.getElementById('suite-room-description').value;
-    servicesData.suiteRoom.features = document.getElementById('suite-room-features').value.split('\n').filter(f => f.trim());
-    
-    // Save vehicle rental prices and descriptions
-    servicesData.motorcycle.price = parseFloat(document.getElementById('motorcycle-price').value);
-    servicesData.motorcycle.description = document.getElementById('motorcycle-description').value;
-    servicesData.motorcycle.features = document.getElementById('motorcycle-features').value.split('\n').filter(f => f.trim());
-    
-    servicesData.car.price = parseFloat(document.getElementById('car-price').value);
-    servicesData.car.description = document.getElementById('car-description').value;
-    servicesData.car.features = document.getElementById('car-features').value.split('\n').filter(f => f.trim());
-    
-    servicesData.van.price = parseFloat(document.getElementById('van-price').value);
-    servicesData.van.description = document.getElementById('van-description').value;
-    servicesData.van.features = document.getElementById('van-features').value.split('\n').filter(f => f.trim());
-    
-    // Save tour package prices and descriptions
-    servicesData.islandTour.price = parseFloat(document.getElementById('island-tour-price').value);
-    servicesData.islandTour.description = document.getElementById('island-tour-description').value;
-    servicesData.islandTour.features = document.getElementById('island-tour-features').value.split('\n').filter(f => f.trim());
-    
-    servicesData.inlandTour.price = parseFloat(document.getElementById('inland-tour-price').value);
-    servicesData.inlandTour.description = document.getElementById('inland-tour-description').value;
-    servicesData.inlandTour.features = document.getElementById('inland-tour-features').value.split('\n').filter(f => f.trim());
-    
-    servicesData.snorkelTour.price = parseFloat(document.getElementById('snorkel-tour-price').value);
-    servicesData.snorkelTour.description = document.getElementById('snorkel-tour-description').value;
-    servicesData.snorkelTour.features = document.getElementById('snorkel-tour-features').value.split('\n').filter(f => f.trim());
-    
-    servicesData.sunsetTour.price = parseFloat(document.getElementById('sunset-tour-price').value);
-    servicesData.sunsetTour.description = document.getElementById('sunset-tour-description').value;
-    servicesData.sunsetTour.features = document.getElementById('sunset-tour-features').value.split('\n').filter(f => f.trim());
-    
-    // Save business settings
-    businessSettings.name = document.getElementById('business-name').value;
-    businessSettings.email = document.getElementById('business-email').value;
-    businessSettings.phone = document.getElementById('business-phone').value;
-    businessSettings.address = document.getElementById('business-address').value;
-    businessSettings.cancellationPolicy = parseInt(document.getElementById('cancellation-policy').value);
-    businessSettings.advanceBookingLimit = parseInt(document.getElementById('advance-booking').value);
-    businessSettings.requireDeposit = document.getElementById('require-deposit').checked;
-    businessSettings.depositPercentage = parseInt(document.getElementById('deposit-percentage').value);
-    
-    // Store data in localStorage (in real app, would send to server)
-    localStorage.setItem('servicesData', JSON.stringify(servicesData));
-    localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
-    
-    // Show success message
-    showSuccessMessage();
-    
-    console.log('Settings saved successfully:', { servicesData, businessSettings });
-    
-  } catch (error) {
-    console.error('Error saving settings:', error);
-    alert('Error saving settings. Please try again.');
+  const activeTab = document.getElementById(`${tabName}-tab`);
+  if (activeTab) {
+    activeTab.classList.add('active');
+  }
+
+  const trigger = event?.currentTarget || document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+  if (trigger) {
+    trigger.classList.add('active');
   }
 }
 
-// Show success message
-function showSuccessMessage() {
+// Show success message (available for future integrations)
+function showSuccessMessage(message = 'Settings saved successfully!') {
   const successMsg = document.getElementById('success-message');
+  if (!successMsg) {
+    return;
+  }
+
+  const successText = successMsg.querySelector('.success-text');
+  if (successText) {
+    successText.textContent = message;
+  }
+
   successMsg.classList.add('show');
-  
+
   setTimeout(() => {
     successMsg.classList.remove('show');
   }, 3000);
-}
-
-// Image management functions
-function removeImage(button) {
-  if (confirm('Are you sure you want to remove this image?')) {
-    const imageItem = button.closest('.image-item');
-    imageItem.remove();
-    console.log('Image removed');
-  }
-}
-
-function setPrimaryImage(button) {
-  const imageGrid = button.closest('.image-grid');
-  const allItems = imageGrid.querySelectorAll('.image-item');
-  
-  // Remove primary class from all images
-  allItems.forEach(item => item.classList.remove('primary'));
-  
-  // Add primary class to selected image
-  const imageItem = button.closest('.image-item');
-  imageItem.classList.add('primary');
-  
-  console.log('Primary image set');
-}
-
-// Handle file uploads
-function handleImageUpload(event, serviceType) {
-  const files = event.target.files;
-  const imageGrid = document.getElementById(serviceType + '-image-grid');
-  
-  Array.from(files).forEach(file => {
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const imageItem = document.createElement('div');
-        imageItem.className = 'image-item';
-        imageItem.innerHTML = `
-          <img src="${e.target.result}" alt="${serviceType} image">
-          <div class="image-overlay">
-            <button class="btn-remove" onclick="removeImage(this)">🗑️</button>
-            <button class="btn-primary" onclick="setPrimaryImage(this)">⭐</button>
-          </div>
-        `;
-        imageGrid.appendChild(imageItem);
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-}
-
-// Load saved data on page load
-function loadSavedData() {
-  // Load from localStorage if available
-  const savedServices = localStorage.getItem('servicesData');
-  const savedBusiness = localStorage.getItem('businessSettings');
-  
-  if (savedServices) {
-    servicesData = JSON.parse(savedServices);
-  }
-  
-  if (savedBusiness) {
-    businessSettings = JSON.parse(savedBusiness);
-  }
-  
-  // Populate form fields with saved data
-  populateFormFields();
-}
-
-function populateFormFields() {
-  // Populate hotel service data
-  document.getElementById('standard-room-price').value = servicesData.standardRoom.price;
-  document.getElementById('standard-room-description').value = servicesData.standardRoom.description;
-  document.getElementById('standard-room-features').value = servicesData.standardRoom.features.join('\n');
-  
-  document.getElementById('deluxe-room-price').value = servicesData.deluxeRoom.price;
-  document.getElementById('deluxe-room-description').value = servicesData.deluxeRoom.description;
-  document.getElementById('deluxe-room-features').value = servicesData.deluxeRoom.features.join('\n');
-  
-  document.getElementById('suite-room-price').value = servicesData.suiteRoom.price;
-  document.getElementById('suite-room-description').value = servicesData.suiteRoom.description;
-  document.getElementById('suite-room-features').value = servicesData.suiteRoom.features.join('\n');
-  
-  // Populate vehicle rental data
-  document.getElementById('motorcycle-price').value = servicesData.motorcycle.price;
-  document.getElementById('motorcycle-description').value = servicesData.motorcycle.description;
-  document.getElementById('motorcycle-features').value = servicesData.motorcycle.features.join('\n');
-  
-  document.getElementById('car-price').value = servicesData.car.price;
-  document.getElementById('car-description').value = servicesData.car.description;
-  document.getElementById('car-features').value = servicesData.car.features.join('\n');
-  
-  document.getElementById('van-price').value = servicesData.van.price;
-  document.getElementById('van-description').value = servicesData.van.description;
-  document.getElementById('van-features').value = servicesData.van.features.join('\n');
-  
-  // Populate tour package data
-  document.getElementById('island-tour-price').value = servicesData.islandTour.price;
-  document.getElementById('island-tour-description').value = servicesData.islandTour.description;
-  document.getElementById('island-tour-features').value = servicesData.islandTour.features.join('\n');
-  
-  document.getElementById('inland-tour-price').value = servicesData.inlandTour.price;
-  document.getElementById('inland-tour-description').value = servicesData.inlandTour.description;
-  document.getElementById('inland-tour-features').value = servicesData.inlandTour.features.join('\n');
-  
-  document.getElementById('snorkel-tour-price').value = servicesData.snorkelTour.price;
-  document.getElementById('snorkel-tour-description').value = servicesData.snorkelTour.description;
-  document.getElementById('snorkel-tour-features').value = servicesData.snorkelTour.features.join('\n');
-  
-  document.getElementById('sunset-tour-price').value = servicesData.sunsetTour.price;
-  document.getElementById('sunset-tour-description').value = servicesData.sunsetTour.description;
-  document.getElementById('sunset-tour-features').value = servicesData.sunsetTour.features.join('\n');
-  
-  // Populate business settings
-  document.getElementById('business-name').value = businessSettings.name;
-  document.getElementById('business-email').value = businessSettings.email;
-  document.getElementById('business-phone').value = businessSettings.phone;
-  document.getElementById('business-address').value = businessSettings.address;
-  document.getElementById('cancellation-policy').value = businessSettings.cancellationPolicy;
-  document.getElementById('advance-booking').value = businessSettings.advanceBookingLimit;
-  document.getElementById('require-deposit').checked = businessSettings.requireDeposit;
-  document.getElementById('deposit-percentage').value = businessSettings.depositPercentage;
 }
 
 // Sidebar toggle functionality (same as dashboard)
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   const mainContent = document.querySelector('.main-content');
-  
-  sidebar.classList.toggle('collapsed');
-  mainContent.classList.toggle('expanded');
+
+  sidebar?.classList.toggle('collapsed');
+  mainContent?.classList.toggle('expanded');
 }
 
 // Smooth page navigation with transition
 function navigateWithTransition(url) {
-  // Add transition class to body
   document.body.classList.add('page-transition');
-  
-  // Wait for transition to complete before navigating
+
   setTimeout(() => {
     window.location.href = url;
-  }, 300); // Match the CSS transition duration
+  }, 300);
 }
 
 // Logout functionality (same as dashboard)
@@ -326,104 +83,850 @@ function handleLogout() {
   }
 }
 
-// Real-time price validation
-function validatePriceInput(input) {
-  const value = parseFloat(input.value);
-  if (value < 0) {
-    input.value = 0;
-  }
-}
-
-// Auto-save functionality (save changes every 30 seconds)
-function enableAutoSave() {
-  setInterval(() => {
-    const hasChanges = checkForUnsavedChanges();
-    if (hasChanges) {
-      saveAllChanges();
-      console.log('Auto-saved changes');
-    }
-  }, 30000); // 30 seconds
-}
-
-function checkForUnsavedChanges() {
-  // Simple check - in real app would compare with last saved state
-  // Check if any of the service prices have changed
-  const standardRoomChanged = document.getElementById('standard-room-price').value !== servicesData.standardRoom.price.toString();
-  const deluxeRoomChanged = document.getElementById('deluxe-room-price').value !== servicesData.deluxeRoom.price.toString();
-  const suiteRoomChanged = document.getElementById('suite-room-price').value !== servicesData.suiteRoom.price.toString();
-  const motorcycleChanged = document.getElementById('motorcycle-price').value !== servicesData.motorcycle.price.toString();
-  const carChanged = document.getElementById('car-price').value !== servicesData.car.price.toString();
-  const vanChanged = document.getElementById('van-price').value !== servicesData.van.price.toString();
-  const islandTourChanged = document.getElementById('island-tour-price').value !== servicesData.islandTour.price.toString();
-  const inlandTourChanged = document.getElementById('inland-tour-price').value !== servicesData.inlandTour.price.toString();
-  const snorkelTourChanged = document.getElementById('snorkel-tour-price').value !== servicesData.snorkelTour.price.toString();
-  const sunsetTourChanged = document.getElementById('sunset-tour-price').value !== servicesData.sunsetTour.price.toString();
-  
-  return standardRoomChanged || deluxeRoomChanged || suiteRoomChanged || motorcycleChanged || 
-         carChanged || vanChanged || islandTourChanged || inlandTourChanged || 
-         snorkelTourChanged || sunsetTourChanged;
-}
-
 // Session checking
 function checkSession() {
   const userSession = localStorage.getItem('userSession');
-  
+
   if (!userSession) {
-    // No session found, redirect to login
     window.location.href = 'login.html';
     return false;
   }
-  
+
   try {
     const session = JSON.parse(userSession);
-    
-    // Check if user is owner
+
     if (session.type !== 'owner') {
       alert('Access denied. Owner access required.');
       window.location.href = 'login.html';
       return false;
     }
-    
+
     return true;
   } catch (error) {
-    // Invalid session data
     localStorage.removeItem('userSession');
     window.location.href = 'login.html';
     return false;
   }
 }
 
+function resolveVehicleId(vehicle) {
+  return vehicle?.vehicle_id ?? vehicle?.id ?? null;
+}
+
+function getPriceDisplayValue(value) {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+
+  const numericValue = Number(value);
+  if (Number.isFinite(numericValue)) {
+    return numericValue.toFixed(2);
+  }
+
+  return value;
+}
+
+function setStatusTag(tagElement, text, variant = 'default') {
+  if (!tagElement) {
+    return;
+  }
+
+  tagElement.textContent = text;
+  tagElement.classList.remove('success', 'error');
+
+  if (variant === 'success') {
+    tagElement.classList.add('success');
+  } else if (variant === 'error') {
+    tagElement.classList.add('error');
+  }
+}
+
+function showInlineStatus(element, message, variant = 'info') {
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+
+  if (variant === 'success') {
+    element.dataset.status = 'success';
+  } else if (variant === 'error') {
+    element.dataset.status = 'error';
+  } else {
+    delete element.dataset.status;
+  }
+}
+
+function clearInlineStatus(element) {
+  if (!element) {
+    return;
+  }
+  element.textContent = '';
+  delete element.dataset.status;
+}
+
+function setVehicleData(vehicles) {
+  const filteredVehicles = (Array.isArray(vehicles) ? vehicles : []).filter(vehicle => {
+    const name = (vehicle?.name || '').trim().toLowerCase();
+    return name && name !== 'n/a';
+  });
+
+  vehicleState.data = filteredVehicles;
+  vehicleState.byId = new Map();
+
+  vehicleState.data.forEach(vehicle => {
+    const id = resolveVehicleId(vehicle);
+    if (id !== null && id !== undefined) {
+      vehicleState.byId.set(String(id), vehicle);
+    }
+  });
+}
+
+function getVehicleFromState(vehicleId) {
+  return vehicleState.byId.get(String(vehicleId));
+}
+
+function updateVehicleInState(vehicle) {
+  const id = resolveVehicleId(vehicle);
+  if (id === null || id === undefined) {
+    return;
+  }
+
+  vehicleState.byId.set(String(id), vehicle);
+  vehicleState.data = vehicleState.data.map(item => (resolveVehicleId(item) === id ? vehicle : item));
+}
+
+async function parseJsonResponse(response) {
+  const text = await response.text();
+
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (parseError) {
+    const snippet = text.slice(0, 200).replace(/\s+/g, ' ').trim();
+    throw new Error(`HTTP ${response.status}: ${snippet}`);
+  }
+}
+
+function setVehicleLoading(isLoading) {
+  vehicleState.isLoading = isLoading;
+
+  if (vehicleUI.refreshBtn) {
+    vehicleUI.refreshBtn.disabled = isLoading;
+  }
+
+  if (vehicleUI.list) {
+    vehicleUI.list.setAttribute('aria-busy', String(isLoading));
+  }
+}
+
+function setVehicleError(message = '') {
+  if (!vehicleUI.error) {
+    return;
+  }
+
+  if (message) {
+    vehicleUI.error.textContent = message;
+    vehicleUI.error.hidden = false;
+  } else {
+    vehicleUI.error.textContent = '';
+    vehicleUI.error.hidden = true;
+  }
+}
+
+function formatSyncTimestamp(date) {
+  if (!(date instanceof Date)) {
+    return '';
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function updateVehicleSyncStatus() {
+  if (!vehicleUI.syncStatus) {
+    return;
+  }
+
+  if (!vehicleState.lastSynced) {
+    vehicleUI.syncStatus.textContent = 'Last synced: waiting...';
+    return;
+  }
+
+  vehicleUI.syncStatus.textContent = `Last synced: ${formatSyncTimestamp(vehicleState.lastSynced)}`;
+}
+
+async function loadVehicles() {
+  if (!vehicleUI.list || !vehicleUI.template) {
+    return;
+  }
+
+  setVehicleError('');
+  setVehicleLoading(true);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicles`);
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to load vehicles');
+    }
+
+    setVehicleData(result.vehicles || []);
+    vehicleState.lastSynced = new Date();
+    updateVehicleSyncStatus();
+    renderVehicles();
+  } catch (error) {
+    console.error('❌ Failed to load vehicles:', error);
+    setVehicleData([]);
+    if (vehicleUI.list) {
+      vehicleUI.list.innerHTML = '';
+      vehicleUI.list.hidden = true;
+    }
+    setVehicleError(`Failed to load vehicles: ${error.message}`);
+  } finally {
+    setVehicleLoading(false);
+  }
+}
+
+function renderVehicles() {
+  if (!vehicleUI.list) {
+    return;
+  }
+
+  vehicleUI.list.innerHTML = '';
+
+  const vehicles = vehicleState.data;
+  const hasVehicles = vehicles.length > 0;
+
+  vehicleUI.list.hidden = !hasVehicles;
+
+  if (!hasVehicles) {
+    return;
+  }
+
+  vehicles.forEach(vehicle => {
+    const card = createVehicleCard(vehicle);
+    vehicleUI.list.appendChild(card);
+  });
+}
+
+function createVehicleCard(vehicle) {
+  const id = resolveVehicleId(vehicle);
+  const fragment = vehicleUI.template.content.cloneNode(true);
+  const card = fragment.querySelector('.vehicle-card');
+  const nameElement = fragment.querySelector('.vehicle-name');
+  const idElement = fragment.querySelector('.vehicle-id');
+  const statusTag = fragment.querySelector('.vehicle-status-tag');
+  const priceInput = fragment.querySelector('.vehicle-price');
+  const descriptionInput = fragment.querySelector('.vehicle-description');
+  const saveButton = fragment.querySelector('.vehicle-save-btn');
+  const inlineStatus = fragment.querySelector('.vehicle-inline-status');
+  const imageElement = fragment.querySelector('.vehicle-image');
+  const uploadButton = fragment.querySelector('.vehicle-upload-btn');
+  const fileInput = fragment.querySelector('.vehicle-file-input');
+  const deleteButton = fragment.querySelector('.vehicle-delete-btn');
+
+  if (card) {
+    card.dataset.vehicleId = id;
+  }
+
+  if (nameElement) {
+    nameElement.textContent = vehicle?.name || `Vehicle ${id}`;
+  }
+
+  if (idElement) {
+    idElement.textContent = `ID: ${id}`;
+  }
+
+  if (statusTag) {
+    setStatusTag(statusTag, 'Synced');
+  }
+
+  if (priceInput) {
+    priceInput.value = getPriceDisplayValue(vehicle?.price_per_day);
+  }
+
+  if (descriptionInput) {
+    descriptionInput.value = vehicle?.description || '';
+  }
+
+  if (imageElement) {
+    // Handle empty strings, null, undefined - all should show placeholder
+    const imageUrl = vehicle?.vehicle_image;
+    imageElement.src = (imageUrl && imageUrl.trim() !== '') ? imageUrl : '../Images/logo.png';
+    imageElement.alt = `${vehicle?.name || 'Vehicle'} preview`;
+  }
+
+  if (saveButton) {
+    saveButton.addEventListener('click', () => {
+      handleVehicleSave({
+        vehicleId: id,
+        priceInput,
+        descriptionInput,
+        saveButton,
+        inlineStatus,
+        statusTag
+      });
+    });
+  }
+
+  if (uploadButton && fileInput) {
+    uploadButton.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      const [file] = fileInput.files || [];
+      if (!file) {
+        return;
+      }
+
+      handleVehicleImageUpload({
+        vehicleId: id,
+        file,
+        uploadButton,
+        inlineStatus,
+        statusTag,
+        imageElement,
+        fileInput
+      });
+    });
+  }
+
+  if (deleteButton) {
+    deleteButton.addEventListener('click', () => {
+      handleVehicleDelete({
+        vehicleId: id,
+        vehicleName: vehicle?.name || `Vehicle ${id}`,
+        deleteButton,
+        card,
+        inlineStatus,
+        statusTag
+      });
+    });
+  }
+
+  return fragment;
+}
+
+async function handleVehicleSave({ vehicleId, priceInput, descriptionInput, saveButton, inlineStatus, statusTag }) {
+  const existing = getVehicleFromState(vehicleId) || {};
+
+  const priceValue = priceInput?.value ?? '';
+  const descriptionValue = descriptionInput?.value?.trim() ?? '';
+  const payload = {};
+
+  if (priceValue !== '') {
+    const parsedPrice = Number(priceValue);
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+      showInlineStatus(inlineStatus, 'Enter a valid non-negative price.', 'error');
+      setStatusTag(statusTag, 'Validation error', 'error');
+      return;
+    }
+
+    if (Number(existing.price_per_day) !== parsedPrice) {
+      payload.price_per_day = parsedPrice;
+    }
+  }
+
+  if ((existing.description || '').trim() !== descriptionValue) {
+    payload.description = descriptionValue;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    showInlineStatus(inlineStatus, 'No changes to save.', 'info');
+    setTimeout(() => clearInlineStatus(inlineStatus), 2500);
+    return;
+  }
+
+  showInlineStatus(inlineStatus, 'Saving changes...');
+  setStatusTag(statusTag, 'Saving...', 'default');
+
+  if (saveButton) {
+    saveButton.disabled = true;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload),
+      cache: 'no-cache'
+    });
+
+    const result = await parseJsonResponse(response);
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to update vehicle');
+    }
+
+    const updatedVehicle = result.vehicle;
+    updateVehicleInState(updatedVehicle);
+
+    if (priceInput && updatedVehicle?.price_per_day !== undefined) {
+      priceInput.value = getPriceDisplayValue(updatedVehicle.price_per_day);
+    }
+
+    if (descriptionInput && updatedVehicle?.description !== undefined) {
+      descriptionInput.value = updatedVehicle.description || '';
+    }
+
+    showInlineStatus(inlineStatus, 'Changes saved!', 'success');
+    setStatusTag(statusTag, 'Saved just now', 'success');
+    showSuccessMessage(`${updatedVehicle?.name || 'Vehicle'} updated successfully!`);
+  } catch (error) {
+    console.error('❌ Error saving vehicle:', error);
+    showInlineStatus(inlineStatus, `Save failed: ${error.message}`, 'error');
+    setStatusTag(statusTag, 'Save failed', 'error');
+  } finally {
+    if (saveButton) {
+      saveButton.disabled = false;
+    }
+
+    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+  }
+}
+
+async function handleVehicleImageUpload({ vehicleId, file, uploadButton, inlineStatus, statusTag, imageElement, fileInput }) {
+  showInlineStatus(inlineStatus, 'Uploading image...');
+  setStatusTag(statusTag, 'Uploading...', 'default');
+
+  if (uploadButton) {
+    uploadButton.disabled = true;
+  }
+
+  try {
+    const imageData = await readFileAsBase64(file);
+
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}/upload-image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        imageData,
+        fileName: file.name
+      }),
+      cache: 'no-cache'
+    });
+
+    const result = await parseJsonResponse(response);
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to upload vehicle image');
+    }
+
+    const updatedVehicle = result.vehicle;
+    updateVehicleInState(updatedVehicle);
+
+    if (imageElement && result.imageUrl) {
+      imageElement.src = result.imageUrl;
+    }
+
+    showInlineStatus(inlineStatus, 'Image updated successfully', 'success');
+    setStatusTag(statusTag, 'Image updated', 'success');
+    showSuccessMessage(`${updatedVehicle?.name || 'Vehicle'} image updated!`);
+  } catch (error) {
+    console.error('❌ Error uploading vehicle image:', error);
+    showInlineStatus(inlineStatus, `Upload failed: ${error.message}`, 'error');
+    setStatusTag(statusTag, 'Upload failed', 'error');
+  } finally {
+    if (uploadButton) {
+      uploadButton.disabled = false;
+    }
+
+    if (fileInput) {
+      fileInput.value = '';
+    }
+
+    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+  }
+}
+
+async function handleVehicleDelete({ vehicleId, vehicleName, deleteButton, card, inlineStatus, statusTag }) {
+  const confirmed = confirm(`Are you sure you want to delete "${vehicleName}"?\n\nThis action cannot be undone. The vehicle will be removed from Supabase and will no longer appear on the home page.`);
+  
+  if (!confirmed) {
+    return;
+  }
+
+  showInlineStatus(inlineStatus, 'Deleting vehicle...');
+  setStatusTag(statusTag, 'Deleting...', 'default');
+
+  if (deleteButton) {
+    deleteButton.disabled = true;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json'
+      },
+      cache: 'no-cache'
+    });
+
+    const result = await parseJsonResponse(response);
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to delete vehicle');
+    }
+
+    // Remove from state
+    const filtered = vehicleState.data.filter(v => resolveVehicleId(v) !== vehicleId);
+    setVehicleData(filtered);
+
+    // Remove card from DOM
+    if (card && card.parentElement) {
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      
+      setTimeout(() => {
+        card.remove();
+      }, 300);
+    }
+
+    showSuccessMessage(`${vehicleName} deleted successfully!`);
+    
+    // Re-render to ensure UI is in sync
+    renderVehicles();
+  } catch (error) {
+    console.error('❌ Error deleting vehicle:', error);
+    showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
+    setStatusTag(statusTag, 'Delete failed', 'error');
+    
+    if (deleteButton) {
+      deleteButton.disabled = false;
+    }
+    
+    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+  }
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(reader.result);
+    };
+
+    reader.onerror = () => {
+      reject(new Error('Unable to read the selected file'));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function showNewVehicleCard() {
+  const newCard = document.getElementById('vehicle-new-card');
+  const listContainer = vehicleUI.list?.parentElement;
+
+  if (!newCard || !listContainer) {
+    return;
+  }
+
+  if (newCard.parentElement !== listContainer) {
+    listContainer.insertBefore(newCard, vehicleUI.list);
+  }
+
+  newCard.hidden = false;
+  newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideNewVehicleCard() {
+  const newCard = document.getElementById('vehicle-new-card');
+  if (newCard) {
+    newCard.hidden = true;
+  }
+}
+
+function clearNewVehicleForm() {
+  const nameInput = document.getElementById('new-vehicle-name');
+  const priceInput = document.getElementById('new-vehicle-price');
+  const descInput = document.getElementById('new-vehicle-description');
+  const statusEl = document.getElementById('new-vehicle-status');
+  const fileInput = document.getElementById('new-vehicle-file-input');
+  const imageElement = document.querySelector('#vehicle-new-card .vehicle-image');
+
+  if (nameInput) {
+    nameInput.value = '';
+  }
+  if (priceInput) {
+    priceInput.value = '';
+  }
+  if (descInput) {
+    descInput.value = '';
+  }
+  if (fileInput) {
+    fileInput.value = '';
+  }
+  if (imageElement) {
+    imageElement.src = '../Images/logo.png';
+  }
+  if (statusEl) {
+    statusEl.textContent = '';
+    delete statusEl.dataset.status;
+  }
+  
+  newVehicleImageFile = null;
+}
+
+async function handleCreateVehicle() {
+  const nameInput = document.getElementById('new-vehicle-name');
+  const priceInput = document.getElementById('new-vehicle-price');
+  const descInput = document.getElementById('new-vehicle-description');
+  const statusEl = document.getElementById('new-vehicle-status');
+  const saveBtn = document.getElementById('new-vehicle-save-btn');
+  const cancelBtn = document.getElementById('new-vehicle-cancel-btn');
+
+  if (!nameInput || !priceInput || !descInput || !statusEl || !saveBtn || !cancelBtn) {
+    return;
+  }
+
+  const name = (nameInput.value || '').trim();
+  const priceValue = priceInput.value || '';
+  const description = (descInput.value || '').trim();
+
+  if (!name) {
+    showInlineStatus(statusEl, 'Enter a vehicle name.', 'error');
+    setTimeout(() => clearInlineStatus(statusEl), 3000);
+    return;
+  }
+
+  if (!priceValue) {
+    showInlineStatus(statusEl, 'Enter a price per day.', 'error');
+    setTimeout(() => clearInlineStatus(statusEl), 3000);
+    return;
+  }
+
+  const parsedPrice = Number(priceValue);
+  if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+    showInlineStatus(statusEl, 'Enter a valid non-negative price.', 'error');
+    setTimeout(() => clearInlineStatus(statusEl), 3000);
+    return;
+  }
+
+  const payload = {
+    name,
+    price_per_day: parsedPrice,
+    description
+  };
+
+  showInlineStatus(statusEl, 'Creating vehicle...');
+  saveBtn.disabled = true;
+  cancelBtn.disabled = true;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/vehicles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload),
+      cache: 'no-cache'
+    });
+
+    const result = await parseJsonResponse(response);
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to create vehicle');
+    }
+
+    const newVehicle = result.vehicle;
+    
+    // Add new vehicle to state first (without image yet)
+    setVehicleData([...vehicleState.data, newVehicle]);
+    
+    // Append new vehicle card first (will show placeholder initially)
+    const newCardFragment = createVehicleCard(newVehicle);
+    let newCard = null;
+    if (vehicleUI.list && newCardFragment) {
+      vehicleUI.list.appendChild(newCardFragment);
+      // After appending, query for the card
+      const vehicleId = newVehicle.vehicle_id;
+      newCard = vehicleUI.list.querySelector(`[data-vehicle-id="${vehicleId}"]`);
+    } else {
+      // Fallback to full re-render if append fails
+      renderVehicles();
+    }
+    
+    // Upload image if one was selected (after card is created)
+    if (newVehicleImageFile && newVehicle.vehicle_id) {
+      showInlineStatus(statusEl, 'Uploading image...');
+      console.log('📤 Starting image upload for vehicle:', newVehicle.vehicle_id);
+      
+      try {
+        const imageData = await readFileAsBase64(newVehicleImageFile);
+        console.log('📦 Image data prepared, size:', imageData.length, 'chars');
+        
+        const imageResponse = await fetch(`${API_BASE_URL}/vehicles/${newVehicle.vehicle_id}/upload-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            imageData,
+            fileName: newVehicleImageFile.name
+          }),
+          cache: 'no-cache'
+        });
+        
+        const imageResult = await parseJsonResponse(imageResponse);
+        console.log('📥 Image upload response:', {
+          ok: imageResponse.ok,
+          success: imageResult.success,
+          imageUrl: imageResult.imageUrl,
+          vehicle_image: imageResult.vehicle?.vehicle_image
+        });
+        
+        if (imageResponse.ok && imageResult.success && imageResult.vehicle) {
+          // Use the updated vehicle from the server which includes the image URL
+          Object.assign(newVehicle, imageResult.vehicle);
+          
+          // Update vehicle in state with the image URL
+          updateVehicleInState(newVehicle);
+          
+          // Update the card's image
+          if (!newCard) {
+            const vehicleId = newVehicle.vehicle_id;
+            newCard = vehicleUI.list?.querySelector(`[data-vehicle-id="${vehicleId}"]`);
+          }
+          
+          if (newCard) {
+            const imageElement = newCard.querySelector('.vehicle-image');
+            if (imageElement) {
+              // Use imageUrl from response, or fallback to vehicle_image from vehicle object
+              const imageUrl = imageResult.imageUrl || imageResult.vehicle?.vehicle_image || newVehicle.vehicle_image;
+              if (imageUrl) {
+                imageElement.src = imageUrl;
+                imageElement.alt = `${newVehicle.name || 'Vehicle'} preview`;
+                console.log('✅ Image updated on card:', imageUrl);
+              } else {
+                console.warn('⚠️ No image URL found in response');
+              }
+            } else {
+              console.warn('⚠️ Image element not found in card');
+            }
+          } else {
+            console.warn('⚠️ Card not found after image upload');
+          }
+        } else {
+          console.warn('⚠️ Image upload failed:', imageResult.message || 'Unknown error');
+          showInlineStatus(statusEl, 'Image upload failed', 'error');
+        }
+      } catch (imageError) {
+        console.error('❌ Error uploading image:', imageError);
+        showInlineStatus(statusEl, `Image upload error: ${imageError.message}`, 'error');
+      }
+    }
+    
+    hideNewVehicleCard();
+    clearNewVehicleForm();
+    showSuccessMessage(`${newVehicle.name || 'Vehicle'} created successfully!`);
+  } catch (error) {
+    console.error('❌ Error creating vehicle:', error);
+    showInlineStatus(statusEl, `Creation failed: ${error.message}`, 'error');
+  } finally {
+    saveBtn.disabled = false;
+    cancelBtn.disabled = false;
+    setTimeout(() => clearInlineStatus(statusEl), 4000);
+  }
+}
+
+function initializeVehicleManager() {
+  vehicleUI.list = document.getElementById('vehicle-list');
+  vehicleUI.error = document.getElementById('vehicle-error');
+  vehicleUI.syncStatus = document.getElementById('vehicle-sync-status');
+  vehicleUI.refreshBtn = document.getElementById('vehicle-refresh-btn');
+  vehicleUI.template = document.getElementById('vehicle-card-template');
+
+  if (!vehicleUI.list || !vehicleUI.template) {
+    return;
+  }
+
+  updateVehicleSyncStatus();
+
+  const addBtn = document.getElementById('vehicle-add-btn');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      showNewVehicleCard();
+      document.getElementById('new-vehicle-name')?.focus();
+    });
+  }
+
+  const cancelBtn = document.getElementById('new-vehicle-cancel-btn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      hideNewVehicleCard();
+      clearNewVehicleForm();
+    });
+  }
+
+  const saveBtn = document.getElementById('new-vehicle-save-btn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', handleCreateVehicle);
+  }
+
+  const uploadBtn = document.getElementById('new-vehicle-upload-btn');
+  const fileInput = document.getElementById('new-vehicle-file-input');
+  const newImageElement = document.querySelector('#vehicle-new-card .vehicle-image');
+  
+  if (uploadBtn && fileInput) {
+    uploadBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      const [file] = fileInput.files || [];
+      if (!file) {
+        return;
+      }
+
+      newVehicleImageFile = file;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (newImageElement) {
+          newImageElement.src = reader.result;
+        }
+      };
+      reader.onerror = () => {
+        console.error('❌ Error reading image file');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (vehicleUI.refreshBtn) {
+    vehicleUI.refreshBtn.addEventListener('click', () => {
+      loadVehicles();
+    });
+  }
+
+  loadVehicles();
+}
+
 // Initialize page
-document.addEventListener('DOMContentLoaded', function() {
-  // Check session before loading settings
+document.addEventListener('DOMContentLoaded', () => {
   if (!checkSession()) {
     return;
   }
-  
-  console.log('Settings page loaded');
-  
-  // Load saved data
-  loadSavedData();
-  
-  // Set up file upload handlers (will be added when image upload sections are implemented)
-  
-  // Set up price input validation
-  const priceInputs = document.querySelectorAll('input[type="number"]');
-  priceInputs.forEach(input => {
-    input.addEventListener('change', () => validatePriceInput(input));
-  });
-  
-  // Enable auto-save
-  enableAutoSave();
-  
-  console.log('Settings initialized successfully');
+
+  initializeVehicleManager();
+  console.log('Settings page ready');
 });
-
-// Export functions for use in other files (dashboard integration)
-window.getServicesData = function() {
-  return servicesData;
-};
-
-window.getBusinessSettings = function() {
-  return businessSettings;
-};

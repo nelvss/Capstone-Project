@@ -14,14 +14,23 @@
 -- First, clear any existing data to avoid duplicates
 DELETE FROM vehicles;
 
+-- Ensure description column exists so owners can manage vehicle details
+ALTER TABLE vehicles
+ADD COLUMN IF NOT EXISTS description TEXT;
+
+-- Backfill existing rows with a placeholder description if needed
+UPDATE vehicles
+SET description = COALESCE(description, '')
+WHERE description IS NULL;
+
 -- Insert vehicles that match the frontend vehicle types exactly
-INSERT INTO vehicles (name, price_per_day) VALUES
-('ADV', 1000),
-('NMAX', 1000),
-('VERSYS 650', 2000),
-('VERSYS 1000', 2500),
-('TUKTUK', 1800),
-('CAR', 3000);
+INSERT INTO vehicles (name, price_per_day, description) VALUES
+('ADV', 1000, 'Honda ADV scooter with storage and excellent fuel efficiency.'),
+('NMAX', 1000, 'Yamaha NMAX ideal for city rides and short getaways.'),
+('VERSYS 650', 2000, 'Kawasaki Versys 650 adventure bike for long rides.'),
+('VERSYS 1000', 2500, 'Kawasaki Versys 1000 touring-ready motorcycle.'),
+('TUKTUK', 1800, 'Multi-passenger TukTuk perfect for group outings.'),
+('CAR', 3000, 'Compact rental car suited for family trips.');
 
 -- Verify the data was inserted
 SELECT * FROM vehicles ORDER BY name;

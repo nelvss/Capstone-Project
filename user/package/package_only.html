@@ -282,8 +282,11 @@
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-6 col-lg-6">
+                                        <label class="form-label fw-semibold small visually-hidden" for="hotelsDropdown">
+                                            Choose Your Hotel
+                                        </label>
                                         <div class="dropdown w-100 h-100">
-                                            <button class="btn btn-success w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="hotelsDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                            <button class="btn btn-success w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="hotelsDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" aria-label="Choose Your Hotel">
                                                 <span>
                                                     <i class="fas fa-bed me-2"></i>
                                                     <span id="selectedHotelText">Choose Your Hotel</span>
@@ -346,7 +349,7 @@
                                     <div class="col-12 col-md-6">
                                         <div class="form-floating h-50">
                                             <input type="text" class="form-control" id="totalAmount" placeholder="Total Amount" readonly>
-                                            <label for="totalAmountPackage">Total Amount</label>
+                                            <label for="totalAmount">Total Amount</label>
                                         </div>
                                     </div>
                                 </div>
@@ -365,51 +368,18 @@
                                         
                                         <div class="row g-3">
                                             <div class="col-12 col-md-4">
-                                                <label class="form-label fw-semibold small">
+                                                <span class="form-label fw-semibold small d-block">
                                                     Choose Vehicle(s)
-                                                </label>
+                                                </span>
                                                 <div class="dropdown w-100">
-                                                    <button class="btn btn-danger w-100 text-start d-flex justify-content-between align-items-center" type="button" id="rentalDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                    <button class="btn btn-danger w-100 text-start d-flex justify-content-between align-items-center" type="button" id="rentalDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" aria-label="Choose Vehicle(s)">
                                                         <span class="text-white small">Select vehicles...</span>
                                                         <i class="fa-solid fa-chevron-down small text-white"></i>
                                                     </button>
                                                     <div class="dropdown-menu w-100 p-3 shadow" aria-labelledby="rentalDropdown">
                                                         <div id="rental-options">
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input rental-option" type="checkbox" id="rental-adv" value="ADV">
-                                                                <label class="form-check-label d-flex align-items-center" for="rental-adv">
-                                                                    <span>ADV</span>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input rental-option" type="checkbox" id="rental-nmax" value="NMAX">
-                                                                <label class="form-check-label d-flex align-items-center" for="rental-nmax">
-                                                                    <span>NMAX</span>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input rental-option" type="checkbox" id="rental-versys-650" value="VERSYS 650">
-                                                                <label class="form-check-label d-flex align-items-center" for="rental-versys-650">
-                                                                    <span>VERSYS 650</span>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input rental-option" type="checkbox" id="rental-versys-1000" value="VERSYS 1000">
-                                                                <label class="form-check-label d-flex align-items-center" for="rental-versys-1000">
-                                                                    <span>VERSYS 1000</span>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input rental-option" type="checkbox" id="rental-tuktuk" value="TUKTUK">
-                                                                <label class="form-check-label d-flex align-items-center" for="rental-tuktuk">
-                                                                    <span>TUKTUK</span>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-check">
-                                                                <input class="form-check-input rental-option" type="checkbox" id="rental-car" value="CAR">
-                                                                <label class="form-check-label d-flex align-items-center" for="rental-car">
-                                                                    <span>CAR</span>
-                                                                </label>
+                                                            <div class="text-center text-muted py-3">
+                                                                <small>Loading vehicles...</small>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -628,11 +598,11 @@
                                         
                                         <div class="row g-3">
                                             <div class="col-12 col-md-4">
-                                                <label class="form-label fw-semibold small">
+                                                <span class="form-label fw-semibold small d-block">
                                                     Select Service
-                                                </label>
+                                                </span>
                                                 <div class="dropdown w-100">
-                                                    <button class="btn btn-info w-100 text-start d-flex justify-content-between align-items-center" type="button" id="divingDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                                    <button class="btn btn-info w-100 text-start d-flex justify-content-between align-items-center" type="button" id="divingDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" aria-label="Select Service">
                                                         <span class="text-white small">Select diving...</span>
                                                         <i class="fa-solid fa-chevron-down small text-white"></i>
                                                     </button>
