@@ -2370,6 +2370,452 @@ app.delete('/api/diving/:divingId', async (req, res) => {
   }
 });
 
+function normalizeQrcodeId(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const trimmed = value.toString().trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  
+  if (uuidRegex.test(trimmed)) {
+    return trimmed; // Return UUID as-is
+  }
+
+  // Also support numeric IDs if they exist
+  if (/^\d+$/.test(trimmed)) {
+    const numericId = Number(trimmed);
+    return Number.isFinite(numericId) && numericId > 0 ? numericId : null;
+  }
+
+  return null;
+}
+
+// Get all QRCode records
+app.get('/api/qrcode', async (req, res) => {
+  try {
+    console.log('📊 Fetching QRCode records...');
+    
+    const { data, error } = await supabase
+      .from('qrcode')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error('❌ Error fetching QRCode records:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch QRCode records', 
+        error: error.message 
+      });
+    }
+    
+    if (data && data.length > 0) {
+      console.log('✅ QRCode records fetched successfully:', data.length, 'records');
+    } else {
+      console.log('✅ QRCode records fetched successfully: 0 records');
+    }
+    
+    res.json({ 
+      success: true, 
+      qrcode: data || []
+    });
+    
+  } catch (error) {
+    console.error('❌ QRCode records fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+});
+
+// Create new QRCode record
+app.post('/api/qrcode', async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    console.log('➕ Creating QRCode record:', { name });
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name is required'
+      });
+    }
+
+    const validNames = ['GCash', 'Paymaya', 'Online Banking'];
+    if (!validNames.includes(name)) {
+      return res.status(400).json({
+        success: false,
+        message: `Name must be one of: ${validNames.join(', ')}`
+      });
+    }
+
+    const insertData = {
+      name: name.trim(),
+      qrcode_image: '' // Provide empty string as default to satisfy NOT NULL constraint
+    };
+
+    console.log('📝 Inserting QRCode record:', insertData);
+
+    const { data, error } = await supabase
+      .from('qrcode')
+      .insert([insertData])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error creating QRCode record:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create QRCode record',
+        error: error.message
+      });
+    }
+
+    console.log('✅ QRCode record created successfully:', data[0]);
+
+    res.json({
+      success: true,
+      message: 'QRCode record created successfully',
+      qrcode: data[0]
+    });
+  } catch (error) {
+    console.error('❌ QRCode record creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Update QRCode record details
+app.put('/api/qrcode/:qrcodeId', async (req, res) => {
+  try {
+    const { qrcodeId } = req.params;
+    const normalizedQrcodeId = normalizeQrcodeId(qrcodeId);
+
+    if (normalizedQrcodeId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid QRCode ID'
+      });
+    }
+
+    const { name, qrcode_image } = req.body;
+    const updates = {};
+
+    if (name !== undefined) {
+      const validNames = ['GCash', 'Paymaya', 'Online Banking'];
+      if (!validNames.includes(name)) {
+        return res.status(400).json({
+          success: false,
+          message: `Name must be one of: ${validNames.join(', ')}`
+        });
+      }
+      updates.name = name.toString().trim();
+    }
+
+    if (qrcode_image !== undefined) {
+      updates.qrcode_image = qrcode_image;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields provided for update'
+      });
+    }
+
+    const filterColumn = 'qrcode_id';
+    const filterValue = normalizedQrcodeId;
+
+    console.log('🛠️ Updating QRCode record:', normalizedQrcodeId, updates, `(filter column: ${filterColumn})`);
+
+    const { data, error } = await supabase
+      .from('qrcode')
+      .update(updates)
+      .eq(filterColumn, filterValue)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error updating QRCode record:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update QRCode record',
+        error: error.message
+      });
+    }
+
+    console.log('✅ QRCode record update result:', data);
+
+    res.json({
+      success: true,
+      message: 'QRCode record updated successfully',
+      qrcode: data[0]
+    });
+  } catch (error) {
+    console.error('❌ QRCode record update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Upload QRCode image and persist URL
+app.post('/api/qrcode/:qrcodeId/upload-image', async (req, res) => {
+  try {
+    const { qrcodeId } = req.params;
+    const normalizedQrcodeId = normalizeQrcodeId(qrcodeId);
+    const { imageData, fileName } = req.body;
+
+    console.log('📤 QRCode image upload request:', {
+      qrcodeId,
+      normalizedQrcodeId,
+      fileName: fileName || 'missing',
+      hasImageData: !!imageData
+    });
+
+    if (normalizedQrcodeId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid QRCode ID'
+      });
+    }
+
+    if (!imageData || !fileName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing image data or filename'
+      });
+    }
+
+    // Verify QRCode exists before uploading
+    const { data: existingQrcode, error: checkError } = await supabase
+      .from('qrcode')
+      .select('qrcode_id, name')
+      .eq('qrcode_id', normalizedQrcodeId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('❌ Error checking QRCode existence:', checkError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify QRCode record',
+        error: checkError.message
+      });
+    }
+
+    if (!existingQrcode) {
+      return res.status(404).json({
+        success: false,
+        message: 'QRCode record not found'
+      });
+    }
+
+    console.log('✅ QRCode record found:', existingQrcode.name);
+
+    const filterColumn = 'qrcode_id';
+    const filterValue = normalizedQrcodeId;
+
+    let publicUrl, filePath;
+    try {
+      const uploadResult = await uploadImageToStorage({
+        imageData,
+        fileName,
+        bucket: 'qrcode-image',
+        keyPrefix: 'qrcode',
+        identifier: `qrcode-${normalizedQrcodeId}`
+      });
+      publicUrl = uploadResult.publicUrl;
+      filePath = uploadResult.filePath;
+      console.log('✅ Image uploaded to storage:', { publicUrl, filePath });
+    } catch (uploadError) {
+      console.error('❌ Storage upload failed:', uploadError);
+      
+      // Check if it's a bucket error
+      if (uploadError.details?.message?.includes('Bucket') || uploadError.message?.includes('Bucket')) {
+        return res.status(500).json({
+          success: false,
+          message: 'Storage bucket "qrcode-image" not found. Please create it in Supabase Storage with public access.',
+          error: uploadError.details?.message || uploadError.message
+        });
+      }
+      
+      throw uploadError;
+    }
+
+    const { data, error } = await supabase
+      .from('qrcode')
+      .update({ qrcode_image: publicUrl })
+      .eq(filterColumn, filterValue)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error saving QRCode image URL:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to store QRCode image URL in database',
+        error: error.message
+      });
+    }
+
+    console.log('✅ QRCode image update result:', data);
+
+    res.json({
+      success: true,
+      message: 'QRCode image uploaded successfully',
+      imageUrl: publicUrl,
+      fileName: filePath,
+      qrcode: data[0]
+    });
+  } catch (error) {
+    console.error('❌ QRCode image upload error:', error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode === 400 ? error.message : 'Internal server error',
+      error: error.details?.message || error.message
+    });
+  }
+});
+
+// Delete QRCode record
+app.delete('/api/qrcode/:qrcodeId', async (req, res) => {
+  try {
+    const { qrcodeId } = req.params;
+    const normalizedQrcodeId = normalizeQrcodeId(qrcodeId);
+
+    if (normalizedQrcodeId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid QRCode ID'
+      });
+    }
+
+    const filterColumn = 'qrcode_id';
+    const filterValue = normalizedQrcodeId;
+
+    console.log('🗑️ Deleting QRCode record:', normalizedQrcodeId);
+
+    // First, check if QRCode record exists and get its name for response
+    const { data: existingQrcode, error: fetchError } = await supabase
+      .from('qrcode')
+      .select('qrcode_id, name')
+      .eq(filterColumn, filterValue)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('❌ Error checking QRCode record existence:', fetchError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify QRCode record before deletion',
+        error: fetchError.message
+      });
+    }
+
+    if (!existingQrcode) {
+      return res.status(404).json({
+        success: false,
+        message: 'QRCode record not found'
+      });
+    }
+
+    // Delete the QRCode record
+    const { error: deleteError } = await supabase
+      .from('qrcode')
+      .delete()
+      .eq(filterColumn, filterValue);
+
+    if (deleteError) {
+      console.error('❌ Error deleting QRCode record:', deleteError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete QRCode record',
+        error: deleteError.message
+      });
+    }
+
+    console.log('✅ QRCode record deleted successfully:', existingQrcode.name || normalizedQrcodeId);
+
+    res.json({
+      success: true,
+      message: 'QRCode record deleted successfully',
+      deletedQrcode: {
+        qrcode_id: existingQrcode.qrcode_id,
+        name: existingQrcode.name
+      }
+    });
+  } catch (error) {
+    console.error('❌ QRCode record deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Get QR codes for payment methods (settings endpoint for frontend)
+app.get('/api/settings/qr-codes', async (req, res) => {
+  try {
+    console.log('📊 Fetching QR codes for payment methods...');
+    
+    const { data, error } = await supabase
+      .from('qrcode')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error('❌ Error fetching QR codes:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch QR codes', 
+        error: error.message 
+      });
+    }
+    
+    // Map QRCode table data to expected frontend format
+    // Map: 'GCash' -> 'gcash', 'Paymaya' -> 'paymaya', 'Online Banking' -> 'banking'
+    const nameToPaymentMethod = {
+      'GCash': 'gcash',
+      'Paymaya': 'paymaya',
+      'Online Banking': 'banking'
+    };
+    
+    const qrCodes = (data || []).map(qrcode => ({
+      payment_method: nameToPaymentMethod[qrcode.name] || qrcode.name.toLowerCase(),
+      qr_image_url: qrcode.qrcode_image || '',
+      name: qrcode.name,
+      qrcode_id: qrcode.qrcode_id
+    }));
+    
+    console.log('✅ QR codes fetched successfully:', qrCodes.length, 'codes');
+    
+    res.json({ 
+      success: true, 
+      qr_codes: qrCodes
+    });
+    
+  } catch (error) {
+    console.error('❌ QR codes fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+});
+
 // Get van destinations
 app.get('/api/van-destinations', async (req, res) => {
   try {
@@ -2654,6 +3100,730 @@ app.delete('/api/van-destinations/:destinationId', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Van destination deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Helper function to normalize tour ID
+function normalizeTourId(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const trimmed = value.toString().trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  if (/^\d+$/.test(trimmed)) {
+    const numericId = Number(trimmed);
+    return Number.isFinite(numericId) ? numericId : null;
+  }
+
+  return trimmed;
+}
+
+// Get all tours with pricing and images
+app.get('/api/tours', async (req, res) => {
+  try {
+    console.log('📊 Fetching tours...');
+    
+    const { data: tours, error: toursError } = await supabase
+      .from('tour_only')
+      .select('*')
+      .order('category', { ascending: true });
+    
+    if (toursError) {
+      console.error('❌ Error fetching tours:', toursError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch tours', 
+        error: toursError.message 
+      });
+    }
+    
+    if (!tours || tours.length === 0) {
+      console.log('✅ Tours fetched successfully: 0 tours');
+      return res.json({ 
+        success: true, 
+        tours: []
+      });
+    }
+    
+    // Fetch pricing and images for each tour
+    const tourIds = tours.map(t => t.tour_only_id);
+    
+    const { data: pricing, error: pricingError } = await supabase
+      .from('tour_pricing')
+      .select('*')
+      .in('tour_only_id', tourIds)
+      .order('min_tourist', { ascending: true });
+    
+    if (pricingError) {
+      console.error('❌ Error fetching tour pricing:', pricingError);
+    }
+    
+    const { data: images, error: imagesError } = await supabase
+      .from('tour_images')
+      .select('*')
+      .in('tour_only_id', tourIds)
+      .order('image_id', { ascending: true });
+    
+    if (imagesError) {
+      console.error('❌ Error fetching tour images:', imagesError);
+    }
+    
+    // Group pricing and images by tour_only_id
+    const pricingByTour = {};
+    (pricing || []).forEach(p => {
+      if (!pricingByTour[p.tour_only_id]) {
+        pricingByTour[p.tour_only_id] = [];
+      }
+      pricingByTour[p.tour_only_id].push(p);
+    });
+    
+    const imagesByTour = {};
+    (images || []).forEach(img => {
+      if (!imagesByTour[img.tour_only_id]) {
+        imagesByTour[img.tour_only_id] = [];
+      }
+      imagesByTour[img.tour_only_id].push(img);
+    });
+    
+    // Combine tours with their pricing and images
+    const toursWithDetails = tours.map(tour => ({
+      ...tour,
+      pricing: pricingByTour[tour.tour_only_id] || [],
+      images: imagesByTour[tour.tour_only_id] || []
+    }));
+    
+    console.log('✅ Tours fetched successfully:', toursWithDetails.length, 'tours');
+    
+    res.json({ 
+      success: true, 
+      tours: toursWithDetails
+    });
+    
+  } catch (error) {
+    console.error('❌ Tours fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+});
+
+// Create new tour
+app.post('/api/tours', async (req, res) => {
+  try {
+    const { category } = req.body;
+
+    console.log('➕ Creating tour:', { category });
+
+    if (!category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category is required'
+      });
+    }
+
+    const validCategories = ['Inland Tour', 'Snorkeling Tour', 'Island Tour'];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: `Category must be one of: ${validCategories.join(', ')}`
+      });
+    }
+
+    const insertData = {
+      category: category.trim()
+    };
+
+    console.log('📝 Inserting tour:', insertData);
+
+    const { data, error } = await supabase
+      .from('tour_only')
+      .insert([insertData])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error creating tour:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create tour',
+        error: error.message
+      });
+    }
+
+    const newTour = data[0];
+    
+    // Return tour with empty pricing and images arrays
+    const tourWithDetails = {
+      ...newTour,
+      pricing: [],
+      images: []
+    };
+
+    console.log('✅ Tour created successfully:', newTour.tour_only_id);
+
+    res.json({
+      success: true,
+      message: 'Tour created successfully',
+      tour: tourWithDetails
+    });
+  } catch (error) {
+    console.error('❌ Tour creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Update tour category
+app.put('/api/tours/:tourId', async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const normalizedTourId = normalizeTourId(tourId);
+    const { category } = req.body;
+
+    if (normalizedTourId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tour ID'
+      });
+    }
+
+    if (!category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category is required'
+      });
+    }
+
+    const validCategories = ['Inland Tour', 'Snorkeling Tour', 'Island Tour'];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: `Category must be one of: ${validCategories.join(', ')}`
+      });
+    }
+
+    console.log('🛠️ Updating tour:', normalizedTourId, { category });
+
+    const { data, error } = await supabase
+      .from('tour_only')
+      .update({ category: category.trim() })
+      .eq('tour_only_id', normalizedTourId)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error updating tour:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update tour',
+        error: error.message
+      });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tour not found'
+      });
+    }
+
+    const updatedTour = data[0];
+
+    // Fetch related pricing and images
+    const { data: pricing } = await supabase
+      .from('tour_pricing')
+      .select('*')
+      .eq('tour_only_id', normalizedTourId)
+      .order('min_tourist', { ascending: true });
+
+    const { data: images } = await supabase
+      .from('tour_images')
+      .select('*')
+      .eq('tour_only_id', normalizedTourId)
+      .order('image_id', { ascending: true });
+
+    const tourWithDetails = {
+      ...updatedTour,
+      pricing: pricing || [],
+      images: images || []
+    };
+
+    console.log('✅ Tour updated successfully');
+
+    res.json({
+      success: true,
+      message: 'Tour updated successfully',
+      tour: tourWithDetails
+    });
+  } catch (error) {
+    console.error('❌ Tour update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Delete tour (cascade delete pricing and images)
+app.delete('/api/tours/:tourId', async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const normalizedTourId = normalizeTourId(tourId);
+
+    if (normalizedTourId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tour ID'
+      });
+    }
+
+    console.log('🗑️ Deleting tour:', normalizedTourId);
+
+    // First, check if tour exists
+    const { data: existingTour, error: fetchError } = await supabase
+      .from('tour_only')
+      .select('tour_only_id, category')
+      .eq('tour_only_id', normalizedTourId)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('❌ Error checking tour existence:', fetchError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify tour before deletion',
+        error: fetchError.message
+      });
+    }
+
+    if (!existingTour) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tour not found'
+      });
+    }
+
+    // Delete related pricing and images first (cascade)
+    const { error: deletePricingError } = await supabase
+      .from('tour_pricing')
+      .delete()
+      .eq('tour_only_id', normalizedTourId);
+
+    if (deletePricingError) {
+      console.warn('⚠️ Error deleting tour pricing:', deletePricingError);
+    }
+
+    const { error: deleteImagesError } = await supabase
+      .from('tour_images')
+      .delete()
+      .eq('tour_only_id', normalizedTourId);
+
+    if (deleteImagesError) {
+      console.warn('⚠️ Error deleting tour images:', deleteImagesError);
+    }
+
+    // Delete the tour
+    const { error: deleteError } = await supabase
+      .from('tour_only')
+      .delete()
+      .eq('tour_only_id', normalizedTourId);
+
+    if (deleteError) {
+      console.error('❌ Error deleting tour:', deleteError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete tour',
+        error: deleteError.message
+      });
+    }
+
+    console.log('✅ Tour deleted successfully:', normalizedTourId);
+
+    res.json({
+      success: true,
+      message: 'Tour deleted successfully',
+      deletedTour: {
+        tour_only_id: existingTour.tour_only_id,
+        category: existingTour.category
+      }
+    });
+  } catch (error) {
+    console.error('❌ Tour deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Add pricing tier to tour
+app.post('/api/tours/:tourId/pricing', async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const normalizedTourId = normalizeTourId(tourId);
+    const { min_tourist, max_tourist, price_per_head } = req.body;
+
+    if (normalizedTourId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tour ID'
+      });
+    }
+
+    if (min_tourist === undefined || max_tourist === undefined || price_per_head === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'min_tourist, max_tourist, and price_per_head are required'
+      });
+    }
+
+    const minTourist = parseInt(min_tourist);
+    const maxTourist = parseInt(max_tourist);
+    const pricePerHead = parseFloat(price_per_head);
+
+    if (Number.isNaN(minTourist) || minTourist < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'min_tourist must be a positive integer'
+      });
+    }
+
+    if (Number.isNaN(maxTourist) || maxTourist < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'max_tourist must be a positive integer'
+      });
+    }
+
+    if (minTourist > maxTourist) {
+      return res.status(400).json({
+        success: false,
+        message: 'min_tourist must be less than or equal to max_tourist'
+      });
+    }
+
+    if (Number.isNaN(pricePerHead) || pricePerHead < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'price_per_head must be a non-negative number'
+      });
+    }
+
+    const insertData = {
+      tour_only_id: normalizedTourId,
+      min_tourist: minTourist,
+      max_tourist: maxTourist,
+      price_per_head: pricePerHead
+    };
+
+    console.log('📝 Adding pricing tier:', insertData);
+
+    const { data, error } = await supabase
+      .from('tour_pricing')
+      .insert([insertData])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error adding pricing tier:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to add pricing tier',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Pricing tier added successfully');
+
+    res.json({
+      success: true,
+      message: 'Pricing tier added successfully',
+      pricing: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Pricing tier addition error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Update pricing tier
+app.put('/api/tours/:tourId/pricing/:pricingId', async (req, res) => {
+  try {
+    const { tourId, pricingId } = req.params;
+    const normalizedTourId = normalizeTourId(tourId);
+    const normalizedPricingId = normalizeTourId(pricingId);
+    const { min_tourist, max_tourist, price_per_head } = req.body;
+
+    if (normalizedTourId === null || normalizedPricingId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tour ID or pricing ID'
+      });
+    }
+
+    const updates = {};
+
+    if (min_tourist !== undefined) {
+      const minTourist = parseInt(min_tourist);
+      if (Number.isNaN(minTourist) || minTourist < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'min_tourist must be a positive integer'
+        });
+      }
+      updates.min_tourist = minTourist;
+    }
+
+    if (max_tourist !== undefined) {
+      const maxTourist = parseInt(max_tourist);
+      if (Number.isNaN(maxTourist) || maxTourist < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'max_tourist must be a positive integer'
+        });
+      }
+      updates.max_tourist = maxTourist;
+    }
+
+    if (price_per_head !== undefined) {
+      const pricePerHead = parseFloat(price_per_head);
+      if (Number.isNaN(pricePerHead) || pricePerHead < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'price_per_head must be a non-negative number'
+        });
+      }
+      updates.price_per_head = pricePerHead;
+    }
+
+    // Validate min <= max if both are being updated
+    if (updates.min_tourist !== undefined && updates.max_tourist !== undefined) {
+      if (updates.min_tourist > updates.max_tourist) {
+        return res.status(400).json({
+          success: false,
+          message: 'min_tourist must be less than or equal to max_tourist'
+        });
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields provided for update'
+      });
+    }
+
+    console.log('🛠️ Updating pricing tier:', normalizedPricingId, updates);
+
+    const { data, error } = await supabase
+      .from('tour_pricing')
+      .update(updates)
+      .eq('tour_pricing_id', normalizedPricingId)
+      .eq('tour_only_id', normalizedTourId)
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error updating pricing tier:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update pricing tier',
+        error: error.message
+      });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pricing tier not found'
+      });
+    }
+
+    console.log('✅ Pricing tier updated successfully');
+
+    res.json({
+      success: true,
+      message: 'Pricing tier updated successfully',
+      pricing: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Pricing tier update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Delete pricing tier
+app.delete('/api/tours/:tourId/pricing/:pricingId', async (req, res) => {
+  try {
+    const { tourId, pricingId } = req.params;
+    const normalizedTourId = normalizeTourId(tourId);
+    const normalizedPricingId = normalizeTourId(pricingId);
+
+    if (normalizedTourId === null || normalizedPricingId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tour ID or pricing ID'
+      });
+    }
+
+    console.log('🗑️ Deleting pricing tier:', normalizedPricingId);
+
+    const { error } = await supabase
+      .from('tour_pricing')
+      .delete()
+      .eq('tour_pricing_id', normalizedPricingId)
+      .eq('tour_only_id', normalizedTourId);
+
+    if (error) {
+      console.error('❌ Error deleting pricing tier:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete pricing tier',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Pricing tier deleted successfully');
+
+    res.json({
+      success: true,
+      message: 'Pricing tier deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ Pricing tier deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
+// Upload tour image
+app.post('/api/tours/:tourId/upload-image', async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const normalizedTourId = normalizeTourId(tourId);
+    const { imageData, fileName } = req.body;
+
+    if (normalizedTourId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tour ID'
+      });
+    }
+
+    if (!imageData || !fileName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing image data or filename'
+      });
+    }
+
+    const { publicUrl, filePath } = await uploadImageToStorage({
+      imageData,
+      fileName,
+      bucket: 'tour-images',
+      keyPrefix: 'tours',
+      identifier: `tour-${normalizedTourId}`
+    });
+
+    // Insert image record
+    const { data, error } = await supabase
+      .from('tour_images')
+      .insert([{
+        tour_only_id: normalizedTourId,
+        image_url: publicUrl
+      }])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error saving tour image URL:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to store tour image URL',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Tour image uploaded successfully');
+
+    res.json({
+      success: true,
+      message: 'Tour image uploaded successfully',
+      imageUrl: publicUrl,
+      fileName: filePath,
+      image: data[0]
+    });
+  } catch (error) {
+    console.error('❌ Tour image upload error:', error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode === 400 ? error.message : 'Internal server error',
+      error: error.details?.message || error.message
+    });
+  }
+});
+
+// Delete tour image
+app.delete('/api/tours/:tourId/images/:imageId', async (req, res) => {
+  try {
+    const { tourId, imageId } = req.params;
+    const normalizedTourId = normalizeTourId(tourId);
+    const normalizedImageId = normalizeTourId(imageId);
+
+    if (normalizedTourId === null || normalizedImageId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tour ID or image ID'
+      });
+    }
+
+    console.log('🗑️ Deleting tour image:', normalizedImageId);
+
+    const { error } = await supabase
+      .from('tour_images')
+      .delete()
+      .eq('image_id', normalizedImageId)
+      .eq('tour_only_id', normalizedTourId);
+
+    if (error) {
+      console.error('❌ Error deleting tour image:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete tour image',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Tour image deleted successfully');
+
+    res.json({
+      success: true,
+      message: 'Tour image deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ Tour image deletion error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -3266,6 +4436,59 @@ app.delete('/api/payments/:id', async (req, res) => {
       success: false, 
       message: 'Internal server error',
       error: error.message 
+    });
+  }
+});
+
+// ========================================
+// SETTINGS API ENDPOINTS
+// ========================================
+
+// Get site content (mission, vision, etc.)
+app.get('/api/settings/content', async (req, res) => {
+  try {
+    console.log('📊 Fetching site content...');
+    
+    const { data, error } = await supabase
+      .from('site_content')
+      .select('section_key, content')
+      .order('section_key');
+    
+    if (error) {
+      // If table doesn't exist, return empty array instead of error
+      // This allows the frontend to work with hardcoded fallback content
+      if (error.code === 'PGRST116' || error.code === 'PGRST205' || 
+          error.message?.includes('does not exist') || 
+          error.message?.includes('Could not find the table') ||
+          (error.message?.includes('relation') && error.message?.includes('does not exist'))) {
+        console.warn('⚠️ site_content table does not exist. Returning empty array. Please run database_settings_schema.sql in Supabase.');
+        return res.json({ 
+          success: true, 
+          content: []
+        });
+      }
+      
+      console.error('❌ Error fetching site content:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch site content', 
+        error: error.message 
+      });
+    }
+    
+    console.log('✅ Site content fetched successfully:', data?.length || 0, 'sections');
+    
+    res.json({ 
+      success: true, 
+      content: data || []
+    });
+    
+  } catch (error) {
+    console.error('❌ Site content fetch error:', error);
+    // Return empty array on any error to prevent frontend breakage
+    res.json({ 
+      success: true, 
+      content: []
     });
   }
 });

@@ -6,6 +6,9 @@
   <title>Payment - Owner Dashboard</title>
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="payment.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+    integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script defer src="payment.js"></script>
 </head>
@@ -16,14 +19,29 @@
     </div>
     <nav>
       <ul>
-        <li onclick="navigateWithTransition('dashboard.html')"><span class="icon">📊</span> Dashboard</li>
-        <li onclick="navigateWithTransition('analytics.html')"><span class="icon">📈</span> Analytics</li>
-        <li class="active"><span class="icon">💳</span> Payment</li>
-        <li onclick="navigateWithTransition('settings.html')"><span class="icon">⚙️</span> Settings</li>
+        <li onclick="navigateWithTransition('dashboard.html')">
+          <i class="fas fa-chart-line icon"></i>
+          <span>Dashboard</span>
+        </li>
+        <li onclick="navigateWithTransition('analytics.html')">
+          <i class="fas fa-chart-bar icon"></i>
+          <span>Analytics</span>
+        </li>
+        <li class="active">
+          <i class="fas fa-credit-card icon"></i>
+          <span>Payment</span>
+        </li>
+        <li onclick="navigateWithTransition('settings.html')">
+          <i class="fas fa-cog icon"></i>
+          <span>Settings</span>
+        </li>
       </ul>
     </nav>
     <div class="sidebar-footer">
-      <button class="logout-btn" onclick="handleLogout()"><span class="icon">⏻</span> Logout</button>
+      <button class="logout-btn" onclick="handleLogout()">
+        <i class="fas fa-sign-out-alt icon"></i>
+        <span>Logout</span>
+      </button>
     </div>
   </div>
   <div class="main-content">

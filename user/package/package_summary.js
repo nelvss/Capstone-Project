@@ -846,6 +846,22 @@
                 const totalAmount = bookingData.totalAmount || '₱0.00';
                 document.getElementById('modalPaymentAmount').textContent = totalAmount;
                 
+                // Load QR code image from database if available
+                const qrData = qrCodesData.find(qr => qr.payment_method === paymentType);
+                const qrContainer = document.querySelector('.qr-code-container-custom');
+                
+                if (qrContainer && qrData && qrData.qr_image_url) {
+                    qrContainer.innerHTML = `<img src="${qrData.qr_image_url}" alt="${paymentNames[paymentType]} QR Code" style="max-width: 100%; height: auto; border-radius: 8px;">`;
+                } else if (qrContainer) {
+                    // Show default placeholder if no QR code is uploaded
+                    qrContainer.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-qrcode fa-4x text-danger mb-2"></i>
+                            <p class="text-muted small mb-0">QR Code</p>
+                        </div>
+                    `;
+                }
+                
                 // Store selected payment method
                 sessionStorage.setItem('selectedPaymentMethod', paymentType);
                 sessionStorage.setItem('paidAmount', totalAmount);

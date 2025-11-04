@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings - Owner Dashboard</title>
   <link rel="stylesheet" href="settings.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+    integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script defer src="settings.js"></script>
 </head>
@@ -15,14 +19,29 @@
     </div>
     <nav>
       <ul>
-        <li onclick="navigateWithTransition('dashboard.html')"><span class="icon">📊</span> Dashboard</li>
-        <li onclick="navigateWithTransition('analytics.html')"><span class="icon">📈</span> Analytics</li>
-        <li onclick="navigateWithTransition('payment.html')"><span class="icon">💳</span> Payment</li>
-        <li class="active"><span class="icon">⚙️</span> Settings</li>
+        <li onclick="navigateWithTransition('dashboard.html')">
+          <i class="fas fa-chart-line icon"></i>
+          <span>Dashboard</span>
+        </li>
+        <li onclick="navigateWithTransition('analytics.html')">
+          <i class="fas fa-chart-bar icon"></i>
+          <span>Analytics</span>
+        </li>
+        <li onclick="navigateWithTransition('payment.html')">
+          <i class="fas fa-credit-card icon"></i>
+          <span>Payment</span>
+        </li>
+        <li class="active">
+          <i class="fas fa-cog icon"></i>
+          <span>Settings</span>
+        </li>
       </ul>
     </nav>
     <div class="sidebar-footer">
-      <button class="logout-btn" onclick="handleLogout()"><span class="icon">⏻</span> Logout</button>
+      <button class="logout-btn" onclick="handleLogout()">
+        <i class="fas fa-sign-out-alt icon"></i>
+        <span>Logout</span>
+      </button>
     </div>
   </div>
   <div class="main-content">
@@ -45,6 +64,7 @@
         <button class="tab-btn" data-tab="van" onclick="showTab(event, 'van')">🚐 Van Rental</button>
         <button class="tab-btn" data-tab="vehicle" onclick="showTab(event, 'vehicle')">🚗 Vehicle Rental</button>
         <button class="tab-btn" data-tab="diving" onclick="showTab(event, 'diving')">🤿 Diving</button>
+        <button class="tab-btn" data-tab="qrcode" onclick="showTab(event, 'qrcode')">📱 QRCode</button>
       </div>
     </section>
     <section id="package-tab" class="tab-content active">
@@ -59,11 +79,93 @@
 
     <section id="tour-tab" class="tab-content">
       <div class="settings-section">
-        <div class="empty-state">
-          <div class="empty-icon" aria-hidden="true">🧭</div>
-          <h2>Tour Only</h2>
-          <p>Design single-day or multi-day tour experiences. This tab is ready for itinerary details, pricing, and availability components.</p>
+        <div class="section-heading">
+          <div>
+            <h2>Tour Only Settings</h2>
+            <p class="section-subtitle">Manage tours synced with Supabase. Update categories, pricing tiers, and images stored in the <code>tour_only</code>, <code>tour_pricing</code>, and <code>tour_images</code> tables.</p>
+          </div>
+          <div class="vehicle-actions-bar">
+            <button id="tour-add-btn" class="btn-primary" type="button">➕ Add Tour</button>
+            <button id="tour-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
+            <span id="tour-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
+          </div>
         </div>
+
+        <div id="tour-error" class="vehicle-error" role="alert" hidden></div>
+
+        <div id="tour-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
+          <header class="vehicle-card-header">
+            <div>
+              <h3>New Tour</h3>
+              <p class="vehicle-id">Creating new...</p>
+            </div>
+            <span class="vehicle-status-tag">New</span>
+          </header>
+          <div class="vehicle-card-body">
+            <div class="vehicle-form">
+              <label class="form-field">
+                <span>Category</span>
+                <select id="new-tour-category">
+                  <option value="">Select category</option>
+                  <option value="Inland Tour">Inland Tour</option>
+                  <option value="Snorkeling Tour">Snorkeling Tour</option>
+                  <option value="Island Tour">Island Tour</option>
+                </select>
+              </label>
+              <div class="vehicle-form-actions">
+                <button type="button" id="new-tour-save-btn" class="btn-primary">Create Tour</button>
+                <button type="button" id="new-tour-cancel-btn" class="btn-secondary">Cancel</button>
+                <span id="new-tour-status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tour-list" class="vehicle-list" role="list"></div>
+
+        <template id="tour-card-template">
+          <article class="vehicle-card" role="listitem">
+            <header class="vehicle-card-header">
+              <div>
+                <h3 class="tour-category"></h3>
+                <p class="vehicle-id"></p>
+              </div>
+              <span class="vehicle-status-tag" aria-live="polite"></span>
+            </header>
+            <div class="vehicle-card-body">
+              <div class="vehicle-form">
+                <label class="form-field">
+                  <span>Category</span>
+                  <select class="tour-category-select">
+                    <option value="Inland Tour">Inland Tour</option>
+                    <option value="Snorkeling Tour">Snorkeling Tour</option>
+                    <option value="Island Tour">Island Tour</option>
+                  </select>
+                </label>
+                
+                <div class="tour-images-section">
+                  <h4>Images</h4>
+                  <div class="tour-images-gallery"></div>
+                  <button type="button" class="btn-secondary tour-upload-image-btn">📷 Upload Image</button>
+                  <input type="file" class="tour-file-input" accept="image/*" hidden>
+                  <small class="vehicle-image-hint">Stored in Supabase bucket <code>tour-images</code></small>
+                </div>
+
+                <div class="tour-pricing-section">
+                  <h4>Pricing Tiers</h4>
+                  <div class="tour-pricing-list"></div>
+                  <button type="button" class="btn-secondary tour-add-pricing-btn">➕ Add Pricing Tier</button>
+                </div>
+
+                <div class="vehicle-form-actions">
+                  <button type="button" class="btn-primary tour-save-btn">Save Changes</button>
+                  <button type="button" class="btn-danger tour-delete-btn">🗑️ Delete</button>
+                  <span class="vehicle-inline-status" aria-live="polite"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </template>
       </div>
     </section>
 
@@ -350,6 +452,103 @@
                 <div class="vehicle-form-actions">
                   <button type="button" class="btn-primary vehicle-save-btn">Save Changes</button>
                   <button type="button" class="btn-danger vehicle-delete-btn">🗑️ Delete</button>
+                  <span class="vehicle-inline-status" aria-live="polite"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </template>
+      </div>
+    </section>
+
+    <section id="qrcode-tab" class="tab-content">
+      <div class="settings-section">
+        <div class="section-heading">
+          <div>
+            <h2>QRCode Settings</h2>
+            <p class="section-subtitle">Manage QR codes synced with Supabase. Update payment methods and images stored in the <code>qrcode</code> table.</p>
+          </div>
+          <div class="vehicle-actions-bar">
+            <button id="qrcode-add-btn" class="btn-primary" type="button">➕ Add QRCode</button>
+            <button id="qrcode-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
+            <span id="qrcode-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
+          </div>
+        </div>
+
+        <div id="qrcode-error" class="vehicle-error" role="alert" hidden></div>
+
+        <div id="qrcode-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
+          <header class="vehicle-card-header">
+            <div>
+              <h3>New QRCode</h3>
+              <p class="vehicle-id">Creating new...</p>
+            </div>
+            <span class="vehicle-status-tag">New</span>
+          </header>
+          <div class="vehicle-card-body">
+            <div class="vehicle-media">
+              <div class="vehicle-image-wrapper">
+                <img class="vehicle-image" src="../Images/logo.png" alt="QRCode image">
+                <div class="vehicle-image-actions">
+                  <button type="button" id="new-qrcode-upload-btn" class="btn-secondary vehicle-upload-btn">Upload Image</button>
+                  <input type="file" id="new-qrcode-file-input" class="vehicle-file-input" accept="image/*" hidden>
+                  <small class="vehicle-image-hint">Stored in Supabase bucket <code>qrcode-image</code></small>
+                </div>
+              </div>
+            </div>
+            <div class="vehicle-form">
+              <label class="form-field">
+                <span>Payment Method</span>
+                <select id="new-qrcode-name">
+                  <option value="">Select payment method</option>
+                  <option value="GCash">GCash</option>
+                  <option value="Paymaya">Paymaya</option>
+                  <option value="Online Banking">Online Banking</option>
+                </select>
+              </label>
+              <div class="vehicle-form-actions">
+                <button type="button" id="new-qrcode-save-btn" class="btn-primary">Create QRCode</button>
+                <button type="button" id="new-qrcode-cancel-btn" class="btn-secondary">Cancel</button>
+                <span id="new-qrcode-status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="qrcode-list" class="vehicle-list" role="list"></div>
+
+        <template id="qrcode-card-template">
+          <article class="vehicle-card" role="listitem">
+            <header class="vehicle-card-header">
+              <div>
+                <h3 class="vehicle-name"></h3>
+                <p class="vehicle-id"></p>
+              </div>
+              <span class="vehicle-status-tag" aria-live="polite"></span>
+            </header>
+            <div class="vehicle-card-body">
+              <div class="vehicle-media">
+                <div class="vehicle-image-wrapper">
+                  <img class="vehicle-image" alt="QRCode image">
+                  <div class="vehicle-image-actions">
+                    <button type="button" class="btn-secondary vehicle-upload-btn">Upload Image</button>
+                    <input type="file" class="vehicle-file-input" accept="image/*" hidden>
+                    <small class="vehicle-image-hint">Stored in Supabase bucket <code>qrcode-image</code></small>
+                  </div>
+                </div>
+              </div>
+              <div class="vehicle-form">
+                <label class="form-field">
+                  <span>Payment Method</span>
+                  <select class="qrcode-name-select">
+                    <option value="GCash">GCash</option>
+                    <option value="Paymaya">Paymaya</option>
+                    <option value="Online Banking">Online Banking</option>
+                  </select>
+                </label>
+                <div class="vehicle-form-actions">
+                  <button type="button" class="btn-primary qrcode-save-btn">Save Changes</button>
+                  <button type="button" class="btn-danger qrcode-delete-btn">🗑️ Delete</button>
                   <span class="vehicle-inline-status" aria-live="polite"></span>
                 </div>
               </div>

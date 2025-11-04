@@ -17,7 +17,7 @@
 
   <!-- Navigation Bar -->
   <header>
-    <nav class="navbar navbar-expand-lg fixed-top border-top border-bottom border-3 border-danger">
+    <nav class="navbar navbar-expand-lg fixed-top">
       <div class="container-fluid">
 
         <a class="navbar-brand" href="#" title="OTG Travel and Tours Home"><img src="../../Images/logo.png" alt="OTG Travel and Tours Logo"></a>
@@ -61,20 +61,44 @@
 
   <!--Landing Page-->
   <section id="home">
-
-    <div class="container">
+    <div class="hero-video-wrapper">
       <div class="ratio ratio-16x9 video-container">
-        <video class="w-100" controls autoplay loop muted poster="../../Images/white_beach.jpg">
-          <source src="../../Images/video.mp4" type="video/mp4">
+        <video class="w-100 hero-video" autoplay loop muted playsinline poster="../../Images/white_beach.jpg">
+          <source src="../../Video/homevideo.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video>
-      </div>
-      <div class="text-center mt-3">
-        <h5>Welcome to OTG Travel And Tours</h5>
-        <p>Happy to See You!!!</p>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="container">
+            <div class="row justify-content-center">
+              <div class="col-lg-10 text-center">
+                <div class="hero-text-wrapper">
+                  <h1 class="hero-title animate-fade-in">
+                    Welcome to <span class="highlight-text">OTG Travel and Tours</span>
+                  </h1>
+                  <p class="hero-subtitle animate-fade-in-delay">
+                    Discover the breathtaking beauty of Puerto Galera
+                  </p>
+                  <p class="hero-description animate-fade-in-delay-2">
+                    Your gateway to unforgettable adventures, pristine beaches, and extraordinary experiences
+                  </p>
+                  <div class="hero-buttons animate-fade-in-delay-3">
+                    <a href="#services" class="btn btn-hero-primary">
+                      <span>Explore Our Packages</span>
+                      <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                    <a href="../form/booking_form.html" class="btn btn-hero-secondary">
+                      <span>Book Now</span>
+                      <i class="fas fa-calendar-check ms-2"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-
   </section>
 
   <!--Mission and Vision-->

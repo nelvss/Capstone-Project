@@ -333,6 +333,109 @@ header {
   gap: 20px;
 }
 
+/* Tour list: 2 cards per row */
+#tour-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Tour Pricing Tier Background Box */
+.tour-pricing-tier {
+  border: 1px solid #d1d5db !important;
+  padding: 1.25rem 1.5rem !important;
+  margin: 0.875rem 0 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Make Tour Pricing inputs more readable and larger */
+.tour-pricing-tier input {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: #111827;
+  font-weight: 500;
+  background-color: #ffffff;
+  border: 2px solid #e5e7eb;
+  padding: 12px 14px;
+  border-radius: 8px;
+  min-width: 110px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.tour-pricing-tier input:hover {
+  border-color: #cbd5e1;
+  background-color: #f9fafb;
+}
+
+.tour-pricing-tier input:focus {
+  outline: none;
+  border-color: #ef4444;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.tour-pricing-tier input[type="number"] {
+  text-align: right;
+  font-weight: 600;
+}
+
+.tour-pricing-tier input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+  font-weight: 400;
+}
+
+.tour-pricing-tier label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tour-pricing-tier label span {
+  color: #1f2937;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+
+/* Adjust grid layout for pricing tiers to give more space */
+.tour-pricing-tier > div {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1.5fr auto;
+  gap: 1rem;
+  align-items: end;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Ensure pricing section and list don't overflow */
+.tour-pricing-section {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.tour-pricing-list {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure form fields fit within the background box */
+.tour-pricing-tier .form-field {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .vehicle-card {
   display: flex;
   flex-direction: column;
@@ -402,6 +505,24 @@ header {
   display: grid;
   gap: 20px;
   grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+}
+
+/* Tour cards: single column layout (no separate image section) */
+[data-tour-id] .vehicle-card-body {
+  grid-template-columns: 1fr;
+}
+
+/* Tour category dropdown - fixed/disabled styling */
+.tour-category-select:disabled {
+  background-color: #f3f4f6;
+  color: #374151;
+  cursor: not-allowed;
+  opacity: 1;
+  border-color: #d1d5db;
+}
+
+.tour-category-select:disabled:hover {
+  border-color: #d1d5db;
 }
 
 .vehicle-image-wrapper {
