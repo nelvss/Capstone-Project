@@ -414,6 +414,20 @@ function confirmPayment() {
     }
 }
 
+// Fix accessibility issue: Remove focus from modal elements when modal is being hidden
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentQRModal = document.getElementById('paymentQRModal');
+    if (paymentQRModal) {
+        paymentQRModal.addEventListener('hide.bs.modal', function() {
+            // Blur any focused elements inside the modal before it's hidden
+            const focusedElement = this.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+        });
+    }
+});
+
 // Handle file upload for receipt
 function handleFileUpload(event) {
     const file = event.target.files[0];
@@ -773,7 +787,7 @@ async function submitTourBookings(bookingId, bookingData) {
             number_of_days: bookingData.selectedVanRental.days || 1,
             total_amount: bookingData.selectedVanRental.price || 0,
             trip_type: bookingData.selectedVanRental.tripType || 'oneway',
-            choose_destination: bookingData.selectedVanRental.destination || ''
+            choose_destination: bookingData.selectedVanRental.destinationType || ''
         };
         
         promises.push(

@@ -82,37 +82,37 @@ async function loadPayments() {
 // Render payment cards
 function renderPayments(payments) {
   const gallery = document.getElementById('receipts-gallery');
-  
+
   if (!gallery) {
     console.error('Receipts gallery element not found');
     return;
   }
   
   if (payments.length === 0) {
-    gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">No payments found. Use the "Record Payment" button to add a payment.</p>';
+    gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">No payments found. Use the "Record Payment" button to add a payment.</p>';                                                             
     return;
   }
-  
+
   gallery.innerHTML = payments.map(payment => {
     const booking = payment.bookings || {};
-    const customerName = booking.customer_first_name && booking.customer_last_name
+    const customerName = booking.customer_first_name && booking.customer_last_name                                                                              
       ? `${booking.customer_first_name} ${booking.customer_last_name}`
       : 'Unknown Customer';
-    
+
     const paymentDate = new Date(payment.payment_date);
-    const formattedDate = paymentDate.toLocaleDateString('en-US', { 
+    const formattedDate = paymentDate.toLocaleDateString('en-US', {
       year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+      month: 'short',
+      day: 'numeric'
     });
-    
+
     // Use data attribute for safer handling of URLs
-    const receiptImage = payment.receipt_image_url 
-      ? `<img src="${payment.receipt_image_url}" alt="Receipt" class="receipt-image" data-receipt-url="${payment.receipt_image_url}">`
+    const receiptImage = payment.receipt_image_url
+      ? `<img src="${payment.receipt_image_url}" alt="Receipt" class="receipt-image" data-receipt-url="${payment.receipt_image_url}">`                          
       : '<div class="no-receipt">No Receipt</div>';
-    
+
     return `
-      <div class="receipt-item" data-date="${paymentDate.toISOString().split('T')[0]}" data-customer="${customerName.toLowerCase()}">
+      <div class="receipt-item" data-date="${paymentDate.toISOString().split('T')[0]}" data-customer="${customerName.toLowerCase()}" data-booking-id="${payment.booking_id || ''}">                           
         <div class="receipt-header">
           <span class="receipt-id">${formattedDate}</span>
           <span class="receipt-date">${payment.booking_id}</span>
@@ -122,11 +122,11 @@ function renderPayments(payments) {
         </div>
         <div class="receipt-details">
           <p class="customer-name">${customerName}</p>
-          <p class="amount">₱${parseFloat(payment.paid_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</p>
+          <p class="amount">₱${parseFloat(payment.paid_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</p>                                         
           <span class="payment-method">${payment.payment_method}</span>
-          <div class="balance-info" style="margin-top: 8px; font-size: 0.85rem; color: #666;">
+          <div class="balance-info" style="margin-top: 8px; font-size: 0.85rem; color: #666;">                                                                  
             ${payment.remaining_balance > 0 
-              ? `<span style="color: #ef4444;">Balance: ₱${parseFloat(payment.remaining_balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`
+              ? `<span style="color: #ef4444;">Balance: ₱${parseFloat(payment.remaining_balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`   
               : '<span style="color: #10b981;">Fully Paid</span>'}
           </div>
         </div>
@@ -144,61 +144,145 @@ function renderPayments(payments) {
       }
     });
   });
+
+  // Apply current filters and search after rendering
+  applyFilters();
+}
+
+// Helper function to get date range for filters
+function getDateRange(period) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  switch(period) {
+    case 'all':
+      return { start: null, end: null };
+    
+    case 'today':
+      return { start: today, end: today };
+    
+    case 'week':
+      // Get start of current week (Sunday)
+      const startOfWeek = new Date(today);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day;
+      startOfWeek.setDate(diff);
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      // Get end of current week (Saturday)
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      return { start: startOfWeek, end: endOfWeek };
+    
+    case 'month':
+      // Get start of current month
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      // Get end of current month
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      
+      return { start: startOfMonth, end: endOfMonth };
+    
+    default:
+      return { start: null, end: null };
+  }
+}
+
+// Combined filter and search function
+function applyFilters() {
+  const searchTerm = document.getElementById('receipt-search')?.value.toLowerCase().trim() || '';
+  const receipts = document.querySelectorAll('.receipt-item');
+  const dateRange = getDateRange(currentFilter);
+
+  receipts.forEach(receipt => {
+    let matchesFilter = true;
+    let matchesSearch = true;
+
+    // Apply date filter
+    if (dateRange.start !== null && dateRange.end !== null) {
+      const receiptDateStr = receipt.getAttribute('data-date');
+      if (receiptDateStr) {
+        const receiptDate = new Date(receiptDateStr);
+        receiptDate.setHours(0, 0, 0, 0);
+        matchesFilter = receiptDate >= dateRange.start && receiptDate <= dateRange.end;
+      } else {
+        matchesFilter = false;
+      }
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      const customer = receipt.getAttribute('data-customer') || '';
+      const bookingId = receipt.getAttribute('data-booking-id') || '';
+      const receiptIdElement = receipt.querySelector('.receipt-id');
+      const receiptId = receiptIdElement?.textContent.toLowerCase() || '';
+      const paymentMethod = receipt.querySelector('.payment-method')?.textContent.toLowerCase() || '';
+      const amount = receipt.querySelector('.amount')?.textContent.toLowerCase() || '';
+
+      matchesSearch = 
+        customer.includes(searchTerm) ||
+        bookingId.toString().includes(searchTerm) ||
+        receiptId.includes(searchTerm) ||
+        paymentMethod.includes(searchTerm) ||
+        amount.includes(searchTerm);
+    }
+
+    // Show receipt if it matches both filter and search
+    receipt.style.display = (matchesFilter && matchesSearch) ? 'block' : 'none';
+  });
+
+  // Show message if no results
+  const visibleReceipts = Array.from(receipts).filter(r => r.style.display !== 'none');
+  const gallery = document.getElementById('receipts-gallery');
+  if (visibleReceipts.length === 0 && receipts.length > 0) {
+    if (!gallery.querySelector('.no-results-message')) {
+      const noResultsMsg = document.createElement('p');
+      noResultsMsg.className = 'no-results-message';
+      noResultsMsg.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;';
+      noResultsMsg.textContent = 'No receipts match your search or filter criteria.';
+      gallery.appendChild(noResultsMsg);
+    }
+  } else {
+    const noResultsMsg = gallery.querySelector('.no-results-message');
+    if (noResultsMsg) {
+      noResultsMsg.remove();
+    }
+  }
 }
 
 // Receipt filtering functionality
-function filterReceipts(period) {
+function filterReceipts(period, buttonElement) {
   currentFilter = period;
-  const receipts = document.querySelectorAll('.receipt-item');
   const buttons = document.querySelectorAll('.filter-btn');
-  
+
   // Update active button
-  buttons.forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-  
-  const today = new Date();
-  const currentDate = today.toISOString().split('T')[0];
-  
-  receipts.forEach(receipt => {
-    const receiptDate = receipt.getAttribute('data-date');
-    let showReceipt = false;
-    
-    switch(period) {
-      case 'all':
-        showReceipt = true;
-        break;
-      case 'today':
-        showReceipt = receiptDate === currentDate;
-        break;
-      case 'week':
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        showReceipt = new Date(receiptDate) >= weekAgo;
-        break;
-      case 'month':
-        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-        showReceipt = new Date(receiptDate) >= monthAgo;
-        break;
-    }
-    
-    receipt.style.display = showReceipt ? 'block' : 'none';
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
   });
+  
+  // Set the clicked button as active
+  if (buttonElement) {
+    buttonElement.classList.add('active');
+  } else {
+    // Fallback: find button by data-filter attribute
+    const targetButton = document.querySelector(`.filter-btn[data-filter="${period}"]`);
+    if (targetButton) {
+      targetButton.classList.add('active');
+    }
+  }
+
+  // Apply filters (which includes both filter and search)
+  applyFilters();
 }
 
 // Search receipts functionality
 function searchReceipts() {
-  const searchTerm = document.getElementById('receipt-search').value.toLowerCase();
-  const receipts = document.querySelectorAll('.receipt-item');
-  
-  receipts.forEach(receipt => {
-    const customer = receipt.getAttribute('data-customer').toLowerCase();
-    const receiptId = receipt.querySelector('.receipt-id')?.textContent.toLowerCase() || '';
-    
-    if (customer.includes(searchTerm) || receiptId.includes(searchTerm)) {
-      receipt.style.display = 'block';
-    } else {
-      receipt.style.display = 'none';
-    }
-  });
+  // Apply filters (which includes both filter and search)
+  applyFilters();
 }
 
 // Modal functionality

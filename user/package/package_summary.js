@@ -496,7 +496,7 @@
                         number_of_days: parseInt(bookingData.vanDays) || 1,
                         total_amount: parseFloat(bookingData.vanAmount?.replace(/[₱,]/g, '') || 0),
                         trip_type: bookingData.vanTripType || 'oneway',
-                        choose_destination: bookingData.vanPlace
+                        choose_destination: bookingData.vanDestination || ''
                     };
                     
                     console.log('📦 Sending van rental payload:', vanPayload);
@@ -869,25 +869,37 @@
         }
     });
 
-    window.confirmPayment = function() {
+        window.confirmPayment = function() {
         // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('paymentQRModal'));
+        const modal = bootstrap.Modal.getInstance(document.getElementById('paymentQRModal'));                                                                   
         if (modal) {
             modal.hide();
         }
-        
+
         // Enable payment next button
-        const paymentNextBtn = document.getElementById('paymentNextBtn');
+        const paymentNextBtn = document.getElementById('paymentNextBtn');       
         if (paymentNextBtn) {
             paymentNextBtn.disabled = false;
         }
-        
+
         // Update payment instructions
-        const paymentInstructions = document.getElementById('paymentInstructions');
+        const paymentInstructions = document.getElementById('paymentInstructions');                                                                             
         if (paymentInstructions) {
-            paymentInstructions.innerHTML = '<i class="fas fa-check-circle me-1 text-success"></i>Payment confirmed! You can now proceed to the next step.';
+            paymentInstructions.innerHTML = '<i class="fas fa-check-circle me-1 text-success"></i>Payment confirmed! You can now proceed to the next step.';    
         }
     };
+
+    // Fix accessibility issue: Remove focus from modal elements when modal is being hidden
+    const paymentQRModal = document.getElementById('paymentQRModal');
+    if (paymentQRModal) {
+        paymentQRModal.addEventListener('hide.bs.modal', function() {
+            // Blur any focused elements inside the modal before it's hidden
+            const focusedElement = this.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+        });
+    }
 
     // ----------------------------
     // INITIALIZATION

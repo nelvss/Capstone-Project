@@ -51,10 +51,10 @@
         <div class="controls-header">
           <h2>Payment E-Receipts</h2>
           <div class="filter-buttons">
-            <button class="filter-btn active" onclick="filterReceipts('all')">All Receipts</button>
-            <button class="filter-btn" onclick="filterReceipts('today')">Today</button>
-            <button class="filter-btn" onclick="filterReceipts('week')">This Week</button>
-            <button class="filter-btn" onclick="filterReceipts('month')">This Month</button>
+            <button class="filter-btn active" data-filter="all" onclick="filterReceipts('all', this)">All Receipts</button>
+            <button class="filter-btn" data-filter="today" onclick="filterReceipts('today', this)">Today</button>
+            <button class="filter-btn" data-filter="week" onclick="filterReceipts('week', this)">This Week</button>
+            <button class="filter-btn" data-filter="month" onclick="filterReceipts('month', this)">This Month</button>
           </div>
         </div>
         <div class="search-bar">

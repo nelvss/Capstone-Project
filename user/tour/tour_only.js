@@ -1630,6 +1630,7 @@
             
             return {
                 destination: destination,
+                destinationType: destinationSelect.value, // "Within Puerto Galera" or "Outside Puerto Galera"
                 vanDestinationId: vanDestinationId,
                 tripType: tripType,
                 days: days,

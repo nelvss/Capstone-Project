@@ -2475,6 +2475,16 @@
         }, 100);
     }
     
+    function initializeVanDestinations() {
+        setTimeout(() => {
+            fetchVanDestinations().then(() => {
+                console.log("Van destinations loaded successfully!");
+            }).catch(error => {
+                console.error("Error loading van destinations:", error);
+            });
+        }, 100);
+    }
+    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initializeVehicles();
