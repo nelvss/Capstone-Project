@@ -2,6 +2,21 @@
 
 const API_BASE_URL = 'http://localhost:3000/api';
 
+// Hotel mapping for Package Only tab
+const HOTEL_NAME_TO_ID = {
+  'Ilaya': '08e190f4-60da-4188-9c8b-de535ef3fcf2',
+  'Casa de Honcho': '11986747-1a86-4d88-a952-a66b69c7e3ec',
+  'Bliss': '2da89c09-1c3d-4cd5-817d-637c1c0289de',
+  'SouthView': '7c071f4b-5ced-4f34-8864-755e5a4d5c38',
+  'The Mangyan Grand Hotel': 'd824f56b-db62-442c-9cf4-26f4c0cc83d0'
+};
+
+const HOTEL_ID_TO_NAME = Object.fromEntries(
+  Object.entries(HOTEL_NAME_TO_ID).map(([k, v]) => [v, k])
+);
+
+const PACKAGE_CATEGORIES = ['Package 1', 'Package 2', 'Package 3', 'Package 4'];
+
 const vehicleState = {
   data: [],
   byId: new Map(),
@@ -3980,12 +3995,407 @@ function initializeQrcodeManager() {
   loadQrcode();
 }
 
+// =============================
+// PACKAGE ONLY MANAGEMENT
+// =============================
+
+const packageState = {
+  data: [],
+  byId: new Map(),
+  lastSynced: null,
+  isLoading: false
+};
+
+const packageUI = {
+  list: null,
+  error: null,
+  syncStatus: null,
+  refreshBtn: null,
+  template: null
+};
+
+function resolvePackageId(pkg) {
+  return pkg?.package_only_id ?? pkg?.id ?? null;
+}
+
+function setPackageData(packages) {
+  const rows = Array.isArray(packages) ? packages : [];
+  packageState.data = rows;
+  packageState.byId = new Map();
+  rows.forEach(p => {
+    const id = resolvePackageId(p);
+    if (id !== null && id !== undefined) {
+      packageState.byId.set(String(id), p);
+    }
+  });
+}
+
+function getPackageFromState(id) {
+  return packageState.byId.get(String(id));
+}
+
+function updatePackageInState(pkg) {
+  const id = resolvePackageId(pkg);
+  if (id === null || id === undefined) return;
+  packageState.byId.set(String(id), pkg);
+  packageState.data = packageState.data.map(x => (resolvePackageId(x) === id ? pkg : x));
+}
+
+function setPackageLoading(isLoading) {
+  packageState.isLoading = isLoading;
+  if (packageUI.refreshBtn) packageUI.refreshBtn.disabled = isLoading;
+  if (packageUI.list) packageUI.list.setAttribute('aria-busy', String(isLoading));
+}
+
+function setPackageError(message = '') {
+  if (!packageUI.error) return;
+  if (message) {
+    packageUI.error.textContent = message;
+    packageUI.error.hidden = false;
+  } else {
+    packageUI.error.textContent = '';
+    packageUI.error.hidden = true;
+  }
+}
+
+function updatePackageSyncStatus() {
+  if (!packageUI.syncStatus) return;
+  if (!packageState.lastSynced) {
+    packageUI.syncStatus.textContent = 'Last synced: waiting...';
+    return;
+  }
+  packageUI.syncStatus.textContent = `Last synced: ${formatSyncTimestamp(packageState.lastSynced)}`;
+}
+
+function createPricingRow({ min = '', max = '', price = '' } = {}) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'tour-pricing-tier';
+  wrapper.innerHTML = `
+    <div>
+      <label>
+        <span>Min Tourist</span>
+        <input type="number" min="1" class="tier-min" placeholder="e.g., 3" value="${min}">
+      </label>
+      <label>
+        <span>Max Tourist</span>
+        <input type="number" min="1" class="tier-max" placeholder="e.g., 5" value="${max}">
+      </label>
+      <label>
+        <span>Price per head (₱)</span>
+        <input type="number" min="0" step="0.01" class="tier-price" placeholder="0.00" value="${price}">
+      </label>
+      <button type="button" class="btn-danger tier-remove-btn">🗑️ Remove</button>
+    </div>
+  `;
+  const removeBtn = wrapper.querySelector('.tier-remove-btn');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', () => wrapper.remove());
+  }
+  return wrapper;
+}
+
+function readPricingList(container) {
+  const rows = Array.from(container?.querySelectorAll('.pricing-row') || []);
+  return rows.map(r => ({
+    min_tourist: Number(r.querySelector('.tier-min')?.value || 0),
+    max_tourist: Number(r.querySelector('.tier-max')?.value || 0),
+    price_per_head: Number(r.querySelector('.tier-price')?.value || 0)
+  })).filter(t => Number.isFinite(t.min_tourist) && Number.isFinite(t.max_tourist) && Number.isFinite(t.price_per_head));
+}
+
+function validatePackagePayload({ description, category, hotelName, pricing }) {
+  if (!description || !category || !hotelName) return 'Description, category, and hotel are required.';
+  if (!PACKAGE_CATEGORIES.includes(category)) return 'Invalid category.';
+  const hotel_id = HOTEL_NAME_TO_ID[hotelName];
+  if (!hotel_id) return 'Invalid hotel.';
+  if (!Array.isArray(pricing) || pricing.length === 0) return 'Add at least one pricing tier.';
+  for (const t of pricing) {
+    if (t.min_tourist < 1 || t.max_tourist < t.min_tourist || t.price_per_head < 0) return 'Invalid pricing tier values.';
+  }
+  // Optional: check overlapping tiers
+  const sorted = [...pricing].sort((a, b) => a.min_tourist - b.min_tourist);
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].min_tourist <= sorted[i - 1].max_tourist) return 'Pricing tiers overlap.';
+  }
+  return null;
+}
+
+async function loadPackages() {
+  if (!packageUI.list || !packageUI.template) return;
+  setPackageError('');
+  setPackageLoading(true);
+  try {
+    const response = await fetch(`${API_BASE_URL}/package-only?include=pricing`, { cache: 'no-cache' });
+    const result = await parseJsonResponse(response);
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to load packages');
+    }
+    setPackageData(result.packages || []);
+    packageState.lastSynced = new Date();
+    updatePackageSyncStatus();
+    renderPackages();
+  } catch (err) {
+    console.error('❌ Failed to load packages:', err);
+    setPackageData([]);
+    if (packageUI.list) {
+      packageUI.list.innerHTML = '';
+      packageUI.list.hidden = true;
+    }
+    setPackageError(`Failed to load packages: ${err.message}`);
+  } finally {
+    setPackageLoading(false);
+  }
+}
+
+function renderPackages() {
+  if (!packageUI.list) return;
+  packageUI.list.innerHTML = '';
+  const items = packageState.data;
+  const has = items.length > 0;
+  packageUI.list.hidden = !has;
+  if (!has) return;
+  items.forEach(pkg => packageUI.list.appendChild(createPackageCard(pkg)));
+}
+
+function createPackageCard(pkg) {
+  const id = resolvePackageId(pkg);
+  const frag = packageUI.template.content.cloneNode(true);
+  const card = frag.querySelector('.vehicle-card');
+  const title = frag.querySelector('.package-description');
+  const idEl = frag.querySelector('.vehicle-id');
+  const statusTag = frag.querySelector('.vehicle-status-tag');
+  const descInput = frag.querySelector('.package-description-input');
+  const categoryReadonly = frag.querySelector('.package-category-readonly');
+  const hotelReadonly = frag.querySelector('.package-hotel-readonly');
+  const pricingList = frag.querySelector('.package-pricing-list');
+  const addTierBtn = frag.querySelector('.package-add-pricing-btn');
+  const saveBtn = frag.querySelector('.package-save-btn');
+  const deleteBtn = frag.querySelector('.package-delete-btn');
+  const inlineStatus = frag.querySelector('.vehicle-inline-status');
+
+  if (card) card.dataset.packageId = id;
+  if (title) title.textContent = pkg?.description || 'Package';
+  if (idEl) idEl.textContent = `ID: ${id}`;
+  if (statusTag) setStatusTag(statusTag, 'Synced');
+  if (descInput) descInput.value = pkg?.description || '';
+  if (categoryReadonly) categoryReadonly.value = pkg?.category || '';
+  if (hotelReadonly) hotelReadonly.value = HOTEL_ID_TO_NAME[pkg?.hotel_id] || '';
+
+  if (pricingList) {
+    (pkg?.pricing || []).forEach(t => {
+      pricingList.appendChild(createPricingRow({ min: t.min_tourist, max: t.max_tourist, price: t.price_per_head }));
+    });
+  }
+  if (addTierBtn && pricingList) {
+    addTierBtn.addEventListener('click', () => pricingList.appendChild(createPricingRow()));
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      const description = descInput?.value?.trim() || '';
+      const pricing = readPricingList(pricingList);
+      // Validate tiers only; category and hotel are fixed from Supabase
+      const validationError = (() => {
+        if (!Array.isArray(pricing) || pricing.length === 0) return 'Add at least one pricing tier.';
+        for (const t of pricing) {
+          if (t.min_tourist < 1 || t.max_tourist < t.min_tourist || t.price_per_head < 0) return 'Invalid pricing tier values.';
+        }
+        const sorted = [...pricing].sort((a, b) => a.min_tourist - b.min_tourist);
+        for (let i = 1; i < sorted.length; i++) {
+          if (sorted[i].min_tourist <= sorted[i - 1].max_tourist) return 'Pricing tiers overlap.';
+        }
+        return null;
+      })();
+      if (validationError) {
+        showInlineStatus(inlineStatus, validationError, 'error');
+        setStatusTag(statusTag, 'Validation error', 'error');
+        return;
+      }
+      showInlineStatus(inlineStatus, 'Saving changes...');
+      setStatusTag(statusTag, 'Saving...', 'default');
+      saveBtn.disabled = true;
+      try {
+        const payload = { description, pricing };
+        const response = await fetch(`${API_BASE_URL}/package-only/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+          cache: 'no-cache'
+        });
+        const result = await parseJsonResponse(response);
+        if (!response.ok || !result.success) throw new Error(result.message || 'Failed to update package');
+        const updated = result.package;
+        updatePackageInState(updated);
+        showInlineStatus(inlineStatus, 'Changes saved!', 'success');
+        setStatusTag(statusTag, 'Saved just now', 'success');
+        const titleEl = card.querySelector('.package-description');
+        if (titleEl) titleEl.textContent = updated.description || 'Package';
+        showSuccessMessage(`${updated.description || 'Package'} updated successfully!`);
+      } catch (e) {
+        console.error('❌ Error saving package:', e);
+        showInlineStatus(inlineStatus, `Save failed: ${e.message}`, 'error');
+        setStatusTag(statusTag, 'Save failed', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+      }
+    });
+  }
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      const name = descInput?.value?.trim() || 'this package';
+      if (!confirm(`Delete ${name}? This action cannot be undone.`)) return;
+      showInlineStatus(inlineStatus, 'Deleting...');
+      setStatusTag(statusTag, 'Deleting...', 'default');
+      deleteBtn.disabled = true;
+      try {
+        const response = await fetch(`${API_BASE_URL}/package-only/${id}`, { method: 'DELETE', cache: 'no-cache' });
+        const result = await parseJsonResponse(response);
+        if (!response.ok || !result.success) throw new Error(result.message || 'Delete failed');
+        const el = packageUI.list?.querySelector(`[data-package-id="${id}"]`);
+        el?.remove();
+        packageState.data = packageState.data.filter(x => resolvePackageId(x) !== id);
+        packageState.byId.delete(String(id));
+        showInlineStatus(inlineStatus, 'Deleted', 'success');
+        setStatusTag(statusTag, 'Deleted', 'success');
+        showSuccessMessage(`${name} deleted successfully!`);
+      } catch (e) {
+        console.error('❌ Error deleting package:', e);
+        showInlineStatus(inlineStatus, `Delete failed: ${e.message}`, 'error');
+        setStatusTag(statusTag, 'Delete failed', 'error');
+      } finally {
+        deleteBtn.disabled = false;
+        setTimeout(() => clearInlineStatus(inlineStatus), 3000);
+      }
+    });
+  }
+
+  return frag;
+}
+
+function showNewPackageCard() {
+  document.getElementById('package-new-card')?.removeAttribute('hidden');
+}
+
+function hideNewPackageCard() {
+  document.getElementById('package-new-card')?.setAttribute('hidden', '');
+}
+
+function clearNewPackageForm() {
+  const descEl = document.getElementById('new-package-description');
+  if (descEl) descEl.value = '';
+  const catEl = document.getElementById('new-package-category');
+  if (catEl) catEl.value = '';
+  const hotelEl = document.getElementById('new-package-hotel');
+  if (hotelEl) hotelEl.value = '';
+  const list = document.getElementById('new-package-pricing-list');
+  if (list) list.innerHTML = '';
+}
+
+async function handleCreatePackage() {
+  const saveBtn = document.getElementById('new-package-save-btn');
+  const cancelBtn = document.getElementById('new-package-cancel-btn');
+  const statusEl = document.getElementById('new-package-status');
+  const desc = document.getElementById('new-package-description');
+  const category = document.getElementById('new-package-category');
+  const hotel = document.getElementById('new-package-hotel');
+  const pricingList = document.getElementById('new-package-pricing-list');
+
+  if (saveBtn) saveBtn.disabled = true;
+  if (cancelBtn) cancelBtn.disabled = true;
+  showInlineStatus(statusEl, 'Creating package...');
+
+  try {
+    const description = desc?.value?.trim() || '';
+    const categoryValue = category?.value || '';
+    const hotelName = hotel?.value || '';
+    const pricing = readPricingList(pricingList);
+    const validationError = validatePackagePayload({ description, category: categoryValue, hotelName, pricing });
+    if (validationError) {
+      showInlineStatus(statusEl, validationError, 'error');
+      return;
+    }
+    const payload = {
+      description,
+      category: categoryValue,
+      hotel_id: HOTEL_NAME_TO_ID[hotelName],
+      pricing
+    };
+    const response = await fetch(`${API_BASE_URL}/package-only`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload),
+      cache: 'no-cache'
+    });
+    const result = await parseJsonResponse(response);
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to create package');
+    }
+    const created = result.package;
+    packageState.data.unshift(created);
+    packageState.byId.set(String(resolvePackageId(created)), created);
+    hideNewPackageCard();
+    clearNewPackageForm();
+    renderPackages();
+    showSuccessMessage(`${created.description || 'Package'} created successfully!`);
+  } catch (err) {
+    console.error('❌ Error creating package:', err);
+    showInlineStatus(statusEl, `Creation failed: ${err.message}`, 'error');
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+    if (cancelBtn) cancelBtn.disabled = false;
+    setTimeout(() => clearInlineStatus(statusEl), 4000);
+  }
+}
+
+function initializePackageManager() {
+  packageUI.list = document.getElementById('package-list');
+  packageUI.error = document.getElementById('package-error');
+  packageUI.syncStatus = document.getElementById('package-sync-status');
+  packageUI.refreshBtn = document.getElementById('package-refresh-btn');
+  packageUI.template = document.getElementById('package-card-template');
+
+  if (!packageUI.list || !packageUI.template) return;
+
+  updatePackageSyncStatus();
+
+  const addBtn = document.getElementById('package-add-btn');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      showNewPackageCard();
+      const list = document.getElementById('new-package-pricing-list');
+      if (list && list.children.length === 0) list.appendChild(createPricingRow());
+      document.getElementById('new-package-description')?.focus();
+    });
+  }
+
+  const addTierBtn = document.getElementById('new-package-add-pricing-btn');
+  if (addTierBtn) {
+    addTierBtn.addEventListener('click', () => {
+      const list = document.getElementById('new-package-pricing-list');
+      if (list) list.appendChild(createPricingRow());
+    });
+  }
+
+  const cancelBtn = document.getElementById('new-package-cancel-btn');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => { hideNewPackageCard(); clearNewPackageForm(); });
+
+  const saveBtn = document.getElementById('new-package-save-btn');
+  if (saveBtn) saveBtn.addEventListener('click', handleCreatePackage);
+
+  if (packageUI.refreshBtn) packageUI.refreshBtn.addEventListener('click', () => loadPackages());
+
+  loadPackages();
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', () => {
   if (!checkSession()) {
     return;
   }
 
+  initializePackageManager();
   initializeVehicleManager();
   initializeDivingManager();
   initializeVanDestinationManager();

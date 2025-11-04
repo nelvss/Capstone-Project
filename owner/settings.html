@@ -69,11 +69,60 @@
     </section>
     <section id="package-tab" class="tab-content active">
       <div class="settings-section">
-        <div class="empty-state">
-          <div class="empty-icon" aria-hidden="true">📦</div>
-          <h2>Package Only</h2>
-          <p>Create bundled offerings that combine lodging, transport, and activities. Add your forms, tables, or workflows here.</p>
+        <div class="section-heading">
+          <div>
+            <h2>Package Only Settings</h2>
+            <p class="section-subtitle">Manage packages in Supabase across hotels with pricing tiers stored in <code>package_only</code> and <code>package_pricing</code>.</p>
+          </div>
+          <div class="vehicle-actions-bar">
+            <button id="package-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
+            <span id="package-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
+          </div>
         </div>
+
+        <div id="package-error" class="vehicle-error" role="alert" hidden></div>
+
+        <div id="package-list" class="vehicle-list" role="list"></div>
+
+        <template id="package-card-template">
+          <article class="vehicle-card" role="listitem">
+            <header class="vehicle-card-header">
+              <div>
+                <h3 class="package-description"></h3>
+                <p class="vehicle-id"></p>
+              </div>
+              <span class="vehicle-status-tag" aria-live="polite"></span>
+            </header>
+            <div class="vehicle-card-body">
+              <div class="vehicle-form">
+                <label class="form-field">
+                  <span>Description</span>
+                  <input type="text" class="package-description-input" placeholder="e.g., 3D2N with Island Tour">
+                </label>
+                <label class="form-field">
+                  <span>Category</span>
+                  <input type="text" class="package-category-readonly" disabled>
+                </label>
+                <label class="form-field">
+                  <span>Hotel</span>
+                  <input type="text" class="package-hotel-readonly" disabled>
+                </label>
+
+                <div class="tour-pricing-section">
+                  <h4>Pricing Tiers</h4>
+                  <div class="package-pricing-list"></div>
+                  <button type="button" class="btn-secondary package-add-pricing-btn">➕ Add Pricing Tier</button>
+                </div>
+
+                <div class="vehicle-form-actions">
+                  <button type="button" class="btn-primary package-save-btn">Save Changes</button>
+                  <button type="button" class="btn-danger package-delete-btn">🗑️ Delete</button>
+                  <span class="vehicle-inline-status" aria-live="polite"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </template>
       </div>
     </section>
 
