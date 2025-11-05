@@ -3,12 +3,16 @@
 // Handles pop-up modal for 'More Info' buttons with enhanced image gallery
 // + Dynamic content loading from database
 
-// API Base URL: works for both http(s) origins and file:// open
-// - If opened via http(s), uses same-origin '/api'
-// - If opened from filesystem (file://), falls back to localhost:3000
-const API_BASE_URL = (window.location.protocol === 'http:' || window.location.protocol === 'https:'
-  ? ''
-  : 'http://localhost:3000') + '/api';
+// API Base URL resolution order:
+// 1) If <meta name="api-base" content="..."> is present, use it (best for Hostinger/prod)
+// 2) If served over http(s), use same-origin '/api'
+// 3) If opened from filesystem (file://), fall back to localhost:3000
+const apiBaseFromMeta = document.querySelector('meta[name="api-base"]')?.getAttribute('content')?.trim();
+const API_BASE_URL = apiBaseFromMeta && apiBaseFromMeta.length > 0
+  ? apiBaseFromMeta
+  : ((window.location.protocol === 'http:' || window.location.protocol === 'https:')
+      ? '/api'
+      : 'http://localhost:3000/api');
 
 function formatCurrency(value) {
   const number = Number(value);
