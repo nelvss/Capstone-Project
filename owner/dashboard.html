@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Owner Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="/owner/dashboard.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
     integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script defer src="dashboard.js"></script>
+  <script defer src="/owner/dashboard.js"></script>
 </head>
 <body>
   <!-- Loading Screen -->
   <div id="loading-screen" class="loading-screen">
     <div class="loading-container">
       <div class="loading-logo">
-        <img src="../Images/logo.png" alt="Logo" class="loading-logo-img">
+        <img src="/Images/logo.png" alt="Logo" class="loading-logo-img">
       </div>
       <div class="loading-text">Welcome to Dashboard</div>
       <div class="loading-spinner">
@@ -30,23 +30,23 @@
 
   <div class="sidebar">
     <div class="sidebar-header">
-      <img src="../Images/logo.png" alt="Logo" class="sidebar-logo-img">
+      <img src="/Images/logo.png" alt="Logo" class="sidebar-logo-img">
     </div>
     <nav>
       <ul>
-        <li class="active" onclick="navigateWithTransition('dashboard.html')">
+        <li class="active" onclick="navigateWithTransition('/owner/dashboard.html')">
           <i class="fas fa-chart-line icon"></i>
           <span>Dashboard</span>
         </li>
-        <li onclick="navigateWithTransition('analytics.html')">
+        <li onclick="navigateWithTransition('/owner/analytics.html')">
           <i class="fas fa-chart-bar icon"></i>
           <span>Analytics</span>
         </li>
-        <li onclick="navigateWithTransition('payment.html')">
+        <li onclick="navigateWithTransition('/owner/payment.html')">
           <i class="fas fa-credit-card icon"></i>
           <span>Payment</span>
         </li>
-        <li onclick="navigateWithTransition('settings.html')">
+        <li onclick="navigateWithTransition('/owner/settings.html')">
           <i class="fas fa-cog icon"></i>
           <span>Settings</span>
         </li>

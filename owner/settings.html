@@ -4,30 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings - Owner Dashboard</title>
-  <link rel="stylesheet" href="settings.css">
-  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="/owner/settings.css">
+  <link rel="stylesheet" href="/owner/dashboard.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
     integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script defer src="settings.js"></script>
+  <script defer src="/owner/settings.js"></script>
 </head>
 <body>
   <div class="sidebar">
     <div class="sidebar-header">
-      <img src="../Images/logo.png" alt="Logo" class="sidebar-logo-img">
+      <img src="/Images/logo.png" alt="Logo" class="sidebar-logo-img">
     </div>
     <nav>
       <ul>
-        <li onclick="navigateWithTransition('dashboard.html')">
+        <li onclick="navigateWithTransition('/owner/dashboard.html')">
           <i class="fas fa-chart-line icon"></i>
           <span>Dashboard</span>
         </li>
-        <li onclick="navigateWithTransition('analytics.html')">
+        <li onclick="navigateWithTransition('/owner/analytics.html')">
           <i class="fas fa-chart-bar icon"></i>
           <span>Analytics</span>
         </li>
-        <li onclick="navigateWithTransition('payment.html')">
+        <li onclick="navigateWithTransition('/owner/payment.html')">
           <i class="fas fa-credit-card icon"></i>
           <span>Payment</span>
         </li>
@@ -345,7 +345,7 @@
           <div class="vehicle-card-body">
             <div class="vehicle-media">
               <div class="vehicle-image-wrapper">
-                <img class="vehicle-image" src="../Images/logo.png" alt="Vehicle image">
+                <img class="vehicle-image" src="/Images/logo.png" alt="Vehicle image">
                 <div class="vehicle-image-actions">
                   <button type="button" id="new-vehicle-upload-btn" class="btn-secondary vehicle-upload-btn">Upload Image</button>
                   <input type="file" id="new-vehicle-file-input" class="vehicle-file-input" accept="image/*" hidden>
@@ -445,7 +445,7 @@
           <div class="vehicle-card-body">
             <div class="vehicle-media">
               <div class="vehicle-image-wrapper">
-                <img class="vehicle-image" src="../Images/logo.png" alt="Diving image">
+                <img class="vehicle-image" src="/Images/logo.png" alt="Diving image">
                 <div class="vehicle-image-actions">
                   <button type="button" id="new-diving-upload-btn" class="btn-secondary vehicle-upload-btn">Upload Image</button>
                   <input type="file" id="new-diving-file-input" class="vehicle-file-input" accept="image/*" hidden>
@@ -537,7 +537,7 @@
           <div class="vehicle-card-body">
             <div class="vehicle-media">
               <div class="vehicle-image-wrapper">
-                <img class="vehicle-image" src="../Images/logo.png" alt="QRCode image">
+                <img class="vehicle-image" src="/Images/logo.png" alt="QRCode image">
                 <div class="vehicle-image-actions">
                   <button type="button" id="new-qrcode-upload-btn" class="btn-secondary vehicle-upload-btn">Upload Image</button>
                   <input type="file" id="new-qrcode-file-input" class="vehicle-file-input" accept="image/*" hidden>

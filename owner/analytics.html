@@ -8,8 +8,8 @@
     integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="dashboard.css">
-  <link rel="stylesheet" href="analytics.css">
+  <link rel="stylesheet" href="/owner/dashboard.css">
+  <link rel="stylesheet" href="/owner/analytics.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <title>Analytics Dashboard - OTG Travel and Tours</title>
@@ -18,23 +18,23 @@
 <body>
   <div class="sidebar">
     <div class="sidebar-header">
-      <img src="../Images/logo.png" alt="Logo" class="sidebar-logo-img">
+      <img src="/Images/logo.png" alt="Logo" class="sidebar-logo-img">
     </div>
     <nav>
       <ul>
-        <li onclick="navigateWithTransition('dashboard.html')">
+        <li onclick="navigateWithTransition('/owner/dashboard.html')">
           <i class="fas fa-chart-line icon"></i>
           <span>Dashboard</span>
         </li>
-        <li class="active" onclick="navigateWithTransition('analytics.html')">
+        <li class="active" onclick="navigateWithTransition('/owner/analytics.html')">
           <i class="fas fa-chart-bar icon"></i>
           <span>Analytics</span>
         </li>
-        <li onclick="navigateWithTransition('payment.html')">
+        <li onclick="navigateWithTransition('/owner/payment.html')">
           <i class="fas fa-credit-card icon"></i>
           <span>Payment</span>
         </li>
-        <li onclick="navigateWithTransition('settings.html')">
+        <li onclick="navigateWithTransition('/owner/settings.html')">
           <i class="fas fa-cog icon"></i>
           <span>Settings</span>
         </li>
@@ -376,8 +376,8 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="dashboard.js"></script>
-  <script src="analytics.js"></script>
+  <script src="/owner/dashboard.js"></script>
+  <script src="/owner/analytics.js"></script>
 </body>
 
 </html>
