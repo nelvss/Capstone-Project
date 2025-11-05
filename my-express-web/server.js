@@ -84,26 +84,16 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 image uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static file hosting for frontend assets
-const projectRootDir = path.resolve(__dirname, '..');
-const userDir = path.join(projectRootDir, 'user');
-const ownerDir = path.join(projectRootDir, 'owner');
-
-// Serve user and owner folders so CSS/JS/images load with their relative paths
-app.use('/user', express.static(userDir));
-// Expose the home subfolder at root so '/home.css' resolves to 'user/home/home.css'
-const userHomeDir = path.join(userDir, 'home');
-app.use('/', express.static(userHomeDir));
-
-// Map common asset folders used by home.html absolute paths like '/Images/...'
-// Map asset folders from the project root (actual locations per repo structure)
-app.use('/Images', express.static(path.join(projectRootDir, 'Images')));
-app.use('/Video', express.static(path.join(projectRootDir, 'Video')));
-app.use('/owner', express.static(ownerDir));
-
-// Serve the main homepage on root
+// API root endpoint - returns JSON only
 app.get('/', (req, res) => {
-  res.sendFile(path.join(userHomeDir, 'home.html'));
+  res.json({
+    message: 'API Server',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      documentation: 'All API endpoints are under /api/*'
+    }
+  });
 });
 
 // Utility helpers
