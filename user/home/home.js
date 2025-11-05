@@ -3,8 +3,12 @@
 // Handles pop-up modal for 'More Info' buttons with enhanced image gallery
 // + Dynamic content loading from database
 
-// API Base URL
-const API_BASE_URL = 'http://localhost:3000/api';
+// API Base URL: works for both http(s) origins and file:// open
+// - If opened via http(s), uses same-origin '/api'
+// - If opened from filesystem (file://), falls back to localhost:3000
+const API_BASE_URL = (window.location.protocol === 'http:' || window.location.protocol === 'https:'
+  ? ''
+  : 'http://localhost:3000') + '/api';
 
 function formatCurrency(value) {
   const number = Number(value);
@@ -536,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function () {
       
       try {
         // Send feedback to API
-        const response = await fetch('http://localhost:3000/api/submit-feedback', {
+        const response = await fetch(`${API_BASE_URL}/submit-feedback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
