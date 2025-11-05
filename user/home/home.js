@@ -198,10 +198,140 @@ async function loadVehicleRental() {
   }
 }
 
+async function loadVanRental() {
+  const priceElement = document.getElementById('vanRentalPrice');
+  const listWithinElement = document.getElementById('vanRentalListWithin');
+  const listOutsideElement = document.getElementById('vanRentalListOutside');
+  const moreInfoButton = document.getElementById('vanRentalMoreInfo');
+
+  if (!priceElement || !listWithinElement || !listOutsideElement || !moreInfoButton) {
+    return;
+  }
+
+  listWithinElement.innerHTML = '<li class="vehicle-rental-list-item">Fetching...</li>';
+  listOutsideElement.innerHTML = '<li class="vehicle-rental-list-item">Fetching...</li>';
+  moreInfoButton.dataset.info = '<strong>Van Rental</strong><br>Loading destination list...';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/van-destinations`);
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to fetch van destinations');
+    }
+
+    const destinations = (result.destinations || []).filter(dest => {
+      const name = (dest?.destination_name || '').trim();
+      return name && name.toLowerCase() !== 'n/a';
+    });
+
+    // Separate destinations by location type
+    const withinDestinations = destinations.filter(dest => {
+      const locationType = (dest?.location_type || '').trim();
+      return locationType === 'Within Puerto Galera';
+    }).sort((a, b) => {
+      const nameA = (a.destination_name || '').toLowerCase();
+      const nameB = (b.destination_name || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    const outsideDestinations = destinations.filter(dest => {
+      const locationType = (dest?.location_type || '').trim();
+      return locationType === 'Outside Puerto Galera';
+    }).sort((a, b) => {
+      const nameA = (a.destination_name || '').toLowerCase();
+      const nameB = (b.destination_name || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    if (destinations.length === 0) {
+      priceElement.textContent = 'Currently unavailable';
+      listWithinElement.innerHTML = '<li class="vehicle-rental-list-item">No destinations available.</li>';
+      listOutsideElement.innerHTML = '<li class="vehicle-rental-list-item">No destinations available.</li>';
+      moreInfoButton.dataset.info = '<strong>Van Rental</strong><br>No destinations are currently available. Please check back later.';
+      return;
+    }
+
+    // Find minimum price for display
+    let minPrice = null;
+    destinations.forEach(dest => {
+      const oneway = Number(dest.oneway_price);
+      const roundtrip = Number(dest.roundtrip_price);
+      
+      if (Number.isFinite(oneway) && oneway > 0) {
+        if (minPrice === null || oneway < minPrice) {
+          minPrice = oneway;
+        }
+      }
+      if (Number.isFinite(roundtrip) && roundtrip > 0) {
+        if (minPrice === null || roundtrip < minPrice) {
+          minPrice = roundtrip;
+        }
+      }
+    });
+
+    priceElement.textContent = minPrice !== null
+      ? `Starting at ${formatCurrency(minPrice)}`
+      : 'Contact us for rates';
+
+    // Populate Within Puerto Galera column
+    listWithinElement.innerHTML = '';
+    if (withinDestinations.length === 0) {
+      listWithinElement.innerHTML = '<li class="vehicle-rental-list-item small text-muted">None</li>';
+    } else {
+      withinDestinations.forEach(dest => {
+        const listItem = document.createElement('li');
+        listItem.className = 'vehicle-rental-list-item';
+
+        const destinationName = dest.destination_name || 'Destination';
+
+        listItem.innerHTML = `
+          <div class="vehicle-rental-item-header">
+            <span>${destinationName}</span>
+          </div>
+        `;
+
+        listWithinElement.appendChild(listItem);
+      });
+    }
+
+    // Populate Outside Puerto Galera column
+    listOutsideElement.innerHTML = '';
+    if (outsideDestinations.length === 0) {
+      listOutsideElement.innerHTML = '<li class="vehicle-rental-list-item small text-muted">None</li>';
+    } else {
+      outsideDestinations.forEach(dest => {
+        const listItem = document.createElement('li');
+        listItem.className = 'vehicle-rental-list-item';
+
+        const destinationName = dest.destination_name || 'Destination';
+
+        listItem.innerHTML = `
+          <div class="vehicle-rental-item-header">
+            <span>${destinationName}</span>
+          </div>
+        `;
+
+        listOutsideElement.appendChild(listItem);
+      });
+    }
+
+    const allDestinationNames = destinations.map(d => d.destination_name).join(', ');
+    moreInfoButton.dataset.info = `<strong>Van Rental</strong><br>Available destinations: ${allDestinationNames}`;
+  } catch (error) {
+    console.error('Error loading van rentals:', error);
+    priceElement.textContent = 'Unable to load rates';
+    listWithinElement.innerHTML = '<li class="vehicle-rental-list-item">Error loading data.</li>';
+    listOutsideElement.innerHTML = '<li class="vehicle-rental-list-item">Error loading data.</li>';
+    moreInfoButton.dataset.info = '<strong>Van Rental</strong><br>We were unable to load destination information at this time.';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Load dynamic content first
   loadDynamicContent();
   loadVehicleRental();
+  loadVanRental();
 
   // Delegate click for all 'More Info' buttons
   document.body.addEventListener('click', function (e) {
@@ -228,7 +358,20 @@ document.addEventListener('DOMContentLoaded', function () {
   var popupModal = document.getElementById('popupModal');
   var popupModalBody = document.getElementById('popupModalBody');
   if (popupModal && popupModalBody) {
+    // Fix aria-hidden accessibility issue - ensure it's removed before Bootstrap tries to focus elements
+    popupModal.addEventListener('show.bs.modal', function(e) {
+      // Remove aria-hidden early to prevent focus issues
+      if (popupModal.hasAttribute('aria-hidden')) {
+        popupModal.removeAttribute('aria-hidden');
+      }
+    });
+    
     popupModal.addEventListener('shown.bs.modal', function() {
+      // Ensure aria-hidden is false when modal is fully shown (Bootstrap should do this, but we ensure it)
+      if (popupModal.getAttribute('aria-hidden') !== 'false') {
+        popupModal.setAttribute('aria-hidden', 'false');
+      }
+      
       var imgs = popupModalBody.querySelectorAll('img');
       imgs.forEach(function(img) {
         img.style.cursor = 'zoom-in';
@@ -240,8 +383,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     
     popupModal.addEventListener('hidden.bs.modal', function() {
+      // Bootstrap handles this, but we ensure it's set for consistency
       var overlays = document.querySelectorAll('.lightbox-overlay');
       overlays.forEach(function(overlay) { overlay.remove(); });
+    });
+  }
+  
+  // Fix aria-hidden for image gallery modal as well
+  var imageGalleryModal = document.getElementById('imageGalleryModal');
+  if (imageGalleryModal) {
+    imageGalleryModal.addEventListener('show.bs.modal', function() {
+      // Remove aria-hidden early to prevent focus issues
+      if (imageGalleryModal.hasAttribute('aria-hidden')) {
+        imageGalleryModal.removeAttribute('aria-hidden');
+      }
+    });
+    
+    imageGalleryModal.addEventListener('shown.bs.modal', function() {
+      // Ensure aria-hidden is false when modal is fully shown
+      if (imageGalleryModal.getAttribute('aria-hidden') !== 'false') {
+        imageGalleryModal.setAttribute('aria-hidden', 'false');
+      }
     });
   }
 

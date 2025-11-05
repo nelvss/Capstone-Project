@@ -20,8 +20,15 @@ async function loadBookings() {
     
     // Transform API data to match the expected format
     bookings = result.bookings.map(booking => {
+      // Debug: Log van rental data for this booking
+      if (booking.van_rental_bookings && booking.van_rental_bookings.length > 0) {
+        console.log(`🚐 Booking ${booking.booking_id} has van rental data:`, booking.van_rental_bookings);
+      } else {
+        console.log(`⚠️ Booking ${booking.booking_id} has no van rental data. van_rental_bookings:`, booking.van_rental_bookings);
+      }
+      
       // Format vehicle information
-      let vehicleInfo = 'No Vehicle Selected';
+      let vehicleInfo = 'N/A';
       if (booking.vehicle_bookings && booking.vehicle_bookings.length > 0) {
         const vehicleNames = booking.vehicle_bookings.map(vb => {
           if (vb.vehicle) {
@@ -33,15 +40,49 @@ async function loadBookings() {
         vehicleInfo = vehicleNames.join(', ');
       }
       
+      // Format van rental information
+      let vanRentalInfo = 'N/A';
+      if (booking.van_rental_bookings && booking.van_rental_bookings.length > 0) {
+        const vanRentalDetails = booking.van_rental_bookings.map(vrb => {
+          // Extract location type from choose_destination (e.g., "Within Puerto Galera" -> "Within")
+          let locationType = 'Unknown';
+          if (vrb.choose_destination) {
+            if (vrb.choose_destination.includes('Within')) {
+              locationType = 'Within';
+            } else if (vrb.choose_destination.includes('Outside')) {
+              locationType = 'Outside';
+            } else {
+              locationType = vrb.choose_destination;
+            }
+          }
+          const tripType = vrb.trip_type === 'roundtrip' ? 'Round Trip' : 'One Way';
+          return `${locationType} - ${tripType}`;
+        });
+        vanRentalInfo = vanRentalDetails.join(', ');
+      }
+      
+      // Format price from total_booking_amount, default to ₱0 if no payment exists
+      const totalAmount = booking.total_booking_amount || 0;
+      const formattedPrice = totalAmount > 0 ? `₱${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₱0';
+      
+      // Determine hotel display value
+      let hotelDisplay = 'No Hotel Selected';
+      if (booking.booking_type === 'tour_only') {
+        hotelDisplay = 'N/A';
+      } else if (booking.hotels?.name) {
+        hotelDisplay = booking.hotels.name;
+      }
+      
       return {
         id: booking.booking_id,
         name: `${booking.customer_first_name} ${booking.customer_last_name}`,
         services: booking.booking_preferences || 'N/A',
         rental: vehicleInfo,
+        vanRental: vanRentalInfo,
         arrival: booking.arrival_date,
         departure: booking.departure_date,
-        hotel: booking.hotels?.name || 'No Hotel Selected',
-        price: '₱0', // No total_price column in bookings table
+        hotel: hotelDisplay,
+        price: formattedPrice,
         contact: booking.customer_contact,
         email: booking.customer_email,
         status: booking.status
@@ -245,9 +286,11 @@ function renderTable() {
     const tr = document.createElement('tr');
     const actions = ownerStatusFilter === 'all' 
       ? `
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
+      <td>${b.vanRental}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -262,9 +305,11 @@ function renderTable() {
         </div>
       </td>`
       : ownerStatusFilter === 'cancelled' ? `
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
+      <td>${b.vanRental}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -274,9 +319,11 @@ function renderTable() {
       <td>
         <span class="action-badge cancelled">Cancelled</span>
       </td>` : ownerStatusFilter === 'rescheduled' ? `
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
+      <td>${b.vanRental}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -288,9 +335,11 @@ function renderTable() {
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
         </div>
       </td>` : `
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
+      <td>${b.vanRental}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -348,9 +397,11 @@ function filterTable(searchTerm) {
   const filteredBookings = bookings.filter(b => {
     const searchLower = searchTerm.toLowerCase();
     return (
+      b.id.toLowerCase().includes(searchLower) ||
       b.name.toLowerCase().includes(searchLower) ||
       b.services.toLowerCase().includes(searchLower) ||
       b.rental.toLowerCase().includes(searchLower) ||
+      b.vanRental.toLowerCase().includes(searchLower) ||
       b.arrival.toLowerCase().includes(searchLower) ||
       b.departure.toLowerCase().includes(searchLower) ||
       b.hotel.toLowerCase().includes(searchLower) ||
@@ -364,9 +415,11 @@ function filterTable(searchTerm) {
     const tr = document.createElement('tr');
     const actions = ownerStatusFilter === 'all'
       ? `
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
+      <td>${b.vanRental}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -381,9 +434,11 @@ function filterTable(searchTerm) {
         </div>
       </td>`
       : ownerStatusFilter === 'cancelled' ? `
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
+      <td>${b.vanRental}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -393,9 +448,11 @@ function filterTable(searchTerm) {
       <td>
         <span class="action-badge cancelled">Cancelled</span>
       </td>` : ownerStatusFilter === 'rescheduled' ? `
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
+      <td>${b.vanRental}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -407,9 +464,11 @@ function filterTable(searchTerm) {
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
         </div>
       </td>` : `
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
+      <td>${b.vanRental}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -439,7 +498,7 @@ function filterTable(searchTerm) {
   // Show message if no results found
   if (filteredBookings.length === 0) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="10" style="text-align: center; padding: 20px; color: #64748b;">No bookings found matching "${searchTerm}"</td>`;
+    tr.innerHTML = `<td colspan="12" style="text-align: center; padding: 20px; color: #64748b;">No bookings found matching "${searchTerm}"</td>`;
     tbody.appendChild(tr);
   }
 }

@@ -961,12 +961,129 @@ app.get('/api/bookings', async (req, res) => {
       }
     }
     
-    // Merge hotel and vehicle data with bookings
-    const bookingsWithDetails = bookings.map(booking => ({
-      ...booking,
-      hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
-      vehicle_bookings: vehicleBookingsData[booking.booking_id] || []
-    }));
+    // Get van rental bookings for all bookings
+    let vanRentalBookingsData = {};
+    if (bookingIds.length > 0) {
+      // Ensure booking IDs are strings and trimmed
+      const normalizedBookingIds = bookingIds.map(id => String(id).trim()).filter(id => id);
+      console.log('🔍 Fetching van rental bookings for booking IDs:', normalizedBookingIds);
+      
+      // Also fetch all van rental bookings to debug
+      const { data: allVanRentals, error: allVanRentalsError } = await supabase
+        .from('bookings_van_rental')
+        .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination')
+        .limit(100);
+      
+      if (!allVanRentalsError && allVanRentals) {
+        console.log('📋 All van rental bookings in database:', allVanRentals.length);
+        const uniqueBookingIds = [...new Set(allVanRentals.map(vr => vr.booking_id))];
+        console.log('📋 Unique booking IDs in van_rental table:', uniqueBookingIds);
+        console.log('📋 Booking IDs from bookings table:', normalizedBookingIds);
+      }
+      
+      const { data: vanRentalBookings, error: vanRentalError } = await supabase
+        .from('bookings_van_rental')
+        .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination')
+        .in('booking_id', normalizedBookingIds);
+      
+      if (vanRentalError) {
+        console.error('❌ Error fetching van rental bookings:', vanRentalError);
+      } else {
+        console.log('📦 Van rental bookings fetched:', vanRentalBookings?.length || 0, 'records');
+        if (vanRentalBookings && vanRentalBookings.length > 0) {
+          console.log('📋 Sample van rental booking:', vanRentalBookings[0]);
+        }
+      }
+      
+      if (!vanRentalError && vanRentalBookings) {
+        // Get unique van destination IDs
+        const vanDestinationIds = [...new Set(vanRentalBookings.map(vrb => vrb.van_destination_id).filter(id => id))];
+        
+        // Fetch van destination data for all unique destination IDs
+        let vanDestinationsData = {};
+        if (vanDestinationIds.length > 0) {
+          const { data: vanDestinations, error: vanDestinationsError } = await supabase
+            .from('van_destinations')
+            .select('van_destination_id, destination_name')
+            .in('van_destination_id', vanDestinationIds);
+          
+          if (!vanDestinationsError && vanDestinations) {
+            vanDestinationsData = vanDestinations.reduce((acc, dest) => {
+              acc[dest.van_destination_id] = dest;
+              return acc;
+            }, {});
+          }
+        }
+        
+        // Group van rental bookings by booking_id and merge with destination data
+        // Normalize booking_id keys to ensure matching
+        vanRentalBookingsData = vanRentalBookings.reduce((acc, vrb) => {
+          const normalizedKey = String(vrb.booking_id).trim();
+          if (!acc[normalizedKey]) {
+            acc[normalizedKey] = [];
+          }
+          acc[normalizedKey].push({
+            ...vrb,
+            destination: vrb.van_destination_id ? vanDestinationsData[vrb.van_destination_id] : null
+          });
+          return acc;
+        }, {});
+        
+        console.log('✅ Van rental bookings grouped by booking_id:', Object.keys(vanRentalBookingsData));
+      }
+    }
+    
+    // Get payment data for all bookings to fetch total_booking_amount
+    let paymentsData = {};
+    if (bookingIds.length > 0) {
+      const { data: payments, error: paymentsError } = await supabase
+        .from('payments')
+        .select('booking_id, total_booking_amount, payment_date')
+        .in('booking_id', bookingIds)
+        .order('payment_date', { ascending: false });
+      
+      if (!paymentsError && payments) {
+        // Group payments by booking_id and get the latest payment's total_booking_amount
+        // Since all payments for the same booking should have the same total_booking_amount,
+        // we'll use the latest one
+        paymentsData = payments.reduce((acc, payment) => {
+          // Only store if we haven't already stored a payment for this booking
+          // (since we ordered by payment_date desc, the first one we encounter is the latest)
+          if (!acc[payment.booking_id]) {
+            acc[payment.booking_id] = payment.total_booking_amount;
+          }
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Merge hotel, vehicle, van rental, and payment data with bookings
+    const bookingsWithDetails = bookings.map(booking => {
+      // Normalize booking_id for lookup
+      const normalizedBookingId = String(booking.booking_id).trim();
+      const vanRentals = vanRentalBookingsData[normalizedBookingId] || [];
+      
+      // Try without normalization as fallback
+      const vanRentalsFallback = vanRentals.length === 0 ? (vanRentalBookingsData[booking.booking_id] || []) : vanRentals;
+      
+      if (vanRentalsFallback.length > 0) {
+        console.log(`📌 Booking ${booking.booking_id} (normalized: ${normalizedBookingId}) has ${vanRentalsFallback.length} van rental(s):`, vanRentalsFallback);
+      } else {
+        // Debug why no match
+        const availableKeys = Object.keys(vanRentalBookingsData);
+        if (availableKeys.length > 0) {
+          console.log(`⚠️ Booking ${booking.booking_id} (normalized: ${normalizedBookingId}) not found in van rentals. Available keys:`, availableKeys);
+        }
+      }
+      
+      return {
+        ...booking,
+        hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
+        vehicle_bookings: vehicleBookingsData[booking.booking_id] || [],
+        van_rental_bookings: vanRentalsFallback,
+        total_booking_amount: paymentsData[booking.booking_id] || null
+      };
+    });
     
     console.log('✅ Bookings fetched successfully:', bookingsWithDetails?.length || 0, 'bookings');
     

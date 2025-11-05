@@ -4095,7 +4095,7 @@ function createPricingRow({ min = '', max = '', price = '' } = {}) {
 }
 
 function readPricingList(container) {
-  const rows = Array.from(container?.querySelectorAll('.pricing-row') || []);
+  const rows = Array.from(container?.querySelectorAll('.tour-pricing-tier') || []);
   return rows.map(r => ({
     min_tourist: Number(r.querySelector('.tier-min')?.value || 0),
     max_tourist: Number(r.querySelector('.tier-max')?.value || 0),
