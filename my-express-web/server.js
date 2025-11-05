@@ -72,7 +72,15 @@ supabase
   });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://otgpuertogaleratravel.com",
+    "https://www.otgpuertogaleratravel.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ],
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 image uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
