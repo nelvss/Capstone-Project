@@ -5,14 +5,24 @@
 
 // API Base URL resolution order:
 // 1) If <meta name="api-base" content="..."> is present, use it (best for Hostinger/prod)
-// 2) If served over http(s), use same-origin '/api'
-// 3) If opened from filesystem (file://), fall back to localhost:3000
-const apiBaseFromMeta = document.querySelector('meta[name="api-base"]')?.getAttribute('content')?.trim();
-const API_BASE_URL = apiBaseFromMeta && apiBaseFromMeta.length > 0
-  ? apiBaseFromMeta
-  : ((window.location.protocol === 'http:' || window.location.protocol === 'https:')
-      ? '/api'
-      : 'http://localhost:3000/api');
+// 2) Always use production API URL as fallback (https://api.otgpuertogaleratravel.com/api)
+function getApiBaseUrl() {
+  // Try to get from meta tag (best option)
+  const apiBaseFromMeta = document.querySelector('meta[name="api-base"]')?.getAttribute('content')?.trim();
+  if (apiBaseFromMeta && apiBaseFromMeta.length > 0) {
+    console.log('✅ Using API base from meta tag:', apiBaseFromMeta);
+    return apiBaseFromMeta;
+  }
+  
+  // Fallback to production API
+  const productionApi = 'https://api.otgpuertogaleratravel.com/api';
+  console.log('⚠️ Meta tag not found, using production API fallback:', productionApi);
+  return productionApi;
+}
+
+// Initialize API_BASE_URL - will be re-evaluated on DOMContentLoaded to ensure meta tag is available
+let API_BASE_URL = getApiBaseUrl();
+console.log('🔗 API_BASE_URL initially set to:', API_BASE_URL);
 
 function formatCurrency(value) {
   const number = Number(value);
@@ -81,10 +91,24 @@ async function loadVehicleRental() {
   moreInfoButton.dataset.info = '<strong>Vehicle Rental</strong><br>Loading vehicle list...';
 
   try {
-    const response = await fetch(`${API_BASE_URL}/vehicles`);
+    const url = `${API_BASE_URL}/vehicles`;
+    console.log('🔄 Fetching vehicles from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors'
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
     const result = await response.json();
 
-    if (!response.ok || !result.success) {
+    if (!result.success) {
       throw new Error(result.message || 'Failed to fetch vehicles');
     }
 
@@ -197,11 +221,16 @@ async function loadVehicleRental() {
       serviceImages['Vehicle Rental'] = galleryImages;
     }
   } catch (error) {
-    console.error('Error loading vehicle rentals:', error);
+    console.error('❌ Error loading vehicle rentals:', error);
+    console.error('Error details:', {
+      message: error.message,
+      url: `${API_BASE_URL}/vehicles`,
+      stack: error.stack
+    });
     priceElement.textContent = 'Unable to load rates';
     listElement.innerHTML = '<li class="vehicle-rental-list-item">We could not load vehicle data. Please try again later.</li>';
     carouselInner.innerHTML = placeholderSlide;
-    moreInfoButton.dataset.info = '<strong>Vehicle Rental</strong><br>We were unable to load vehicle information at this time.';
+    moreInfoButton.dataset.info = '<strong>Vehicle Rental</strong><br>We were unable to load vehicle information at this time. Please check your console for details.';
     serviceImages['Vehicle Rental'] = [];
   }
 }
@@ -221,10 +250,24 @@ async function loadVanRental() {
   moreInfoButton.dataset.info = '<strong>Van Rental</strong><br>Loading destination list...';
 
   try {
-    const response = await fetch(`${API_BASE_URL}/van-destinations`);
+    const url = `${API_BASE_URL}/van-destinations`;
+    console.log('🔄 Fetching van destinations from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors'
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
     const result = await response.json();
 
-    if (!response.ok || !result.success) {
+    if (!result.success) {
       throw new Error(result.message || 'Failed to fetch van destinations');
     }
 
@@ -327,15 +370,24 @@ async function loadVanRental() {
     const allDestinationNames = destinations.map(d => d.destination_name).join(', ');
     moreInfoButton.dataset.info = `<strong>Van Rental</strong><br>Available destinations: ${allDestinationNames}`;
   } catch (error) {
-    console.error('Error loading van rentals:', error);
+    console.error('❌ Error loading van rentals:', error);
+    console.error('Error details:', {
+      message: error.message,
+      url: `${API_BASE_URL}/van-destinations`,
+      stack: error.stack
+    });
     priceElement.textContent = 'Unable to load rates';
     listWithinElement.innerHTML = '<li class="vehicle-rental-list-item">Error loading data.</li>';
     listOutsideElement.innerHTML = '<li class="vehicle-rental-list-item">Error loading data.</li>';
-    moreInfoButton.dataset.info = '<strong>Van Rental</strong><br>We were unable to load destination information at this time.';
+    moreInfoButton.dataset.info = '<strong>Van Rental</strong><br>We were unable to load destination information at this time. Please check your console for details.';
   }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  // Re-evaluate API_BASE_URL to ensure meta tag is available
+  API_BASE_URL = getApiBaseUrl();
+  console.log('🔗 API_BASE_URL re-evaluated on DOMContentLoaded:', API_BASE_URL);
+  
   // Load dynamic content first
   loadDynamicContent();
   loadVehicleRental();
