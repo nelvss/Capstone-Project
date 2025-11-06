@@ -4,7 +4,9 @@ let bookings = [];
 let ownerStatusFilter = 'all';
 
 // API Configuration
-const API_URL = 'http://localhost:3000'; // Change this to your server URL
+const API_URL = (window.API_URL && window.API_URL.length > 0)
+  ? window.API_URL
+  : 'https://api.otgpuertogaleratravel.com';
 
 // Load bookings from API
 async function loadBookings() {

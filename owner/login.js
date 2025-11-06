@@ -13,7 +13,8 @@ async function handleLogin(event) {
 
     try {
         // Call Express API for authentication
-        const response = await fetch('http://localhost:3000/api/login', {
+        const base = (window.API_URL && window.API_URL.length > 0) ? window.API_URL : 'https://api.otgpuertogaleratravel.com';
+        const response = await fetch(`${base}/api/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

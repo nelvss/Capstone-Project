@@ -1,6 +1,8 @@
 // Settings Page JavaScript - Connected to Owner Dashboard
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = (window.API_BASE_URL && window.API_BASE_URL.length > 0)
+  ? window.API_BASE_URL
+  : 'https://api.otgpuertogaleratravel.com/api';
 
 // Hotel mapping for Package Only tab
 const HOTEL_NAME_TO_ID = {

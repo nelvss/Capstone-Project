@@ -3,7 +3,9 @@ let currentStep = 3;
 const totalSteps = 8;
 
 // API Base URL
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = (window.API_BASE_URL && window.API_BASE_URL.length > 0)
+  ? window.API_BASE_URL
+  : 'https://api.otgpuertogaleratravel.com/api';
 
 // Store QR codes data
 let qrCodesData = [];
@@ -556,7 +558,7 @@ async function submitBooking() {
         console.log('Submitting tour booking to API:', bookingPayload);
         
         // Submit main booking to API
-        const bookingResponse = await fetch('http://localhost:3000/api/bookings', {
+        const bookingResponse = await fetch(`${API_BASE_URL}/bookings`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -601,7 +603,7 @@ async function submitBooking() {
                     reader.onload = async function(e) {
                         try {
                             const base64Data = e.target.result;
-                            const uploadResponse = await fetch('http://localhost:3000/api/payments/upload-receipt', {
+                            const uploadResponse = await fetch(`${API_BASE_URL}/payments/upload-receipt`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -655,7 +657,7 @@ async function submitBooking() {
             };
             
             try {
-                const paymentResponse = await fetch('http://localhost:3000/api/payments', {
+                const paymentResponse = await fetch(`${API_BASE_URL}/payments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -729,7 +731,7 @@ async function submitTourBookings(bookingId, bookingData) {
             };
             
             promises.push(
-                fetch('http://localhost:3000/api/booking-tour', {
+                fetch(`${API_BASE_URL}/booking-tour`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(tourPayload)
@@ -750,7 +752,7 @@ async function submitTourBookings(bookingId, bookingData) {
             };
             
             promises.push(
-                fetch('http://localhost:3000/api/booking-vehicles', {
+                fetch(`${API_BASE_URL}/booking-vehicles`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(vehiclePayload)
@@ -771,7 +773,7 @@ async function submitTourBookings(bookingId, bookingData) {
         };
         
         promises.push(
-            fetch('http://localhost:3000/api/booking-diving', {
+            fetch(`${API_BASE_URL}/booking-diving`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(divingPayload)
@@ -791,7 +793,7 @@ async function submitTourBookings(bookingId, bookingData) {
         };
         
         promises.push(
-            fetch('http://localhost:3000/api/booking-van-rental', {
+            fetch(`${API_BASE_URL}/booking-van-rental`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(vanPayload)
@@ -832,7 +834,7 @@ async function getDestinationIdByName(destinationName) {
     try {
         // Load destinations from cache or API
         if (!vanDestinationsCache) {
-            const response = await fetch('http://localhost:3000/api/van-destinations');
+            const response = await fetch(`${API_BASE_URL}/van-destinations`);
             const result = await response.json();
             
             if (result.success && result.destinations) {

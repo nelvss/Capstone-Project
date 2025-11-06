@@ -59,7 +59,8 @@ async function loadPayments() {
   try {
     console.log('Loading payments...');
     
-    const response = await fetch('http://localhost:3000/api/payments');
+    const base = (window.API_URL && window.API_URL.length > 0) ? window.API_URL : 'https://api.otgpuertogaleratravel.com';
+    const response = await fetch(`${base}/api/payments`);
     const result = await response.json();
     
     if (!result.success) {

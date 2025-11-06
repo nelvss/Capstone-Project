@@ -28,11 +28,16 @@
     
     let vanDestinationsData = [];
 
+    // API Base URL
+    const API_BASE_URL = (window.API_BASE_URL && window.API_BASE_URL.length > 0)
+        ? window.API_BASE_URL
+        : 'https://api.otgpuertogaleratravel.com/api';
+
     // Fetch diving records from database
     async function fetchDiving() {
         try {
             console.log('🔄 Fetching diving records from API...');
-            const response = await fetch('http://localhost:3000/api/diving', { cache: 'no-cache' });
+            const response = await fetch(`${API_BASE_URL}/diving`, { cache: 'no-cache' });
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -184,7 +189,7 @@
     async function fetchVanDestinations() {
         try {
             console.log('🔄 Fetching van destinations from API...');
-            const response = await fetch('http://localhost:3000/api/van-destinations', { cache: 'no-cache' });
+            const response = await fetch(`${API_BASE_URL}/van-destinations`, { cache: 'no-cache' });
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -292,7 +297,7 @@
     async function fetchVehicles() {
         try {
             console.log('🔄 Fetching vehicles from API...');
-            const response = await fetch('http://localhost:3000/api/vehicles', { cache: 'no-cache' });
+            const response = await fetch(`${API_BASE_URL}/vehicles`, { cache: 'no-cache' });
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);

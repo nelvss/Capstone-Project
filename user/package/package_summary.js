@@ -4,7 +4,9 @@
     let bookingData = null;
     
     // API Base URL
-    const API_BASE_URL = 'http://localhost:3000/api';
+    const API_BASE_URL = (window.API_BASE_URL && window.API_BASE_URL.length > 0)
+        ? window.API_BASE_URL
+        : 'https://api.otgpuertogaleratravel.com/api';
     
     // Store QR codes data
     let qrCodesData = [];
@@ -370,7 +372,7 @@
             console.log('Submitting booking to API:', bookingPayload);
             
             // Submit main booking to API
-            const bookingResponse = await fetch('http://localhost:3000/api/bookings', {
+            const bookingResponse = await fetch(`${API_BASE_URL}/bookings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -397,7 +399,7 @@
                     notes: `Tourists: ${bookingData.touristCount || 0}`
                 };
                 
-                const packageResponse = await fetch('http://localhost:3000/api/package-booking', {
+                const packageResponse = await fetch(`${API_BASE_URL}/package-booking`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -425,7 +427,7 @@
                     diving_name: bookingData.divingName || null // Include diving_name for reference
                 };
                 
-                const divingResponse = await fetch('http://localhost:3000/api/booking-diving', {
+                const divingResponse = await fetch(`${API_BASE_URL}/booking-diving`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -453,7 +455,7 @@
                         total_amount: vehicle.price || 0
                     };
                     
-                    return fetch('http://localhost:3000/api/booking-vehicles', {
+                    return fetch(`${API_BASE_URL}/booking-vehicles`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -501,7 +503,7 @@
                     
                     console.log('📦 Sending van rental payload:', vanPayload);
                     
-                    const vanResponse = await fetch('http://localhost:3000/api/booking-van-rental', {
+                    const vanResponse = await fetch(`${API_BASE_URL}/booking-van-rental`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -551,7 +553,7 @@
                         reader.onload = async function(e) {
                             try {
                                 const base64Data = e.target.result;
-                                const uploadResponse = await fetch('http://localhost:3000/api/payments/upload-receipt', {
+                                const uploadResponse = await fetch(`${API_BASE_URL}/payments/upload-receipt`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -605,7 +607,7 @@
                 };
                 
                 try {
-                    const paymentResponse = await fetch('http://localhost:3000/api/payments', {
+                    const paymentResponse = await fetch(`${API_BASE_URL}/payments`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -676,7 +678,7 @@
     async function fetchHotels() {
         try {
             console.log('🏨 Fetching hotels from API...');
-            const response = await fetch('http://localhost:3000/api/hotels');
+            const response = await fetch(`${API_BASE_URL}/hotels`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -750,7 +752,7 @@
             // Load destinations from cache or API
             if (!vanDestinationsCache) {
                 console.log('📡 Fetching van destinations from API...');
-                const response = await fetch('http://localhost:3000/api/van-destinations');
+                const response = await fetch(`${API_BASE_URL}/van-destinations`);
                 const result = await response.json();
                 
                 console.log('📥 API response:', result);
