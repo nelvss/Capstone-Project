@@ -31,7 +31,7 @@ function checkSession() {
 const chartInstances = {};
 
 // API Configuration (shared across pages)
-window.API_URL = window.API_URL || 'http://localhost:3000';
+window.API_URL = window.API_URL || 'https://api.otgpuertogaleratravel.com';
 // Toggle to use API or fallback sample data
 window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? window.USE_ANALYTICS_API : false;
 
