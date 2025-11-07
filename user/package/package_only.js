@@ -349,8 +349,8 @@
             if (result.success && result.packages) {
                 packagesData = result.packages;
                 console.log('✅ Packages loaded:', packagesData.length, 'packages');
-                // Render package options after fetching
-                renderPackageOptions();
+                // Refresh package prices after fetching (will use hotels if available)
+                refreshPackagePrices();
                 return packagesData;
             } else {
                 console.error('❌ Failed to fetch packages:', result.message || 'Unknown error');
@@ -977,18 +977,22 @@
             return;
         }
         
-        // Update package dropdown prices for all hotels
-        // Get all hotels from the hotel selection
-        const hotelOptions = document.querySelectorAll('input[name="hotel-selection"]');
-        hotelOptions.forEach(hotelOption => {
-            const hotelName = hotelOption.value;
-            updatePackageDropdownPrices(hotelName);
-        });
-        
-        // Also update for currently selected hotel if any
+        // Update package dropdown prices for currently selected hotel, or first available hotel
         const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
         if (selectedHotel) {
             updatePackageDropdownPrices(selectedHotel.value);
+        } else {
+            // If no hotel selected, update with first available hotel from hotelsData
+            if (hotelsData && hotelsData.length > 0) {
+                const firstHotel = hotelsData[0];
+                updatePackageDropdownPrices(firstHotel.name);
+            } else {
+                // Try to get first hotel from radio buttons
+                const firstHotelOption = document.querySelector('input[name="hotel-selection"]');
+                if (firstHotelOption) {
+                    updatePackageDropdownPrices(firstHotelOption.value);
+                }
+            }
         }
     }
     
@@ -998,6 +1002,11 @@
         
         if (!packagesData || packagesData.length === 0) {
             console.warn('No package data available');
+            return;
+        }
+        
+        if (!selectedHotel) {
+            console.warn('No hotel selected for price update');
             return;
         }
         
@@ -1012,6 +1021,9 @@
                 return;
             }
             
+            // Sort pricing tiers by min_tourist
+            const sortedPricing = [...pkg.pricing].sort((a, b) => a.min_tourist - b.min_tourist);
+            
             // Find all price spans for current package using data attributes
             const priceSpans = document.querySelectorAll(`[data-package="${packageName}"].package-price`);
             
@@ -1019,55 +1031,62 @@
                 const touristTier = parseInt(span.getAttribute('data-tier'));
                 
                 if (touristTier) {
-                    // Find matching pricing tier
-                    const matchingTier = pkg.pricing.find(tier => {
+                    // Find matching pricing tier - check if touristTier falls within any tier range
+                    let matchingTier = null;
+                    
+                    for (const tier of sortedPricing) {
                         const min = tier.min_tourist || 0;
                         const max = tier.max_tourist || Infinity;
-                        return touristTier >= min && touristTier <= max;
-                    });
-                    
-                    // If no exact match, find the closest tier
-                    let priceToUse = null;
-                    if (matchingTier) {
-                        priceToUse = matchingTier.price_per_head;
-                    } else {
-                        // Try to find tier that matches common groupings
-                        // For tier 3, check if there's a 3-4 range
-                        if (touristTier === 3) {
-                            const tier34 = pkg.pricing.find(t => t.min_tourist === 3 && t.max_tourist === 4);
-                            if (tier34) priceToUse = tier34.price_per_head;
-                        }
-                        // For tier 5, check if there's a 5-6 range
-                        if (touristTier === 5 && !priceToUse) {
-                            const tier56 = pkg.pricing.find(t => t.min_tourist === 5 && t.max_tourist === 6);
-                            if (tier56) priceToUse = tier56.price_per_head;
-                        }
-                        // For tier 7, check if there's a 7-9 range
-                        if (touristTier === 7 && !priceToUse) {
-                            const tier79 = pkg.pricing.find(t => t.min_tourist === 7 && t.max_tourist === 9);
-                            if (tier79) priceToUse = tier79.price_per_head;
-                        }
-                        // For tier 10, check if there's a 10+ range
-                        if (touristTier === 10 && !priceToUse) {
-                            const tier10Plus = pkg.pricing.find(t => t.min_tourist === 10);
-                            if (tier10Plus) priceToUse = tier10Plus.price_per_head;
-                        }
                         
-                        // Fallback: use the tier that matches the exact number if available
-                        if (!priceToUse) {
-                            const exactMatch = pkg.pricing.find(t => t.min_tourist === touristTier && t.max_tourist === touristTier);
-                            if (exactMatch) priceToUse = exactMatch.price_per_head;
-                        }
-                        
-                        // Final fallback: use the first available tier
-                        if (!priceToUse && pkg.pricing.length > 0) {
-                            priceToUse = pkg.pricing[0].price_per_head;
+                        if (touristTier >= min && touristTier <= max) {
+                            matchingTier = tier;
+                            break;
                         }
                     }
                     
-                    if (priceToUse && priceToUse > 0) {
+                    // If no exact match, try to find the best matching tier
+                    // The data-tier values represent: 1, 2, 3 (for 3-4), 5 (for 5-6), 7 (for 7-9), 10 (for 10+)
+                    if (!matchingTier) {
+                        if (touristTier === 1) {
+                            matchingTier = sortedPricing.find(t => t.min_tourist === 1);
+                        } else if (touristTier === 2) {
+                            matchingTier = sortedPricing.find(t => t.min_tourist === 2);
+                        } else if (touristTier === 3) {
+                            // Look for 3-4 range
+                            matchingTier = sortedPricing.find(t => t.min_tourist === 3 && (t.max_tourist === 4 || t.max_tourist >= 4));
+                        } else if (touristTier === 5) {
+                            // Look for 5-6 range
+                            matchingTier = sortedPricing.find(t => t.min_tourist === 5 && (t.max_tourist === 6 || t.max_tourist >= 6));
+                        } else if (touristTier === 7) {
+                            // Look for 7-9 range
+                            matchingTier = sortedPricing.find(t => t.min_tourist === 7 && (t.max_tourist === 9 || t.max_tourist >= 9));
+                        } else if (touristTier === 10) {
+                            // Look for 10+ range (min_tourist >= 10)
+                            matchingTier = sortedPricing.find(t => t.min_tourist >= 10);
+                        }
+                        
+                        // If still no match, use the tier that contains this number or the closest one
+                        if (!matchingTier) {
+                            // Find tier with highest max that's less than touristTier, or lowest min that's greater
+                            for (let i = sortedPricing.length - 1; i >= 0; i--) {
+                                if (touristTier >= sortedPricing[i].min_tourist) {
+                                    matchingTier = sortedPricing[i];
+                                    break;
+                                }
+                            }
+                            // If still no match, use the last tier (highest range)
+                            if (!matchingTier && sortedPricing.length > 0) {
+                                matchingTier = sortedPricing[sortedPricing.length - 1];
+                            }
+                        }
+                    }
+                    
+                    if (matchingTier && matchingTier.price_per_head) {
+                        const priceToUse = matchingTier.price_per_head;
                         span.textContent = `₱${priceToUse.toLocaleString()}`;
-                        console.log(`Updated ${packageName} tier ${touristTier} to ₱${priceToUse.toLocaleString()}`);
+                        console.log(`Updated ${packageName} tier ${touristTier} (${matchingTier.min_tourist}-${matchingTier.max_tourist}) to ₱${priceToUse.toLocaleString()}`);
+                    } else {
+                        console.warn(`No matching tier found for ${packageName} tier ${touristTier}`);
                     }
                 }
             });
@@ -2231,6 +2250,8 @@
                 hotelsData = data.hotels;
                 console.log('✅ Hotels loaded successfully:', hotelsData.length, 'hotels');
                 generateHotelOptions();
+                // Update package prices after hotels are loaded
+                refreshPackagePrices();
                 return hotelsData;
             } else {
                 throw new Error('Invalid response format');
@@ -2246,8 +2267,34 @@
                 { hotel_id: '5', name: 'SouthView', description: 'Cozy lodge with panoramic views', base_price_per_night: 3000, image_urls: ['Images/southview.jpg'] }
             ];
             generateHotelOptions();
+            // Update package prices after hotels are loaded
+            refreshPackagePrices();
             return hotelsData;
         }
+    }
+    
+    // Function to refresh package prices (called when both packages and hotels are available)
+    function refreshPackagePrices() {
+        if (!packagesData || packagesData.length === 0) {
+            console.log('Packages not loaded yet, will update when packages are loaded');
+            return;
+        }
+        
+        if (!hotelsData || hotelsData.length === 0) {
+            console.log('Hotels not loaded yet, will update when hotels are loaded');
+            return;
+        }
+        
+        // Wait a bit for DOM to be ready
+        setTimeout(() => {
+            const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+            if (selectedHotel) {
+                updatePackageDropdownPrices(selectedHotel.value);
+            } else if (hotelsData && hotelsData.length > 0) {
+                // Use first hotel as default
+                updatePackageDropdownPrices(hotelsData[0].name);
+            }
+        }, 300);
     }
     
     // Function to generate hotel options dynamically
@@ -2288,10 +2335,16 @@
         
         // Update package prices if packages are already loaded
         if (packagesData && packagesData.length > 0) {
-            const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
-            if (selectedHotel) {
-                updatePackageDropdownPrices(selectedHotel.value);
-            }
+            // Wait a bit for hotel options to be rendered, then update prices
+            setTimeout(() => {
+                const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+                if (selectedHotel) {
+                    updatePackageDropdownPrices(selectedHotel.value);
+                } else if (hotelsData && hotelsData.length > 0) {
+                    // Use first hotel as default
+                    updatePackageDropdownPrices(hotelsData[0].name);
+                }
+            }, 200);
         }
         
         console.log('✅ Hotel options generated successfully');
@@ -2651,11 +2704,7 @@
         setTimeout(() => {
             fetchPackages().then(() => {
                 console.log("Packages loaded successfully!");
-                // Update package prices after packages are loaded
-                const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
-                if (selectedHotel) {
-                    updatePackageDropdownPrices(selectedHotel.value);
-                }
+                // Prices will be updated via refreshPackagePrices() which is called in fetchPackages()
             }).catch(error => {
                 console.error("Error loading packages:", error);
             });
