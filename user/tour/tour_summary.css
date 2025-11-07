@@ -497,6 +497,11 @@ body {
     max-width: 600px;
 }
 
+/* Container max-width to match package upload UI */
+.container-max-width {
+    max-width: 500px;
+}
+
 /* Font-size utilities for specific cases */
 .fs-4rem {
     font-size: 4rem !important;
@@ -881,6 +886,31 @@ body {
 
 .uploaded-files .btn-outline-danger:hover {
     transform: scale(1.05);
+}
+
+/* Upload zone + file input helpers to mirror package styles */
+.upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    background: rgba(248, 249, 250, 0.5);
+    transition: all 0.3s ease;
+}
+
+.upload-zone:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.file-input-label {
+    display: none; /* hidden because we use the Select File button */
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #495057;
+}
+
+.file-input-hidden {
+    display: none;
 }
 
 /* File upload animations */
