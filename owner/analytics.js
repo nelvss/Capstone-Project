@@ -497,12 +497,8 @@ function initializeNavigation() {
 
 // Initialize all charts
 function initializeCharts() {
-    createRevenueTrendChart();
     createRevenueForecastChart();
     createDemandPredictionChart();
-    createServiceDistributionChart();
-    createServiceDistributionChart2();
-    createBookingTrendsChart();
     // New analytics charts
     createBookingStatusChart();
     createBookingTypeChart();
@@ -522,10 +518,6 @@ function initializeFilters() {
     
     // Populate all year filters
     const yearFilters = [
-        'revenueTrendYearFilter',
-        'bookingTrendsYearFilter',
-        'tourOnlyYearFilter',
-        'packageTourYearFilter',
         'revenueForecastYearFilter',
         'demandPredictionYearFilter',
         'bookingTypeYearFilter',
@@ -560,10 +552,6 @@ function initializeFilters() {
     
     // Populate all month filters
     const monthFilters = [
-        'revenueTrendMonthFilter',
-        'bookingTrendsMonthFilter',
-        'tourOnlyMonthFilter',
-        'packageTourMonthFilter',
         'revenueForecastMonthFilter',
         'demandPredictionMonthFilter',
         'bookingTypeMonthFilter',
@@ -590,10 +578,6 @@ function initializeFilters() {
     
     // Add event listeners for week filters
     const weekFilters = [
-        'revenueTrendWeekFilter',
-        'bookingTrendsWeekFilter',
-        'tourOnlyWeekFilter',
-        'packageTourWeekFilter',
         'revenueForecastWeekFilter',
         'demandPredictionWeekFilter'
     ];
@@ -684,19 +668,7 @@ function handleWeekFilter(event, filterId) {
 function updateChart(monthFilterId, month, week, year) {
     let chartKey = '';
     
-    if (monthFilterId.includes('revenueTrend')) {
-        chartKey = 'revenueTrendChart';
-        updateRevenueTrendChart(month, week, year);
-    } else if (monthFilterId.includes('bookingTrends')) {
-        chartKey = 'bookingTrendsChart';
-        updateBookingTrendsChart(month, week, year);
-    } else if (monthFilterId.includes('tourOnly')) {
-        chartKey = 'tourOnlyChart';
-        updateTourOnlyChart(month, week, year);
-    } else if (monthFilterId.includes('packageTour')) {
-        chartKey = 'packageTourChart';
-        updatePackageTourChart(month, week, year);
-    } else if (monthFilterId.includes('revenueForecast')) {
+    if (monthFilterId.includes('revenueForecast')) {
         chartKey = 'revenueForecastChart';
         updateRevenueForecastChart(month, week, year);
     } else if (monthFilterId.includes('demandPrediction')) {
