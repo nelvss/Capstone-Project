@@ -107,14 +107,31 @@ function populateAdditionalServices(bookingData) {
         }
     }
 
-    // Van
+    // Van Rental
     const vanSub = document.getElementById('van-subsection');
-    const vanAmount = bookingData.vanRentalAmount || '';
+    const vanRental = bookingData.selectedVanRental || {};
+    const hasVanRental = !!(vanRental.destination || bookingData.vanRentalAmount);
     if (vanSub) {
-        if (vanAmount) {
+        if (hasVanRental) {
             vanSub.classList.remove('d-none');
-            const aText = document.getElementById('summary-van-amount');
-            if (aText) aText.textContent = vanAmount;
+            const destinationEl = document.getElementById('summary-van-destination');
+            const placeEl = document.getElementById('summary-van-place');
+            const tripTypeEl = document.getElementById('summary-van-trip-type');
+            const daysEl = document.getElementById('summary-van-days');
+            
+            if (destinationEl) {
+                destinationEl.textContent = vanRental.destination || bookingData.vanDestination || '-';
+            }
+            if (placeEl) {
+                // For Tour Only, destination and place might be the same or place might be in destinationType
+                placeEl.textContent = vanRental.destination || bookingData.vanPlace || '-';
+            }
+            if (tripTypeEl) {
+                tripTypeEl.textContent = vanRental.tripType || bookingData.vanTripType || '-';
+            }
+            if (daysEl) {
+                daysEl.textContent = vanRental.days || bookingData.vanDays || '-';
+            }
         } else {
             vanSub.classList.add('d-none');
         }

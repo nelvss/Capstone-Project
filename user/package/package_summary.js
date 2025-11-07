@@ -125,17 +125,17 @@
 
     function populateAdditionalServices() {
         // Reset all sections to hidden first
-        document.getElementById('vehicle-subsection').classList.add('hidden-section');
-        document.getElementById('diving-subsection').classList.add('hidden-section');
-        document.getElementById('van-subsection').classList.add('hidden-section');
-        document.getElementById('additional-services-section').classList.add('hidden-section');
+        document.getElementById('vehicle-subsection').classList.add('d-none');
+        document.getElementById('diving-subsection').classList.add('d-none');
+        document.getElementById('van-subsection').classList.add('d-none');
+        document.getElementById('additional-services-section').classList.add('d-none');
 
         let hasServices = false;
 
         // Vehicle Rental
         if (bookingData.rentalVehicles && bookingData.rentalVehicles.length > 0) {
             hasServices = true;
-            document.getElementById('vehicle-subsection').classList.remove('hidden-section');
+            document.getElementById('vehicle-subsection').classList.remove('d-none');
             document.getElementById('summary-vehicle').textContent = bookingData.rentalVehicles.join(', ');
             document.getElementById('summary-vehicle-days').textContent = bookingData.rentalDays || '-';
         }
@@ -143,14 +143,14 @@
         // Diving Activity
         if (bookingData.diving && bookingData.numberOfDivers) {
             hasServices = true;
-            document.getElementById('diving-subsection').classList.remove('hidden-section');
+            document.getElementById('diving-subsection').classList.remove('d-none');
             document.getElementById('summary-divers').textContent = bookingData.numberOfDivers;
         }
 
         // Van Rental
         if (bookingData.vanDestination && bookingData.vanPlace) {
             hasServices = true;
-            document.getElementById('van-subsection').classList.remove('hidden-section');
+            document.getElementById('van-subsection').classList.remove('d-none');
             document.getElementById('summary-van-destination').textContent = bookingData.vanDestination;
             document.getElementById('summary-van-place').textContent = bookingData.vanPlace;
             document.getElementById('summary-van-trip-type').textContent = bookingData.vanTripType || '-';
@@ -159,7 +159,7 @@
 
         // Show Additional Services section if any services are selected
         if (hasServices) {
-            document.getElementById('additional-services-section').classList.remove('hidden-section');
+            document.getElementById('additional-services-section').classList.remove('d-none');
         }
     }
 

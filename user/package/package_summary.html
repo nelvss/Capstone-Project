@@ -71,13 +71,13 @@
                                 </div>
 
                                 <!-- Tour Packages Section -->
-                                <div class="card mb-4 hidden-section" id="tour-packages-section">
+                                <div class="card mb-4 d-none" id="tour-packages-section">
                                     <div class="card-header bg-danger text-white">
                                         <h5 class="mb-0">Tour Packages & Activities</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="row" id="tour-packages-container">
-                                            <div class="col-md-4 hidden-section" id="island-tours-container">
+                                            <div class="col-md-4 d-none" id="island-tours-container">
                                                 <div class="tour-category">
                                                     <h6 class="text-danger">Island Tours</h6>
                                                     <ul id="summary-island-tours" class="list-unstyled">
@@ -85,7 +85,7 @@
                                                     </ul>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4 hidden-section" id="inland-tours-container">
+                                            <div class="col-md-4 d-none" id="inland-tours-container">
                                                 <div class="tour-category">
                                                     <h6 class="text-danger">Inland Tours</h6>
                                                     <ul id="summary-inland-tours" class="list-unstyled">
@@ -93,7 +93,7 @@
                                                     </ul>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4 hidden-section" id="snorkel-tours-container">
+                                            <div class="col-md-4 d-none" id="snorkel-tours-container">
                                                 <div class="tour-category">
                                                     <h6 class="text-danger">Snorkeling Tours</h6>
                                                     <ul id="summary-snorkel-tours" class="list-unstyled">
@@ -119,14 +119,14 @@
                                 </div>
 
                                 <!-- Additional Services Section -->
-                                <div class="card mb-4 hidden-section" id="additional-services-section">
+                                <div class="card mb-4 d-none" id="additional-services-section">
                                     <div class="card-header bg-danger text-white py-2">
                                         <h5 class="mb-0">Additional Services</h5>
                                     </div>
                                     <div class="card-body py-2">
                                         <div class="row">
                                             <!-- Vehicle Rental -->
-                                            <div class="col-md-6 hidden-section" id="vehicle-subsection">
+                                            <div class="col-md-6 d-none" id="vehicle-subsection">
                                                 <h6 class="text-danger mb-2">Vehicle Rental</h6>
                                                 <div class="info-item mb-2">
                                                     <p class="mb-1"><strong>Vehicle:</strong> <span id="summary-vehicle" class="text-primary">-</span></p>
@@ -137,7 +137,7 @@
                                             </div>
 
                                             <!-- Diving Activity -->
-                                            <div class="col-md-6 hidden-section" id="diving-subsection">
+                                            <div class="col-md-6 d-none" id="diving-subsection">
                                                 <h6 class="text-danger mb-2">Diving Activity</h6>
                                                 <div class="info-item mb-2">
                                                     <p class="mb-1"><strong>Activity:</strong> <span id="summary-diving" class="text-primary">Diving</span></p>
@@ -148,7 +148,7 @@
                                             </div>
 
                                             <!-- Van Rental with Tourist Franchise -->
-                                            <div class="col-md-6 hidden-section" id="van-subsection">
+                                            <div class="col-md-6 d-none" id="van-subsection">
                                                 <h6 class="text-danger mb-2">Van Rental with Tourist Franchise</h6>
                                                 <div class="info-item mb-2">
                                                     <p class="mb-1"><strong>Destination:</strong> <span id="summary-van-destination" class="text-primary">-</span></p>
@@ -189,12 +189,12 @@
                                 <!-- Navigation Buttons -->
                                 <div class="row mt-4">
                                     <div class="col-6">
-                                        <button type="button" class="btn btn-gray w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">
+                                        <button type="button" class="btn btn-secondary w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">
                                         Previous
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" class="btn btn-red w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()">
+                                        <button type="button" class="btn btn-danger w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()">
                                             Proceed to Payment
                                         </button>
                                     </div>
@@ -311,12 +311,12 @@
                 <!-- Navigation Buttons -->
                 <div class="row mt-1">
                                     <div class="col-6">
-                                        <button type="button" class="btn btn-gray w-100 py-2" onclick="previousStep()">
+                                        <button type="button" class="btn btn-secondary w-100 py-2" onclick="previousStep()">
                                             <i class="fas fa-arrow-left me-2"></i>Previous
                                         </button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" class="btn btn-red w-100 py-2" onclick="nextStep()">
+                                        <button type="button" class="btn btn-danger w-100 py-2" onclick="nextStep()">
                                             Continue<i class="fas fa-arrow-right ms-2"></i>
                                         </button>
                                     </div>
@@ -341,29 +341,29 @@
                                 <p class="text-center mb-4">Complete your booking by selecting a payment method.</p>
                                 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn btn-red w-100 py-2" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="gcash">
+                                    <button type="button" class="btn btn-danger w-100 py-2" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="gcash">
                                         <i class="fas fa-mobile-alt me-2"></i>GCASH
                                     </button>
                                 </div>
 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn btn-red w-100 py-2" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="paymaya">
+                                    <button type="button" class="btn btn-danger w-100 py-2" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="paymaya">
                                         <i class="fas fa-credit-card me-2"></i>PAYMAYA
                                     </button>
                                 </div>
 
                                 <div class="row mb-4">
-                                    <button type="button" class="btn btn-red w-100 py-2" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="banking">
+                                    <button type="button" class="btn btn-danger w-100 py-2" data-bs-toggle="modal" data-bs-target="#paymentQRModal" data-payment-type="banking">
                                         <i class="fas fa-university me-2"></i>ONLINE BANKING
                                     </button>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-6">
-                                        <button type="button" class="btn btn-gray w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">Previous</button>
+                                        <button type="button" class="btn btn-secondary w-100 py-2 fs-6 fs-sm-5" onclick="previousStep()">Previous</button>
                                     </div>
                                     <div class="col-6">
-                                        <button type="button" id="paymentNextBtn" class="btn btn-red w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()" disabled>Next</button>
+                                        <button type="button" id="paymentNextBtn" class="btn btn-danger w-100 py-2 fs-6 fs-sm-5" onclick="nextStep()" disabled>Next</button>
                                     </div>
                                 </div>
                                 <div class="text-center mt-3">
