@@ -237,10 +237,32 @@ body::-webkit-scrollbar {
     width: 100%;
 }
 
+/* Underline accent */
+.nav-link.slant::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 6px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.9), rgba(255,255,255,0));
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.25s ease;
+}
+
+.nav-link.slant:hover::after {
+    transform: scaleX(1);
+}
+
 /* Active state */
 .nav-link.slant.active {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.2);
     color: #ffffff !important;
+}
+
+.nav-link.slant.active::after {
+    transform: scaleX(1);
 }
 
 /* Book Now Button - Modern Style */

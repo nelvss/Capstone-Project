@@ -393,6 +393,63 @@ document.addEventListener('DOMContentLoaded', function () {
   loadVehicleRental();
   loadVanRental();
 
+  // Navbar scroll behavior (shrink + shadow)
+  const navbar = document.querySelector('nav.navbar');
+  function updateNavbarOnScroll() {
+    if (!navbar) return;
+    const shouldBeScrolled = window.scrollY > 10;
+    navbar.classList.toggle('scrolled', shouldBeScrolled);
+  }
+  updateNavbarOnScroll();
+  window.addEventListener('scroll', updateNavbarOnScroll, { passive: true });
+
+  // Smooth scroll for in-page nav links with offset handling
+  const offset = 120; // approximate navbar height
+  document.querySelectorAll('a.nav-link.slant[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (!targetId || targetId === '#') return;
+      const target = document.querySelector(targetId);
+      if (!target) return;
+      e.preventDefault();
+      const elementPosition = target.getBoundingClientRect().top + window.pageYOffset;
+      const top = Math.max(elementPosition - offset, 0);
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+
+  // Active link highlight based on current section
+  const sectionIds = ['#home', '#mission-vision', '#services', '#contact-us'];
+  const idToLink = new Map();
+  sectionIds.forEach((id) => {
+    const link = document.querySelector(`a.nav-link.slant[href='${id}']`);
+    if (link) idToLink.set(id, link);
+  });
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const id = `#${entry.target.id}`;
+        const link = idToLink.get(id);
+        if (!link) return;
+        if (entry.isIntersecting) {
+          document.querySelectorAll('a.nav-link.slant.active').forEach((el) => el.classList.remove('active'));
+          link.classList.add('active');
+        }
+      });
+    },
+    {
+      root: null,
+      rootMargin: '-40% 0px -55% 0px', // focus middle of viewport
+      threshold: 0.01
+    }
+  );
+
+  sectionIds.forEach((id) => {
+    const section = document.querySelector(id);
+    if (section) observer.observe(section);
+  });
+
   // Delegate click for all 'More Info' buttons
   document.body.addEventListener('click', function (e) {
     if (e.target.matches('.btn-more-info')) {
