@@ -531,26 +531,12 @@ header h1 {
   overflow-y: auto;
   overflow-x: auto;
   border: 1px solid #e2e8f0;
+  scrollbar-width: none; /* Firefox - hide scrollbar */
+  -ms-overflow-style: none; /* IE and Edge - hide scrollbar */
 }
 
-/* Custom scrollbar styling */
 .table-section::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-.table-section::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
-}
-
-.table-section::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
-  border-radius: 10px;
-}
-
-.table-section::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
+  display: none; /* Chrome, Safari, Opera */
 }
 
 table {
