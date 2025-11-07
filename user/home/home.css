@@ -376,6 +376,30 @@ body::-webkit-scrollbar {
         width: 100%;
         display: block !important;
     }
+
+    /* Make the offcanvas fill the viewport and remove internal scrolling */
+    .offcanvas {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important; /* prevent offcanvas from scrolling */
+    }
+
+    .offcanvas-body {
+        overflow: visible !important; /* ensure all buttons show with no scroll */
+        max-height: none !important;
+        padding-bottom: 1rem; /* breathing room at bottom */
+    }
+
+    /* Hide any scrollbars just in case */
+    .offcanvas, .offcanvas-body {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .offcanvas::-webkit-scrollbar,
+    .offcanvas-body::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
     
     .nav-link.slant {
         width: 100% !important;
