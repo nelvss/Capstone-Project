@@ -798,6 +798,15 @@
                 finalBookingRefElement.textContent = bookingRef;
             }
             
+            // Clear booking data from sessionStorage after successful submission
+            // (Keep finalBookingData for confirmation page, but clear the rest)
+            sessionStorage.removeItem('completeBookingData');
+            sessionStorage.removeItem('tourSelections');
+            sessionStorage.removeItem('bookingFormData');
+            sessionStorage.removeItem('bookingOption');
+            sessionStorage.removeItem('selectedPaymentMethod');
+            sessionStorage.removeItem('paidAmount');
+            
             // Show success message
             alert('✅ Booking submitted successfully! Your booking reference is: ' + bookingRef);
             
@@ -954,9 +963,14 @@
     }
 
     window.goToHomePage = function() {
-        // Clear session storage
+        // Clear all booking-related session storage
         sessionStorage.removeItem('completeBookingData');
         sessionStorage.removeItem('finalBookingData');
+        sessionStorage.removeItem('tourSelections');
+        sessionStorage.removeItem('bookingFormData');
+        sessionStorage.removeItem('bookingOption');
+        sessionStorage.removeItem('selectedPaymentMethod');
+        sessionStorage.removeItem('paidAmount');
         
         // Redirect to home page
         window.location.href = '../home/home.html';
