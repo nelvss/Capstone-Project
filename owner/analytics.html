@@ -144,6 +144,190 @@
             </div>
           </div>
 
+          <!-- New Analytics Charts Row 1 -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Booking Status Distribution
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="bookingStatusChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Booking Type Comparison
+                  </h5>
+                  <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm filter-select-year" id="bookingTypeYearFilter" title="Select year for booking type comparison">
+                      <option value="2025">2025</option>
+                    </select>
+                    <select class="form-select form-select-sm filter-select-month" id="bookingTypeMonthFilter" title="Select month for booking type comparison">
+                      <option value="all">All Months</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <canvas id="bookingTypeChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Analytics Charts Row 2 -->
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Revenue by Booking Status
+                  </h5>
+                  <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm filter-select-year" id="revenueStatusYearFilter" title="Select year for revenue by status">
+                      <option value="2025">2025</option>
+                    </select>
+                    <select class="form-select form-select-sm filter-select-month" id="revenueStatusMonthFilter" title="Select month for revenue by status">
+                      <option value="all">All Months</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <canvas id="revenueByStatusChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Analytics Charts Row 3 -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-users me-2"></i>Monthly Tourist Volume
+                  </h5>
+                  <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm filter-select-year" id="touristVolumeYearFilter" title="Select year for tourist volume">
+                      <option value="2025">2025</option>
+                    </select>
+                    <select class="form-select form-select-sm filter-select-month" id="touristVolumeMonthFilter" title="Select month for tourist volume">
+                      <option value="all">All Months</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <canvas id="touristVolumeChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-peso-sign me-2"></i>Average Booking Value
+                  </h5>
+                  <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm filter-select-year" id="avgBookingValueYearFilter" title="Select year for average booking value">
+                      <option value="2025">2025</option>
+                    </select>
+                    <select class="form-select form-select-sm filter-select-month" id="avgBookingValueMonthFilter" title="Select month for average booking value">
+                      <option value="all">All Months</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <canvas id="avgBookingValueChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Analytics Charts Row 4 -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Cancellation Rate Trend
+                  </h5>
+                  <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm filter-select-year" id="cancellationRateYearFilter" title="Select year for cancellation rate">
+                      <option value="2025">2025</option>
+                    </select>
+                    <select class="form-select form-select-sm filter-select-month" id="cancellationRateMonthFilter" title="Select month for cancellation rate">
+                      <option value="all">All Months</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <canvas id="cancellationRateChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-day me-2"></i>Peak Booking Days
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="peakBookingDaysChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Analytics Charts Row 5 -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Service Performance
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="servicePerformanceChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-hotel me-2"></i>Hotel Performance
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="hotelPerformanceChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Analytics Charts Row 6 -->
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>Van Rental Destinations
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <canvas id="vanDestinationsChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Revenue Trend Chart -->
           <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
