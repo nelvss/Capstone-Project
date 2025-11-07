@@ -21,6 +21,9 @@
     
     // Global variable to store van destinations data
     let vanDestinationsData = [];
+    
+    // Global variable to store packages data
+    let packagesData = [];
 
     // API Base URL
     const API_BASE_URL = (window.API_BASE_URL && window.API_BASE_URL.length > 0)
@@ -288,6 +291,116 @@
         }
         
         return destination;
+    }
+
+    // ----------------------------
+    // PACKAGE DATA MANAGEMENT
+    // ----------------------------
+    
+    // Hotel name mapping between booking page and settings
+    const HOTEL_NAME_MAPPING = {
+        'Ilaya Resort': 'Ilaya',
+        'Ilaya': 'Ilaya',
+        'Bliss Beach Resort': 'Bliss',
+        'Bliss': 'Bliss',
+        'The Mangyan Grand Hotel': 'The Mangyan Grand Hotel',
+        'Mindoro Transient House': 'Casa de Honcho',
+        'Casa De Honcho': 'Casa de Honcho',
+        'Casa de Honcho': 'Casa de Honcho',
+        'Transient House': 'Casa de Honcho',
+        'Southview Lodge': 'SouthView',
+        'SouthView': 'SouthView',
+        'SouthView Lodge': 'SouthView'
+    };
+    
+    // Hotel ID mapping from settings (reverse lookup)
+    const HOTEL_ID_MAP = {
+        'Ilaya': '08e190f4-60da-4188-9c8b-de535ef3fcf2',
+        'Casa de Honcho': '11986747-1a86-4d88-a952-a66b69c7e3ec',
+        'Bliss': '2da89c09-1c3d-4cd5-817d-637c1c0289de',
+        'SouthView': '7c071f4b-5ced-4f34-8864-755e5a4d5c38',
+        'The Mangyan Grand Hotel': 'd824f56b-db62-442c-9cf4-26f4c0cc83d0'
+    };
+    
+    // Normalize hotel name for lookup
+    function normalizeHotelName(hotelName) {
+        if (!hotelName) return null;
+        return HOTEL_NAME_MAPPING[hotelName] || hotelName;
+    }
+    
+    // Get hotel ID by name
+    function getHotelIdFromName(hotelName) {
+        const normalized = normalizeHotelName(hotelName);
+        return HOTEL_ID_MAP[normalized] || null;
+    }
+    
+    // Fetch packages from database
+    async function fetchPackages() {
+        try {
+            console.log('🔄 Fetching packages from API...');
+            const response = await fetch(`${API_BASE_URL}/package-only?include=pricing`, { cache: 'no-cache' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.packages) {
+                packagesData = result.packages;
+                console.log('✅ Packages loaded:', packagesData.length, 'packages');
+                // Render package options after fetching
+                renderPackageOptions();
+                return packagesData;
+            } else {
+                console.error('❌ Failed to fetch packages:', result.message || 'Unknown error');
+                return [];
+            }
+        } catch (error) {
+            console.error('❌ Error fetching packages:', error);
+            return [];
+        }
+    }
+    
+    // Get package by category and hotel
+    function getPackageByCategoryAndHotel(category, hotelName) {
+        if (!packagesData || packagesData.length === 0) return null;
+        
+        const hotelId = getHotelIdFromName(hotelName);
+        if (!hotelId) {
+            console.warn(`Hotel ID not found for: ${hotelName}`);
+            return null;
+        }
+        
+        return packagesData.find(pkg => 
+            pkg.category === category && pkg.hotel_id === hotelId
+        ) || null;
+    }
+    
+    // Get package by ID
+    function getPackageById(packageId) {
+        if (!packagesData || packagesData.length === 0) return null;
+        return packagesData.find(pkg => 
+            pkg.package_only_id === packageId || pkg.id === packageId
+        ) || null;
+    }
+    
+    // Get package ID by name (category)
+    function getPackageIdByName(packageName) {
+        // This is used when we have a selected hotel
+        const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+        const hotelName = selectedHotel ? selectedHotel.value : null;
+        
+        if (hotelName) {
+            const pkg = getPackageByCategoryAndHotel(packageName, hotelName);
+            if (pkg) {
+                return pkg.package_only_id || pkg.id;
+            }
+        }
+        
+        // Fallback: try to find any package with this category
+        const pkg = packagesData.find(p => p.category === packageName);
+        return pkg ? (pkg.package_only_id || pkg.id) : null;
     }
 
     // Fetch vehicles from database
@@ -748,128 +861,57 @@
     // PACKAGE PRICING CALCULATIONS
     // ----------------------------
 
-    // Hotel-based package pricing based on tourist count, selected package, and hotel
+    // Hotel-based package pricing based on tourist count, selected package, and hotel (using database)
     function calculatePackagePricing(selectedPackage, touristCount, selectedHotel) {
         if (!selectedPackage || !touristCount || touristCount <= 0) return { pricePerPax: 0, totalPrice: 0 };
         
-        let pricePerPax = 0;
+        // Try to get package from database
+        const pkg = getPackageByCategoryAndHotel(selectedPackage, selectedHotel);
         
-        // If no hotel is selected, return default Ilaya pricing (first hotel in list)
-        const hotel = selectedHotel || 'Ilaya';
-        
-        // Define pricing structure for all hotels and packages
-        const hotelPricing = {
-            'Ilaya': {
-                'Package 1': {
-                    1: 6400, 2: 3200, '3-4': 2950, '5-6': 2650, '7-9': 2350, '10+': 2100
-                },
-                'Package 2': {
-                    1: 7600, 2: 3800, '3-4': 3450, '5-6': 3150, '7-9': 2850, '10+': 2600
-                },
-                'Package 3': {
-                    1: 5600, 2: 2800, 3: 2550, 4: 2300, '5-6': 1950, '7-9': 1850, '10+': 1650
-                },
-                'Package 4': {
-                    1: 6600, 2: 3300, 3: 3150, 4: 3000, '5-6': 2700, '7-9': 2400, '10+': 2100
-                }
-            },
-            'Bliss': {
-                'Package 1': {
-                    1: 6800, 2: 3400, '3-4': 3150, '5-6': 2850, '7-9': 2550, '10+': 2300
-                },
-                'Package 2': {
-                    1: 8000, 2: 4000, '3-4': 3650, '5-6': 3350, '7-9': 3050, '10+': 2800
-                },
-                'Package 3': {
-                    1: 6000, 2: 3000, 3: 2750, 4: 2500, '5-6': 2150, '7-9': 2050, '10+': 1850
-                },
-                'Package 4': {
-                    1: 7000, 2: 3500, 3: 3350, 4: 3200, '5-6': 2900, '7-9': 2600, '10+': 2300
-                }
-            },
-            'The Mangyan Grand Hotel': {
-                'Package 1': {
-                    1: 8600, 2: 4300, '3-4': 4100, '5-8': 3900, '9+': 3700
-                },
-                'Package 2': {
-                    1: 11700, 2: 5850, '3-4': 5400, '5-8': 4900, '9+': 4700
-                },
-                'Package 3': {
-                    1: 8100, 2: 4050, '3-4': 3850, '5-8': 3300, '9+': 3100
-                },
-                'Package 4': {
-                    1: 10800, 2: 5400, '3-4': 4800, '5-8': 4200, '9+': 4000
-                }
-            },
-            'Transient House': { // Casa De Honcho
-                'Package 1': {
-                    1: 6900, 2: 3450, '3-4': 3300, '5-6': 3100, '7-9': 2900, '10+': 2600
-                },
-                'Package 2': {
-                    1: 9200, 2: 4600, '3-4': 4400, '5-6': 4100, '7-9': 3800, '10+': 3500
-                },
-                'Package 3': {
-                    1: 6900, 2: 3450, '3-4': 3300, '5-6': 3100, '7-9': 2900, '10+': 2600
-                },
-                'Package 4': {
-                    1: 9200, 2: 4600, '3-4': 4400, '5-6': 4100, '7-9': 3800, '10+': 3500
-                }
-            },
-            'SouthView': {
-                'Package 1': {
-                    1: 7000, 2: 3500, '3-4': 3150, '5-6': 2850, '7-9': 2550, '10+': 2300
-                },
-                'Package 2': {
-                    1: 8000, 2: 4000, '3-4': 3750, '5-6': 3350, '7-9': 3050, '10+': 2800
-                },
-                'Package 3': {
-                    1: 6000, 2: 3000, 3: 2750, 4: 2500, '5-6': 2150, '7-9': 2050, '10+': 1850
-                },
-                'Package 4': {
-                    1: 7000, 2: 3500, 3: 3350, 4: 3200, '5-6': 2900, '7-9': 2600, '10+': 2300
-                }
-            }
-        };
-        
-        // Get pricing for the selected hotel and package
-        const packagePricing = hotelPricing[hotel]?.[selectedPackage];
-        if (!packagePricing) {
-            console.warn(`No pricing found for hotel: ${hotel}, package: ${selectedPackage}`);
+        if (!pkg || !pkg.pricing || !Array.isArray(pkg.pricing) || pkg.pricing.length === 0) {
+            console.warn(`No pricing found in database for hotel: ${selectedHotel}, package: ${selectedPackage}`);
             return { pricePerPax: 0, totalPrice: 0 };
         }
         
-        // Determine price based on tourist count
-        if (hotel === 'The Mangyan Grand Hotel') {
-            // Mangyan Grand Hotel has different groupings
-            if (touristCount === 1 || touristCount === 2) {
-                pricePerPax = packagePricing[touristCount] || packagePricing[2];
-            } else if (touristCount >= 3 && touristCount <= 4) {
-                pricePerPax = packagePricing['3-4'];
-            } else if (touristCount >= 5 && touristCount <= 8) {
-                pricePerPax = packagePricing['5-8'];
-            } else if (touristCount >= 9) {
-                pricePerPax = packagePricing['9+'];
-            }
-        } else {
-            // Standard groupings for other hotels
-            if (touristCount === 1 || touristCount === 2) {
-                pricePerPax = packagePricing[touristCount] || packagePricing[2];
-            } else if (touristCount === 3 && packagePricing[3]) {
-                pricePerPax = packagePricing[3];
-            } else if (touristCount === 4 && packagePricing[4]) {
-                pricePerPax = packagePricing[4];
-            } else if (touristCount >= 3 && touristCount <= 4 && packagePricing['3-4']) {
-                pricePerPax = packagePricing['3-4'];
-            } else if (touristCount >= 5 && touristCount <= 6) {
-                pricePerPax = packagePricing['5-6'];
-            } else if (touristCount >= 7 && touristCount <= 9) {
-                pricePerPax = packagePricing['7-9'];
-            } else if (touristCount >= 10) {
-                pricePerPax = packagePricing['10+'];
+        // Find the appropriate pricing tier based on tourist count
+        let matchingTier = null;
+        
+        // Sort pricing tiers by min_tourist to ensure proper matching
+        const sortedPricing = [...pkg.pricing].sort((a, b) => a.min_tourist - b.min_tourist);
+        
+        for (const tier of sortedPricing) {
+            const min = tier.min_tourist || 0;
+            const max = tier.max_tourist || Infinity;
+            
+            if (touristCount >= min && touristCount <= max) {
+                matchingTier = tier;
+                break;
             }
         }
         
+        // If no exact match found, try to find the closest tier
+        if (!matchingTier) {
+            // Find the tier with the highest max_tourist that's less than touristCount
+            for (let i = sortedPricing.length - 1; i >= 0; i--) {
+                if (touristCount > sortedPricing[i].max_tourist) {
+                    matchingTier = sortedPricing[i];
+                    break;
+                }
+            }
+            // If still no match, use the last tier (highest max)
+            if (!matchingTier && sortedPricing.length > 0) {
+                matchingTier = sortedPricing[sortedPricing.length - 1];
+            }
+        }
+        
+        if (!matchingTier || !matchingTier.price_per_head) {
+            console.warn(`No matching pricing tier found for ${touristCount} tourists`);
+            return { pricePerPax: 0, totalPrice: 0 };
+        }
+        
+        const pricePerPax = matchingTier.price_per_head;
         const totalPrice = pricePerPax * touristCount;
+        
         return { pricePerPax, totalPrice };
     }
 
@@ -928,13 +970,48 @@
         calculateTotalAmount();
     }
 
-    // Function to update price displays in package dropdowns based on selected hotel
+    // Function to render package options dynamically from database
+    function renderPackageOptions() {
+        if (!packagesData || packagesData.length === 0) {
+            console.warn('No package data available to render');
+            return;
+        }
+        
+        // Update package dropdown prices for all hotels
+        // Get all hotels from the hotel selection
+        const hotelOptions = document.querySelectorAll('input[name="hotel-selection"]');
+        hotelOptions.forEach(hotelOption => {
+            const hotelName = hotelOption.value;
+            updatePackageDropdownPrices(hotelName);
+        });
+        
+        // Also update for currently selected hotel if any
+        const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+        if (selectedHotel) {
+            updatePackageDropdownPrices(selectedHotel.value);
+        }
+    }
+    
+    // Function to update price displays in package dropdowns based on selected hotel (using database)
     function updatePackageDropdownPrices(selectedHotel) {
         console.log('Updating dropdown prices for hotel:', selectedHotel);
+        
+        if (!packagesData || packagesData.length === 0) {
+            console.warn('No package data available');
+            return;
+        }
         
         const packages = ['Package 1', 'Package 2', 'Package 3', 'Package 4'];
         
         packages.forEach(packageName => {
+            // Get package from database for this hotel
+            const pkg = getPackageByCategoryAndHotel(packageName, selectedHotel);
+            
+            if (!pkg || !pkg.pricing || !Array.isArray(pkg.pricing) || pkg.pricing.length === 0) {
+                console.warn(`No pricing data for ${packageName} at ${selectedHotel}`);
+                return;
+            }
+            
             // Find all price spans for current package using data attributes
             const priceSpans = document.querySelectorAll(`[data-package="${packageName}"].package-price`);
             
@@ -942,10 +1019,55 @@
                 const touristTier = parseInt(span.getAttribute('data-tier'));
                 
                 if (touristTier) {
-                    const pricing = calculatePackagePricing(packageName, touristTier, selectedHotel);
-                    if (pricing.pricePerPax > 0) {
-                        span.textContent = `₱${pricing.pricePerPax.toLocaleString()}`;
-                        console.log(`Updated ${packageName} tier ${touristTier} to ₱${pricing.pricePerPax.toLocaleString()}`);
+                    // Find matching pricing tier
+                    const matchingTier = pkg.pricing.find(tier => {
+                        const min = tier.min_tourist || 0;
+                        const max = tier.max_tourist || Infinity;
+                        return touristTier >= min && touristTier <= max;
+                    });
+                    
+                    // If no exact match, find the closest tier
+                    let priceToUse = null;
+                    if (matchingTier) {
+                        priceToUse = matchingTier.price_per_head;
+                    } else {
+                        // Try to find tier that matches common groupings
+                        // For tier 3, check if there's a 3-4 range
+                        if (touristTier === 3) {
+                            const tier34 = pkg.pricing.find(t => t.min_tourist === 3 && t.max_tourist === 4);
+                            if (tier34) priceToUse = tier34.price_per_head;
+                        }
+                        // For tier 5, check if there's a 5-6 range
+                        if (touristTier === 5 && !priceToUse) {
+                            const tier56 = pkg.pricing.find(t => t.min_tourist === 5 && t.max_tourist === 6);
+                            if (tier56) priceToUse = tier56.price_per_head;
+                        }
+                        // For tier 7, check if there's a 7-9 range
+                        if (touristTier === 7 && !priceToUse) {
+                            const tier79 = pkg.pricing.find(t => t.min_tourist === 7 && t.max_tourist === 9);
+                            if (tier79) priceToUse = tier79.price_per_head;
+                        }
+                        // For tier 10, check if there's a 10+ range
+                        if (touristTier === 10 && !priceToUse) {
+                            const tier10Plus = pkg.pricing.find(t => t.min_tourist === 10);
+                            if (tier10Plus) priceToUse = tier10Plus.price_per_head;
+                        }
+                        
+                        // Fallback: use the tier that matches the exact number if available
+                        if (!priceToUse) {
+                            const exactMatch = pkg.pricing.find(t => t.min_tourist === touristTier && t.max_tourist === touristTier);
+                            if (exactMatch) priceToUse = exactMatch.price_per_head;
+                        }
+                        
+                        // Final fallback: use the first available tier
+                        if (!priceToUse && pkg.pricing.length > 0) {
+                            priceToUse = pkg.pricing[0].price_per_head;
+                        }
+                    }
+                    
+                    if (priceToUse && priceToUse > 0) {
+                        span.textContent = `₱${priceToUse.toLocaleString()}`;
+                        console.log(`Updated ${packageName} tier ${touristTier} to ₱${priceToUse.toLocaleString()}`);
                     }
                 }
             });
@@ -1553,6 +1675,8 @@
         hotelSelectionOptions.forEach(option => {
             option.addEventListener("change", () => {
                 console.log('Hotel selection changed:', option.value);
+                // Update package dropdown prices when hotel changes
+                updatePackageDropdownPrices(option.value);
                 updatePackageSelectionPricing();
                 // Force immediate total calculation
                 setTimeout(() => {
@@ -1605,10 +1729,23 @@
     
     // Function to go back to booking page (same as previousStep but more explicit)
     window.goBackToBookingPage = function() {
+        // Get package_only_id for selected package
+        const selectedPackageForId = document.querySelector('input[name="package-selection"]:checked')?.value || null;
+        const selectedHotelForId = document.querySelector('input[name="hotel-selection"]:checked')?.value || null;
+        let packageOnlyId = null;
+        if (selectedPackageForId && selectedHotelForId) {
+            const pkg = getPackageByCategoryAndHotel(selectedPackageForId, selectedHotelForId);
+            if (pkg) {
+                packageOnlyId = pkg.package_only_id || pkg.id;
+            }
+        }
+        
         // Save current tour selections to sessionStorage before going back
         const tourSelections = {
             touristCount: document.getElementById('touristCount').value,
-            selectedPackage: document.querySelector('input[name="package-selection"]:checked')?.value || null,
+            selectedPackage: selectedPackageForId,
+            selectedHotel: selectedHotelForId,
+            packageOnlyId: packageOnlyId,
             selectedVehicles: (() => {
                 const selectedVehicles = [];
                 const rentalDays = parseInt(document.getElementById('rentalDays').value) || 0;
@@ -2149,6 +2286,14 @@
         // Re-attach event listeners to new hotel options
         attachHotelSelectionListeners();
         
+        // Update package prices if packages are already loaded
+        if (packagesData && packagesData.length > 0) {
+            const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+            if (selectedHotel) {
+                updatePackageDropdownPrices(selectedHotel.value);
+            }
+        }
+        
         console.log('✅ Hotel options generated successfully');
     }
     
@@ -2209,10 +2354,22 @@
             vanDays = document.getElementById('outsideNumberOfDays')?.value || '';
         }
         
+        // Get package_only_id for selected package
+        const selectedPackageForId = document.querySelector('input[name="package-selection"]:checked')?.value || null;
+        const selectedHotelForId = document.querySelector('input[name="hotel-selection"]:checked')?.value || null;
+        let packageOnlyId = null;
+        if (selectedPackageForId && selectedHotelForId) {
+            const pkg = getPackageByCategoryAndHotel(selectedPackageForId, selectedHotelForId);
+            if (pkg) {
+                packageOnlyId = pkg.package_only_id || pkg.id;
+            }
+        }
+        
         const tourSelections = {
             touristCount: document.getElementById('touristCount').value,
-            selectedPackage: document.querySelector('input[name="package-selection"]:checked')?.value || null,
-            selectedHotel: document.querySelector('input[name="hotel-selection"]:checked')?.value || null,
+            selectedPackage: selectedPackageForId,
+            selectedHotel: selectedHotelForId,
+            packageOnlyId: packageOnlyId,
             selectedVehicles: (() => {
                 const selectedVehicles = [];
                 const rentalDays = parseInt(document.getElementById('rentalDays').value) || 0;
@@ -2490,17 +2647,34 @@
         }, 100);
     }
     
+    function initializePackages() {
+        setTimeout(() => {
+            fetchPackages().then(() => {
+                console.log("Packages loaded successfully!");
+                // Update package prices after packages are loaded
+                const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+                if (selectedHotel) {
+                    updatePackageDropdownPrices(selectedHotel.value);
+                }
+            }).catch(error => {
+                console.error("Error loading packages:", error);
+            });
+        }, 100);
+    }
+    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initializeVehicles();
             initializeDiving();
             initializeVanDestinations();
+            initializePackages();
         });
     } else {
         // DOM is already loaded
         initializeVehicles();
         initializeDiving();
         initializeVanDestinations();
+        initializePackages();
     }
 
     console.log("Tour booking form initialized successfully!");
