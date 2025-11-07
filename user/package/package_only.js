@@ -338,7 +338,16 @@
     async function fetchPackages() {
         try {
             console.log('🔄 Fetching packages from API...');
-            const response = await fetch(`${API_BASE_URL}/package-only?include=pricing`, { cache: 'no-cache' });
+            // Add timestamp to force fresh fetch and bypass cache
+            const timestamp = new Date().getTime();
+            const response = await fetch(`${API_BASE_URL}/package-only?include=pricing&_t=${timestamp}`, { 
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -349,6 +358,17 @@
             if (result.success && result.packages) {
                 packagesData = result.packages;
                 console.log('✅ Packages loaded:', packagesData.length, 'packages');
+                
+                // Log package details for debugging
+                packagesData.forEach(pkg => {
+                    console.log(`📦 Package: ${pkg.category}, Hotel ID: ${pkg.hotel_id}, Pricing tiers: ${pkg.pricing?.length || 0}`);
+                    if (pkg.pricing && pkg.pricing.length > 0) {
+                        pkg.pricing.forEach(tier => {
+                            console.log(`   Tier: ${tier.min_tourist}-${tier.max_tourist}, Price: ₱${tier.price_per_head}`);
+                        });
+                    }
+                });
+                
                 // Refresh package prices after fetching (will use hotels if available)
                 refreshPackagePrices();
                 return packagesData;
@@ -364,17 +384,30 @@
     
     // Get package by category and hotel
     function getPackageByCategoryAndHotel(category, hotelName) {
-        if (!packagesData || packagesData.length === 0) return null;
-        
-        const hotelId = getHotelIdFromName(hotelName);
-        if (!hotelId) {
-            console.warn(`Hotel ID not found for: ${hotelName}`);
+        if (!packagesData || packagesData.length === 0) {
+            console.warn(`⚠️ No packages data available when looking for ${category} at ${hotelName}`);
             return null;
         }
         
-        return packagesData.find(pkg => 
+        const hotelId = getHotelIdFromName(hotelName);
+        if (!hotelId) {
+            console.warn(`⚠️ Hotel ID not found for: ${hotelName}`);
+            console.log('Available hotels in mapping:', Object.keys(HOTEL_ID_MAP));
+            return null;
+        }
+        
+        const pkg = packagesData.find(pkg => 
             pkg.category === category && pkg.hotel_id === hotelId
-        ) || null;
+        );
+        
+        if (!pkg) {
+            console.warn(`⚠️ Package not found: category=${category}, hotelName=${hotelName}, hotelId=${hotelId}`);
+            console.log('Available packages:', packagesData.map(p => `{category: ${p.category}, hotel_id: ${p.hotel_id}}`));
+        } else {
+            console.log(`✅ Found package: ${category} at ${hotelName} (ID: ${hotelId})`);
+        }
+        
+        return pkg || null;
     }
     
     // Get package by ID
@@ -998,15 +1031,15 @@
     
     // Function to update price displays in package dropdowns based on selected hotel (using database)
     function updatePackageDropdownPrices(selectedHotel) {
-        console.log('Updating dropdown prices for hotel:', selectedHotel);
+        console.log('🔄 Updating dropdown prices for hotel:', selectedHotel);
         
         if (!packagesData || packagesData.length === 0) {
-            console.warn('No package data available');
+            console.warn('⚠️ No package data available');
             return;
         }
         
         if (!selectedHotel) {
-            console.warn('No hotel selected for price update');
+            console.warn('⚠️ No hotel selected for price update');
             return;
         }
         
@@ -1016,10 +1049,17 @@
             // Get package from database for this hotel
             const pkg = getPackageByCategoryAndHotel(packageName, selectedHotel);
             
-            if (!pkg || !pkg.pricing || !Array.isArray(pkg.pricing) || pkg.pricing.length === 0) {
-                console.warn(`No pricing data for ${packageName} at ${selectedHotel}`);
+            if (!pkg) {
+                console.warn(`⚠️ Package not found: ${packageName} for hotel ${selectedHotel}`);
                 return;
             }
+            
+            if (!pkg.pricing || !Array.isArray(pkg.pricing) || pkg.pricing.length === 0) {
+                console.warn(`⚠️ No pricing data for ${packageName} at ${selectedHotel}`);
+                return;
+            }
+            
+            console.log(`✅ Found package ${packageName} for ${selectedHotel} with ${pkg.pricing.length} pricing tiers`);
             
             // Sort pricing tiers by min_tourist
             const sortedPricing = [...pkg.pricing].sort((a, b) => a.min_tourist - b.min_tourist);
@@ -1083,10 +1123,11 @@
                     
                     if (matchingTier && matchingTier.price_per_head) {
                         const priceToUse = matchingTier.price_per_head;
+                        const oldPrice = span.textContent;
                         span.textContent = `₱${priceToUse.toLocaleString()}`;
-                        console.log(`Updated ${packageName} tier ${touristTier} (${matchingTier.min_tourist}-${matchingTier.max_tourist}) to ₱${priceToUse.toLocaleString()}`);
+                        console.log(`✅ Updated ${packageName} tier ${touristTier} (${matchingTier.min_tourist}-${matchingTier.max_tourist}) from ${oldPrice} to ₱${priceToUse.toLocaleString()}`);
                     } else {
-                        console.warn(`No matching tier found for ${packageName} tier ${touristTier}`);
+                        console.warn(`⚠️ No matching tier found for ${packageName} tier ${touristTier} - available tiers:`, sortedPricing.map(t => `${t.min_tourist}-${t.max_tourist}`).join(', '));
                     }
                 }
             });
@@ -2276,23 +2317,29 @@
     // Function to refresh package prices (called when both packages and hotels are available)
     function refreshPackagePrices() {
         if (!packagesData || packagesData.length === 0) {
-            console.log('Packages not loaded yet, will update when packages are loaded');
+            console.log('⏳ Packages not loaded yet, will update when packages are loaded');
             return;
         }
         
         if (!hotelsData || hotelsData.length === 0) {
-            console.log('Hotels not loaded yet, will update when hotels are loaded');
+            console.log('⏳ Hotels not loaded yet, will update when hotels are loaded');
             return;
         }
+        
+        console.log('🔄 Refreshing package prices...');
         
         // Wait a bit for DOM to be ready
         setTimeout(() => {
             const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
             if (selectedHotel) {
+                console.log('📍 Using selected hotel:', selectedHotel.value);
                 updatePackageDropdownPrices(selectedHotel.value);
             } else if (hotelsData && hotelsData.length > 0) {
                 // Use first hotel as default
+                console.log('📍 Using default hotel:', hotelsData[0].name);
                 updatePackageDropdownPrices(hotelsData[0].name);
+            } else {
+                console.warn('⚠️ No hotel available for price update');
             }
         }, 300);
     }
