@@ -1,5 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
+/* Universal scrollbar hiding - must be at top to override any global styles */
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-track {
+  display: none !important;
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
+}
+
 body {
   margin: 0;
   font-family: 'Poppins', Arial, Helvetica, sans-serif;
@@ -8,6 +31,21 @@ body {
   min-height: 100vh;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
+  scrollbar-width: none; /* Firefox - hide page scrollbar */
+  -ms-overflow-style: none; /* IE and Edge - hide page scrollbar */
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera - hide page scrollbar */
+}
+
+html {
+  scrollbar-width: none; /* Firefox - hide page scrollbar */
+  -ms-overflow-style: none; /* IE and Edge - hide page scrollbar */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera - hide page scrollbar */
 }
 
 /* Loading Screen Styles */
@@ -319,6 +357,14 @@ body.page-transition {
   margin-left: 260px;
   padding: 32px 40px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  scrollbar-width: none !important; /* Firefox - hide scrollbar */
+  -ms-overflow-style: none !important; /* IE and Edge - hide scrollbar */
+}
+
+.main-content::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .main-content.expanded {
@@ -531,12 +577,25 @@ header h1 {
   overflow-y: auto;
   overflow-x: auto;
   border: 1px solid #e2e8f0;
-  scrollbar-width: none; /* Firefox - hide scrollbar */
-  -ms-overflow-style: none; /* IE and Edge - hide scrollbar */
+  scrollbar-width: none !important; /* Firefox - hide scrollbar */
+  -ms-overflow-style: none !important; /* IE and Edge - hide scrollbar */
 }
 
 .table-section::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+.table-section::-webkit-scrollbar-track {
+  display: none !important;
+  background: transparent !important;
+}
+
+.table-section::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
 }
 
 table {
