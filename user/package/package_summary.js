@@ -514,7 +514,7 @@
                 arrival_date: bookingData.arrivalDate,
                 departure_date: bookingData.departureDate,
                 number_of_tourist: parseInt(bookingData.touristCount || 1),
-                package_only_id: getPackageIdByName(bookingData.selectedPackage),
+                package_only_id: bookingData.packageOnlyId || getPackageIdByName(bookingData.selectedPackage),
                 hotel_id: bookingData.selectedHotel ? getHotelIdByName(bookingData.selectedHotel) : null,
                 hotel_nights: bookingData.selectedHotel ? calculateHotelNights(bookingData.arrivalDate, bookingData.departureDate) : null,
                 status: 'pending'
@@ -544,7 +544,7 @@
             if (bookingData.selectedPackage) {
                 const packagePayload = {
                     booking_id: bookingId,
-                    package_id: getPackageIdByName(bookingData.selectedPackage),
+                    package_id: bookingData.packageOnlyId || getPackageIdByName(bookingData.selectedPackage),
                     package_name: bookingData.selectedPackage,
                     package_price: parseFloat(bookingData.packageAmount?.replace(/[₱,]/g, '') || 0),
                     notes: `Tourists: ${bookingData.touristCount || 0}`
@@ -885,11 +885,86 @@
         }
     }
     
-    // Helper function to get package ID by name (you may need to implement this based on your package data)
+    // Store packages data
+    let packagesData = [];
+    
+    // Fetch packages from API
+    async function fetchPackagesForSummary() {
+        try {
+            console.log('🔄 Fetching packages for summary...');
+            const response = await fetch(`${API_BASE_URL}/package-only?include=pricing`, { cache: 'no-cache' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.packages) {
+                packagesData = result.packages;
+                console.log('✅ Packages loaded for summary:', packagesData.length, 'packages');
+                return packagesData;
+            } else {
+                console.error('❌ Failed to fetch packages:', result.message || 'Unknown error');
+                return [];
+            }
+        } catch (error) {
+            console.error('❌ Error fetching packages:', error);
+            return [];
+        }
+    }
+    
+    // Helper function to get package ID by name
     function getPackageIdByName(packageName) {
-        // This is a placeholder - you should implement this based on your package data structure
-        // For now, return null or a default ID
-        return null;
+        if (!packagesData || packagesData.length === 0) {
+            console.warn('No packages data available');
+            return null;
+        }
+        
+        // Get hotel name from booking data
+        const hotelName = bookingData?.selectedHotel || null;
+        
+        if (hotelName) {
+            // Hotel name mapping (same as in package_only.js)
+            const HOTEL_NAME_MAPPING = {
+                'Ilaya Resort': 'Ilaya',
+                'Ilaya': 'Ilaya',
+                'Bliss Beach Resort': 'Bliss',
+                'Bliss': 'Bliss',
+                'The Mangyan Grand Hotel': 'The Mangyan Grand Hotel',
+                'Mindoro Transient House': 'Casa de Honcho',
+                'Casa De Honcho': 'Casa de Honcho',
+                'Casa de Honcho': 'Casa de Honcho',
+                'Transient House': 'Casa de Honcho',
+                'Southview Lodge': 'SouthView',
+                'SouthView': 'SouthView',
+                'SouthView Lodge': 'SouthView'
+            };
+            
+            const HOTEL_ID_MAP = {
+                'Ilaya': '08e190f4-60da-4188-9c8b-de535ef3fcf2',
+                'Casa de Honcho': '11986747-1a86-4d88-a952-a66b69c7e3ec',
+                'Bliss': '2da89c09-1c3d-4cd5-817d-637c1c0289de',
+                'SouthView': '7c071f4b-5ced-4f34-8864-755e5a4d5c38',
+                'The Mangyan Grand Hotel': 'd824f56b-db62-442c-9cf4-26f4c0cc83d0'
+            };
+            
+            const normalizedHotel = HOTEL_NAME_MAPPING[hotelName] || hotelName;
+            const hotelId = HOTEL_ID_MAP[normalizedHotel];
+            
+            if (hotelId) {
+                const pkg = packagesData.find(p => 
+                    p.category === packageName && p.hotel_id === hotelId
+                );
+                if (pkg) {
+                    return pkg.package_only_id || pkg.id;
+                }
+            }
+        }
+        
+        // Fallback: try to find any package with this category
+        const pkg = packagesData.find(p => p.category === packageName);
+        return pkg ? (pkg.package_only_id || pkg.id) : null;
     }
     
     // Helper function to calculate hotel nights
@@ -1078,6 +1153,9 @@
         
         // Fetch hotels data first
         await fetchHotels();
+        
+        // Fetch packages data
+        await fetchPackagesForSummary();
         
         // Load QR codes from database
         await loadQRCodes();
