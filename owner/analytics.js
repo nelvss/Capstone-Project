@@ -503,6 +503,17 @@ function initializeCharts() {
     createServiceDistributionChart();
     createServiceDistributionChart2();
     createBookingTrendsChart();
+    // New analytics charts
+    createBookingStatusChart();
+    createBookingTypeChart();
+    createRevenueByStatusChart();
+    createTouristVolumeChart();
+    createAvgBookingValueChart();
+    createCancellationRateChart();
+    createPeakBookingDaysChart();
+    createServicePerformanceChart();
+    createHotelPerformanceChart();
+    createVanDestinationsChart();
 }
 
 // Initialize filter dropdowns
@@ -516,7 +527,12 @@ function initializeFilters() {
         'tourOnlyYearFilter',
         'packageTourYearFilter',
         'revenueForecastYearFilter',
-        'demandPredictionYearFilter'
+        'demandPredictionYearFilter',
+        'bookingTypeYearFilter',
+        'revenueStatusYearFilter',
+        'touristVolumeYearFilter',
+        'avgBookingValueYearFilter',
+        'cancellationRateYearFilter'
     ];
     
     yearFilters.forEach(filterId => {
@@ -549,7 +565,12 @@ function initializeFilters() {
         'tourOnlyMonthFilter',
         'packageTourMonthFilter',
         'revenueForecastMonthFilter',
-        'demandPredictionMonthFilter'
+        'demandPredictionMonthFilter',
+        'bookingTypeMonthFilter',
+        'revenueStatusMonthFilter',
+        'touristVolumeMonthFilter',
+        'avgBookingValueMonthFilter',
+        'cancellationRateMonthFilter'
     ];
     
     monthFilters.forEach(filterId => {
@@ -601,7 +622,22 @@ function handleYearFilter(event, filterId) {
     }
     
     // Update the corresponding chart
-    updateChart(monthFilterId, 'all', 'all', year);
+    if (monthFilterId) {
+        updateChart(monthFilterId, 'all', 'all', year);
+    } else {
+        // For charts without month filters, reload data
+        if (filterId.includes('bookingType')) {
+            loadBookingTypeData();
+        } else if (filterId.includes('revenueStatus')) {
+            loadRevenueByStatusData();
+        } else if (filterId.includes('touristVolume')) {
+            loadTouristVolumeData();
+        } else if (filterId.includes('avgBookingValue')) {
+            loadAvgBookingValueData();
+        } else if (filterId.includes('cancellationRate')) {
+            loadCancellationRateData();
+        }
+    }
 }
 
 // Handle month filter change
@@ -666,6 +702,16 @@ function updateChart(monthFilterId, month, week, year) {
     } else if (monthFilterId.includes('demandPrediction')) {
         chartKey = 'demandPredictionChart';
         updateDemandPredictionChart(month, week, year);
+    } else if (monthFilterId.includes('bookingType')) {
+        loadBookingTypeData();
+    } else if (monthFilterId.includes('revenueStatus')) {
+        loadRevenueByStatusData();
+    } else if (monthFilterId.includes('touristVolume')) {
+        loadTouristVolumeData();
+    } else if (monthFilterId.includes('avgBookingValue')) {
+        loadAvgBookingValueData();
+    } else if (monthFilterId.includes('cancellationRate')) {
+        loadCancellationRateData();
     }
 }
 
@@ -1694,6 +1740,757 @@ function createBookingTrendsChart() {
             }
         }
     });
+}
+
+// Create Booking Status Distribution Chart (Doughnut)
+function createBookingStatusChart() {
+    const ctx = document.getElementById('bookingStatusChart');
+    if (!ctx) return;
+    
+    chartInstances['bookingStatusChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending', 'Confirmed', 'Cancelled', 'Rescheduled', 'Completed'],
+            datasets: [{
+                data: [0, 0, 0, 0, 0],
+                backgroundColor: [
+                    '#ffc107',
+                    '#28a745',
+                    '#dc3545',
+                    '#17a2b8',
+                    '#6c757d'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadBookingStatusData();
+}
+
+// Create Booking Type Comparison Chart
+function createBookingTypeChart() {
+    const ctx = document.getElementById('bookingTypeChart');
+    if (!ctx) return;
+    
+    chartInstances['bookingTypeChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Package Only',
+                    data: [],
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Tour Only',
+                    data: [],
+                    backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadBookingTypeData();
+}
+
+// Create Revenue by Status Chart
+function createRevenueByStatusChart() {
+    const ctx = document.getElementById('revenueByStatusChart');
+    if (!ctx) return;
+    
+    chartInstances['revenueByStatusChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Pending',
+                    data: [],
+                    backgroundColor: '#ffc107'
+                },
+                {
+                    label: 'Confirmed',
+                    data: [],
+                    backgroundColor: '#28a745'
+                },
+                {
+                    label: 'Cancelled',
+                    data: [],
+                    backgroundColor: '#dc3545'
+                },
+                {
+                    label: 'Rescheduled',
+                    data: [],
+                    backgroundColor: '#17a2b8'
+                },
+                {
+                    label: 'Completed',
+                    data: [],
+                    backgroundColor: '#6c757d'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₱' + (value / 1000) + 'K';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadRevenueByStatusData();
+}
+
+// Create Tourist Volume Chart
+function createTouristVolumeChart() {
+    const ctx = document.getElementById('touristVolumeChart');
+    if (!ctx) return;
+    
+    chartInstances['touristVolumeChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Tourists',
+                data: [],
+                borderColor: '#17a2b8',
+                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadTouristVolumeData();
+}
+
+// Create Average Booking Value Chart
+function createAvgBookingValueChart() {
+    const ctx = document.getElementById('avgBookingValueChart');
+    if (!ctx) return;
+    
+    chartInstances['avgBookingValueChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Average Booking Value',
+                data: [],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₱' + (value / 1000).toFixed(1) + 'K';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadAvgBookingValueData();
+}
+
+// Create Cancellation Rate Chart
+function createCancellationRateChart() {
+    const ctx = document.getElementById('cancellationRateChart');
+    if (!ctx) return;
+    
+    chartInstances['cancellationRateChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Cancellation Rate (%)',
+                data: [],
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadCancellationRateData();
+}
+
+// Create Peak Booking Days Chart
+function createPeakBookingDaysChart() {
+    const ctx = document.getElementById('peakBookingDaysChart');
+    if (!ctx) return;
+    
+    chartInstances['peakBookingDaysChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            datasets: [{
+                label: 'Bookings',
+                data: [0, 0, 0, 0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)',
+                    'rgba(201, 203, 207, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadPeakBookingDaysData();
+}
+
+// Create Service Performance Chart
+function createServicePerformanceChart() {
+    const ctx = document.getElementById('servicePerformanceChart');
+    if (!ctx) return;
+    
+    chartInstances['servicePerformanceChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Bookings',
+                data: [],
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadServicePerformanceData();
+}
+
+// Create Hotel Performance Chart
+function createHotelPerformanceChart() {
+    const ctx = document.getElementById('hotelPerformanceChart');
+    if (!ctx) return;
+    
+    chartInstances['hotelPerformanceChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Bookings',
+                data: [],
+                backgroundColor: 'rgba(153, 102, 255, 0.8)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadHotelPerformanceData();
+}
+
+// Create Van Destinations Chart
+function createVanDestinationsChart() {
+    const ctx = document.getElementById('vanDestinationsChart');
+    if (!ctx) return;
+    
+    chartInstances['vanDestinationsChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    '#dc3545',
+                    '#007bff',
+                    '#28a745',
+                    '#ffc107',
+                    '#17a2b8',
+                    '#6f42c1',
+                    '#e83e8c',
+                    '#fd7e14',
+                    '#20c997',
+                    '#6c757d'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadVanDestinationsData();
+}
+
+// Data loading functions for new charts
+async function loadBookingStatusData() {
+    try {
+        const response = await fetch(`${window.API_URL}/api/analytics/booking-status-distribution`);
+        const result = await response.json();
+        
+        if (result.success && result.distribution) {
+            const chart = chartInstances['bookingStatusChart'];
+            if (chart) {
+                chart.data.datasets[0].data = [
+                    result.distribution.pending || 0,
+                    result.distribution.confirmed || 0,
+                    result.distribution.cancelled || 0,
+                    result.distribution.rescheduled || 0,
+                    result.distribution.completed || 0
+                ];
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading booking status data:', error);
+    }
+}
+
+async function loadBookingTypeData() {
+    try {
+        const yearSelect = document.getElementById('bookingTypeYearFilter');
+        const monthSelect = document.getElementById('bookingTypeMonthFilter');
+        const year = yearSelect ? yearSelect.value : '2025';
+        const month = monthSelect ? monthSelect.value : 'all';
+        
+        let url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month`;
+        if (month !== 'all') {
+            // Convert month name to number
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNum = monthNames.indexOf(month) + 1;
+            if (monthNum > 0) {
+                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
+                url += `&start_date=${startDate}&end_date=${endDate}`;
+            }
+        }
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success && result.comparison) {
+            const chart = chartInstances['bookingTypeChart'];
+            if (chart) {
+                chart.data.labels = result.comparison.map(c => c.period);
+                chart.data.datasets[0].data = result.comparison.map(c => c.package_only || 0);
+                chart.data.datasets[1].data = result.comparison.map(c => c.tour_only || 0);
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading booking type data:', error);
+    }
+}
+
+async function loadRevenueByStatusData() {
+    try {
+        const yearSelect = document.getElementById('revenueStatusYearFilter');
+        const monthSelect = document.getElementById('revenueStatusMonthFilter');
+        const year = yearSelect ? yearSelect.value : '2025';
+        const month = monthSelect ? monthSelect.value : 'all';
+        
+        let url = `${window.API_URL}/api/analytics/revenue-by-status?group_by=month`;
+        if (month !== 'all') {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNum = monthNames.indexOf(month) + 1;
+            if (monthNum > 0) {
+                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
+                url += `&start_date=${startDate}&end_date=${endDate}`;
+            }
+        }
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success && result.revenueByStatus) {
+            const chart = chartInstances['revenueByStatusChart'];
+            if (chart) {
+                chart.data.labels = result.revenueByStatus.map(r => r.period);
+                chart.data.datasets[0].data = result.revenueByStatus.map(r => r.pending || 0);
+                chart.data.datasets[1].data = result.revenueByStatus.map(r => r.confirmed || 0);
+                chart.data.datasets[2].data = result.revenueByStatus.map(r => r.cancelled || 0);
+                chart.data.datasets[3].data = result.revenueByStatus.map(r => r.rescheduled || 0);
+                chart.data.datasets[4].data = result.revenueByStatus.map(r => r.completed || 0);
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading revenue by status data:', error);
+    }
+}
+
+async function loadTouristVolumeData() {
+    try {
+        const yearSelect = document.getElementById('touristVolumeYearFilter');
+        const monthSelect = document.getElementById('touristVolumeMonthFilter');
+        const year = yearSelect ? yearSelect.value : '2025';
+        const month = monthSelect ? monthSelect.value : 'all';
+        
+        let url = `${window.API_URL}/api/analytics/tourist-volume?group_by=month`;
+        if (month !== 'all') {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNum = monthNames.indexOf(month) + 1;
+            if (monthNum > 0) {
+                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
+                url += `&start_date=${startDate}&end_date=${endDate}`;
+            }
+        }
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success && result.volume) {
+            const chart = chartInstances['touristVolumeChart'];
+            if (chart) {
+                chart.data.labels = result.volume.map(v => v.period);
+                chart.data.datasets[0].data = result.volume.map(v => v.tourists || 0);
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading tourist volume data:', error);
+    }
+}
+
+async function loadAvgBookingValueData() {
+    try {
+        const yearSelect = document.getElementById('avgBookingValueYearFilter');
+        const monthSelect = document.getElementById('avgBookingValueMonthFilter');
+        const year = yearSelect ? yearSelect.value : '2025';
+        const month = monthSelect ? monthSelect.value : 'all';
+        
+        let url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=month`;
+        if (month !== 'all') {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNum = monthNames.indexOf(month) + 1;
+            if (monthNum > 0) {
+                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
+                url += `&start_date=${startDate}&end_date=${endDate}`;
+            }
+        }
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success && result.avgValues) {
+            const chart = chartInstances['avgBookingValueChart'];
+            if (chart) {
+                chart.data.labels = result.avgValues.map(v => v.period);
+                chart.data.datasets[0].data = result.avgValues.map(v => v.average || 0);
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading average booking value data:', error);
+    }
+}
+
+async function loadCancellationRateData() {
+    try {
+        const yearSelect = document.getElementById('cancellationRateYearFilter');
+        const monthSelect = document.getElementById('cancellationRateMonthFilter');
+        const year = yearSelect ? yearSelect.value : '2025';
+        const month = monthSelect ? monthSelect.value : 'all';
+        
+        let url = `${window.API_URL}/api/analytics/cancellation-rate?group_by=month`;
+        if (month !== 'all') {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNum = monthNames.indexOf(month) + 1;
+            if (monthNum > 0) {
+                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
+                url += `&start_date=${startDate}&end_date=${endDate}`;
+            }
+        }
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success && result.cancellationRates) {
+            const chart = chartInstances['cancellationRateChart'];
+            if (chart) {
+                chart.data.labels = result.cancellationRates.map(r => r.period);
+                chart.data.datasets[0].data = result.cancellationRates.map(r => r.rate || 0);
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading cancellation rate data:', error);
+    }
+}
+
+async function loadPeakBookingDaysData() {
+    try {
+        const response = await fetch(`${window.API_URL}/api/analytics/peak-booking-days`);
+        const result = await response.json();
+        
+        if (result.success && result.peakDays) {
+            const chart = chartInstances['peakBookingDaysChart'];
+            if (chart) {
+                const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const dayData = new Array(7).fill(0);
+                
+                result.peakDays.forEach(day => {
+                    const index = dayOrder.indexOf(day.day);
+                    if (index !== -1) {
+                        dayData[index] = day.bookings || 0;
+                    }
+                });
+                
+                chart.data.datasets[0].data = dayData;
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading peak booking days data:', error);
+    }
+}
+
+async function loadServicePerformanceData() {
+    try {
+        const response = await fetch(`${window.API_URL}/api/analytics/service-performance`);
+        const result = await response.json();
+        
+        if (result.success && result.services) {
+            const chart = chartInstances['servicePerformanceChart'];
+            if (chart) {
+                const labels = [];
+                const data = [];
+                
+                // Add tour types
+                Object.keys(result.services.tours || {}).forEach(tourType => {
+                    labels.push(`Tour: ${tourType}`);
+                    data.push(result.services.tours[tourType]);
+                });
+                
+                // Add vehicles
+                if (result.services.vehicles > 0) {
+                    labels.push('Vehicle Rental');
+                    data.push(result.services.vehicles);
+                }
+                
+                // Add diving types
+                Object.keys(result.services.diving || {}).forEach(divingType => {
+                    labels.push(`Diving: ${divingType}`);
+                    data.push(result.services.diving[divingType]);
+                });
+                
+                // Add van rentals
+                if (result.services.van_rentals > 0) {
+                    labels.push('Van Rental');
+                    data.push(result.services.van_rentals);
+                }
+                
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = data;
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading service performance data:', error);
+    }
+}
+
+async function loadHotelPerformanceData() {
+    try {
+        const response = await fetch(`${window.API_URL}/api/analytics/hotel-performance`);
+        const result = await response.json();
+        
+        if (result.success && result.performance) {
+            const chart = chartInstances['hotelPerformanceChart'];
+            if (chart) {
+                // Limit to top 10 hotels
+                const topHotels = result.performance.slice(0, 10);
+                chart.data.labels = topHotels.map(h => h.hotel);
+                chart.data.datasets[0].data = topHotels.map(h => h.bookings || 0);
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading hotel performance data:', error);
+    }
+}
+
+async function loadVanDestinationsData() {
+    try {
+        const response = await fetch(`${window.API_URL}/api/analytics/van-destinations`);
+        const result = await response.json();
+        
+        if (result.success && result.destinations) {
+            const chart = chartInstances['vanDestinationsChart'];
+            if (chart) {
+                chart.data.labels = result.destinations.map(d => d.destination);
+                chart.data.datasets[0].data = result.destinations.map(d => d.bookings || 0);
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading van destinations data:', error);
+    }
 }
 
 // Load feedback from API
