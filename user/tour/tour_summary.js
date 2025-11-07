@@ -712,6 +712,15 @@ async function submitBooking() {
             finalBookingRefElement.textContent = bookingRef;
         }
         
+        // Clear booking data from sessionStorage after successful submission
+        // (Keep finalBookingData for confirmation page, but clear the rest)
+        sessionStorage.removeItem('completeBookingData');
+        sessionStorage.removeItem('tourSelections');
+        sessionStorage.removeItem('bookingFormData');
+        sessionStorage.removeItem('bookingOption');
+        sessionStorage.removeItem('selectedPaymentMethod');
+        sessionStorage.removeItem('paidAmount');
+        
         // Show success message
         alert('✅ Tour booking submitted successfully! Your booking reference is: ' + bookingRef);
         
@@ -888,6 +897,15 @@ async function getDestinationIdByName(destinationName) {
 
 // Go to home page
 function goToHomePage() {
+    // Clear all booking-related session storage
+    sessionStorage.removeItem('completeBookingData');
+    sessionStorage.removeItem('finalBookingData');
+    sessionStorage.removeItem('tourSelections');
+    sessionStorage.removeItem('bookingFormData');
+    sessionStorage.removeItem('bookingOption');
+    sessionStorage.removeItem('selectedPaymentMethod');
+    sessionStorage.removeItem('paidAmount');
+    
     window.location.href = '../home/home.html';
 }
 
