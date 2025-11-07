@@ -32,8 +32,8 @@ const chartInstances = {};
 
 // API Configuration (shared across pages)
 window.API_URL = window.API_URL || 'https://api.otgpuertogaleratravel.com';
-// Toggle to use API or fallback sample data
-window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? window.USE_ANALYTICS_API : false;
+// Toggle to use API or fallback sample data (default: true to use API)
+window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? window.USE_ANALYTICS_API : true;
 
 // Dynamic analytics data - will be populated from API
 let analyticsData = {};
@@ -848,9 +848,11 @@ function updateDemandPredictionChart(month, week, year) {
     chart.update();
 }
 
-// Revenue Trend Chart
+// Revenue Trend Chart (removed from dashboard, kept for potential future use)
 function createRevenueTrendChart() {
-    const ctx = document.getElementById('revenueTrendChart').getContext('2d');
+    const canvas = document.getElementById('revenueTrendChart');
+    if (!canvas) return; // Chart element removed from dashboard
+    const ctx = canvas.getContext('2d');
     const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
     chartInstances['revenueTrendChart'] = new Chart(ctx, {
         type: 'line',
@@ -1424,9 +1426,11 @@ function handleLogout() {
 // Start real-time updates
 initializeRealTimeUpdates();
 
-// Service Distribution Pie Chart using amCharts
+// Service Distribution Pie Chart using amCharts (removed from dashboard, kept for potential future use)
 function createServiceDistributionChart() {
-    const ctx = document.getElementById('chartdiv').getContext('2d');
+    const canvas = document.getElementById('chartdiv');
+    if (!canvas) return; // Chart element removed from dashboard
+    const ctx = canvas.getContext('2d');
     
     // Sample data showing trend over 12 months for Tour Only services
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1528,7 +1532,9 @@ function createServiceDistributionChart() {
 }
 
 function createServiceDistributionChart2() {
-    const ctx = document.getElementById('chartdiv2').getContext('2d');
+    const canvas = document.getElementById('chartdiv2');
+    if (!canvas) return; // Chart element removed from dashboard
+    const ctx = canvas.getContext('2d');
     
     // Sample data showing trend over 12 months for Package Tours
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1633,7 +1639,9 @@ function createServiceDistributionChart2() {
 }
 
 function createBookingTrendsChart() {
-    const ctx = document.getElementById('bookingTrendsChart').getContext('2d');
+    const canvas = document.getElementById('bookingTrendsChart');
+    if (!canvas) return; // Chart element removed from dashboard
+    const ctx = canvas.getContext('2d');
     
     // Use data from analyticsData
     const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
