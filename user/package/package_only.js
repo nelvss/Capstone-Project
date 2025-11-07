@@ -894,17 +894,33 @@
     // PACKAGE PRICING CALCULATIONS
     // ----------------------------
 
-    // Hotel-based package pricing based on tourist count, selected package, and hotel (using database)
+    // Hotel-based package pricing based on tourist count, selected package, and hotel (using database ONLY)
     function calculatePackagePricing(selectedPackage, touristCount, selectedHotel) {
-        if (!selectedPackage || !touristCount || touristCount <= 0) return { pricePerPax: 0, totalPrice: 0 };
+        if (!selectedPackage || !touristCount || touristCount <= 0) {
+            console.warn('⚠️ Invalid parameters for calculatePackagePricing:', { selectedPackage, touristCount, selectedHotel });
+            return { pricePerPax: 0, totalPrice: 0 };
+        }
+        
+        // Ensure packages are loaded
+        if (!packagesData || packagesData.length === 0) {
+            console.error('❌ Packages data not loaded yet! Cannot calculate pricing.');
+            return { pricePerPax: 0, totalPrice: 0 };
+        }
         
         // Try to get package from database
         const pkg = getPackageByCategoryAndHotel(selectedPackage, selectedHotel);
         
-        if (!pkg || !pkg.pricing || !Array.isArray(pkg.pricing) || pkg.pricing.length === 0) {
-            console.warn(`No pricing found in database for hotel: ${selectedHotel}, package: ${selectedPackage}`);
+        if (!pkg) {
+            console.error(`❌ Package not found in database: ${selectedPackage} for hotel: ${selectedHotel}`);
             return { pricePerPax: 0, totalPrice: 0 };
         }
+        
+        if (!pkg.pricing || !Array.isArray(pkg.pricing) || pkg.pricing.length === 0) {
+            console.error(`❌ No pricing tiers found in database for hotel: ${selectedHotel}, package: ${selectedPackage}`);
+            return { pricePerPax: 0, totalPrice: 0 };
+        }
+        
+        console.log(`💰 Calculating price for ${selectedPackage} at ${selectedHotel} with ${touristCount} tourists`);
         
         // Find the appropriate pricing tier based on tourist count
         let matchingTier = null;
@@ -938,12 +954,14 @@
         }
         
         if (!matchingTier || !matchingTier.price_per_head) {
-            console.warn(`No matching pricing tier found for ${touristCount} tourists`);
+            console.error(`❌ No matching pricing tier found for ${touristCount} tourists. Available tiers:`, sortedPricing.map(t => `${t.min_tourist}-${t.max_tourist} (₱${t.price_per_head})`).join(', '));
             return { pricePerPax: 0, totalPrice: 0 };
         }
         
         const pricePerPax = matchingTier.price_per_head;
         const totalPrice = pricePerPax * touristCount;
+        
+        console.log(`✅ Price calculated: ₱${pricePerPax} per pax x ${touristCount} = ₱${totalPrice} (tier: ${matchingTier.min_tourist}-${matchingTier.max_tourist})`);
         
         return { pricePerPax, totalPrice };
     }
@@ -1733,15 +1751,23 @@
         const hotelSelectionOptions = document.querySelectorAll("input[name='hotel-selection']");
         console.log('Found hotel selection options:', hotelSelectionOptions.length);
         hotelSelectionOptions.forEach(option => {
-            option.addEventListener("change", () => {
-                console.log('Hotel selection changed:', option.value);
-                // Update package dropdown prices when hotel changes
-                updatePackageDropdownPrices(option.value);
-                updatePackageSelectionPricing();
-                // Force immediate total calculation
-                setTimeout(() => {
-                    calculateTotalAmount();
-                }, 10);
+            // Remove existing listeners by cloning
+            const newOption = option.cloneNode(true);
+            option.parentNode.replaceChild(newOption, option);
+            
+            // Add new listener
+            newOption.addEventListener("change", () => {
+                console.log('🏨 Hotel selection changed:', newOption.value);
+                // Force fresh fetch of packages to ensure latest prices
+                fetchPackages().then(() => {
+                    // Update package dropdown prices when hotel changes
+                    updatePackageDropdownPrices(newOption.value);
+                    updatePackageSelectionPricing();
+                    // Force immediate total calculation
+                    setTimeout(() => {
+                        calculateTotalAmount();
+                    }, 10);
+                });
                 saveCurrentFormData(); // Save data when hotel selection changes
             });
         });
@@ -2326,22 +2352,36 @@
             return;
         }
         
-        console.log('🔄 Refreshing package prices...');
+        console.log('🔄 Refreshing package prices from database...');
         
-        // Wait a bit for DOM to be ready
+        // Wait a bit for DOM to be ready, then update prices
         setTimeout(() => {
             const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+            let hotelToUse = null;
+            
             if (selectedHotel) {
-                console.log('📍 Using selected hotel:', selectedHotel.value);
-                updatePackageDropdownPrices(selectedHotel.value);
+                hotelToUse = selectedHotel.value;
+                console.log('📍 Using selected hotel:', hotelToUse);
             } else if (hotelsData && hotelsData.length > 0) {
-                // Use first hotel as default
-                console.log('📍 Using default hotel:', hotelsData[0].name);
-                updatePackageDropdownPrices(hotelsData[0].name);
+                // Use first hotel as default to show prices immediately
+                hotelToUse = hotelsData[0].name;
+                console.log('📍 Using default hotel (first available):', hotelToUse);
             } else {
                 console.warn('⚠️ No hotel available for price update');
+                return;
             }
-        }, 300);
+            
+            // Force update all package prices from database
+            updatePackageDropdownPrices(hotelToUse);
+            
+            // Also update the selected package pricing if a package is already selected
+            const selectedPackage = document.querySelector('input[name="package-selection"]:checked');
+            const touristCount = document.getElementById('touristCount')?.value;
+            if (selectedPackage && touristCount) {
+                console.log('🔄 Updating selected package pricing after refresh...');
+                updatePackageSelectionPricing();
+            }
+        }, 500);
     }
     
     // Function to generate hotel options dynamically
@@ -2750,10 +2790,13 @@
     function initializePackages() {
         setTimeout(() => {
             fetchPackages().then(() => {
-                console.log("Packages loaded successfully!");
-                // Prices will be updated via refreshPackagePrices() which is called in fetchPackages()
+                console.log("✅ Packages loaded successfully!");
+                // Force immediate price refresh after a short delay to ensure DOM is ready
+                setTimeout(() => {
+                    refreshPackagePrices();
+                }, 500);
             }).catch(error => {
-                console.error("Error loading packages:", error);
+                console.error("❌ Error loading packages:", error);
             });
         }, 100);
     }
