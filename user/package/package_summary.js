@@ -132,34 +132,82 @@
 
         let hasServices = false;
 
-        // Vehicle Rental
-        if (bookingData.rentalVehicles && bookingData.rentalVehicles.length > 0) {
+        // Vehicle Rental - Check multiple possible field names
+        const hasVehicles = (bookingData.rentalVehicles && bookingData.rentalVehicles.length > 0) ||
+                           (bookingData.selectedVehicles && bookingData.selectedVehicles.length > 0) ||
+                           (bookingData.vehicleAmount && bookingData.vehicleAmount.trim() !== '' && bookingData.vehicleAmount !== '₱0.00');
+        
+        if (hasVehicles) {
             hasServices = true;
             document.getElementById('vehicle-subsection').classList.remove('d-none');
-            document.getElementById('summary-vehicle').textContent = bookingData.rentalVehicles.join(', ');
+            const vehicleNames = bookingData.rentalVehicles && bookingData.rentalVehicles.length > 0 
+                ? bookingData.rentalVehicles 
+                : (bookingData.selectedVehicles && bookingData.selectedVehicles.length > 0
+                    ? bookingData.selectedVehicles.map(v => typeof v === 'string' ? v : v.name)
+                    : ['Vehicle Rental']);
+            document.getElementById('summary-vehicle').textContent = vehicleNames.join(', ');
             document.getElementById('summary-vehicle-days').textContent = bookingData.rentalDays || '-';
+            console.log('✅ Vehicle Rental displayed:', vehicleNames, 'Days:', bookingData.rentalDays);
         }
 
-        // Diving Activity
-        if (bookingData.diving && bookingData.numberOfDivers) {
+        // Diving Activity - Check if diving is selected (boolean) OR if diving amount exists
+        const hasDiving = bookingData.diving === true || 
+                         (bookingData.divingName && bookingData.divingName.trim() !== '') ||
+                         (bookingData.divingAmount && bookingData.divingAmount.trim() !== '' && bookingData.divingAmount !== '₱0.00');
+        
+        if (hasDiving) {
             hasServices = true;
             document.getElementById('diving-subsection').classList.remove('d-none');
-            document.getElementById('summary-divers').textContent = bookingData.numberOfDivers;
+            const diversCount = bookingData.numberOfDivers || '-';
+            document.getElementById('summary-divers').textContent = diversCount;
+            console.log('✅ Diving Activity displayed:', bookingData.divingName || 'Diving', 'Divers:', diversCount);
         }
 
-        // Van Rental
-        if (bookingData.vanDestination && bookingData.vanPlace) {
+        // Van Rental - Check if any van data exists (destination, place, or amount)
+        const hasVanRental = (bookingData.vanDestination && bookingData.vanDestination.trim() !== '' && bookingData.vanDestination !== 'None') ||
+                            (bookingData.vanPlace && bookingData.vanPlace.trim() !== '') ||
+                            (bookingData.vanAmount && bookingData.vanAmount.trim() !== '' && bookingData.vanAmount !== '₱0.00');
+        
+        if (hasVanRental) {
             hasServices = true;
             document.getElementById('van-subsection').classList.remove('d-none');
-            document.getElementById('summary-van-destination').textContent = bookingData.vanDestination;
-            document.getElementById('summary-van-place').textContent = bookingData.vanPlace;
+            document.getElementById('summary-van-destination').textContent = bookingData.vanDestination || '-';
+            document.getElementById('summary-van-place').textContent = bookingData.vanPlace || '-';
             document.getElementById('summary-van-trip-type').textContent = bookingData.vanTripType || '-';
             document.getElementById('summary-van-days').textContent = bookingData.vanDays || '-';
+            console.log('✅ Van Rental displayed:', {
+                destination: bookingData.vanDestination,
+                place: bookingData.vanPlace,
+                tripType: bookingData.vanTripType,
+                days: bookingData.vanDays
+            });
         }
 
         // Show Additional Services section if any services are selected
         if (hasServices) {
             document.getElementById('additional-services-section').classList.remove('d-none');
+            console.log('✅ Additional Services section displayed');
+        } else {
+            console.log('⚠️ No additional services found in booking data');
+            console.log('Booking data keys:', Object.keys(bookingData));
+            console.log('Vehicle data:', {
+                rentalVehicles: bookingData.rentalVehicles,
+                selectedVehicles: bookingData.selectedVehicles,
+                vehicleAmount: bookingData.vehicleAmount
+            });
+            console.log('Diving data:', {
+                diving: bookingData.diving,
+                divingName: bookingData.divingName,
+                numberOfDivers: bookingData.numberOfDivers,
+                divingAmount: bookingData.divingAmount
+            });
+            console.log('Van data:', {
+                vanDestination: bookingData.vanDestination,
+                vanPlace: bookingData.vanPlace,
+                vanTripType: bookingData.vanTripType,
+                vanDays: bookingData.vanDays,
+                vanAmount: bookingData.vanAmount
+            });
         }
     }
 
