@@ -38,53 +38,73 @@ window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? win
 // Dynamic analytics data - will be populated from API
 let analyticsData = {};
 
-// Load analytics data from API
+// Load analytics data from API (non-blocking, handles individual endpoint failures)
 async function fetchAnalyticsDataFromApi() {
     if (!window.USE_ANALYTICS_API) {
         console.warn('ℹ️ Using fallback analytics data (API disabled).');
         return false;
     }
-  try {
+  
     console.log('📊 Loading analytics data from API...');
     
-    // Load revenue data
-    const revenueResponse = await fetch(`${window.API_URL}/api/analytics/revenue`);
-    const revenueResult = await revenueResponse.json();
-    
-    // Load booking counts
-    const countsResponse = await fetch(`${window.API_URL}/api/analytics/bookings-count`);
-    const countsResult = await countsResponse.json();
-    
-    // Load popular services
-    const servicesResponse = await fetch(`${window.API_URL}/api/analytics/popular-services`);
-    const servicesResult = await servicesResponse.json();
-    
-    if (!revenueResult.success || !countsResult.success || !servicesResult.success) {
-      throw new Error('Failed to load analytics data');
-    }
-    
-    // Transform API data to match the expected format
-    analyticsData = {
-      revenue: revenueResult.analytics,
-      counts: countsResult.counts,
-      services: servicesResult.services
-    };
-    
-    console.log('✅ Analytics data loaded successfully');
-    return true;
-    
-  } catch (error) {
-    console.warn('❌ Error loading analytics data, using fallback:', error);
-    
-    // Fallback to empty data
+    // Initialize with default values
     analyticsData = {
       revenue: { total_revenue: 0, total_bookings: 0, confirmed_bookings: 0 },
       counts: { total: 0, pending: 0, confirmed: 0, cancelled: 0, rescheduled: 0, completed: 0 },
       services: { tours: {}, vehicles: 0, diving: {} }
     };
     
-    return false;
-  }
+    let successCount = 0;
+    
+    // Load revenue data (non-blocking)
+    try {
+      const revenueResponse = await fetch(`${window.API_URL}/api/analytics/revenue`);
+      const revenueResult = await revenueResponse.json();
+      if (revenueResult.success) {
+        analyticsData.revenue = revenueResult.analytics;
+        successCount++;
+      } else {
+        console.warn('⚠️ Revenue data not available');
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load revenue data:', error.message);
+    }
+    
+    // Load booking counts (non-blocking)
+    try {
+      const countsResponse = await fetch(`${window.API_URL}/api/analytics/bookings-count`);
+      const countsResult = await countsResponse.json();
+      if (countsResult.success) {
+        analyticsData.counts = countsResult.counts;
+        successCount++;
+      } else {
+        console.warn('⚠️ Booking counts not available');
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load booking counts:', error.message);
+    }
+    
+    // Load popular services (non-blocking)
+    try {
+      const servicesResponse = await fetch(`${window.API_URL}/api/analytics/popular-services`);
+      const servicesResult = await servicesResponse.json();
+      if (servicesResult.success) {
+        analyticsData.services = servicesResult.services;
+        successCount++;
+      } else {
+        console.warn('⚠️ Popular services data not available');
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load popular services:', error.message);
+    }
+    
+    if (successCount > 0) {
+      console.log(`✅ Analytics data loaded successfully (${successCount}/3 endpoints)`);
+      return true;
+    } else {
+      console.warn('ℹ️ No analytics data loaded, using fallback. Individual charts will load their own data.');
+      return false;
+    }
 }
 
 // Filter data structure with weekly breakdowns (fallback data)
