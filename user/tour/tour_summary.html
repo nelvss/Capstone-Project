@@ -434,7 +434,7 @@
 
         <div id="form-step-6" class="form-step">
             <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
-                <div class="w-100 max-w-500">
+                <div class="w-100 container-max-width">
                     <div class="row justify-content-center">
                         <div class="col-12">
                             
@@ -448,11 +448,6 @@
                                             <i class="fas fa-receipt text-primary fa-2x"></i>
                                         </div>
                                         <h3 class="h4 mb-2 fw-normal">Upload Receipt</h3>
-                                        <p class="text-muted small mb-0">
-                                            <span id="selectedPaymentMethod" class="fw-semibold">GCASH</span>
-                                            <span class="mx-2">•</span>
-                                            <span id="paidAmount" class="text-success fw-semibold">₱0.00</span>
-                                        </p>
                                     </div>
 
                                     <!-- Modern Upload Zone -->
@@ -467,18 +462,24 @@
                                                 <button type="button" class="btn btn-primary rounded-pill px-4" onclick="document.getElementById('receiptFile').click()">
                                                     <i class="fas fa-plus me-2"></i>Select File
                                                 </button>
-                                                <input type="file" id="receiptFile" class="d-none" accept="image/*" onchange="handleFileUpload(event)" aria-label="Upload payment receipt image" title="Upload payment receipt image">
+                                                <label for="receiptFile" class="file-input-label">Upload receipt image</label>
+                                                <input type="file" id="receiptFile" class="file-input-hidden" accept="image/*" onchange="handleFileUpload(event)" title="Upload receipt image" aria-label="Upload receipt image">
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Success State -->
                                     <div id="uploadedFiles" class="d-none mb-4">
-                                        <div class="alert alert-success border-0 bg-success bg-opacity-10 text-center">
+                                        <div class="alert alert-success border-0 bg-success bg-opacity-10 text-center mb-3">
                                             <i class="fas fa-check-circle text-success me-2"></i>
                                             <span class="text-success fw-semibold">Receipt uploaded successfully!</span>
                                         </div>
-                                        <div id="filePreviewContainer"></div>
+                                        <div id="filePreviewContainer" class="mb-3"></div>
+                                        <div class="text-center">
+                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="document.getElementById('receiptFile').click()">
+                                                <i class="fas fa-sync-alt me-2"></i>Change File
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- Action Buttons -->
