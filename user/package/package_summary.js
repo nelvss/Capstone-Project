@@ -38,6 +38,17 @@
             try {
                 bookingData = JSON.parse(completeBookingDataString);
                 console.log('✅ Loaded booking data:', bookingData);
+                console.log('🔍 Checking for additional services in booking data:');
+                console.log('  - rentalVehicles:', bookingData.rentalVehicles);
+                console.log('  - selectedVehicles:', bookingData.selectedVehicles);
+                console.log('  - vehicleAmount:', bookingData.vehicleAmount);
+                console.log('  - diving:', bookingData.diving);
+                console.log('  - divingName:', bookingData.divingName);
+                console.log('  - divingAmount:', bookingData.divingAmount);
+                console.log('  - numberOfDivers:', bookingData.numberOfDivers);
+                console.log('  - vanDestination:', bookingData.vanDestination);
+                console.log('  - vanPlace:', bookingData.vanPlace);
+                console.log('  - vanAmount:', bookingData.vanAmount);
                 console.log('🚐 Van Rental Info:', {
                     vanDestination: bookingData.vanDestination,
                     vanPlace: bookingData.vanPlace,
@@ -45,7 +56,9 @@
                     vanDays: bookingData.vanDays,
                     vanAmount: bookingData.vanAmount
                 });
+                console.log('📞 About to call populateSummary()...');
                 populateSummary();
+                console.log('✅ populateSummary() completed');
                 return true;
             } catch (error) {
                 console.error('Error parsing booking data:', error);
@@ -152,15 +165,21 @@
 
         // Vehicle Rental - Check multiple possible field names
         console.log('🚗 Checking Vehicle Rental...');
-        console.log('  - rentalVehicles:', bookingData.rentalVehicles);
-        console.log('  - selectedVehicles:', bookingData.selectedVehicles);
-        console.log('  - vehicleAmount:', bookingData.vehicleAmount);
+        console.log('  - rentalVehicles:', bookingData.rentalVehicles, 'type:', typeof bookingData.rentalVehicles, 'isArray:', Array.isArray(bookingData.rentalVehicles));
+        console.log('  - selectedVehicles:', bookingData.selectedVehicles, 'type:', typeof bookingData.selectedVehicles, 'isArray:', Array.isArray(bookingData.selectedVehicles));
+        console.log('  - vehicleAmount:', bookingData.vehicleAmount, 'type:', typeof bookingData.vehicleAmount);
         console.log('  - rentalDays:', bookingData.rentalDays);
+        
+        // More lenient check - if vehicleAmount exists and is not empty/zero, show it
+        const vehicleAmountStr = String(bookingData.vehicleAmount || '').trim();
+        const vehicleAmountNum = vehicleAmountStr ? parseFloat(vehicleAmountStr.replace(/[₱,]/g, '')) : 0;
         
         const hasVehicles = (bookingData.rentalVehicles && Array.isArray(bookingData.rentalVehicles) && bookingData.rentalVehicles.length > 0) ||
                            (bookingData.selectedVehicles && Array.isArray(bookingData.selectedVehicles) && bookingData.selectedVehicles.length > 0) ||
-                           (bookingData.vehicleAmount && String(bookingData.vehicleAmount).trim() !== '' && String(bookingData.vehicleAmount) !== '₱0.00' && String(bookingData.vehicleAmount) !== '0');
+                           (vehicleAmountStr !== '' && vehicleAmountStr !== '₱0.00' && vehicleAmountStr !== '0' && vehicleAmountStr !== '₱0' && !isNaN(vehicleAmountNum) && vehicleAmountNum > 0);
         
+        console.log('  - vehicleAmountStr:', vehicleAmountStr);
+        console.log('  - vehicleAmountNum:', vehicleAmountNum);
         console.log('  - hasVehicles result:', hasVehicles);
         
         if (hasVehicles) {
@@ -183,16 +202,22 @@
 
         // Diving Activity - Check if diving is selected (boolean) OR if diving amount exists
         console.log('🏊 Checking Diving Activity...');
-        console.log('  - diving:', bookingData.diving, typeof bookingData.diving);
-        console.log('  - divingName:', bookingData.divingName);
-        console.log('  - numberOfDivers:', bookingData.numberOfDivers);
-        console.log('  - divingAmount:', bookingData.divingAmount);
+        console.log('  - diving:', bookingData.diving, 'type:', typeof bookingData.diving);
+        console.log('  - divingName:', bookingData.divingName, 'type:', typeof bookingData.divingName);
+        console.log('  - numberOfDivers:', bookingData.numberOfDivers, 'type:', typeof bookingData.numberOfDivers);
+        console.log('  - divingAmount:', bookingData.divingAmount, 'type:', typeof bookingData.divingAmount);
+        
+        const divingAmountStr = String(bookingData.divingAmount || '').trim();
+        const divingAmountNum = divingAmountStr ? parseFloat(divingAmountStr.replace(/[₱,]/g, '')) : 0;
         
         const hasDiving = bookingData.diving === true || 
                          bookingData.diving === 'true' ||
+                         String(bookingData.diving) === 'true' ||
                          (bookingData.divingName && String(bookingData.divingName).trim() !== '') ||
-                         (bookingData.divingAmount && String(bookingData.divingAmount).trim() !== '' && String(bookingData.divingAmount) !== '₱0.00' && String(bookingData.divingAmount) !== '0');
+                         (divingAmountStr !== '' && divingAmountStr !== '₱0.00' && divingAmountStr !== '0' && divingAmountStr !== '₱0' && !isNaN(divingAmountNum) && divingAmountNum > 0);
         
+        console.log('  - divingAmountStr:', divingAmountStr);
+        console.log('  - divingAmountNum:', divingAmountNum);
         console.log('  - hasDiving result:', hasDiving);
         
         if (hasDiving) {
