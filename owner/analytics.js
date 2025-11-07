@@ -850,7 +850,9 @@ function updateDemandPredictionChart(month, week, year) {
 
 // Revenue Trend Chart
 function createRevenueTrendChart() {
-    const ctx = document.getElementById('revenueTrendChart').getContext('2d');
+    const canvas = document.getElementById('revenueTrendChart');
+    if (!canvas) return; // Chart element removed
+    const ctx = canvas.getContext('2d');
     const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
     chartInstances['revenueTrendChart'] = new Chart(ctx, {
         type: 'line',
@@ -1426,7 +1428,9 @@ initializeRealTimeUpdates();
 
 // Service Distribution Pie Chart using amCharts
 function createServiceDistributionChart() {
-    const ctx = document.getElementById('chartdiv').getContext('2d');
+    const canvas = document.getElementById('chartdiv');
+    if (!canvas) return; // Chart element removed
+    const ctx = canvas.getContext('2d');
     
     // Sample data showing trend over 12 months for Tour Only services
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1528,7 +1532,9 @@ function createServiceDistributionChart() {
 }
 
 function createServiceDistributionChart2() {
-    const ctx = document.getElementById('chartdiv2').getContext('2d');
+    const canvas = document.getElementById('chartdiv2');
+    if (!canvas) return; // Chart element removed
+    const ctx = canvas.getContext('2d');
     
     // Sample data showing trend over 12 months for Package Tours
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1633,7 +1639,9 @@ function createServiceDistributionChart2() {
 }
 
 function createBookingTrendsChart() {
-    const ctx = document.getElementById('bookingTrendsChart').getContext('2d');
+    const canvas = document.getElementById('bookingTrendsChart');
+    if (!canvas) return; // Chart element removed
+    const ctx = canvas.getContext('2d');
     
     // Use data from analyticsData
     const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
