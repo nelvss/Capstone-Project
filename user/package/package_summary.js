@@ -1,5 +1,6 @@
 // Package Summary JavaScript - Load and display booking data
 (() => {
+    console.log('🚀 Package Summary script loaded!');
     let currentStep = 3; // Start at step 3 (summary)
     let bookingData = null;
     
@@ -78,10 +79,13 @@
     // ----------------------------
     
     function populateSummary() {
+        console.log('📝 populateSummary() called');
         if (!bookingData) {
-            console.error('No booking data available');
+            console.error('❌ No booking data available in populateSummary()');
             return;
         }
+
+        console.log('📦 Booking data in populateSummary:', bookingData);
 
         // Personal Information
         document.getElementById('summary-name').textContent = `${bookingData.firstName} ${bookingData.lastName}`;
@@ -115,6 +119,7 @@
         document.getElementById('summary-package-amount').textContent = packageAmount;
 
         // Additional Services
+        console.log('📞 Calling populateAdditionalServices()...');
         populateAdditionalServices();
 
         // Total Amount
@@ -124,53 +129,109 @@
     }
 
     function populateAdditionalServices() {
+        console.log('🔍 populateAdditionalServices() called');
+        console.log('📦 Full bookingData:', bookingData);
+        
         // Reset all sections to hidden first
-        document.getElementById('vehicle-subsection').classList.add('d-none');
-        document.getElementById('diving-subsection').classList.add('d-none');
-        document.getElementById('van-subsection').classList.add('d-none');
-        document.getElementById('additional-services-section').classList.add('d-none');
+        const vehicleSubsection = document.getElementById('vehicle-subsection');
+        const divingSubsection = document.getElementById('diving-subsection');
+        const vanSubsection = document.getElementById('van-subsection');
+        const additionalServicesSection = document.getElementById('additional-services-section');
+        
+        if (!vehicleSubsection || !divingSubsection || !vanSubsection || !additionalServicesSection) {
+            console.error('❌ Required DOM elements not found!');
+            return;
+        }
+        
+        vehicleSubsection.classList.add('d-none');
+        divingSubsection.classList.add('d-none');
+        vanSubsection.classList.add('d-none');
+        additionalServicesSection.classList.add('d-none');
 
         let hasServices = false;
 
         // Vehicle Rental - Check multiple possible field names
-        const hasVehicles = (bookingData.rentalVehicles && bookingData.rentalVehicles.length > 0) ||
-                           (bookingData.selectedVehicles && bookingData.selectedVehicles.length > 0) ||
-                           (bookingData.vehicleAmount && bookingData.vehicleAmount.trim() !== '' && bookingData.vehicleAmount !== '₱0.00');
+        console.log('🚗 Checking Vehicle Rental...');
+        console.log('  - rentalVehicles:', bookingData.rentalVehicles);
+        console.log('  - selectedVehicles:', bookingData.selectedVehicles);
+        console.log('  - vehicleAmount:', bookingData.vehicleAmount);
+        console.log('  - rentalDays:', bookingData.rentalDays);
+        
+        const hasVehicles = (bookingData.rentalVehicles && Array.isArray(bookingData.rentalVehicles) && bookingData.rentalVehicles.length > 0) ||
+                           (bookingData.selectedVehicles && Array.isArray(bookingData.selectedVehicles) && bookingData.selectedVehicles.length > 0) ||
+                           (bookingData.vehicleAmount && String(bookingData.vehicleAmount).trim() !== '' && String(bookingData.vehicleAmount) !== '₱0.00' && String(bookingData.vehicleAmount) !== '0');
+        
+        console.log('  - hasVehicles result:', hasVehicles);
         
         if (hasVehicles) {
             hasServices = true;
-            document.getElementById('vehicle-subsection').classList.remove('d-none');
-            const vehicleNames = bookingData.rentalVehicles && bookingData.rentalVehicles.length > 0 
-                ? bookingData.rentalVehicles 
-                : (bookingData.selectedVehicles && bookingData.selectedVehicles.length > 0
-                    ? bookingData.selectedVehicles.map(v => typeof v === 'string' ? v : v.name)
-                    : ['Vehicle Rental']);
+            vehicleSubsection.classList.remove('d-none');
+            let vehicleNames = [];
+            
+            if (bookingData.rentalVehicles && Array.isArray(bookingData.rentalVehicles) && bookingData.rentalVehicles.length > 0) {
+                vehicleNames = bookingData.rentalVehicles;
+            } else if (bookingData.selectedVehicles && Array.isArray(bookingData.selectedVehicles) && bookingData.selectedVehicles.length > 0) {
+                vehicleNames = bookingData.selectedVehicles.map(v => typeof v === 'string' ? v : (v.name || v));
+            } else {
+                vehicleNames = ['Vehicle Rental'];
+            }
+            
             document.getElementById('summary-vehicle').textContent = vehicleNames.join(', ');
             document.getElementById('summary-vehicle-days').textContent = bookingData.rentalDays || '-';
             console.log('✅ Vehicle Rental displayed:', vehicleNames, 'Days:', bookingData.rentalDays);
         }
 
         // Diving Activity - Check if diving is selected (boolean) OR if diving amount exists
+        console.log('🏊 Checking Diving Activity...');
+        console.log('  - diving:', bookingData.diving, typeof bookingData.diving);
+        console.log('  - divingName:', bookingData.divingName);
+        console.log('  - numberOfDivers:', bookingData.numberOfDivers);
+        console.log('  - divingAmount:', bookingData.divingAmount);
+        
         const hasDiving = bookingData.diving === true || 
-                         (bookingData.divingName && bookingData.divingName.trim() !== '') ||
-                         (bookingData.divingAmount && bookingData.divingAmount.trim() !== '' && bookingData.divingAmount !== '₱0.00');
+                         bookingData.diving === 'true' ||
+                         (bookingData.divingName && String(bookingData.divingName).trim() !== '') ||
+                         (bookingData.divingAmount && String(bookingData.divingAmount).trim() !== '' && String(bookingData.divingAmount) !== '₱0.00' && String(bookingData.divingAmount) !== '0');
+        
+        console.log('  - hasDiving result:', hasDiving);
         
         if (hasDiving) {
             hasServices = true;
-            document.getElementById('diving-subsection').classList.remove('d-none');
+            divingSubsection.classList.remove('d-none');
             const diversCount = bookingData.numberOfDivers || '-';
             document.getElementById('summary-divers').textContent = diversCount;
             console.log('✅ Diving Activity displayed:', bookingData.divingName || 'Diving', 'Divers:', diversCount);
         }
 
         // Van Rental - Check if any van data exists (destination, place, or amount)
-        const hasVanRental = (bookingData.vanDestination && bookingData.vanDestination.trim() !== '' && bookingData.vanDestination !== 'None') ||
-                            (bookingData.vanPlace && bookingData.vanPlace.trim() !== '') ||
-                            (bookingData.vanAmount && bookingData.vanAmount.trim() !== '' && bookingData.vanAmount !== '₱0.00');
+        console.log('🚐 Checking Van Rental...');
+        console.log('  - vanDestination:', bookingData.vanDestination);
+        console.log('  - vanPlace:', bookingData.vanPlace);
+        console.log('  - vanTripType:', bookingData.vanTripType);
+        console.log('  - vanDays:', bookingData.vanDays);
+        console.log('  - vanAmount:', bookingData.vanAmount);
+        console.log('  - vanDestinationId:', bookingData.vanDestinationId);
+        
+        // Check if van rental exists - vanDestination could be "Within Puerto Galera" or "Outside Puerto Galera"
+        // OR if vanPlace is set, OR if vanAmount is set
+        const vanDest = String(bookingData.vanDestination || '').trim();
+        const vanPl = String(bookingData.vanPlace || '').trim();
+        const vanAmt = String(bookingData.vanAmount || '').trim();
+        
+        const hasVanRental = (vanDest !== '' && vanDest !== 'None' && vanDest !== 'none' && 
+                             (vanDest === 'Within Puerto Galera' || vanDest === 'Outside Puerto Galera' || vanPl !== '')) ||
+                            (vanPl !== '' && vanPl !== 'None' && vanPl !== 'none') ||
+                            (vanAmt !== '' && vanAmt !== '₱0.00' && vanAmt !== '0' && vanAmt !== '₱0' && !isNaN(parseFloat(vanAmt.replace(/[₱,]/g, ''))) && parseFloat(vanAmt.replace(/[₱,]/g, '')) > 0) ||
+                            (bookingData.vanDestinationId && bookingData.vanDestinationId !== null && bookingData.vanDestinationId !== '');
+        
+        console.log('  - hasVanRental result:', hasVanRental);
+        console.log('  - vanDest check:', vanDest, 'valid:', vanDest !== '' && vanDest !== 'None' && vanDest !== 'none');
+        console.log('  - vanPl check:', vanPl, 'valid:', vanPl !== '' && vanPl !== 'None' && vanPl !== 'none');
+        console.log('  - vanAmt check:', vanAmt, 'valid:', vanAmt !== '' && vanAmt !== '₱0.00' && vanAmt !== '0');
         
         if (hasVanRental) {
             hasServices = true;
-            document.getElementById('van-subsection').classList.remove('d-none');
+            vanSubsection.classList.remove('d-none');
             document.getElementById('summary-van-destination').textContent = bookingData.vanDestination || '-';
             document.getElementById('summary-van-place').textContent = bookingData.vanPlace || '-';
             document.getElementById('summary-van-trip-type').textContent = bookingData.vanTripType || '-';
@@ -184,29 +245,33 @@
         }
 
         // Show Additional Services section if any services are selected
+        console.log('📋 Final hasServices:', hasServices);
         if (hasServices) {
-            document.getElementById('additional-services-section').classList.remove('d-none');
+            additionalServicesSection.classList.remove('d-none');
             console.log('✅ Additional Services section displayed');
         } else {
             console.log('⚠️ No additional services found in booking data');
-            console.log('Booking data keys:', Object.keys(bookingData));
-            console.log('Vehicle data:', {
+            console.log('📋 All booking data keys:', Object.keys(bookingData));
+            console.log('🚗 Vehicle data:', {
                 rentalVehicles: bookingData.rentalVehicles,
                 selectedVehicles: bookingData.selectedVehicles,
-                vehicleAmount: bookingData.vehicleAmount
+                vehicleAmount: bookingData.vehicleAmount,
+                rentalDays: bookingData.rentalDays
             });
-            console.log('Diving data:', {
+            console.log('🏊 Diving data:', {
                 diving: bookingData.diving,
                 divingName: bookingData.divingName,
                 numberOfDivers: bookingData.numberOfDivers,
-                divingAmount: bookingData.divingAmount
+                divingAmount: bookingData.divingAmount,
+                divingId: bookingData.divingId
             });
-            console.log('Van data:', {
+            console.log('🚐 Van data:', {
                 vanDestination: bookingData.vanDestination,
                 vanPlace: bookingData.vanPlace,
                 vanTripType: bookingData.vanTripType,
                 vanDays: bookingData.vanDays,
-                vanAmount: bookingData.vanAmount
+                vanAmount: bookingData.vanAmount,
+                vanDestinationId: bookingData.vanDestinationId
             });
         }
     }
@@ -233,6 +298,7 @@
     };
 
     function showStep(step) {
+        console.log(`📺 showStep(${step}) called`);
         // Hide all steps
         document.querySelectorAll('.form-step').forEach(stepEl => {
             stepEl.classList.remove('active');
@@ -242,6 +308,18 @@
         const currentStepEl = document.getElementById(`form-step-${step}`);
         if (currentStepEl) {
             currentStepEl.classList.add('active');
+            console.log(`✅ Step ${step} is now active`);
+            
+            // If showing step 3 (summary), ensure data is populated
+            if (step === 3 && bookingData) {
+                console.log('🔄 Step 3 is active, repopulating summary...');
+                // Small delay to ensure DOM is ready
+                setTimeout(() => {
+                    populateSummary();
+                }, 100);
+            }
+        } else {
+            console.error(`❌ Step ${step} element not found!`);
         }
 
         // Update payment amount if on payment step
@@ -966,10 +1044,18 @@
         await loadQRCodes();
         
         if (loadBookingData()) {
-            console.log('Booking data loaded successfully');
+            console.log('✅ Booking data loaded successfully');
+            // Show step first, then populate (populateSummary is called in loadBookingData, but we'll call it again after step is shown)
             showStep(currentStep);
+            // Ensure summary is populated after step is visible
+            setTimeout(() => {
+                if (bookingData) {
+                    console.log('🔄 Repopulating summary after step is shown...');
+                    populateSummary();
+                }
+            }, 200);
         } else {
-            console.error('Failed to load booking data');
+            console.error('❌ Failed to load booking data');
             // Redirect back to package page if no data
             setTimeout(() => {
                 window.location.href = 'package_only.html';
