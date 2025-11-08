@@ -9,7 +9,10 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Logo URL - Update this to your hosted logo URL
+// Logo URL - Configured for Hostinger deployment
+// For Hostinger: Logo should be accessible at your domain root/Images/logo.png
+// You can override this via LOGO_URL environment variable in your .env file
+// Example: LOGO_URL=https://www.otgpuertogaleratravel.com/Images/logo.png
 const LOGO_URL = process.env.LOGO_URL || 'https://otgpuertogaleratravel.com/Images/logo.png';
 
 // Email templates
@@ -22,8 +25,10 @@ const emailTemplates = {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="color-scheme" content="light">
+        <meta name="supported-color-schemes" content="light">
       </head>
-      <body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f2937 !important;">
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f7fa; padding: 40px 20px;">
           <tr>
             <td align="center">
@@ -39,61 +44,61 @@ const emailTemplates = {
                 
                 <!-- Content -->
                 <tr>
-                  <td style="padding: 40px 30px;">
-                    <p style="font-size: 18px; color: #1f2937; margin: 0 0 10px 0; font-weight: 600;">Dear ${booking.name || `${booking.customer_first_name || ''} ${booking.customer_last_name || ''}`.trim()},</p>
-                    <p style="font-size: 16px; color: #6b7280; margin: 0 0 30px 0; line-height: 1.6;">
+                  <td style="padding: 40px 30px; color: #1f2937 !important; background-color: #ffffff !important;">
+                    <p style="font-size: 18px; color: #1f2937 !important; margin: 0 0 10px 0; font-weight: 600;">Dear ${booking.name || `${booking.customer_first_name || ''} ${booking.customer_last_name || ''}`.trim()},</p>
+                    <p style="font-size: 16px; color: #374151 !important; margin: 0 0 30px 0; line-height: 1.6;">
                       Great news! Your booking has been confirmed. We're excited to welcome you to Puerto Galera!
                     </p>
                     
                     <!-- Booking Details Card -->
                     <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #10b981; padding: 25px; border-radius: 12px; margin: 30px 0;">
                       <h2 style="color: #065f46; margin: 0 0 20px 0; font-size: 20px; font-weight: 700; display: flex; align-items: center;">
-                        <span style="background-color: #10b981; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">✓</span>
+                        <span style="background-color: #10b981; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-block; margin-right: 12px; font-size: 18px; line-height: 32px; text-align: center; vertical-align: middle;">✓</span>
                         Booking Details
                       </h2>
-                      <table style="width: 100%; font-size: 15px; color: #374151;">
+                      <table style="width: 100%; font-size: 15px; color: #1f2937 !important;">
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                             <strong style="color: #065f46; display: block; margin-bottom: 4px;">Services</strong>
-                            <span style="color: #374151;">${booking.services || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.services || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                             <strong style="color: #065f46; display: block; margin-bottom: 4px;">Vehicle Rental</strong>
-                            <span style="color: #374151;">${booking.rental || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.rental || 'N/A'}</span>
                           </td>
                         </tr>
                         ${booking.vanRental && booking.vanRental !== 'N/A' ? `
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                             <strong style="color: #065f46; display: block; margin-bottom: 4px;">Van Rental</strong>
-                            <span style="color: #374151;">${booking.vanRental}</span>
+                            <span style="color: #1f2937 !important;">${booking.vanRental}</span>
                           </td>
                         </tr>
                         ` : ''}
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                             <strong style="color: #065f46; display: block; margin-bottom: 4px;">Arrival Date</strong>
-                            <span style="color: #374151;">${booking.arrival || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.arrival || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                             <strong style="color: #065f46; display: block; margin-bottom: 4px;">Departure Date</strong>
-                            <span style="color: #374151;">${booking.departure || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.departure || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                             <strong style="color: #065f46; display: block; margin-bottom: 4px;">Hotel</strong>
-                            <span style="color: #374151;">${booking.hotel || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.hotel || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
                             <strong style="color: #065f46; display: block; margin-bottom: 4px;">Contact Number</strong>
-                            <span style="color: #374151;">${booking.contact || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.contact || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
@@ -142,8 +147,10 @@ const emailTemplates = {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="color-scheme" content="light">
+        <meta name="supported-color-schemes" content="light">
       </head>
-      <body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f2937 !important;">
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f7fa; padding: 40px 20px;">
           <tr>
             <td align="center">
@@ -159,55 +166,55 @@ const emailTemplates = {
                 
                 <!-- Content -->
                 <tr>
-                  <td style="padding: 40px 30px;">
-                    <p style="font-size: 18px; color: #1f2937; margin: 0 0 10px 0; font-weight: 600;">Dear ${booking.name || `${booking.customer_first_name || ''} ${booking.customer_last_name || ''}`.trim()},</p>
-                    <p style="font-size: 16px; color: #6b7280; margin: 0 0 30px 0; line-height: 1.6;">
+                  <td style="padding: 40px 30px; color: #1f2937 !important; background-color: #ffffff !important;">
+                    <p style="font-size: 18px; color: #1f2937 !important; margin: 0 0 10px 0; font-weight: 600;">Dear ${booking.name || `${booking.customer_first_name || ''} ${booking.customer_last_name || ''}`.trim()},</p>
+                    <p style="font-size: 16px; color: #374151 !important; margin: 0 0 30px 0; line-height: 1.6;">
                       We regret to inform you that your booking has been cancelled as requested.
                     </p>
                     
                     <!-- Cancelled Booking Details Card -->
                     <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 4px solid #ef4444; padding: 25px; border-radius: 12px; margin: 30px 0;">
                       <h2 style="color: #991b1b; margin: 0 0 20px 0; font-size: 20px; font-weight: 700; display: flex; align-items: center;">
-                        <span style="background-color: #ef4444; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">✕</span>
+                        <span style="background-color: #ef4444; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-block; margin-right: 12px; font-size: 18px; line-height: 32px; text-align: center; vertical-align: middle;">✕</span>
                         Cancelled Booking Details
                       </h2>
-                      <table style="width: 100%; font-size: 15px; color: #374151;">
+                      <table style="width: 100%; font-size: 15px; color: #1f2937 !important;">
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
                             <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Services</strong>
-                            <span style="color: #374151;">${booking.services || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.services || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
                             <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Vehicle Rental</strong>
-                            <span style="color: #374151;">${booking.rental || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.rental || 'N/A'}</span>
                           </td>
                         </tr>
                         ${booking.vanRental && booking.vanRental !== 'N/A' ? `
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
                             <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Van Rental</strong>
-                            <span style="color: #374151;">${booking.vanRental}</span>
+                            <span style="color: #1f2937 !important;">${booking.vanRental}</span>
                           </td>
                         </tr>
                         ` : ''}
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
                             <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Arrival Date</strong>
-                            <span style="color: #374151;">${booking.arrival || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.arrival || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
                             <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Departure Date</strong>
-                            <span style="color: #374151;">${booking.departure || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.departure || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
                             <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Hotel</strong>
-                            <span style="color: #374151;">${booking.hotel || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.hotel || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
@@ -264,8 +271,10 @@ const emailTemplates = {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="color-scheme" content="light">
+        <meta name="supported-color-schemes" content="light">
       </head>
-      <body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f2937 !important;">
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f7fa; padding: 40px 20px;">
           <tr>
             <td align="center">
@@ -281,55 +290,55 @@ const emailTemplates = {
                 
                 <!-- Content -->
                 <tr>
-                  <td style="padding: 40px 30px;">
-                    <p style="font-size: 18px; color: #1f2937; margin: 0 0 10px 0; font-weight: 600;">Dear ${booking.name || `${booking.customer_first_name || ''} ${booking.customer_last_name || ''}`.trim()},</p>
-                    <p style="font-size: 16px; color: #6b7280; margin: 0 0 30px 0; line-height: 1.6;">
+                  <td style="padding: 40px 30px; color: #1f2937 !important; background-color: #ffffff !important;">
+                    <p style="font-size: 18px; color: #1f2937 !important; margin: 0 0 10px 0; font-weight: 600;">Dear ${booking.name || `${booking.customer_first_name || ''} ${booking.customer_last_name || ''}`.trim()},</p>
+                    <p style="font-size: 16px; color: #374151 !important; margin: 0 0 30px 0; line-height: 1.6;">
                       We've received your request to reschedule your booking. Our team is reviewing your request and will contact you shortly with available options.
                     </p>
                     
                     <!-- Current Booking Details Card -->
                     <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #3b82f6; padding: 25px; border-radius: 12px; margin: 30px 0;">
                       <h2 style="color: #1e40af; margin: 0 0 20px 0; font-size: 20px; font-weight: 700; display: flex; align-items: center;">
-                        <span style="background-color: #3b82f6; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">📅</span>
+                        <span style="background-color: #3b82f6; color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-block; margin-right: 12px; font-size: 18px; line-height: 32px; text-align: center; vertical-align: middle;">📅</span>
                         Current Booking Details
                       </h2>
-                      <table style="width: 100%; font-size: 15px; color: #374151;">
+                      <table style="width: 100%; font-size: 15px; color: #1f2937 !important;">
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
                             <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Services</strong>
-                            <span style="color: #374151;">${booking.services || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.services || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
                             <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Vehicle Rental</strong>
-                            <span style="color: #374151;">${booking.rental || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.rental || 'N/A'}</span>
                           </td>
                         </tr>
                         ${booking.vanRental && booking.vanRental !== 'N/A' ? `
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
                             <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Van Rental</strong>
-                            <span style="color: #374151;">${booking.vanRental}</span>
+                            <span style="color: #1f2937 !important;">${booking.vanRental}</span>
                           </td>
                         </tr>
                         ` : ''}
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
                             <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Current Arrival</strong>
-                            <span style="color: #374151;">${booking.arrival || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.arrival || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
                             <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Current Departure</strong>
-                            <span style="color: #374151;">${booking.departure || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.departure || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
                             <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Hotel</strong>
-                            <span style="color: #374151;">${booking.hotel || 'N/A'}</span>
+                            <span style="color: #1f2937 !important;">${booking.hotel || 'N/A'}</span>
                           </td>
                         </tr>
                         <tr>
