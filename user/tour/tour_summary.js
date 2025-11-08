@@ -545,7 +545,7 @@ async function submitBooking() {
             departure_date: bookingData.departureDate,
             number_of_tourist: parseInt(bookingData.touristCount || 1),
             hotel_id: '04bd82cd-8422-4a5c-b4d5-a121bf000156', // Default Tour Only hotel placeholder
-            hotel_nights: 0,
+            hotel_nights: '0', // Send as string so backend retains zero instead of falling back to null
             status: 'pending'
         };
         
