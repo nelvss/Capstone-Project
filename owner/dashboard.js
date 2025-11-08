@@ -1310,17 +1310,41 @@ async function submitBookingEditForm(event) {
     // Ensure we have a clean booking ID without any suffixes
     const bookingId = String(currentEditingBooking.id).split(':')[0];
     console.log('🔄 Updating booking with ID:', bookingId);
-    console.log('📤 Payload:', JSON.stringify(payloadForApi, null, 2));
+    console.log('📤 Payload:', payloadForApi);
+    
+    // Validate JSON before sending
+    let jsonPayload;
+    try {
+      jsonPayload = JSON.stringify(payloadForApi);
+      console.log('✅ JSON is valid, length:', jsonPayload.length);
+    } catch (jsonError) {
+      console.error('❌ JSON stringify error:', jsonError);
+      console.error('Problem field:', payloadForApi);
+      throw new Error('Invalid data format. Please check all fields.');
+    }
 
     const response = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payloadForApi)
+      body: jsonPayload
     });
 
-    const result = await response.json();
+    console.log('📥 Response status:', response.status, response.statusText);
+    
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    console.log('📥 Response content-type:', contentType);
+    
+    let result;
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      const textResponse = await response.text();
+      console.error('❌ Non-JSON response:', textResponse);
+      throw new Error(`Server returned non-JSON response (${response.status}): ${textResponse.substring(0, 200)}`);
+    }
 
     if (!response.ok || !result.success) {
       throw new Error(result?.message || 'Failed to update booking');
