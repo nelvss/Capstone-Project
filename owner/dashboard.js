@@ -426,7 +426,6 @@ function setupBookingEditModal() {
   
   // Setup tour type change handler
   const tourTypeSelect = document.getElementById('tour-type-select');
-  const tourIdInput = document.getElementById('tour-id-input');
   const tourPriceInput = document.getElementById('tour-price-input');
   const tourTotalInput = document.getElementById('tour-total-input');
   
@@ -434,7 +433,6 @@ function setupBookingEditModal() {
     tourTypeSelect.addEventListener('change', (e) => {
       const tourType = e.target.value;
       if (!tourType) {
-        tourIdInput.value = '';
         tourPriceInput.value = '';
         tourTotalInput.value = '';
         updateTotalBookingAmount();
@@ -450,8 +448,6 @@ function setupBookingEditModal() {
       
       const tour = availableTours.find(t => t.category === categoryMap[tourType]);
       if (tour) {
-        tourIdInput.value = tour.tour_only_id;
-        
         // Find pricing based on number of tourists
         const tourists = parseInt(numberOfTourists?.value) || 1;
         const pricing = tour.pricing?.find(p => tourists >= p.min_tourist && tourists <= p.max_tourist);
@@ -657,20 +653,15 @@ function populateBookingEditForm(booking) {
     
     console.log('📋 Populating tour details for booking:', raw);
     console.log('📋 Booking preferences:', raw.booking_preferences);
-    console.log('📋 Tour Only ID:', raw.tour_only_id);
-    console.log('📋 Package Only ID:', raw.package_only_id);
     
-    const tourIdInput = document.getElementById('tour-id-input');
     const tourTypeSelect = document.getElementById('tour-type-select');
     const tourPriceInput = document.getElementById('tour-price-input');
     const tourTotalInput = document.getElementById('tour-total-input');
     
-    // Try to get tour ID from database field first
-    let tourId = raw.tour_only_id || raw.package_only_id;
     let tourCategory = null;
     
-    // If no tour ID in database, try to parse from booking_preferences
-    if (!tourId && raw.booking_preferences) {
+    // Parse tour category from booking_preferences
+    if (raw.booking_preferences) {
       // Parse "Tour Only: Island Tour" format
       const match = raw.booking_preferences.match(/Tour Only:\s*(.+)/i);
       if (match) {
@@ -679,49 +670,38 @@ function populateBookingEditForm(booking) {
         
         // Find tour by category
         const tour = availableTours.find(t => t.category === tourCategory);
+        console.log('🔍 Found tour:', tour);
+        
         if (tour) {
-          tourId = tour.tour_only_id;
-          console.log('✅ Found tour ID:', tourId, 'for category:', tourCategory);
+          // Map category to tour type
+          const categoryToType = {
+            'Island Tour': 'island',
+            'Inland Tour': 'inland',
+            'Snorkeling Tour': 'snorkeling'
+          };
+          
+          const tourType = categoryToType[tour.category];
+          if (tourType) {
+            tourTypeSelect.value = tourType;
+          }
+          
+          // Calculate price based on number of tourists
+          const tourists = parseInt(raw.number_of_tourist) || 1;
+          const pricing = tour.pricing?.find(p => tourists >= p.min_tourist && tourists <= p.max_tourist);
+          
+          console.log('💰 Found pricing:', pricing, 'for', tourists, 'tourists');
+          
+          if (pricing) {
+            tourPriceInput.value = pricing.price_per_head;
+            const total = pricing.price_per_head * tourists;
+            tourTotalInput.value = total.toFixed(2);
+          }
+        } else {
+          console.warn('⚠️ Tour not found in availableTours for category:', tourCategory);
         }
-      }
-    }
-    
-    if (tourId) {
-      tourIdInput.value = tourId;
-      
-      // Find the tour to get its category
-      const tour = availableTours.find(t => t.tour_only_id === tourId);
-      console.log('🔍 Found tour:', tour);
-      
-      if (tour) {
-        // Map category to tour type
-        const categoryToType = {
-          'Island Tour': 'island',
-          'Inland Tour': 'inland',
-          'Snorkeling Tour': 'snorkeling'
-        };
-        
-        const tourType = categoryToType[tour.category];
-        if (tourType) {
-          tourTypeSelect.value = tourType;
-        }
-        
-        // Calculate price based on number of tourists
-        const tourists = parseInt(raw.number_of_tourist) || 1;
-        const pricing = tour.pricing?.find(p => tourists >= p.min_tourist && tourists <= p.max_tourist);
-        
-        console.log('💰 Found pricing:', pricing, 'for', tourists, 'tourists');
-        
-        if (pricing) {
-          tourPriceInput.value = pricing.price_per_head;
-          const total = pricing.price_per_head * tourists;
-          tourTotalInput.value = total.toFixed(2);
-        }
-      } else {
-        console.warn('⚠️ Tour not found in availableTours for ID:', tourId);
       }
     } else {
-      console.warn('⚠️ No tour ID found in booking data');
+      console.warn('⚠️ No booking preferences found');
     }
   } else if (bookingType === 'package_only') {
     tourSection.style.display = 'none';
@@ -1221,16 +1201,19 @@ function collectBookingFormData() {
 
   // Collect tour data if booking type is tour_only
   if (payload.booking_type === 'tour_only') {
-    const tourId = trim(formData.get('tour_id'));
     const tourType = trim(formData.get('tour_type'));
     
-    if (tourId) {
-      payload.tour_only_id = tourId;
+    if (tourType) {
+      // Map tour type to category
+      const categoryMap = {
+        'island': 'Island Tour',
+        'inland': 'Inland Tour',
+        'snorkeling': 'Snorkeling Tour'
+      };
       
-      // Find the tour to get its category
-      const tour = availableTours.find(t => t.tour_only_id === tourId);
-      if (tour) {
-        payload.booking_preferences = `Tour Only: ${tour.category}`;
+      const tourCategory = categoryMap[tourType];
+      if (tourCategory) {
+        payload.booking_preferences = `Tour Only: ${tourCategory}`;
       }
     }
   }
