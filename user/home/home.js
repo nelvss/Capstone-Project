@@ -415,6 +415,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Smooth scroll for in-page nav links with offset handling
   const offset = 120; // approximate navbar height
+
+  function setActiveNavLink(targetHref) {
+    if (!targetHref) return;
+    document.querySelectorAll('a.nav-link.slant.active').forEach((el) => el.classList.remove('active'));
+    const link = document.querySelector(`a.nav-link.slant[href='${targetHref}']`);
+    if (link) {
+      link.classList.add('active');
+    }
+  }
+
   document.querySelectorAll('a.nav-link.slant[href^="#"]').forEach((anchor) => {
     anchor.addEventListener('click', function (e) {
       const targetId = this.getAttribute('href');
@@ -423,8 +433,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!target) return;
       e.preventDefault();
 
-      document.querySelectorAll('a.nav-link.slant.active').forEach((el) => el.classList.remove('active'));
-      this.classList.add('active');
+      setActiveNavLink(targetId);
 
       const elementPosition = target.getBoundingClientRect().top + window.pageYOffset;
       const top = Math.max(elementPosition - offset, 0);
@@ -452,8 +461,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const link = idToLink.get(id);
         if (!link) return;
         if (entry.isIntersecting) {
-          document.querySelectorAll('a.nav-link.slant.active').forEach((el) => el.classList.remove('active'));
-          link.classList.add('active');
+          setActiveNavLink(id);
         }
       });
     },
@@ -468,6 +476,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const section = document.querySelector(id);
     if (section) observer.observe(section);
   });
+
+  function handleScrollActiveState() {
+    if (window.scrollY < offset * 0.6) {
+      setActiveNavLink('#home');
+    }
+  }
+  handleScrollActiveState();
+  window.addEventListener('scroll', handleScrollActiveState, { passive: true });
 
   // Delegate click for all 'More Info' buttons
   document.body.addEventListener('click', function (e) {
