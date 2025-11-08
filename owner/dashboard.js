@@ -214,7 +214,7 @@ async function loadPackages() {
   try {
     console.log('📦 Loading packages from API...');
     
-    const response = await fetch(`${API_URL}/api/packages?include=pricing`);
+    const response = await fetch(`${API_URL}/api/package-only?include=pricing`);
     const result = await response.json();
     
     if (!result.success) {
@@ -660,15 +660,33 @@ function populateBookingEditForm(booking) {
     console.log('📋 Tour Only ID:', raw.tour_only_id);
     console.log('📋 Package Only ID:', raw.package_only_id);
     
-    // Try to populate from tour_only_id or package_only_id field
-    const tourId = raw.tour_only_id || raw.package_only_id;
+    const tourIdInput = document.getElementById('tour-id-input');
+    const tourTypeSelect = document.getElementById('tour-type-select');
+    const tourPriceInput = document.getElementById('tour-price-input');
+    const tourTotalInput = document.getElementById('tour-total-input');
+    
+    // Try to get tour ID from database field first
+    let tourId = raw.tour_only_id || raw.package_only_id;
+    let tourCategory = null;
+    
+    // If no tour ID in database, try to parse from booking_preferences
+    if (!tourId && raw.booking_preferences) {
+      // Parse "Tour Only: Island Tour" format
+      const match = raw.booking_preferences.match(/Tour Only:\s*(.+)/i);
+      if (match) {
+        tourCategory = match[1].trim();
+        console.log('📝 Parsed tour category from preferences:', tourCategory);
+        
+        // Find tour by category
+        const tour = availableTours.find(t => t.category === tourCategory);
+        if (tour) {
+          tourId = tour.tour_only_id;
+          console.log('✅ Found tour ID:', tourId, 'for category:', tourCategory);
+        }
+      }
+    }
     
     if (tourId) {
-      const tourIdInput = document.getElementById('tour-id-input');
-      const tourTypeSelect = document.getElementById('tour-type-select');
-      const tourPriceInput = document.getElementById('tour-price-input');
-      const tourTotalInput = document.getElementById('tour-total-input');
-      
       tourIdInput.value = tourId;
       
       // Find the tour to get its category
