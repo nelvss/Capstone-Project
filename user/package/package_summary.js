@@ -456,6 +456,14 @@
     // BOOKING SUBMISSION
     // ----------------------------
     
+    function generateBookingReference() {
+        const currentYear = new Date().getFullYear().toString().slice(-2);
+        const timestampPart = Date.now().toString();
+        const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const uniqueSuffix = `${timestampPart.slice(-6)}${randomPart}`.slice(-6);
+        return `${currentYear}-${uniqueSuffix}`;
+    }
+
     window.submitBooking = async function() {
         console.log('🎯 Starting booking submission...');
         console.log('📋 Full booking data:', bookingData);
@@ -468,8 +476,11 @@
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
             }
             
+            const bookingRef = generateBookingReference();
+            
             // Prepare booking data for API (matching actual database schema)
             const bookingPayload = {
+                booking_id: bookingRef,
                 customer_first_name: bookingData.firstName,
                 customer_last_name: bookingData.lastName,
                 customer_email: bookingData.emailAddress,
@@ -496,9 +507,21 @@
                 body: JSON.stringify(bookingPayload)
             });
             
-            const bookingResult = await bookingResponse.json();
+            let bookingResult;
+            try {
+                bookingResult = await bookingResponse.json();
+            } catch (parseError) {
+                console.error('❌ Failed to parse booking response JSON:', parseError);
+                throw new Error(`Failed to create booking (status ${bookingResponse.status})`);
+            }
+            
+            if (!bookingResponse.ok) {
+                console.error('❌ Booking creation failed - status not OK:', bookingResponse.status, bookingResult);
+                throw new Error(bookingResult?.message || `Failed to create booking (status ${bookingResponse.status})`);
+            }
             
             if (!bookingResult.success || !bookingResult.booking) {
+                console.error('❌ Booking creation failed response:', bookingResult);
                 throw new Error(bookingResult.message || 'Failed to create booking');
             }
             
