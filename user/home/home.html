@@ -19,39 +19,49 @@
 <body>
 
   <!-- Navigation Bar -->
-  <header>
-    <nav class="navbar navbar-expand-lg fixed-top">
-      <div class="container-fluid">
+  <header class="home-header">
+    <nav class="home-navbar navbar navbar-expand-lg fixed-top">
+      <div class="container">
 
-        <a class="navbar-brand" href="#" title="OTG Travel and Tours Home"><img src="../../Images/logo.png" alt="OTG Travel and Tours Logo"></a>
+        <a class="navbar-brand home-brand" href="#" title="OTG Travel and Tours Home">
+          <span class="brand-logo">
+            <img src="../../Images/logo.png" alt="OTG Travel and Tours Logo">
+          </span>
+          <span class="brand-text">OTG Travel &amp; Tours</span>
+        </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
+        <button class="navbar-toggler home-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
           aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
+          <span class="toggler-line"></span>
+          <span class="toggler-line"></span>
+          <span class="toggler-line"></span>
         </button>
 
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas offcanvas-end home-offcanvas" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
           <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+            <div class="offcanvas-title-group">
+              <span class="offcanvas-title" id="offcanvasNavbarLabel">Navigation</span>
+              <span class="offcanvas-subtitle">Discover Puerto Galera</span>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
           </div>
 
           <div class="offcanvas-body">
-            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+            <ul class="navbar-nav ms-lg-auto align-items-lg-center">
               <li class="nav-item">
-                <a class="nav-link slant" href="#"><span>Home</span></a>
+                <a class="nav-link nav-link-minimal active" href="#"><span>Home</span></a>
               </li>
               <li class="nav-item">
-                <a class="nav-link slant" href="#mission-vision"><span>About</span></a>
+                <a class="nav-link nav-link-minimal" href="#mission-vision"><span>About</span></a>
               </li>
               <li class="nav-item">
-                <a class="nav-link slant" href="#services"><span>Services</span></a>
+                <a class="nav-link nav-link-minimal" href="#services"><span>Services</span></a>
               </li>
               <li class="nav-item">
-                <a class="nav-link slant" href="#contact-us"><span>Contact</span></a>
+                <a class="nav-link nav-link-minimal" href="#contact-us"><span>Contact</span></a>
               </li>
-              <li class="nav-item">
-                <a class="btn btn-danger slant-btn" href="/user/form/booking_form.html"><span>BOOK NOW</span></a>
+              <li class="nav-item nav-item-cta">
+                <a class="btn nav-cta" href="/user/form/booking_form.html"><span>Book Now</span></a>
               </li>
             </ul>
           </div>
