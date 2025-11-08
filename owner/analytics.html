@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/owner/analytics.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js"></script>
   <title>Analytics Dashboard - OTG Travel and Tours</title>
 </head>
 
@@ -393,7 +394,8 @@
                   </div>
                 </div>
                 <div class="card-body">
-                  <canvas id="demandPredictionChart"></canvas>
+                  <div id="demandPredictionStatus" class="small text-muted mb-2"></div>
+                  <canvas id="demandPredictionChart" height="240"></canvas>
                 </div>
               </div>
             </div>
