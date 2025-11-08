@@ -164,6 +164,8 @@ async function loadVanDestinations() {
     const response = await fetch(`${API_URL}/api/van-destinations`);
     const result = await response.json();
     
+    console.log('📥 Van destinations response:', result);
+    
     if (!result.success) {
       throw new Error(result.message || 'Failed to load van destinations');
     }
@@ -171,6 +173,7 @@ async function loadVanDestinations() {
     availableVanDestinations = result.destinations || [];
     
     console.log('✅ Van destinations loaded successfully:', availableVanDestinations.length, 'destinations');
+    console.log('📋 Destinations data:', availableVanDestinations);
     return true;
     
   } catch (error) {
@@ -670,18 +673,37 @@ function addVanRentalRow(data = {}) {
 
   // Function to update destination dropdown based on location type
   function updateDestinationOptions(locationType) {
+    console.log('🔍 Updating destinations for location type:', locationType);
+    console.log('📦 Available van destinations:', availableVanDestinations);
+    
     if (!locationType) {
       destinationSelect.innerHTML = '<option value="">Select location type first</option>';
       destinationSelect.disabled = true;
       return;
     }
 
+    // Filter destinations based on location type
+    // Check if location_type contains the selected type (case-insensitive)
     const filteredDestinations = availableVanDestinations.filter(dest => {
       const destLocationType = (dest.location_type || '').toLowerCase();
-      return destLocationType === locationType;
+      const selectedType = locationType.toLowerCase();
+      
+      console.log(`Checking destination: ${dest.destination_name}, location_type: "${destLocationType}" against "${selectedType}"`);
+      
+      // Match "within" with destinations that have "within" in location_type
+      // Match "outside" with destinations that have "outside" in location_type
+      return destLocationType.includes(selectedType);
     });
 
+    console.log('✅ Filtered destinations:', filteredDestinations);
+
     destinationSelect.innerHTML = '<option value="">Select Destination</option>';
+    
+    if (filteredDestinations.length === 0) {
+      console.warn('⚠️ No destinations found for location type:', locationType);
+      destinationSelect.innerHTML += '<option value="" disabled>No destinations available</option>';
+    }
+    
     filteredDestinations.forEach(dest => {
       const option = document.createElement('option');
       option.value = dest.van_destination_id;
