@@ -100,5 +100,139 @@
       </table>
     </section>
   </div>
+
+  <!-- Booking Edit Modal -->
+  <div class="modal-backdrop" id="booking-edit-modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="booking-edit-title">
+      <header class="modal-header">
+        <h2 id="booking-edit-title">Edit Booking</h2>
+        <button type="button" class="modal-close-btn" data-close-modal aria-label="Close edit booking dialog">
+          &times;
+        </button>
+      </header>
+      <form id="booking-edit-form" class="modal-form">
+        <section class="modal-section">
+          <div class="modal-field-grid">
+            <label class="modal-field">
+              <span class="modal-field-label">Booking ID</span>
+              <input type="text" name="booking_id" readonly>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Status</span>
+              <select name="status">
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="rescheduled">Rescheduled</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Booking Type</span>
+              <select name="booking_type">
+                <option value="package_only">Package Only</option>
+                <option value="tour_only">Tour Only</option>
+              </select>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Number of Tourists</span>
+              <input type="number" name="number_of_tourist" min="1" step="1">
+            </label>
+          </div>
+        </section>
+
+        <section class="modal-section">
+          <h3 class="modal-subtitle">Customer Details</h3>
+          <div class="modal-field-grid">
+            <label class="modal-field">
+              <span class="modal-field-label">First Name</span>
+              <input type="text" name="customer_first_name" required>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Last Name</span>
+              <input type="text" name="customer_last_name" required>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Email</span>
+              <input type="email" name="customer_email" required>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Contact Number</span>
+              <input type="text" name="customer_contact" required>
+            </label>
+          </div>
+        </section>
+
+        <section class="modal-section">
+          <h3 class="modal-subtitle">Schedule & Preferences</h3>
+          <div class="modal-field-grid">
+            <label class="modal-field">
+              <span class="modal-field-label">Arrival Date</span>
+              <input type="date" name="arrival_date">
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Departure Date</span>
+              <input type="date" name="departure_date">
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Hotel ID</span>
+              <input type="text" name="hotel_id">
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Hotel Nights</span>
+              <input type="number" name="hotel_nights" min="0" step="1">
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Package Only ID</span>
+              <input type="text" name="package_only_id">
+            </label>
+          </div>
+          <label class="modal-field modal-field-full">
+            <span class="modal-field-label">Booking Preferences</span>
+            <textarea name="booking_preferences" rows="3"></textarea>
+          </label>
+          <label class="modal-field modal-field-full">
+            <span class="modal-field-label">Notes</span>
+            <textarea name="notes" rows="3" placeholder="Optional internal notes"></textarea>
+          </label>
+        </section>
+
+        <section class="modal-section">
+          <h3 class="modal-subtitle">Vehicles</h3>
+          <div class="modal-repeatable-list" data-vehicle-list></div>
+          <button type="button" class="modal-secondary-btn" data-add-vehicle>
+            + Add Vehicle
+          </button>
+        </section>
+
+        <section class="modal-section">
+          <h3 class="modal-subtitle">Van Rentals</h3>
+          <div class="modal-repeatable-list" data-van-rental-list></div>
+          <button type="button" class="modal-secondary-btn" data-add-van-rental>
+            + Add Van Rental
+          </button>
+        </section>
+
+        <section class="modal-section">
+          <h3 class="modal-subtitle">Payment</h3>
+          <div class="modal-field-grid">
+            <label class="modal-field">
+              <span class="modal-field-label">Total Booking Amount (₱)</span>
+              <input type="number" name="total_booking_amount" min="0" step="0.01">
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Payment Date</span>
+              <input type="date" name="payment_date">
+            </label>
+          </div>
+        </section>
+
+        <footer class="modal-footer">
+          <button type="button" class="modal-secondary-btn" data-cancel-modal>Cancel</button>
+          <button type="submit" class="modal-primary-btn">Save Changes</button>
+        </footer>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
