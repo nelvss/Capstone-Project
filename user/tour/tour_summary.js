@@ -544,7 +544,7 @@ async function submitBooking() {
             arrival_date: bookingData.arrivalDate,
             departure_date: bookingData.departureDate,
             number_of_tourist: parseInt(bookingData.touristCount || 1),
-            hotel_id: 'N/A', // Explicitly mark no hotel for Tour Only bookings
+            hotel_id: '04bd82cd-8422-4a5c-b4d5-a121bf000156', // Default Tour Only hotel placeholder
             hotel_nights: 0,
             status: 'pending'
         };
