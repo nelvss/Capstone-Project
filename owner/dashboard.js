@@ -471,7 +471,6 @@ function populateBookingEditForm(booking) {
   setFormValue('booking_preferences', raw.booking_preferences || '');
   setFormValue('notes', raw.notes || '');
   setFormValue('total_booking_amount', raw.total_booking_amount ?? '');
-  setFormValue('payment_date', extractDateOnly(raw.payment_date));
 
   if (ownerEditModal.vehicleList) {
     ownerEditModal.vehicleList.innerHTML = '';
@@ -494,6 +493,35 @@ function populateBookingEditForm(booking) {
   }
 
   ownerEditModal.container?.scrollTo({ top: 0 });
+}
+
+// Function to calculate and update total booking amount
+function updateTotalBookingAmount() {
+  if (!ownerEditModal) return;
+  
+  let total = 0;
+  
+  // Sum all vehicle amounts
+  const vehicleRows = ownerEditModal.vehicleList?.querySelectorAll('.modal-repeatable-item') || [];
+  vehicleRows.forEach(row => {
+    const amount = parseFloat(getRepeatableFieldValue(row, 'total_amount')) || 0;
+    total += amount;
+  });
+  
+  // Sum all van rental amounts
+  const vanRows = ownerEditModal.vanRentalList?.querySelectorAll('.modal-repeatable-item') || [];
+  vanRows.forEach(row => {
+    const amount = parseFloat(getRepeatableFieldValue(row, 'total_amount')) || 0;
+    total += amount;
+  });
+  
+  // Update the total booking amount field
+  const totalField = document.querySelector('[name="total_booking_amount"]');
+  if (totalField) {
+    totalField.value = total.toFixed(2);
+  }
+  
+  console.log('💰 Total Booking Amount updated:', total);
 }
 
 function createVehicleRowElement() {
@@ -547,6 +575,7 @@ function addVehicleRow(data = {}) {
     if (!ownerEditModal.vehicleList.querySelector('.modal-repeatable-item')) {
       setRepeatableEmptyState(ownerEditModal.vehicleList, VEHICLE_EMPTY_MESSAGE);
     }
+    updateTotalBookingAmount(); // Update total when vehicle is removed
   });
 
   const vehicleIdField = row.querySelector('[data-field="vehicle_id"]');
@@ -561,6 +590,7 @@ function addVehicleRow(data = {}) {
     const days = parseInt(rentalDaysField.value || 1);
     const total = pricePerDay * days;
     totalAmountField.value = total.toFixed(2);
+    updateTotalBookingAmount(); // Update total booking amount
   };
 
   // Event listener for vehicle selection change
@@ -661,6 +691,7 @@ function addVanRentalRow(data = {}) {
     if (!ownerEditModal.vanRentalList.querySelector('.modal-repeatable-item')) {
       setRepeatableEmptyState(ownerEditModal.vanRentalList, VAN_EMPTY_MESSAGE);
     }
+    updateTotalBookingAmount(); // Update total when van rental is removed
   });
 
   // Get field elements
@@ -736,6 +767,7 @@ function addVanRentalRow(data = {}) {
 
     const total = pricePerDay * days;
     totalAmountInput.value = total.toFixed(2);
+    updateTotalBookingAmount(); // Update total booking amount
   }
 
   // Event listener for location type change
@@ -744,6 +776,7 @@ function addVanRentalRow(data = {}) {
     updateDestinationOptions(locationType);
     destinationIdInput.value = '';
     totalAmountInput.value = '';
+    updateTotalBookingAmount(); // Update total when destination is cleared
   });
 
   // Event listener for destination change
@@ -839,7 +872,6 @@ function collectBookingFormData() {
     booking_preferences: trim(formData.get('booking_preferences')),
     notes: trim(formData.get('notes')),
     total_booking_amount: parseNumberField(formData.get('total_booking_amount')),
-    payment_date: emptyToNull(trim(formData.get('payment_date'))),
     vehicles: [],
     van_rentals: []
   };
