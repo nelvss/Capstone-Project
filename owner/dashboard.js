@@ -1,5 +1,6 @@
 // Dynamic bookings array - will be populated from API
 let bookings = [];
+let availableVehicles = []; // Store vehicles for dropdown
 
 let ownerStatusFilter = 'all';
 
@@ -126,6 +127,30 @@ async function loadBookings() {
       container.insertBefore(errorMessage, container.firstChild);
     }
     
+    return false;
+  }
+}
+
+// Load vehicles from API
+async function loadVehicles() {
+  try {
+    console.log('🚗 Loading vehicles from API...');
+    
+    const response = await fetch(`${API_URL}/api/vehicles`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load vehicles');
+    }
+    
+    availableVehicles = result.vehicles || [];
+    
+    console.log('✅ Vehicles loaded successfully:', availableVehicles.length, 'vehicles');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error loading vehicles:', error);
+    availableVehicles = [];
     return false;
   }
 }
@@ -446,27 +471,37 @@ function populateBookingEditForm(booking) {
 function createVehicleRowElement() {
   const row = document.createElement('div');
   row.className = 'modal-repeatable-item';
+  
+  // Build vehicle dropdown options
+  let vehicleOptions = '<option value="">Select a vehicle</option>';
+  availableVehicles.forEach(vehicle => {
+    vehicleOptions += `<option value="${vehicle.vehicle_id}" data-price="${vehicle.price_per_day}">${vehicle.name}</option>`;
+  });
+  
   row.innerHTML = `
     <button type="button" class="modal-row-remove" aria-label="Remove vehicle">Remove</button>
     <div class="modal-row-grid">
       <label class="modal-field">
         <span class="modal-field-label">Vehicle ID</span>
-        <input type="text" data-field="vehicle_id">
+        <input type="text" data-field="vehicle_id" readonly>
       </label>
       <label class="modal-field">
         <span class="modal-field-label">Vehicle Name</span>
-        <input type="text" data-field="vehicle_name">
+        <select data-field="vehicle_name">
+          ${vehicleOptions}
+        </select>
       </label>
       <label class="modal-field">
         <span class="modal-field-label">Rental Days</span>
-        <input type="number" min="1" step="1" data-field="rental_days">
+        <input type="number" min="1" step="1" data-field="rental_days" value="1">
       </label>
       <label class="modal-field">
         <span class="modal-field-label">Total Amount</span>
-        <input type="number" min="0" step="0.01" data-field="total_amount">
+        <input type="number" min="0" step="0.01" data-field="total_amount" readonly>
       </label>
     </div>
   `;
+  
   return row;
 }
 
@@ -486,13 +521,52 @@ function addVehicleRow(data = {}) {
     }
   });
 
+  const vehicleIdField = row.querySelector('[data-field="vehicle_id"]');
+  const vehicleNameField = row.querySelector('[data-field="vehicle_name"]');
+  const rentalDaysField = row.querySelector('[data-field="rental_days"]');
+  const totalAmountField = row.querySelector('[data-field="total_amount"]');
+
+  // Function to calculate total amount
+  const calculateTotal = () => {
+    const selectedOption = vehicleNameField.options[vehicleNameField.selectedIndex];
+    const pricePerDay = parseFloat(selectedOption.dataset.price || 0);
+    const days = parseInt(rentalDaysField.value || 1);
+    const total = pricePerDay * days;
+    totalAmountField.value = total.toFixed(2);
+  };
+
+  // Event listener for vehicle selection change
+  vehicleNameField.addEventListener('change', (e) => {
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    const vehicleId = selectedOption.value;
+    
+    // Update vehicle ID field
+    vehicleIdField.value = vehicleId;
+    
+    // Calculate total
+    calculateTotal();
+  });
+
+  // Event listener for rental days change
+  rentalDaysField.addEventListener('input', calculateTotal);
+
+  // Set initial values if data is provided
   const vehicleId = data.vehicle_id ?? data.vehicle?.vehicle_id ?? '';
   const vehicleName = data.vehicle_name ?? data.vehicle?.name ?? '';
 
-  row.querySelector('[data-field="vehicle_id"]').value = vehicleId ?? '';
-  row.querySelector('[data-field="vehicle_name"]').value = vehicleName ?? '';
-  row.querySelector('[data-field="rental_days"]').value = data.rental_days ?? '';
-  row.querySelector('[data-field="total_amount"]').value = data.total_amount ?? '';
+  if (vehicleId) {
+    vehicleIdField.value = vehicleId;
+    // Set the dropdown to the matching vehicle ID
+    vehicleNameField.value = vehicleId;
+  }
+  
+  rentalDaysField.value = data.rental_days ?? 1;
+  totalAmountField.value = data.total_amount ?? '';
+  
+  // If we have existing data, calculate total if not already set
+  if (vehicleId && !data.total_amount) {
+    calculateTotal();
+  }
 }
 
 function createVanRentalRowElement() {
@@ -560,6 +634,13 @@ function addVanRentalRow(data = {}) {
 function getRepeatableFieldValue(row, field) {
   const el = row.querySelector(`[data-field="${field}"]`);
   if (!el) return '';
+  
+  // For vehicle_name field which is now a select, we want to get the text of selected option
+  if (field === 'vehicle_name' && el.tagName === 'SELECT') {
+    const selectedOption = el.options[el.selectedIndex];
+    return selectedOption ? selectedOption.text : '';
+  }
+  
   return el.value ?? '';
 }
 
@@ -1046,7 +1127,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Check session before loading dashboard
   if (checkSession()) {
     try {
-      // Load bookings from API
+      // Load vehicles and bookings from API
+      await loadVehicles(); // Load vehicles first
       const bookingsLoaded = await loadBookings();
       
       if (bookingsLoaded) {
