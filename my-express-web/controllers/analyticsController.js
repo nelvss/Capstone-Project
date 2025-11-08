@@ -915,6 +915,278 @@ const getVanDestinations = async (req, res) => {
   }
 };
 
+// Get booking demand time-series for predictive analytics
+const getBookingDemandTimeseries = async (req, res) => {
+  const {
+    start_date: startDateParam,
+    end_date: endDateParam,
+    horizon: horizonParam,
+    lookback_days: lookbackParam
+  } = req.query;
+
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const sanitizeDate = (value, fallback) => {
+    if (!value) return fallback;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? fallback : parsed;
+  };
+
+  const endDate = sanitizeDate(endDateParam, new Date());
+  const lookbackDaysRaw = parseInt(lookbackParam, 10);
+  const lookbackDays = Number.isFinite(lookbackDaysRaw)
+    ? Math.min(Math.max(lookbackDaysRaw, 30), 730)
+    : 180;
+  const startDateDefault = new Date(endDate.getTime() - lookbackDays * MS_PER_DAY);
+  const startDate = sanitizeDate(startDateParam, startDateDefault);
+  const horizonRaw = parseInt(horizonParam, 10);
+  const forecastHorizon = Number.isFinite(horizonRaw)
+    ? Math.min(Math.max(horizonRaw, 1), 30)
+    : 7;
+
+  const startIso = startDate.toISOString().split('T')[0];
+  const endIso = endDate.toISOString().split('T')[0];
+
+  const normalizeDay = (value) => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed.toISOString().split('T')[0];
+  };
+
+  const slugify = (str) =>
+    String(str || 'general')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'general';
+
+  const formatLabel = (raw, type) => {
+    if (!raw) {
+      return type === 'package' ? 'Unnamed Package' : 'Unnamed Tour';
+    }
+    const cleaned = String(raw).trim();
+    if (!cleaned) {
+      return type === 'package' ? 'Unnamed Package' : 'Unnamed Tour';
+    }
+    return cleaned
+      .split(/[\s_]+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  const withinRange = (dateString) => !!dateString && dateString >= startIso && dateString <= endIso;
+
+  try {
+    console.log('📊 Fetching booking demand time-series:', {
+      startIso,
+      endIso,
+      forecastHorizon
+    });
+
+    let bookingsQuery = supabase
+      .from('bookings')
+      .select('booking_id, created_at, status')
+      .gte('created_at', `${startIso}T00:00:00Z`)
+      .lte('created_at', `${endIso}T23:59:59Z`);
+
+    const { data: bookings, error: bookingsError } = await bookingsQuery;
+
+    if (bookingsError) {
+      console.error('❌ Error fetching base bookings:', bookingsError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch base bookings',
+        error: bookingsError.message
+      });
+    }
+
+    const approvedStatuses = new Set(['confirmed', 'completed']);
+    const bookingStatusMap = new Map();
+
+    bookings
+      ?.filter((booking) => booking.booking_id)
+      .forEach((booking) => {
+        if (approvedStatuses.has(String(booking.status || '').toLowerCase())) {
+          const bookingId = String(booking.booking_id).trim();
+          const createdDay = normalizeDay(booking.created_at);
+          if (bookingId && createdDay && withinRange(createdDay)) {
+            bookingStatusMap.set(bookingId, createdDay);
+          }
+        }
+      });
+
+    if (bookingStatusMap.size === 0) {
+      console.warn('ℹ️ No qualifying bookings found for demand timeseries.');
+      return res.json({
+        success: true,
+        data: {
+          generated_at: new Date().toISOString(),
+          start_date: startIso,
+          end_date: endIso,
+          horizon: forecastHorizon,
+          services: [],
+          total: []
+        }
+      });
+    }
+
+    const bookingIds = Array.from(bookingStatusMap.keys());
+
+    const [tourData, packageData, vehicleData, divingData, vanData] = await Promise.all([
+      supabase
+        .from('booking_tour')
+        .select('booking_id, tour_type, tour_date')
+        .in('booking_id', bookingIds),
+      supabase
+        .from('package_only')
+        .select('booking_id, package_name, created_at')
+        .in('booking_id', bookingIds),
+      supabase
+        .from('booking_vehicles')
+        .select('booking_id, vehicle_name, created_at')
+        .in('booking_id', bookingIds),
+      supabase
+        .from('bookings_diving')
+        .select('booking_id, diving_type, created_at')
+        .in('booking_id', bookingIds),
+      supabase
+        .from('bookings_van_rental')
+        .select('booking_id, choose_destination, created_at')
+        .in('booking_id', bookingIds)
+    ]);
+
+    [
+      { label: 'tour bookings', payload: tourData },
+      { label: 'package bookings', payload: packageData },
+      { label: 'vehicle bookings', payload: vehicleData },
+      { label: 'diving bookings', payload: divingData },
+      { label: 'van bookings', payload: vanData }
+    ].forEach(({ label, payload }) => {
+      if (payload?.error) {
+        console.warn(`⚠️ Failed to load ${label}:`, payload.error.message);
+      }
+    });
+
+    const registry = new Map();
+    const totalByDate = new Map();
+
+    const recordTotal = (dateKey) => {
+      if (!dateKey || !withinRange(dateKey)) return;
+      totalByDate.set(dateKey, (totalByDate.get(dateKey) || 0) + 1);
+    };
+
+    const upsertEntry = (key, label, type, dateKey) => {
+      if (!dateKey || !withinRange(dateKey)) return;
+      if (!registry.has(key)) {
+        registry.set(key, {
+          key,
+          label,
+          type,
+          byDate: new Map()
+        });
+      }
+      const entry = registry.get(key);
+      entry.byDate.set(dateKey, (entry.byDate.get(dateKey) || 0) + 1);
+      recordTotal(dateKey);
+    };
+
+    tourData.data?.forEach((booking) => {
+      const bookingId = String(booking.booking_id || '').trim();
+      if (!bookingId || !bookingStatusMap.has(bookingId)) return;
+      const serviceKey = `tour-${slugify(booking.tour_type)}`;
+      const label = formatLabel(booking.tour_type, 'tour');
+      const day = normalizeDay(booking.tour_date) || bookingStatusMap.get(bookingId);
+      upsertEntry(serviceKey, label, 'tour', day);
+    });
+
+    packageData.data?.forEach((booking) => {
+      const bookingId = String(booking.booking_id || '').trim();
+      if (!bookingId || !bookingStatusMap.has(bookingId)) return;
+      const serviceKey = `package-${slugify(booking.package_name)}`;
+      const label = formatLabel(booking.package_name, 'package');
+      const day = normalizeDay(booking.created_at) || bookingStatusMap.get(bookingId);
+      upsertEntry(serviceKey, label, 'package', day);
+    });
+
+    vehicleData.data?.forEach((booking) => {
+      const bookingId = String(booking.booking_id || '').trim();
+      if (!bookingId || !bookingStatusMap.has(bookingId)) return;
+      const serviceKey = `vehicle-${slugify(booking.vehicle_name)}`;
+      const label = formatLabel(booking.vehicle_name || 'Vehicle Rental', 'vehicle');
+      const day = normalizeDay(booking.created_at) || bookingStatusMap.get(bookingId);
+      upsertEntry(serviceKey, label, 'vehicle', day);
+    });
+
+    divingData.data?.forEach((booking) => {
+      const bookingId = String(booking.booking_id || '').trim();
+      if (!bookingId || !bookingStatusMap.has(bookingId)) return;
+      const serviceKey = `diving-${slugify(booking.diving_type)}`;
+      const label = formatLabel(booking.diving_type || 'Diving', 'diving');
+      const day = normalizeDay(booking.created_at) || bookingStatusMap.get(bookingId);
+      upsertEntry(serviceKey, label, 'diving', day);
+    });
+
+    vanData.data?.forEach((booking) => {
+      const bookingId = String(booking.booking_id || '').trim();
+      if (!bookingId || !bookingStatusMap.has(bookingId)) return;
+      const serviceKey = `van-${slugify(booking.choose_destination)}`;
+      const label = formatLabel(booking.choose_destination || 'Van Rental', 'van');
+      const day = normalizeDay(booking.created_at) || bookingStatusMap.get(bookingId);
+      upsertEntry(serviceKey, label, 'van', day);
+    });
+
+    bookingStatusMap.forEach((createdDay) => {
+      recordTotal(createdDay);
+    });
+
+    const servicesSeries = Array.from(registry.values())
+      .map((entry) => {
+        const sortedDates = Array.from(entry.byDate.keys()).sort();
+        return {
+          key: entry.key,
+          label: entry.label,
+          type: entry.type,
+          history: sortedDates.map((date) => ({
+            date,
+            value: entry.byDate.get(date)
+          }))
+        };
+      })
+      .filter((series) => series.history.length > 0);
+
+    const totalSeries = Array.from(totalByDate.keys())
+      .sort()
+      .map((date) => ({
+        date,
+        value: totalByDate.get(date)
+      }));
+
+    console.log('✅ Booking demand time-series generated:', {
+      services: servicesSeries.length,
+      totalPoints: totalSeries.length
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        generated_at: new Date().toISOString(),
+        start_date: startIso,
+        end_date: endIso,
+        horizon: forecastHorizon,
+        services: servicesSeries,
+        total: totalSeries
+      }
+    });
+  } catch (error) {
+    console.error('❌ Booking demand timeseries error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to generate booking demand timeseries',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getRevenue,
   getBookingsCount,
@@ -928,6 +1200,7 @@ module.exports = {
   getAvgBookingValue,
   getCancellationRate,
   getPeakBookingDays,
-  getVanDestinations
+  getVanDestinations,
+  getBookingDemandTimeseries
 };
 

@@ -37,6 +37,7 @@ window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? win
 
 // Dynamic analytics data - will be populated from API
 let analyticsData = {};
+let demandForecastCache = null;
 
 // Load analytics data from API (non-blocking, handles individual endpoint failures)
 async function fetchAnalyticsDataFromApi() {
@@ -51,7 +52,8 @@ async function fetchAnalyticsDataFromApi() {
     analyticsData = {
       revenue: { total_revenue: 0, total_bookings: 0, confirmed_bookings: 0 },
       counts: { total: 0, pending: 0, confirmed: 0, cancelled: 0, rescheduled: 0, completed: 0 },
-      services: { tours: {}, vehicles: 0, diving: {} }
+      services: { tours: {}, vehicles: 0, diving: {} },
+      forecast: null
     };
     
     let successCount = 0;
@@ -98,8 +100,27 @@ async function fetchAnalyticsDataFromApi() {
       console.warn('⚠️ Failed to load popular services:', error.message);
     }
     
+    // Load booking demand time-series (non-blocking)
+    try {
+      const params = new URLSearchParams({
+        lookback_days: '365',
+        horizon: '7'
+      });
+      const demandResponse = await fetch(`${window.API_URL}/api/analytics/booking-demand-timeseries?${params.toString()}`);
+      const demandResult = await demandResponse.json();
+      if (demandResponse.ok && demandResult.success) {
+        analyticsData.forecast = demandResult.data;
+        demandForecastCache = null;
+        successCount++;
+      } else {
+        console.warn('⚠️ Booking demand time-series not available', demandResult?.message);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load booking demand time-series:', error.message);
+    }
+    
     if (successCount > 0) {
-      console.log(`✅ Analytics data loaded successfully (${successCount}/3 endpoints)`);
+      console.log(`✅ Analytics data loaded successfully (${successCount}/4 endpoints)`);
       return true;
     } else {
       console.warn('ℹ️ No analytics data loaded, using fallback. Individual charts will load their own data.');
@@ -858,14 +879,8 @@ function updateRevenueForecastChart(month, week, year) {
     chart.update();
 }
 
-// Update Demand Prediction Chart (simple version since it's predictive)
 function updateDemandPredictionChart(month, week, year) {
-    const chart = chartInstances['demandPredictionChart'];
-    if (!chart) return;
-    
-    // For predictions, we'll keep it as is
-    // You can enhance this with month/week specific predictions
-    chart.update();
+    createDemandPredictionChart({ month, week, year });
 }
 
 // Revenue Trend Chart (removed from dashboard, kept for potential future use)
@@ -1231,39 +1246,413 @@ function createRevenueForecastChart() {
     });
 }
 
-// Demand Prediction Chart
-function createDemandPredictionChart() {
-    const ctx = document.getElementById('demandPredictionChart').getContext('2d');
-    const services = analyticsData.services || sampleAnalyticsData.services;
-    const serviceNames = Object.keys(services).slice(0, 6);
+// Demand Prediction Chart (TensorFlow.js powered)
+async function createDemandPredictionChart(filters = {}) {
+    const canvas = document.getElementById('demandPredictionChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
     
-    chartInstances['demandPredictionChart'] = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: serviceNames.map(formatServiceName),
-            datasets: [
-                {
-                    label: 'Current Demand',
-                    data: serviceNames.map(name => services[name].bookings),
-                    backgroundColor: '#6c757d'
+    setDemandPredictionStatus('Training TensorFlow.js models…', 'muted');
+    
+    try {
+        const prepared = await prepareDemandForecastData(filters);
+        
+        if (!prepared.datasets.length) {
+            if (chartInstances['demandPredictionChart']) {
+                chartInstances['demandPredictionChart'].destroy();
+                chartInstances['demandPredictionChart'] = null;
+            }
+            setDemandPredictionStatus('Not enough confirmed bookings to generate a forecast yet.', 'warning');
+            return;
+        }
+        
+        if (chartInstances['demandPredictionChart']) {
+            chartInstances['demandPredictionChart'].destroy();
+        }
+        
+        chartInstances['demandPredictionChart'] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: prepared.labels,
+                datasets: prepared.datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
                 },
-                {
-                    label: 'Predicted Demand',
-                    data: serviceNames.map(name => Math.round(services[name].bookings * (1 + services[name].growth / 100))),
-                    backgroundColor: '#28a745'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Bookings'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 14
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const value = context.parsed.y ?? 0;
+                                return `${context.dataset.label}: ${Math.max(0, Math.round(value))} bookings`;
+                            }
+                        }
+                    }
                 }
             }
+        });
+        
+        const statusParts = [`Forecast horizon: ${prepared.metadata.horizon} days`];
+        if (prepared.metadata.averageConfidence) {
+            statusParts.push(`Avg confidence ${(prepared.metadata.averageConfidence * 100).toFixed(0)}%`);
         }
+        if (prepared.metadata.generatedAt) {
+            statusParts.push(`Updated ${formatRelativeTime(prepared.metadata.generatedAt)}`);
+        }
+        setDemandPredictionStatus(statusParts.join(' • '), 'info');
+    } catch (error) {
+        console.error('❌ Failed to create demand prediction chart:', error);
+        if (chartInstances['demandPredictionChart']) {
+            chartInstances['demandPredictionChart'].destroy();
+            chartInstances['demandPredictionChart'] = null;
+        }
+        setDemandPredictionStatus('Unable to generate forecast. Please try again later.', 'danger');
+    }
+}
+
+function setDemandPredictionStatus(message, tone = 'muted') {
+    const statusEl = document.getElementById('demandPredictionStatus');
+    if (!statusEl) return;
+    const toneMap = {
+        muted: 'text-muted',
+        info: 'text-primary',
+        success: 'text-success',
+        warning: 'text-warning',
+        danger: 'text-danger'
+    };
+    const toneClass = toneMap[tone] || toneMap.muted;
+    statusEl.className = `small ${toneClass} mb-2`;
+    statusEl.textContent = message;
+}
+
+function formatRelativeTime(value) {
+    if (!value) return 'just now';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    
+    const diffMs = Date.now() - date.getTime();
+    const diffMinutes = Math.round(diffMs / 60000);
+    if (diffMinutes < 1) return 'just now';
+    if (diffMinutes < 60) return `${diffMinutes} min${diffMinutes === 1 ? '' : 's'} ago`;
+    
+    const diffHours = Math.round(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours} hr${diffHours === 1 ? '' : 's'} ago`;
+    
+    const diffDays = Math.round(diffHours / 24);
+    if (diffDays < 30) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+    
+    return date.toLocaleDateString();
+}
+
+async function prepareDemandForecastData(filters = {}) {
+    if (demandForecastCache && demandForecastCache.signature === JSON.stringify(filters)) {
+        return demandForecastCache.value;
+    }
+    
+    const forecastSource = analyticsData.forecast;
+    if (!forecastSource || !Array.isArray(forecastSource.services) || forecastSource.services.length === 0) {
+        return {
+            labels: [],
+            datasets: [],
+            metadata: {
+                horizon: forecastSource?.horizon || 7,
+                generatedAt: forecastSource?.generated_at || null,
+                averageConfidence: null
+            }
+        };
+    }
+    
+    const topServices = forecastSource.services
+        .map((service) => {
+            const historyTotal = Array.isArray(service.history)
+                ? service.history.reduce((sum, point) => sum + (Number(point?.value) || 0), 0)
+                : 0;
+            return {
+                ...service,
+                historyTotal
+            };
+        })
+        .filter((service) => service.historyTotal > 0)
+        .sort((a, b) => b.historyTotal - a.historyTotal)
+        .slice(0, 3);
+    
+    if (!topServices.length) {
+        return {
+            labels: [],
+            datasets: [],
+            metadata: {
+                horizon: forecastSource.horizon || 7,
+                generatedAt: forecastSource.generated_at || null,
+                averageConfidence: null
+            }
+        };
+    }
+    
+    await ensureTfReady();
+    
+    const labelSet = new Set();
+    const processedServices = [];
+    const confidences = [];
+    
+    for (const service of topServices) {
+        const series = buildDailySeries(service.history);
+        const hasSignal = series.values.some((value) => value > 0);
+        if (!hasSignal) {
+            continue;
+        }
+        
+        const forecastResult = await trainDenseForecast(series.values, forecastSource.horizon || 7);
+        confidences.push(forecastResult.confidence);
+        
+        const historyMap = new Map(series.dates.map((date, index) => [date, series.values[index]]));
+        const forecastMap = new Map();
+        let cursor = series.dates.length
+            ? new Date(`${series.dates[series.dates.length - 1]}T00:00:00Z`)
+            : new Date();
+        
+        forecastResult.forecast.forEach((value) => {
+            cursor = new Date(cursor.getTime() + 24 * 60 * 60 * 1000);
+            const dateKey = cursor.toISOString().split('T')[0];
+            forecastMap.set(dateKey, Math.max(0, Math.round(value)));
+        });
+        
+        series.dates.forEach((date) => labelSet.add(date));
+        forecastMap.forEach((_, date) => labelSet.add(date));
+        
+        processedServices.push({
+            key: service.key,
+            label: service.label,
+            historyMap,
+            forecastMap,
+            lastHistoryDate: series.dates[series.dates.length - 1]
+        });
+    }
+    
+    if (!processedServices.length) {
+        return {
+            labels: [],
+            datasets: [],
+            metadata: {
+                horizon: forecastSource.horizon || 7,
+                generatedAt: forecastSource.generated_at || null,
+                averageConfidence: null
+            }
+        };
+    }
+    
+    const labels = Array.from(labelSet).sort();
+    const palettes = [
+        { border: '#0d6efd', background: 'rgba(13, 110, 253, 0.15)' },
+        { border: '#ffa41b', background: 'rgba(255, 164, 27, 0.15)' },
+        { border: '#20c997', background: 'rgba(32, 201, 151, 0.15)' }
+    ];
+    
+    const datasets = [];
+    processedServices.forEach((service, index) => {
+        const palette = palettes[index % palettes.length];
+        const actualData = labels.map((date) => {
+            if (!service.lastHistoryDate || date > service.lastHistoryDate) {
+                return null;
+            }
+            return service.historyMap.get(date) ?? 0;
+        });
+        
+        const forecastData = labels.map((date) => {
+            if (!service.lastHistoryDate || date <= service.lastHistoryDate) {
+                return null;
+            }
+            return service.forecastMap.get(date) ?? null;
+        });
+        
+        datasets.push({
+            label: `${service.label} — Actual`,
+            data: actualData,
+            borderColor: palette.border,
+            backgroundColor: palette.background,
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.35,
+            spanGaps: true,
+            fill: false
+        });
+        
+        datasets.push({
+            label: `${service.label} — Forecast`,
+            data: forecastData,
+            borderColor: palette.border,
+            backgroundColor: palette.background,
+            borderDash: [6, 6],
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.35,
+            spanGaps: true,
+            fill: false
+        });
     });
+    
+    const prepared = {
+        labels,
+        datasets,
+        metadata: {
+            horizon: forecastSource.horizon || 7,
+            generatedAt: forecastSource.generated_at || null,
+            averageConfidence: confidences.length
+                ? confidences.reduce((sum, value) => sum + value, 0) / confidences.length
+                : null
+        }
+    };
+    
+    demandForecastCache = {
+        signature: JSON.stringify(filters),
+        value: prepared
+    };
+    
+    return prepared;
+}
+
+let tfReadyPromise = null;
+async function ensureTfReady() {
+    if (!window.tf) {
+        throw new Error('TensorFlow.js library not loaded');
+    }
+    if (!tfReadyPromise) {
+        tfReadyPromise = window.tf.ready();
+    }
+    await tfReadyPromise;
+}
+
+function buildDailySeries(history, { maxPoints = 180 } = {}) {
+    if (!Array.isArray(history) || history.length === 0) {
+        return { dates: [], values: [] };
+    }
+    
+    const sanitized = history
+        .map((point) => ({
+            date: point?.date,
+            value: Number(point?.value) || 0
+        }))
+        .filter((point) => point.date)
+        .sort((a, b) => a.date.localeCompare(b.date));
+    
+    if (!sanitized.length) {
+        return { dates: [], values: [] };
+    }
+    
+    const startIndex = Math.max(0, sanitized.length - maxPoints);
+    const truncated = sanitized.slice(startIndex);
+    const dataMap = new Map(truncated.map((point) => [point.date, point.value]));
+    
+    const startDate = new Date(`${truncated[0].date}T00:00:00Z`);
+    const endDate = new Date(`${truncated[truncated.length - 1].date}T00:00:00Z`);
+    const dates = [];
+    const values = [];
+    
+    for (let time = startDate.getTime(); time <= endDate.getTime(); time += 24 * 60 * 60 * 1000) {
+        const currentDate = new Date(time).toISOString().split('T')[0];
+        dates.push(currentDate);
+        values.push(dataMap.get(currentDate) || 0);
+    }
+    
+    return { dates, values };
+}
+
+async function trainDenseForecast(values, horizon) {
+    const nonZero = values.some((value) => value > 0);
+    if (!nonZero) {
+        return { forecast: new Array(horizon).fill(0), confidence: 0.5 };
+    }
+    
+    const maxVal = Math.max(...values, 1);
+    if (maxVal === 0) {
+        return { forecast: new Array(horizon).fill(0), confidence: 0.5 };
+    }
+    
+    const windowSize = Math.min(14, Math.max(4, Math.floor(values.length / 3)));
+    if (values.length <= windowSize + 1) {
+        const average = values.reduce((sum, value) => sum + value, 0) / values.length || 0;
+        return { forecast: new Array(horizon).fill(Math.max(0, average)), confidence: 0.4 };
+    }
+    
+    const sequences = [];
+    const targets = [];
+    for (let i = 0; i <= values.length - windowSize - 1; i++) {
+        const slice = values.slice(i, i + windowSize);
+        sequences.push(slice);
+        targets.push(values[i + windowSize]);
+    }
+    
+    if (sequences.length < 2) {
+        const average = values.reduce((sum, value) => sum + value, 0) / values.length || 0;
+        return { forecast: new Array(horizon).fill(Math.max(0, average)), confidence: 0.4 };
+    }
+    
+    const normalizedSequences = sequences.map((seq) => seq.map((value) => value / maxVal));
+    const normalizedTargets = targets.map((value) => value / maxVal);
+    
+    const xs = tf.tensor2d(normalizedSequences);
+    const ys = tf.tensor1d(normalizedTargets);
+    
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ inputShape: [windowSize], units: 16, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 8, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 1 }));
+    model.compile({ optimizer: tf.train.adam(0.01), loss: 'meanSquaredError' });
+    
+    const batchSize = Math.min(8, normalizedSequences.length);
+    const fitResult = await model.fit(xs, ys, {
+        epochs: 80,
+        batchSize,
+        shuffle: true,
+        verbose: 0
+    });
+    
+    xs.dispose();
+    ys.dispose();
+    
+    const forecast = [];
+    let latestWindow = values.slice(values.length - windowSize).map((value) => value / maxVal);
+    
+    for (let i = 0; i < horizon; i++) {
+        const prediction = tf.tidy(() => {
+            const inputTensor = tf.tensor2d([latestWindow]);
+            const outputTensor = model.predict(inputTensor);
+            const value = outputTensor.dataSync()[0];
+            return Math.max(0, value);
+        });
+        
+        const denormalized = Math.max(0, prediction * maxVal);
+        forecast.push(denormalized);
+        latestWindow = [...latestWindow.slice(1), prediction];
+    }
+    
+    model.dispose();
+    
+    const losses = fitResult.history?.loss || [];
+    const finalLoss = losses.length ? losses[losses.length - 1] : null;
+    const confidence = finalLoss != null ? Math.max(0.3, Math.min(0.95, 1 / (1 + finalLoss))) : 0.6;
+    
+    return { forecast, confidence };
 }
 
 // Populate analytics UI with current data
