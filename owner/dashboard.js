@@ -655,17 +655,26 @@ function populateBookingEditForm(booking) {
     tourSection.style.display = 'grid';
     packageSection.style.display = 'none';
     
-    // Populate tour data if available
-    if (raw.tour_only_id) {
+    console.log('📋 Populating tour details for booking:', raw);
+    console.log('📋 Booking preferences:', raw.booking_preferences);
+    console.log('📋 Tour Only ID:', raw.tour_only_id);
+    console.log('📋 Package Only ID:', raw.package_only_id);
+    
+    // Try to populate from tour_only_id or package_only_id field
+    const tourId = raw.tour_only_id || raw.package_only_id;
+    
+    if (tourId) {
       const tourIdInput = document.getElementById('tour-id-input');
       const tourTypeSelect = document.getElementById('tour-type-select');
       const tourPriceInput = document.getElementById('tour-price-input');
       const tourTotalInput = document.getElementById('tour-total-input');
       
-      tourIdInput.value = raw.tour_only_id;
+      tourIdInput.value = tourId;
       
       // Find the tour to get its category
-      const tour = availableTours.find(t => t.tour_only_id === raw.tour_only_id);
+      const tour = availableTours.find(t => t.tour_only_id === tourId);
+      console.log('🔍 Found tour:', tour);
+      
       if (tour) {
         // Map category to tour type
         const categoryToType = {
@@ -683,12 +692,18 @@ function populateBookingEditForm(booking) {
         const tourists = parseInt(raw.number_of_tourist) || 1;
         const pricing = tour.pricing?.find(p => tourists >= p.min_tourist && tourists <= p.max_tourist);
         
+        console.log('💰 Found pricing:', pricing, 'for', tourists, 'tourists');
+        
         if (pricing) {
           tourPriceInput.value = pricing.price_per_head;
           const total = pricing.price_per_head * tourists;
           tourTotalInput.value = total.toFixed(2);
         }
+      } else {
+        console.warn('⚠️ Tour not found in availableTours for ID:', tourId);
       }
+    } else {
+      console.warn('⚠️ No tour ID found in booking data');
     }
   } else if (bookingType === 'package_only') {
     tourSection.style.display = 'none';
