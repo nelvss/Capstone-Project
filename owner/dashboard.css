@@ -1206,7 +1206,7 @@ body.modal-open {
 
 .modal-field-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -1289,7 +1289,7 @@ body.modal-open {
 
 .modal-row-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -1352,6 +1352,11 @@ body.modal-open {
 
   .modal-form {
     padding: 0 20px;
+  }
+
+  .modal-field-grid,
+  .modal-row-grid {
+    grid-template-columns: 1fr;
   }
 
   .modal-footer {
