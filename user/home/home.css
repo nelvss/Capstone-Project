@@ -330,27 +330,27 @@ body::-webkit-scrollbar {
 
 /* Offcanvas Menu (Mobile) */
 .offcanvas {
-    background: #ffffff !important;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
     border: none;
-    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
 }
 
 .offcanvas-header {
-    border-bottom: 1px solid #e4e6eb;
-    padding: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
 }
 
 .offcanvas-title {
     font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 1.25rem;
-    color: #1f2937;
-    letter-spacing: 0.03em;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #ffffff;
+    letter-spacing: 0.5px;
 }
 
 .btn-close {
-    opacity: 0.7;
-    transition: all 0.2s ease;
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+    transition: all 0.3s ease;
 }
 
 .btn-close:hover {
@@ -359,7 +359,7 @@ body::-webkit-scrollbar {
 }
 
 .offcanvas-body {
-    padding: 1.75rem 1.5rem;
+    padding: 2rem 1.5rem;
 }
 
 /* Mobile Navigation Links */
@@ -375,16 +375,6 @@ body::-webkit-scrollbar {
         margin-bottom: 8px;
         width: 100%;
         display: block !important;
-    }
-
-    .offcanvas-body .nav-link-base {
-        padding: 0.65rem 0 !important;
-        font-size: 1.05rem;
-    }
-
-    .offcanvas-body .btn-book-now {
-        width: 100%;
-        margin-top: 0.75rem;
     }
 
     /* Make the offcanvas fill the viewport and remove internal scrolling */
@@ -564,26 +554,41 @@ body::-webkit-scrollbar {
 }
 
 /* ============================================
-   CLEAN NAVBAR STYLES (MATCHING MOCKUP)
+   MODERN NAVBAR STYLES
    ============================================ */
 
 nav.navbar {
-    background: #f5f5f7 !important;
-    border-bottom: 1px solid #e4e6eb !important;
-    padding: 0.9rem 0;
-    transition: padding 0.25s ease, box-shadow 0.25s ease;
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border: none !important;
+    padding: 1rem 0;
+    transition: all 0.3s ease;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
 }
 
 .navbar.fixed-top {
-    background: #f5f5f7 !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4),
+                0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    padding: 1rem 0;
 }
 
 .navbar.scrolled {
-    padding: 0.7rem 0;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08) !important;
+    padding: 0.75rem 0;
+    box-shadow: 0 4px 25px rgba(220, 53, 69, 0.5) !important;
+}
+
+/* Navbar Brand / Logo */
+.navbar-brand {
+    padding: 0.5rem 0;
+    margin-left: 1.5rem;
+}
+
+.navbar-brand img {
+    border: 2px solid #ffffff;
+    border-radius: 30%;
+    padding: 4px;
+    background: #ffffff;
 }
 
 /* Navbar Container */
@@ -597,135 +602,29 @@ nav.navbar {
     }
 }
 
-/* Brand */
-.navbar-brand {
-    padding: 0;
-    gap: 0.85rem;
-}
-
-.brand-logo-wrapper {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #ffffff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-}
-
-.brand-logo-wrapper img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    border-radius: 50%;
-}
-
-.brand-name {
-    font-family: 'Poppins', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: #1f2937;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-/* Nav Links */
-.nav-link-base {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 500;
-    font-size: 0.95rem;
-    letter-spacing: 0.015em;
-    color: #475569 !important;
-    padding: 0.35rem 0 !important;
-    position: relative;
-    transition: color 0.2s ease;
-}
-
-.nav-link-base span {
-    position: relative;
-    z-index: 1;
-}
-
-.nav-link-base::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -0.35rem;
-    height: 2px;
-    background: #d82424;
-    transform: scaleX(0);
-    transform-origin: center;
-    transition: transform 0.2s ease;
-}
-
-.nav-link-base:hover,
-.nav-link-base:focus {
-    color: #1f2937 !important;
-}
-
-.nav-link-base:hover::after,
-.nav-link-base:focus::after,
-.nav-link-base.active::after {
-    transform: scaleX(1);
-}
-
-.nav-link-base.active {
-    color: #1f2937 !important;
-    font-weight: 600;
-}
-
-/* Book Now Button */
-.btn-book-now {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #e11d25;
-    color: #ffffff !important;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    padding: 0.45rem 1.6rem !important;
-    border-radius: 999px;
-    border: none;
-    text-transform: none;
-    box-shadow: 0 6px 14px rgba(225, 29, 37, 0.25);
-    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.btn-book-now:hover,
-.btn-book-now:focus {
-    background: #c5171d;
-    color: #ffffff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(225, 29, 37, 0.3);
-}
-
-.btn-book-now span {
-    text-transform: capitalize;
-}
-
 /* Navbar Toggler */
 .navbar-toggler {
-    border: 1px solid rgba(71, 85, 105, 0.5) !important;
-    padding: 0.4rem 0.65rem;
+    border: 2px solid rgba(255, 255, 255, 0.6) !important;
+    padding: 0.5rem 0.75rem;
     border-radius: 8px;
-    transition: all 0.2s ease;
-    color: #1f2937;
+    transition: all 0.3s ease;
 }
 
-.navbar-toggler:hover,
+.navbar-toggler:hover {
+    border-color: rgba(255, 255, 255, 1) !important;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
 .navbar-toggler:focus {
-    border-color: rgba(31, 41, 55, 0.8) !important;
-    box-shadow: 0 0 0 0.2rem rgba(71, 85, 105, 0.2);
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(255, 255, 255, 1) !important;
 }
 
 .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2831, 41, 55, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
-    width: 1.35em;
-    height: 1.35em;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.95%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+    width: 1.5em;
+    height: 1.5em;
 }
 
 /* ============================================
