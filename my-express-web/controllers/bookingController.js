@@ -504,10 +504,17 @@ const updateBooking = async (req, res) => {
       status: normalizedStatus,
       number_of_tourist: parseInteger(number_of_tourist),
       hotel_id: hotel_id ? String(hotel_id).trim() : null,
-      hotel_nights: parseInteger(hotel_nights),
-      package_only_id: package_only_id ? String(package_only_id).trim() : null,
-      tour_only_id: tour_only_id ? String(tour_only_id).trim() : null
+      hotel_nights: parseInteger(hotel_nights)
     };
+
+    // Add package_only_id or tour_only_id based on booking type
+    if (normalizedBookingType === 'package_only') {
+      bookingUpdate.package_only_id = package_only_id ? String(package_only_id).trim() : null;
+    } else if (normalizedBookingType === 'tour_only') {
+      // Store tour info in booking_preferences since tour_only_id column might not exist
+      // The tour ID is already in booking_preferences format "Tour Only: Island Tour"
+      bookingUpdate.package_only_id = null; // Clear package ID for tour bookings
+    }
 
     const { data: updatedBooking, error: bookingError } = await supabase
       .from('bookings')
