@@ -203,6 +203,16 @@
               <input type="text" name="package_id" id="package-id-input" readonly>
             </label>
             <label class="modal-field">
+              <span class="modal-field-label">Hotel</span>
+              <select name="hotel_id" id="package-hotel-select">
+                <option value="">Loading hotels...</option>
+              </select>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Hotel Nights</span>
+              <input type="number" name="hotel_nights" id="package-hotel-nights" min="1" step="1">
+            </label>
+            <label class="modal-field">
               <span class="modal-field-label">Price Per Head (₱)</span>
               <input type="number" name="package_price" id="package-price-input" min="0" step="0.01" readonly>
             </label>
