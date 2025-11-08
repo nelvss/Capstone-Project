@@ -456,37 +456,6 @@
     // BOOKING SUBMISSION
     // ----------------------------
     
-    // Generate booking reference with year and counter (4 digits)
-    function generateBookingReference() {
-        const currentYear = new Date().getFullYear().toString().slice(-2); // Get 2-digit year
-        const storageKey = 'bookingCounter';
-        const yearKey = 'bookingYear';
-        
-        // Get stored values from localStorage
-        const storedYear = localStorage.getItem(yearKey);
-        const storedCounter = parseInt(localStorage.getItem(storageKey)) || 0;
-        
-        let counter = 1;
-        
-        // Check if year has changed
-        if (storedYear !== currentYear) {
-            // Year changed, reset counter to 1
-            counter = 1;
-        } else {
-            // Same year, increment counter
-            counter = storedCounter + 1;
-        }
-        
-        // Store updated values
-        localStorage.setItem(yearKey, currentYear);
-        localStorage.setItem(storageKey, counter.toString());
-        
-        // Format counter with leading zeros (0001, 0002, etc.)
-        const formattedCounter = counter.toString().padStart(4, '0');
-        
-        return `${currentYear}-${formattedCounter}`;
-    }
-
     window.submitBooking = async function() {
         console.log('🎯 Starting booking submission...');
         console.log('📋 Full booking data:', bookingData);
@@ -499,12 +468,8 @@
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
             }
             
-            // Generate booking reference
-            const bookingRef = generateBookingReference();
-            
             // Prepare booking data for API (matching actual database schema)
             const bookingPayload = {
-                booking_id: bookingRef, // Send the generated booking ID
                 customer_first_name: bookingData.firstName,
                 customer_last_name: bookingData.lastName,
                 customer_email: bookingData.emailAddress,
@@ -533,11 +498,14 @@
             
             const bookingResult = await bookingResponse.json();
             
-            if (!bookingResult.success) {
+            if (!bookingResult.success || !bookingResult.booking) {
                 throw new Error(bookingResult.message || 'Failed to create booking');
             }
             
             const bookingId = bookingResult.booking.booking_id || bookingResult.booking.id;
+            if (!bookingId) {
+                throw new Error('Booking created but server did not return a booking ID');
+            }
             console.log('Booking created successfully with ID:', bookingId);
             
             // Submit package booking details
@@ -780,7 +748,7 @@
             // Store final booking data with API response
             const finalBookingData = {
                 ...bookingData,
-                bookingReference: bookingRef,
+                bookingReference: bookingId,
                 bookingId: bookingId,
                 submissionDate: new Date().toISOString(),
                 status: 'pending'
@@ -792,10 +760,10 @@
             const bookingRefElement = document.getElementById('bookingReference');
             const finalBookingRefElement = document.getElementById('finalBookingReference');
             if (bookingRefElement) {
-                bookingRefElement.textContent = bookingRef;
+                bookingRefElement.textContent = bookingId;
             }
             if (finalBookingRefElement) {
-                finalBookingRefElement.textContent = bookingRef;
+                finalBookingRefElement.textContent = bookingId;
             }
             
             // Clear booking data from sessionStorage after successful submission
@@ -808,7 +776,7 @@
             sessionStorage.removeItem('paidAmount');
             
             // Show success message
-            alert('✅ Booking submitted successfully! Your booking reference is: ' + bookingRef);
+            alert('✅ Booking submitted successfully! Your booking reference is: ' + bookingId);
             
             // Move to confirmation step
             currentStep = 7;
