@@ -4,6 +4,7 @@ const {
   createBooking,
   getBookings,
   getBookingById,
+  updateBooking,
   updateBookingStatus,
   deleteBooking,
   createTourBooking,
@@ -16,6 +17,7 @@ const {
 router.post('/bookings', createBooking);
 router.get('/bookings', getBookings);
 router.get('/bookings/:id', getBookingById);
+router.put('/bookings/:id', updateBooking);
 router.put('/bookings/:id/status', updateBookingStatus);
 router.delete('/bookings/:id', deleteBooking);
 

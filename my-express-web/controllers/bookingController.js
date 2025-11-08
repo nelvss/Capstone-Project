@@ -1,6 +1,128 @@
 const supabase = require('../config/supabase');
 const { generateNextBookingId } = require('../utils/helpers');
 
+async function fetchBookingWithDetails(bookingId) {
+  try {
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('booking_id', bookingId)
+      .single();
+
+    if (bookingError) {
+      throw new Error(bookingError.message || 'Failed to fetch booking');
+    }
+
+    if (!booking) {
+      return null;
+    }
+
+    let hotelData = null;
+    if (booking.hotel_id) {
+      const { data: hotel, error: hotelError } = await supabase
+        .from('hotels')
+        .select('hotel_id, name, description, base_price_per_night')
+        .eq('hotel_id', booking.hotel_id)
+        .single();
+
+      if (hotelError) {
+        console.warn('⚠️ Failed to fetch hotel for booking:', hotelError.message);
+      } else {
+        hotelData = hotel;
+      }
+    }
+
+    const { data: vehicleBookings = [], error: vehicleError } = await supabase
+      .from('booking_vehicles')
+      .select('booking_id, vehicle_id, vehicle_name, rental_days, total_amount')
+      .eq('booking_id', bookingId);
+
+    if (vehicleError) {
+      throw new Error(vehicleError.message || 'Failed to fetch vehicle bookings');
+    }
+
+    const vehicleIds = [...new Set(vehicleBookings.map(v => v.vehicle_id).filter(Boolean))];
+    let vehiclesMap = {};
+    if (vehicleIds.length > 0) {
+      const { data: vehicles, error: vehiclesError } = await supabase
+        .from('vehicles')
+        .select('vehicle_id, name, price_per_day')
+        .in('vehicle_id', vehicleIds);
+
+      if (vehiclesError) {
+        throw new Error(vehiclesError.message || 'Failed to fetch vehicles');
+      }
+
+      vehiclesMap = (vehicles || []).reduce((acc, vehicle) => {
+        acc[vehicle.vehicle_id] = vehicle;
+        return acc;
+      }, {});
+    }
+
+    const vehicleBookingsWithDetails = (vehicleBookings || []).map(v => ({
+      ...v,
+      vehicle: v.vehicle_id ? vehiclesMap[v.vehicle_id] || null : null
+    }));
+
+    const { data: vanBookings = [], error: vanError } = await supabase
+      .from('bookings_van_rental')
+      .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination')
+      .eq('booking_id', bookingId);
+
+    if (vanError) {
+      throw new Error(vanError.message || 'Failed to fetch van rentals');
+    }
+
+    const vanDestinationIds = [...new Set(vanBookings.map(v => v.van_destination_id).filter(Boolean))];
+    let vanMap = {};
+    if (vanDestinationIds.length > 0) {
+      const { data: vanDestinations, error: vanDestinationsError } = await supabase
+        .from('van_destinations')
+        .select('van_destination_id, destination_name')
+        .in('van_destination_id', vanDestinationIds);
+
+      if (vanDestinationsError) {
+        throw new Error(vanDestinationsError.message || 'Failed to fetch van destinations');
+      }
+
+      vanMap = (vanDestinations || []).reduce((acc, dest) => {
+        acc[dest.van_destination_id] = dest;
+        return acc;
+      }, {});
+    }
+
+    const vanRentalsWithDetails = (vanBookings || []).map(v => ({
+      ...v,
+      destination: v.van_destination_id ? vanMap[v.van_destination_id] || null : null
+    }));
+
+    const { data: paymentData, error: paymentError } = await supabase
+      .from('payments')
+      .select('total_booking_amount, payment_date')
+      .eq('booking_id', bookingId)
+      .order('payment_date', { ascending: false })
+      .limit(1);
+
+    if (paymentError) {
+      throw new Error(paymentError.message || 'Failed to fetch payment details');
+    }
+
+    const payment = paymentData && paymentData.length > 0 ? paymentData[0] : null;
+
+    return {
+      ...booking,
+      hotels: hotelData,
+      vehicle_bookings: vehicleBookingsWithDetails,
+      van_rental_bookings: vanRentalsWithDetails,
+      total_booking_amount: payment ? payment.total_booking_amount : null,
+      payment_date: payment ? payment.payment_date : null
+    };
+  } catch (error) {
+    console.error('❌ fetchBookingWithDetails error:', error);
+    throw error;
+  }
+}
+
 // Create main booking record
 const createBooking = async (req, res) => {
   try {
@@ -283,74 +405,20 @@ const getBookingById = async (req, res) => {
     const { id } = req.params;
     
     console.log('📊 Fetching booking details for ID:', id);
-    
-    const { data: booking, error } = await supabase
-      .from('bookings')
-      .select('*')
-      .eq('booking_id', id)
-      .single();
-    
-    if (error) {
-      console.error('❌ Error fetching booking:', error);
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Booking not found', 
-        error: error.message 
+
+    const bookingWithDetails = await fetchBookingWithDetails(id);
+
+    if (!bookingWithDetails) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
       });
     }
-    
-    let hotelData = null;
-    if (booking.hotel_id) {
-      const { data: hotel } = await supabase
-        .from('hotels')
-        .select('hotel_id, name, description, base_price_per_night')
-        .eq('hotel_id', booking.hotel_id)
-        .single();
-      
-      if (hotel) {
-        hotelData = hotel;
-      }
-    }
-    
-    let vehicleBookingsData = [];
-    const { data: vehicleBookings } = await supabase
-      .from('booking_vehicles')
-      .select('booking_id, vehicle_id, vehicle_name, rental_days, total_amount')
-      .eq('booking_id', booking.booking_id);
-    
-    if (vehicleBookings && vehicleBookings.length > 0) {
-      const vehicleIds = [...new Set(vehicleBookings.map(vb => vb.vehicle_id).filter(id => id))];
-      let vehiclesData = {};
-      if (vehicleIds.length > 0) {
-        const { data: vehicles } = await supabase
-          .from('vehicles')
-          .select('vehicle_id, name, price_per_day')
-          .in('vehicle_id', vehicleIds);
-        
-        if (vehicles) {
-          vehiclesData = vehicles.reduce((acc, vehicle) => {
-            acc[vehicle.vehicle_id] = vehicle;
-            return acc;
-          }, {});
-        }
-      }
-      
-      vehicleBookingsData = vehicleBookings.map(vb => ({
-        ...vb,
-        vehicle: vb.vehicle_id ? vehiclesData[vb.vehicle_id] : null
-      }));
-    }
-    
-    const bookingWithDetails = {
-      ...booking,
-      hotels: hotelData,
-      vehicle_bookings: vehicleBookingsData
-    };
-    
+
     console.log('✅ Booking details fetched successfully');
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       booking: bookingWithDetails
     });
     
@@ -360,6 +428,254 @@ const getBookingById = async (req, res) => {
       success: false, 
       message: 'Internal server error',
       error: error.message 
+    });
+  }
+};
+
+const updateBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      status = 'pending',
+      booking_type,
+      number_of_tourist,
+      customer_first_name,
+      customer_last_name,
+      customer_email,
+      customer_contact,
+      arrival_date,
+      departure_date,
+      hotel_id,
+      hotel_nights,
+      package_only_id,
+      booking_preferences,
+      vehicles,
+      van_rentals,
+      total_booking_amount,
+      payment_date
+    } = req.body;
+
+    const vehicleEntries = Array.isArray(vehicles) ? vehicles : [];
+    const vanRentalEntries = Array.isArray(van_rentals) ? van_rentals : [];
+
+    const requiredFields = [
+      { key: 'customer_first_name', value: customer_first_name },
+      { key: 'customer_last_name', value: customer_last_name },
+      { key: 'customer_email', value: customer_email },
+      { key: 'customer_contact', value: customer_contact },
+      { key: 'arrival_date', value: arrival_date },
+      { key: 'departure_date', value: departure_date }
+    ];
+
+    const missingFields = requiredFields
+      .filter(field => !field.value || String(field.value).trim() === '')
+      .map(field => field.key);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      });
+    }
+
+    const validStatuses = ['pending', 'confirmed', 'cancelled', 'rescheduled', 'completed'];
+    const normalizedStatus = validStatuses.includes(status) ? status : 'pending';
+
+    const normalizedBookingType = ['package_only', 'tour_only'].includes(booking_type)
+      ? booking_type
+      : 'package_only';
+
+    const parseInteger = (value) => {
+      if (value === null || value === undefined || value === '') return null;
+      const parsed = parseInt(value, 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const bookingUpdate = {
+      customer_first_name: String(customer_first_name).trim(),
+      customer_last_name: String(customer_last_name).trim(),
+      customer_email: String(customer_email).trim(),
+      customer_contact: String(customer_contact).trim(),
+      arrival_date,
+      departure_date,
+      booking_preferences: booking_preferences ? String(booking_preferences).trim() : '',
+      booking_type: normalizedBookingType,
+      status: normalizedStatus,
+      number_of_tourist: parseInteger(number_of_tourist),
+      hotel_id: hotel_id ? String(hotel_id).trim() : null,
+      hotel_nights: parseInteger(hotel_nights),
+      package_only_id: package_only_id ? String(package_only_id).trim() : null
+    };
+
+    const { data: updatedBooking, error: bookingError } = await supabase
+      .from('bookings')
+      .update(bookingUpdate)
+      .eq('booking_id', id)
+      .select()
+      .single();
+
+    if (bookingError) {
+      console.error('❌ Error updating booking:', bookingError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update booking',
+        error: bookingError.message
+      });
+    }
+
+    if (!updatedBooking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    const { error: deleteVehiclesError } = await supabase
+      .from('booking_vehicles')
+      .delete()
+      .eq('booking_id', id);
+
+    if (deleteVehiclesError) {
+      console.error('❌ Error clearing vehicle bookings:', deleteVehiclesError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to reset vehicle bookings',
+        error: deleteVehiclesError.message
+      });
+    }
+
+    const vehicleRows = vehicleEntries
+      .map(entry => ({
+        booking_id: id,
+        vehicle_id: entry && entry.vehicle_id ? String(entry.vehicle_id).trim() : null,
+        vehicle_name: entry && entry.vehicle_name ? String(entry.vehicle_name).trim() : null,
+        rental_days: parseInteger(entry?.rental_days) || 0,
+        total_amount: Number(entry?.total_amount) || 0
+      }))
+      .filter(entry => entry.vehicle_id);
+
+    if (vehicleRows.length > 0) {
+      const { error: insertVehiclesError } = await supabase
+        .from('booking_vehicles')
+        .insert(vehicleRows);
+
+      if (insertVehiclesError) {
+        console.error('❌ Error inserting vehicle bookings:', insertVehiclesError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to save vehicle bookings',
+          error: insertVehiclesError.message
+        });
+      }
+    }
+
+    const { error: deleteVanError } = await supabase
+      .from('bookings_van_rental')
+      .delete()
+      .eq('booking_id', id);
+
+    if (deleteVanError) {
+      console.error('❌ Error clearing van rentals:', deleteVanError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to reset van rentals',
+        error: deleteVanError.message
+      });
+    }
+
+    const vanRows = vanRentalEntries
+      .map(entry => {
+        if (!entry) return null;
+        const tripTypeRaw = entry.trip_type ? String(entry.trip_type).toLowerCase() : '';
+        return {
+          booking_id: id,
+          van_destination_id: entry.van_destination_id ? String(entry.van_destination_id).trim() : null,
+          choose_destination: entry.choose_destination ? String(entry.choose_destination).trim() : null,
+          trip_type: tripTypeRaw === 'roundtrip' ? 'roundtrip' : 'oneway',
+          number_of_days: parseInteger(entry.number_of_days) || 0,
+          total_amount: Number(entry.total_amount) || 0
+        };
+      })
+      .filter(entry => entry && (entry.van_destination_id || entry.choose_destination || entry.number_of_days || entry.total_amount));
+
+    if (vanRows.length > 0) {
+      const { error: insertVanError } = await supabase
+        .from('bookings_van_rental')
+        .insert(vanRows);
+
+      if (insertVanError) {
+        console.error('❌ Error inserting van rentals:', insertVanError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to save van rentals',
+          error: insertVanError.message
+        });
+      }
+    }
+
+    const providedTotal = total_booking_amount !== undefined && total_booking_amount !== null && total_booking_amount !== ''
+      ? Number(total_booking_amount)
+      : null;
+
+    const isProvidedTotalValid = Number.isFinite(providedTotal);
+
+    const vehiclesSum = vehicleEntries.reduce((sum, entry) => {
+      const value = Number(entry?.total_amount);
+      return sum + (Number.isFinite(value) ? value : 0);
+    }, 0);
+
+    const vanSum = vanRentalEntries.reduce((sum, entry) => {
+      const value = Number(entry?.total_amount);
+      return sum + (Number.isFinite(value) ? value : 0);
+    }, 0);
+
+    const fallbackTotal = vehiclesSum + vanSum;
+    const finalTotal = isProvidedTotalValid ? providedTotal : (fallbackTotal > 0 ? fallbackTotal : null);
+    const normalizedPaymentDate = payment_date ? String(payment_date) : null;
+
+    if (finalTotal !== null || normalizedPaymentDate) {
+      const paymentPayload = {
+        booking_id: id,
+        total_booking_amount: finalTotal,
+        payment_date: normalizedPaymentDate
+      };
+
+      const { error: upsertPaymentError } = await supabase
+        .from('payments')
+        .upsert(paymentPayload, { onConflict: 'booking_id' });
+
+      if (upsertPaymentError) {
+        console.error('❌ Error updating payment:', upsertPaymentError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to update payment information',
+          error: upsertPaymentError.message
+        });
+      }
+    } else {
+      const { error: deletePaymentError } = await supabase
+        .from('payments')
+        .delete()
+        .eq('booking_id', id);
+
+      if (deletePaymentError) {
+        console.warn('⚠️ Failed to delete payment record:', deletePaymentError.message);
+      }
+    }
+
+    const detailedBooking = await fetchBookingWithDetails(id);
+
+    res.json({
+      success: true,
+      message: 'Booking updated successfully',
+      booking: detailedBooking
+    });
+  } catch (error) {
+    console.error('❌ Booking update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
     });
   }
 };
@@ -763,6 +1079,7 @@ module.exports = {
   createBooking,
   getBookings,
   getBookingById,
+  updateBooking,
   updateBookingStatus,
   deleteBooking,
   createTourBooking,
