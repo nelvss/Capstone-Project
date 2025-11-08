@@ -1219,6 +1219,37 @@ function collectBookingFormData() {
     }
   });
 
+  // Collect tour data if booking type is tour_only
+  if (payload.booking_type === 'tour_only') {
+    const tourId = trim(formData.get('tour_id'));
+    const tourType = trim(formData.get('tour_type'));
+    
+    if (tourId) {
+      payload.tour_only_id = tourId;
+      
+      // Find the tour to get its category
+      const tour = availableTours.find(t => t.tour_only_id === tourId);
+      if (tour) {
+        payload.booking_preferences = `Tour Only: ${tour.category}`;
+      }
+    }
+  }
+
+  // Collect package data if booking type is package_only
+  if (payload.booking_type === 'package_only') {
+    const packageId = trim(formData.get('package_id'));
+    
+    if (packageId) {
+      payload.package_only_id = packageId;
+      
+      // Find the package to get its category
+      const pkg = availablePackages.find(p => p.package_only_id === packageId);
+      if (pkg) {
+        payload.booking_preferences = `Package Only: ${pkg.category}`;
+      }
+    }
+  }
+
   return payload;
 }
 
@@ -1276,7 +1307,12 @@ async function submitBookingEditForm(event) {
     delete payloadForApi.booking_id;
     payloadForApi.status = payloadForApi.status || currentEditingBooking.status;
 
-    const response = await fetch(`${API_URL}/api/bookings/${currentEditingBooking.id}`, {
+    // Ensure we have a clean booking ID without any suffixes
+    const bookingId = String(currentEditingBooking.id).split(':')[0];
+    console.log('🔄 Updating booking with ID:', bookingId);
+    console.log('📤 Payload:', JSON.stringify(payloadForApi, null, 2));
+
+    const response = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
