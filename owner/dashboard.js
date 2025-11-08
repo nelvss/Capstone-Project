@@ -646,6 +646,88 @@ function populateBookingEditForm(booking) {
   setFormValue('notes', raw.notes || '');
   setFormValue('total_booking_amount', raw.total_booking_amount ?? '');
 
+  // Show/hide tour or package sections based on booking type
+  const tourSection = document.getElementById('tour-selection-section');
+  const packageSection = document.getElementById('package-selection-section');
+  const bookingType = raw.booking_type || 'package_only';
+  
+  if (bookingType === 'tour_only') {
+    tourSection.style.display = 'grid';
+    packageSection.style.display = 'none';
+    
+    // Populate tour data if available
+    if (raw.tour_only_id) {
+      const tourIdInput = document.getElementById('tour-id-input');
+      const tourTypeSelect = document.getElementById('tour-type-select');
+      const tourPriceInput = document.getElementById('tour-price-input');
+      const tourTotalInput = document.getElementById('tour-total-input');
+      
+      tourIdInput.value = raw.tour_only_id;
+      
+      // Find the tour to get its category
+      const tour = availableTours.find(t => t.tour_only_id === raw.tour_only_id);
+      if (tour) {
+        // Map category to tour type
+        const categoryToType = {
+          'Island Tour': 'island',
+          'Inland Tour': 'inland',
+          'Snorkeling Tour': 'snorkeling'
+        };
+        
+        const tourType = categoryToType[tour.category];
+        if (tourType) {
+          tourTypeSelect.value = tourType;
+        }
+        
+        // Calculate price based on number of tourists
+        const tourists = parseInt(raw.number_of_tourist) || 1;
+        const pricing = tour.pricing?.find(p => tourists >= p.min_tourist && tourists <= p.max_tourist);
+        
+        if (pricing) {
+          tourPriceInput.value = pricing.price_per_head;
+          const total = pricing.price_per_head * tourists;
+          tourTotalInput.value = total.toFixed(2);
+        }
+      }
+    }
+  } else if (bookingType === 'package_only') {
+    tourSection.style.display = 'none';
+    packageSection.style.display = 'grid';
+    
+    // Populate package data if available
+    if (raw.package_only_id) {
+      const packageIdInput = document.getElementById('package-id-input');
+      const packageTypeSelect = document.getElementById('package-type-select');
+      const packagePriceInput = document.getElementById('package-price-input');
+      const packageTotalInput = document.getElementById('package-total-input');
+      
+      packageIdInput.value = raw.package_only_id;
+      
+      // Find the package to get its category
+      const pkg = availablePackages.find(p => p.package_only_id === raw.package_only_id);
+      if (pkg) {
+        // Extract package number from category (e.g., "Package 1" -> "1")
+        const match = pkg.category?.match(/Package (\d)/);
+        if (match) {
+          packageTypeSelect.value = match[1];
+        }
+        
+        // Calculate price based on number of tourists
+        const tourists = parseInt(raw.number_of_tourist) || 1;
+        const pricing = pkg.pricing?.find(p => tourists >= p.min_tourist && tourists <= p.max_tourist);
+        
+        if (pricing) {
+          packagePriceInput.value = pricing.price_per_head;
+          const total = pricing.price_per_head * tourists;
+          packageTotalInput.value = total.toFixed(2);
+        }
+      }
+    }
+  } else {
+    tourSection.style.display = 'none';
+    packageSection.style.display = 'none';
+  }
+
   if (ownerEditModal.vehicleList) {
     ownerEditModal.vehicleList.innerHTML = '';
     const vehicles = raw.vehicle_bookings || [];
