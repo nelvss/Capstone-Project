@@ -494,37 +494,6 @@ function handleFileUpload(event) {
     }
 }
 
-// Generate booking reference with year and counter (4 digits)
-function generateBookingReference() {
-    const currentYear = new Date().getFullYear().toString().slice(-2); // Get 2-digit year
-    const storageKey = 'bookingCounter';
-    const yearKey = 'bookingYear';
-    
-    // Get stored values from localStorage
-    const storedYear = localStorage.getItem(yearKey);
-    const storedCounter = parseInt(localStorage.getItem(storageKey)) || 0;
-    
-    let counter = 1;
-    
-    // Check if year has changed
-    if (storedYear !== currentYear) {
-        // Year changed, reset counter to 1
-        counter = 1;
-    } else {
-        // Same year, increment counter
-        counter = storedCounter + 1;
-    }
-    
-    // Store updated values
-    localStorage.setItem(yearKey, currentYear);
-    localStorage.setItem(storageKey, counter.toString());
-    
-  // Format counter with leading zeros (0001, 0002, etc.)
-  const formattedCounter = counter.toString().padStart(4, '0');
-    
-    return `${currentYear}-${formattedCounter}`;
-}
-
 // Submit booking
 async function submitBooking() {
     try {
@@ -534,9 +503,6 @@ async function submitBooking() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
         }
-        
-        // Generate booking reference
-        const bookingRef = generateBookingReference();
         
         // Store booking data
         let bookingData = {};
@@ -558,7 +524,6 @@ async function submitBooking() {
         
         // Prepare main booking data for API (matching actual database schema)
         const bookingPayload = {
-            booking_id: bookingRef, // Send the generated booking ID
             customer_first_name: bookingData.firstName,
             customer_last_name: bookingData.lastName,
             customer_email: bookingData.emailAddress,
@@ -585,11 +550,14 @@ async function submitBooking() {
         
         const bookingResult = await bookingResponse.json();
         
-        if (!bookingResult.success) {
+        if (!bookingResult.success || !bookingResult.booking) {
             throw new Error(bookingResult.message || 'Failed to create booking');
         }
         
         const bookingId = bookingResult.booking.booking_id || bookingResult.booking.id;
+        if (!bookingId) {
+            throw new Error('Booking created but server did not return a booking ID');
+        }
         console.log('Tour booking created successfully with ID:', bookingId);
         
         // Submit tour-specific bookings
@@ -694,22 +662,25 @@ async function submitBooking() {
         }
         
         // Add booking reference and submission timestamp
-        bookingData.bookingReference = bookingRef;
-        bookingData.bookingId = bookingId;
-        bookingData.submissionDate = new Date().toISOString();
-        bookingData.status = 'pending';
+        const finalBookingData = {
+            ...bookingData,
+            bookingReference: bookingId,
+            bookingId: bookingId,
+            submissionDate: new Date().toISOString(),
+            status: 'pending'
+        };
         
         // Save updated booking data
-        sessionStorage.setItem('completeBookingData', JSON.stringify(bookingData));
+        sessionStorage.setItem('finalBookingData', JSON.stringify(finalBookingData));
         
         // Update booking reference displays
         const bookingRefElement = document.getElementById('bookingReference');
         const finalBookingRefElement = document.getElementById('finalBookingReference');
         if (bookingRefElement) {
-            bookingRefElement.textContent = bookingRef;
+            bookingRefElement.textContent = bookingId;
         }
         if (finalBookingRefElement) {
-            finalBookingRefElement.textContent = bookingRef;
+            finalBookingRefElement.textContent = bookingId;
         }
         
         // Clear booking data from sessionStorage after successful submission
@@ -722,7 +693,7 @@ async function submitBooking() {
         sessionStorage.removeItem('paidAmount');
         
         // Show success message
-        alert('✅ Tour booking submitted successfully! Your booking reference is: ' + bookingRef);
+        alert('✅ Tour booking submitted successfully! Your booking reference is: ' + bookingId);
         
         // Move to confirmation step
         nextStep();
