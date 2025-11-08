@@ -233,6 +233,41 @@ async function loadPackages() {
   }
 }
 
+// Load hotels from API
+async function loadHotels() {
+  try {
+    console.log('🏨 Loading hotels from API...');
+    
+    const response = await fetch(`${API_URL}/api/hotels`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load hotels');
+    }
+    
+    const hotels = result.hotels || [];
+    
+    // Populate hotel dropdown in package section
+    const hotelSelect = document.getElementById('package-hotel-select');
+    if (hotelSelect) {
+      hotelSelect.innerHTML = '<option value="">Select Hotel</option>';
+      hotels.forEach(hotel => {
+        const option = document.createElement('option');
+        option.value = hotel.hotel_id;
+        option.textContent = hotel.name;
+        hotelSelect.appendChild(option);
+      });
+    }
+    
+    console.log('✅ Hotels loaded successfully:', hotels.length, 'hotels');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error loading hotels:', error);
+    return false;
+  }
+}
+
 // Function to send email via API
 async function sendEmail(action, booking) {
   try {
@@ -713,8 +748,18 @@ function populateBookingEditForm(booking) {
       const packageTypeSelect = document.getElementById('package-type-select');
       const packagePriceInput = document.getElementById('package-price-input');
       const packageTotalInput = document.getElementById('package-total-input');
+      const hotelSelect = document.getElementById('package-hotel-select');
+      const hotelNightsInput = document.getElementById('package-hotel-nights');
       
       packageIdInput.value = raw.package_only_id;
+      
+      // Set hotel and hotel nights
+      if (raw.hotel_id && hotelSelect) {
+        hotelSelect.value = raw.hotel_id;
+      }
+      if (raw.hotel_nights && hotelNightsInput) {
+        hotelNightsInput.value = raw.hotel_nights;
+      }
       
       // Find the package to get its category
       const pkg = availablePackages.find(p => p.package_only_id === raw.package_only_id);
@@ -1662,11 +1707,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Check session before loading dashboard
   if (checkSession()) {
     try {
-      // Load vehicles, van destinations, tours, packages, and bookings from API
+      // Load vehicles, van destinations, tours, packages, hotels, and bookings from API
       await loadVehicles(); // Load vehicles first
       await loadVanDestinations(); // Load van destinations
       await loadTours(); // Load tours
       await loadPackages(); // Load packages
+      await loadHotels(); // Load hotels
       const bookingsLoaded = await loadBookings();
       
       if (bookingsLoaded) {
