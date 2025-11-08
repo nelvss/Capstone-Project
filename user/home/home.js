@@ -395,6 +395,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Navbar scroll behavior (shrink + shadow)
   const navbar = document.querySelector('nav.navbar');
+  const offcanvasElement = document.getElementById('offcanvasNavbar');
+
+  function hideOffcanvasMenu() {
+    if (!offcanvasElement) return;
+    const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasElement);
+    if (offcanvasInstance) {
+      offcanvasInstance.hide();
+    }
+  }
+
   function updateNavbarOnScroll() {
     if (!navbar) return;
     const shouldBeScrolled = window.scrollY > 10;
@@ -415,7 +425,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const elementPosition = target.getBoundingClientRect().top + window.pageYOffset;
       const top = Math.max(elementPosition - offset, 0);
       window.scrollTo({ top, behavior: 'smooth' });
+      hideOffcanvasMenu();
     });
+  });
+
+  document.querySelectorAll('#offcanvasNavbar .nav-link, #offcanvasNavbar .btn').forEach((el) => {
+    el.addEventListener('click', hideOffcanvasMenu);
   });
 
   // Active link highlight based on current section
