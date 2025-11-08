@@ -1324,6 +1324,11 @@ body.modal-open {
   color: #1e293b;
 }
 
+button.modal-secondary-btn[data-add-vehicle],
+button.modal-secondary-btn[data-add-van-rental] {
+  margin-top: 20px !important;
+}
+
 .modal-secondary-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 14px rgba(30, 41, 59, 0.12);
