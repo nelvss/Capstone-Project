@@ -544,7 +544,8 @@ async function submitBooking() {
             arrival_date: bookingData.arrivalDate,
             departure_date: bookingData.departureDate,
             number_of_tourist: parseInt(bookingData.touristCount || 1),
-            hotel_id: null, // Tour bookings typically don't include hotels
+            hotel_id: 'N/A', // Explicitly mark no hotel for Tour Only bookings
+            hotel_nights: 0,
             status: 'pending'
         };
         
