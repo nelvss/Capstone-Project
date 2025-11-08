@@ -400,7 +400,7 @@ async function sendEmail(action, booking) {
   const template = emailTemplates[action](booking);
   
   const mailOptions = {
-    from: `"Booking Management System" <${process.env.EMAIL_USER}>`,
+    from: `"OTG Puerto Galera Travel and Tours" <${process.env.EMAIL_USER}>`,
     to: booking.email || booking.customer_email,
     subject: template.subject,
     html: template.html
