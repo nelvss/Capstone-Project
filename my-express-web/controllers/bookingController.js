@@ -448,6 +448,7 @@ const updateBooking = async (req, res) => {
       hotel_id,
       hotel_nights,
       package_only_id,
+      tour_only_id,
       booking_preferences,
       vehicles,
       van_rentals,
@@ -504,7 +505,8 @@ const updateBooking = async (req, res) => {
       number_of_tourist: parseInteger(number_of_tourist),
       hotel_id: hotel_id ? String(hotel_id).trim() : null,
       hotel_nights: parseInteger(hotel_nights),
-      package_only_id: package_only_id ? String(package_only_id).trim() : null
+      package_only_id: package_only_id ? String(package_only_id).trim() : null,
+      tour_only_id: tour_only_id ? String(tour_only_id).trim() : null
     };
 
     const { data: updatedBooking, error: bookingError } = await supabase
