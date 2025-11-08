@@ -1219,6 +1219,8 @@ body.modal-open {
   gap: 6px;
   font-size: 0.85rem;
   color: #475569;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .modal-field-full {
@@ -1234,6 +1236,8 @@ body.modal-open {
 .modal-field select,
 .modal-field textarea {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 10px;
   padding: 10px 12px;
@@ -1296,6 +1300,10 @@ body.modal-open {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 20px;
   row-gap: 12px;
+}
+
+.modal-row-grid .modal-field {
+  min-width: 0;
 }
 
 .modal-secondary-btn,
