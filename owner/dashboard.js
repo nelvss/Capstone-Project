@@ -2,6 +2,8 @@
 let bookings = [];
 let availableVehicles = []; // Store vehicles for dropdown
 let availableVanDestinations = []; // Store van destinations for dropdown
+let availableTours = []; // Store tours for dropdown
+let availablePackages = []; // Store packages for dropdown
 
 let ownerStatusFilter = 'all';
 
@@ -183,6 +185,54 @@ async function loadVanDestinations() {
   }
 }
 
+// Load tours from API
+async function loadTours() {
+  try {
+    console.log('🏝️ Loading tours from API...');
+    
+    const response = await fetch(`${API_URL}/api/tours`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load tours');
+    }
+    
+    availableTours = result.tours || [];
+    
+    console.log('✅ Tours loaded successfully:', availableTours.length, 'tours');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error loading tours:', error);
+    availableTours = [];
+    return false;
+  }
+}
+
+// Load packages from API
+async function loadPackages() {
+  try {
+    console.log('📦 Loading packages from API...');
+    
+    const response = await fetch(`${API_URL}/api/packages?include=pricing`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load packages');
+    }
+    
+    availablePackages = result.packages || [];
+    
+    console.log('✅ Packages loaded successfully:', availablePackages.length, 'packages');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error loading packages:', error);
+    availablePackages = [];
+    return false;
+  }
+}
+
 // Function to send email via API
 async function sendEmail(action, booking) {
   try {
@@ -352,6 +402,130 @@ function setupBookingEditModal() {
   ownerEditModal.addVanRentalBtn?.addEventListener('click', () => addVanRentalRow());
   form?.addEventListener('submit', submitBookingEditForm);
 
+  // Setup booking type change handler
+  const bookingTypeSelect = form?.querySelector('[name="booking_type"]');
+  const tourSection = document.getElementById('tour-selection-section');
+  const packageSection = document.getElementById('package-selection-section');
+  const numberOfTourists = form?.querySelector('[name="number_of_tourist"]');
+  
+  if (bookingTypeSelect) {
+    bookingTypeSelect.addEventListener('change', (e) => {
+      const bookingType = e.target.value;
+      if (bookingType === 'tour_only') {
+        tourSection.style.display = 'grid';
+        packageSection.style.display = 'none';
+      } else if (bookingType === 'package_only') {
+        tourSection.style.display = 'none';
+        packageSection.style.display = 'grid';
+      } else {
+        tourSection.style.display = 'none';
+        packageSection.style.display = 'none';
+      }
+    });
+  }
+  
+  // Setup tour type change handler
+  const tourTypeSelect = document.getElementById('tour-type-select');
+  const tourIdInput = document.getElementById('tour-id-input');
+  const tourPriceInput = document.getElementById('tour-price-input');
+  const tourTotalInput = document.getElementById('tour-total-input');
+  
+  if (tourTypeSelect) {
+    tourTypeSelect.addEventListener('change', (e) => {
+      const tourType = e.target.value;
+      if (!tourType) {
+        tourIdInput.value = '';
+        tourPriceInput.value = '';
+        tourTotalInput.value = '';
+        updateTotalBookingAmount();
+        return;
+      }
+      
+      // Find tour by category
+      const categoryMap = {
+        'island': 'Island Tour',
+        'inland': 'Inland Tour',
+        'snorkeling': 'Snorkeling Tour'
+      };
+      
+      const tour = availableTours.find(t => t.category === categoryMap[tourType]);
+      if (tour) {
+        tourIdInput.value = tour.tour_only_id;
+        
+        // Find pricing based on number of tourists
+        const tourists = parseInt(numberOfTourists?.value) || 1;
+        const pricing = tour.pricing?.find(p => tourists >= p.min_tourist && tourists <= p.max_tourist);
+        
+        if (pricing) {
+          tourPriceInput.value = pricing.price_per_head;
+          const total = pricing.price_per_head * tourists;
+          tourTotalInput.value = total.toFixed(2);
+        } else {
+          tourPriceInput.value = '';
+          tourTotalInput.value = '';
+        }
+        
+        updateTotalBookingAmount();
+      }
+    });
+  }
+  
+  // Setup package type change handler
+  const packageTypeSelect = document.getElementById('package-type-select');
+  const packageIdInput = document.getElementById('package-id-input');
+  const packagePriceInput = document.getElementById('package-price-input');
+  const packageTotalInput = document.getElementById('package-total-input');
+  
+  if (packageTypeSelect) {
+    packageTypeSelect.addEventListener('change', (e) => {
+      const packageType = e.target.value;
+      if (!packageType) {
+        packageIdInput.value = '';
+        packagePriceInput.value = '';
+        packageTotalInput.value = '';
+        updateTotalBookingAmount();
+        return;
+      }
+      
+      // Find package by category (Package 1, Package 2, etc.)
+      const packageCategory = `Package ${packageType}`;
+      const pkg = availablePackages.find(p => p.category === packageCategory);
+      
+      if (pkg) {
+        packageIdInput.value = pkg.package_only_id;
+        
+        // Find pricing based on number of tourists
+        const tourists = parseInt(numberOfTourists?.value) || 1;
+        const pricing = pkg.pricing?.find(p => tourists >= p.min_tourist && tourists <= p.max_tourist);
+        
+        if (pricing) {
+          packagePriceInput.value = pricing.price_per_head;
+          const total = pricing.price_per_head * tourists;
+          packageTotalInput.value = total.toFixed(2);
+        } else {
+          packagePriceInput.value = '';
+          packageTotalInput.value = '';
+        }
+        
+        updateTotalBookingAmount();
+      }
+    });
+  }
+  
+  // Recalculate tour/package total when number of tourists changes
+  if (numberOfTourists) {
+    numberOfTourists.addEventListener('input', () => {
+      // Trigger recalculation for tour
+      if (tourTypeSelect?.value) {
+        tourTypeSelect.dispatchEvent(new Event('change'));
+      }
+      // Trigger recalculation for package
+      if (packageTypeSelect?.value) {
+        packageTypeSelect.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
   if (!ownerEditModal.escapeHandlerBound) {
     document.addEventListener('keydown', handleEditModalEscape);
     ownerEditModal.escapeHandlerBound = true;
@@ -500,6 +674,18 @@ function updateTotalBookingAmount() {
   if (!ownerEditModal) return;
   
   let total = 0;
+  
+  // Add tour amount if tour only
+  const tourTotal = document.getElementById('tour-total-input');
+  if (tourTotal && tourTotal.value) {
+    total += parseFloat(tourTotal.value) || 0;
+  }
+  
+  // Add package amount if package only
+  const packageTotal = document.getElementById('package-total-input');
+  if (packageTotal && packageTotal.value) {
+    total += parseFloat(packageTotal.value) || 0;
+  }
   
   // Sum all vehicle amounts
   const vehicleRows = ownerEditModal.vehicleList?.querySelectorAll('.modal-repeatable-item') || [];
@@ -1318,9 +1504,11 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Check session before loading dashboard
   if (checkSession()) {
     try {
-      // Load vehicles, van destinations, and bookings from API
+      // Load vehicles, van destinations, tours, packages, and bookings from API
       await loadVehicles(); // Load vehicles first
       await loadVanDestinations(); // Load van destinations
+      await loadTours(); // Load tours
+      await loadPackages(); // Load packages
       const bookingsLoaded = await loadBookings();
       
       if (bookingsLoaded) {
