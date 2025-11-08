@@ -422,6 +422,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const target = document.querySelector(targetId);
       if (!target) return;
       e.preventDefault();
+
+      document.querySelectorAll('a.nav-link.slant.active').forEach((el) => el.classList.remove('active'));
+      this.classList.add('active');
+
       const elementPosition = target.getBoundingClientRect().top + window.pageYOffset;
       const top = Math.max(elementPosition - offset, 0);
       window.scrollTo({ top, behavior: 'smooth' });
