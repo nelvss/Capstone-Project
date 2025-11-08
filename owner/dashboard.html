@@ -164,6 +164,57 @@
               <input type="number" name="number_of_tourist" min="1" step="1">
             </label>
           </div>
+          
+          <!-- Tour Selection (visible when Tour Only is selected) -->
+          <div class="modal-field-grid" id="tour-selection-section" style="display: none; margin-top: 16px;">
+            <label class="modal-field">
+              <span class="modal-field-label">Tour Type</span>
+              <select name="tour_type" id="tour-type-select">
+                <option value="">Select Tour Type</option>
+                <option value="island">Island Tour</option>
+                <option value="inland">Inland Tour</option>
+                <option value="snorkeling">Snorkeling Tour</option>
+              </select>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Tour ID</span>
+              <input type="text" name="tour_id" id="tour-id-input" readonly>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Price Per Head (₱)</span>
+              <input type="number" name="tour_price" id="tour-price-input" min="0" step="0.01" readonly>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Tour Total Amount (₱)</span>
+              <input type="number" name="tour_total_amount" id="tour-total-input" min="0" step="0.01" readonly>
+            </label>
+          </div>
+          
+          <!-- Package Selection (visible when Package Only is selected) -->
+          <div class="modal-field-grid" id="package-selection-section" style="display: none; margin-top: 16px;">
+            <label class="modal-field">
+              <span class="modal-field-label">Package</span>
+              <select name="package_type" id="package-type-select">
+                <option value="">Select Package</option>
+                <option value="1">Package 1</option>
+                <option value="2">Package 2</option>
+                <option value="3">Package 3</option>
+                <option value="4">Package 4</option>
+              </select>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Package ID</span>
+              <input type="text" name="package_id" id="package-id-input" readonly>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Price Per Head (₱)</span>
+              <input type="number" name="package_price" id="package-price-input" min="0" step="0.01" readonly>
+            </label>
+            <label class="modal-field">
+              <span class="modal-field-label">Package Total Amount (₱)</span>
+              <input type="number" name="package_total_amount" id="package-total-input" min="0" step="0.01" readonly>
+            </label>
+          </div>
         </section>
 
         <section class="modal-section">
