@@ -585,10 +585,12 @@ nav.navbar {
 }
 
 .navbar-brand img {
-    border: 2px solid #ffffff;
-    border-radius: 30%;
-    padding: 4px;
-    background: #ffffff;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+    max-height: 48px;
+    width: auto;
 }
 
 /* Navbar Container */
