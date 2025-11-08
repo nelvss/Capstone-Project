@@ -1,6 +1,7 @@
 // Dynamic bookings array - will be populated from API
 let bookings = [];
 let availableVehicles = []; // Store vehicles for dropdown
+let availableVanDestinations = []; // Store van destinations for dropdown
 
 let ownerStatusFilter = 'all';
 
@@ -151,6 +152,30 @@ async function loadVehicles() {
   } catch (error) {
     console.error('❌ Error loading vehicles:', error);
     availableVehicles = [];
+    return false;
+  }
+}
+
+// Load van destinations from API
+async function loadVanDestinations() {
+  try {
+    console.log('🚐 Loading van destinations from API...');
+    
+    const response = await fetch(`${API_URL}/api/van-destinations`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load van destinations');
+    }
+    
+    availableVanDestinations = result.destinations || [];
+    
+    console.log('✅ Van destinations loaded successfully:', availableVanDestinations.length, 'destinations');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error loading van destinations:', error);
+    availableVanDestinations = [];
     return false;
   }
 }
@@ -572,16 +597,32 @@ function addVehicleRow(data = {}) {
 function createVanRentalRowElement() {
   const row = document.createElement('div');
   row.className = 'modal-repeatable-item';
+  
+  // Create location type options
+  const locationTypeOptions = `
+    <option value="">Select Location Type</option>
+    <option value="within">Within Puerto Galera</option>
+    <option value="outside">Outside Puerto Galera</option>
+  `;
+  
   row.innerHTML = `
     <button type="button" class="modal-row-remove" aria-label="Remove van rental">Remove</button>
     <div class="modal-row-grid">
       <label class="modal-field">
         <span class="modal-field-label">Destination ID</span>
-        <input type="text" data-field="van_destination_id">
+        <input type="text" data-field="van_destination_id" readonly>
       </label>
       <label class="modal-field">
-        <span class="modal-field-label">Destination Name</span>
-        <input type="text" data-field="choose_destination">
+        <span class="modal-field-label">Location Type</span>
+        <select data-field="location_type">
+          ${locationTypeOptions}
+        </select>
+      </label>
+      <label class="modal-field">
+        <span class="modal-field-label">Destination Place</span>
+        <select data-field="choose_destination" disabled>
+          <option value="">Select location type first</option>
+        </select>
       </label>
       <label class="modal-field">
         <span class="modal-field-label">Trip Type</span>
@@ -592,11 +633,11 @@ function createVanRentalRowElement() {
       </label>
       <label class="modal-field">
         <span class="modal-field-label">Days</span>
-        <input type="number" min="1" step="1" data-field="number_of_days">
+        <input type="number" min="1" step="1" data-field="number_of_days" value="1">
       </label>
       <label class="modal-field">
         <span class="modal-field-label">Total Amount</span>
-        <input type="number" min="0" step="0.01" data-field="total_amount">
+        <input type="number" min="0" step="0.01" data-field="total_amount" readonly>
       </label>
     </div>
   `;
@@ -619,16 +660,106 @@ function addVanRentalRow(data = {}) {
     }
   });
 
-  const destinationId = data.van_destination_id ?? '';
-  const destinationName = data.choose_destination ?? data.destination?.destination_name ?? '';
+  // Get field elements
+  const locationTypeSelect = row.querySelector('[data-field="location_type"]');
+  const destinationSelect = row.querySelector('[data-field="choose_destination"]');
+  const destinationIdInput = row.querySelector('[data-field="van_destination_id"]');
+  const tripTypeSelect = row.querySelector('[data-field="trip_type"]');
+  const daysInput = row.querySelector('[data-field="number_of_days"]');
+  const totalAmountInput = row.querySelector('[data-field="total_amount"]');
+
+  // Function to update destination dropdown based on location type
+  function updateDestinationOptions(locationType) {
+    if (!locationType) {
+      destinationSelect.innerHTML = '<option value="">Select location type first</option>';
+      destinationSelect.disabled = true;
+      return;
+    }
+
+    const filteredDestinations = availableVanDestinations.filter(dest => {
+      const destLocationType = (dest.location_type || '').toLowerCase();
+      return destLocationType === locationType;
+    });
+
+    destinationSelect.innerHTML = '<option value="">Select Destination</option>';
+    filteredDestinations.forEach(dest => {
+      const option = document.createElement('option');
+      option.value = dest.van_destination_id;
+      option.textContent = dest.destination_name;
+      option.dataset.onewayPrice = dest.oneway_price || 0;
+      option.dataset.roundtripPrice = dest.roundtrip_price || 0;
+      destinationSelect.appendChild(option);
+    });
+
+    destinationSelect.disabled = false;
+  }
+
+  // Function to calculate total amount
+  function calculateVanTotal() {
+    const selectedOption = destinationSelect.options[destinationSelect.selectedIndex];
+    if (!selectedOption || !selectedOption.value) {
+      totalAmountInput.value = '';
+      return;
+    }
+
+    const tripType = tripTypeSelect.value;
+    const days = parseInt(daysInput.value) || 1;
+    
+    let pricePerDay = 0;
+    if (tripType === 'roundtrip') {
+      pricePerDay = parseFloat(selectedOption.dataset.roundtripPrice) || 0;
+    } else {
+      pricePerDay = parseFloat(selectedOption.dataset.onewayPrice) || 0;
+    }
+
+    const total = pricePerDay * days;
+    totalAmountInput.value = total.toFixed(2);
+  }
+
+  // Event listener for location type change
+  locationTypeSelect.addEventListener('change', (e) => {
+    const locationType = e.target.value;
+    updateDestinationOptions(locationType);
+    destinationIdInput.value = '';
+    totalAmountInput.value = '';
+  });
+
+  // Event listener for destination change
+  destinationSelect.addEventListener('change', (e) => {
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+      destinationIdInput.value = selectedOption.value;
+      calculateVanTotal();
+    } else {
+      destinationIdInput.value = '';
+      totalAmountInput.value = '';
+    }
+  });
+
+  // Event listeners for trip type and days change
+  tripTypeSelect.addEventListener('change', calculateVanTotal);
+  daysInput.addEventListener('input', calculateVanTotal);
+
+  // Populate data if provided
+  if (data.van_destination_id) {
+    const destination = availableVanDestinations.find(d => d.van_destination_id === data.van_destination_id);
+    if (destination) {
+      const locationType = (destination.location_type || '').toLowerCase();
+      locationTypeSelect.value = locationType;
+      updateDestinationOptions(locationType);
+      
+      setTimeout(() => {
+        destinationSelect.value = data.van_destination_id;
+        destinationIdInput.value = data.van_destination_id;
+      }, 50);
+    }
+  }
+
   const rawTripType = (data.trip_type || '').toLowerCase();
   const normalizedTripType = rawTripType === 'roundtrip' ? 'roundtrip' : 'oneway';
-
-  row.querySelector('[data-field="van_destination_id"]').value = destinationId ?? '';
-  row.querySelector('[data-field="choose_destination"]').value = destinationName ?? '';
-  row.querySelector('[data-field="trip_type"]').value = normalizedTripType;
-  row.querySelector('[data-field="number_of_days"]').value = data.number_of_days ?? '';
-  row.querySelector('[data-field="total_amount"]').value = data.total_amount ?? '';
+  tripTypeSelect.value = normalizedTripType;
+  daysInput.value = data.number_of_days || 1;
+  totalAmountInput.value = data.total_amount || '';
 }
 
 function getRepeatableFieldValue(row, field) {
@@ -637,6 +768,12 @@ function getRepeatableFieldValue(row, field) {
   
   // For vehicle_name field which is now a select, we want to get the text of selected option
   if (field === 'vehicle_name' && el.tagName === 'SELECT') {
+    const selectedOption = el.options[el.selectedIndex];
+    return selectedOption ? selectedOption.text : '';
+  }
+  
+  // For choose_destination field which is now a select, we want to get the text of selected option
+  if (field === 'choose_destination' && el.tagName === 'SELECT') {
     const selectedOption = el.options[el.selectedIndex];
     return selectedOption ? selectedOption.text : '';
   }
@@ -1127,8 +1264,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Check session before loading dashboard
   if (checkSession()) {
     try {
-      // Load vehicles and bookings from API
+      // Load vehicles, van destinations, and bookings from API
       await loadVehicles(); // Load vehicles first
+      await loadVanDestinations(); // Load van destinations
       const bookingsLoaded = await loadBookings();
       
       if (bookingsLoaded) {
