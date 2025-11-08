@@ -538,7 +538,6 @@ function initializeNavigation() {
 
 // Initialize all charts
 function initializeCharts() {
-    createRevenueForecastChart();
     createDemandPredictionChart();
     // New analytics charts
     createBookingStatusChart();
@@ -559,7 +558,6 @@ function initializeFilters() {
     
     // Populate all year filters
     const yearFilters = [
-        'revenueForecastYearFilter',
         'demandPredictionYearFilter',
         'bookingTypeYearFilter',
         'revenueStatusYearFilter',
@@ -593,7 +591,6 @@ function initializeFilters() {
     
     // Populate all month filters
     const monthFilters = [
-        'revenueForecastMonthFilter',
         'demandPredictionMonthFilter',
         'bookingTypeMonthFilter',
         'revenueStatusMonthFilter',
@@ -619,7 +616,6 @@ function initializeFilters() {
     
     // Add event listeners for week filters
     const weekFilters = [
-        'revenueForecastWeekFilter',
         'demandPredictionWeekFilter'
     ];
     
@@ -709,10 +705,7 @@ function handleWeekFilter(event, filterId) {
 function updateChart(monthFilterId, month, week, year) {
     let chartKey = '';
     
-    if (monthFilterId.includes('revenueForecast')) {
-        chartKey = 'revenueForecastChart';
-        updateRevenueForecastChart(month, week, year);
-    } else if (monthFilterId.includes('demandPrediction')) {
+    if (monthFilterId.includes('demandPrediction')) {
         chartKey = 'demandPredictionChart';
         updateDemandPredictionChart(month, week, year);
     } else if (monthFilterId.includes('bookingType')) {
@@ -866,16 +859,6 @@ function updatePackageTourChart(month, week, year) {
         chart.data.datasets[3].data = [weeklyData[month].packageData.package4[weekIndex]];
     }
     
-    chart.update();
-}
-
-// Update Revenue Forecast Chart (simple version since it's predictive)
-function updateRevenueForecastChart(month, week, year) {
-    const chart = chartInstances['revenueForecastChart'];
-    if (!chart) return;
-    
-    // For forecast, we'll just show filtered historical data
-    // You can enhance this with actual week-by-week forecasts
     chart.update();
 }
 
@@ -1190,55 +1173,6 @@ function createWeatherImpactChart() {
                     title: {
                         display: true,
                         text: 'Bookings'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Revenue Forecast Chart
-function createRevenueForecastChart() {
-    const ctx = document.getElementById('revenueForecastChart').getContext('2d');
-    const monthlyData = analyticsData.monthlyRevenue || sampleAnalyticsData.monthlyRevenue;
-    const predictions = analyticsData.predictions || sampleAnalyticsData.predictions;
-    const historicalData = monthlyData.slice(-6).map(d => d.revenue);
-    const forecastData = predictions.nextSixMonths.map(d => d.predicted);
-    
-    chartInstances['revenueForecastChart'] = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [
-                ...monthlyData.slice(-6).map(d => d.month),
-                ...predictions.nextSixMonths.map(d => d.month)
-            ],
-            datasets: [
-                {
-                    label: 'Historical',
-                    data: [...historicalData, ...new Array(6).fill(null)],
-                    borderColor: '#dc3545',
-                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                    borderDash: []
-                },
-                {
-                    label: 'Predicted',
-                    data: [...new Array(6).fill(null), ...forecastData],
-                    borderColor: '#28a745',
-                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                    borderDash: [5, 5]
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '₱' + (value / 1000) + 'K';
-                        }
                     }
                 }
             }
