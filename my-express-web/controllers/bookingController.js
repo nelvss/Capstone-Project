@@ -516,6 +516,8 @@ const updateBooking = async (req, res) => {
       bookingUpdate.package_only_id = null; // Clear package ID for tour bookings
     }
 
+    console.log('📝 Booking update payload:', JSON.stringify(bookingUpdate, null, 2));
+
     const { data: updatedBooking, error: bookingError } = await supabase
       .from('bookings')
       .update(bookingUpdate)
@@ -525,10 +527,18 @@ const updateBooking = async (req, res) => {
 
     if (bookingError) {
       console.error('❌ Error updating booking:', bookingError);
+      console.error('❌ Error details:', {
+        message: bookingError.message,
+        details: bookingError.details,
+        hint: bookingError.hint,
+        code: bookingError.code
+      });
       return res.status(500).json({
         success: false,
         message: 'Failed to update booking',
-        error: bookingError.message
+        error: bookingError.message,
+        details: bookingError.details,
+        hint: bookingError.hint
       });
     }
 
