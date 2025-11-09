@@ -690,9 +690,12 @@ const updateBooking = async (req, res) => {
     if (finalTotal !== null || normalizedPaymentDate) {
       const paymentPayload = {
         booking_id: id,
-        total_booking_amount: finalTotal,
-        payment_date: normalizedPaymentDate
+        total_booking_amount: finalTotal
       };
+
+      if (normalizedPaymentDate) {
+        paymentPayload.payment_date = normalizedPaymentDate;
+      }
 
       const { data: existingPayment, error: fetchPaymentError } = await supabase
         .from('payments')
