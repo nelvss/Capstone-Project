@@ -1342,14 +1342,15 @@ function collectBookingFormData() {
     : [];
 
   vehicleRows.forEach(row => {
-    const vehicle = {
-      vehicle_id: emptyToNull(trim(getRepeatableFieldValue(row, 'vehicle_id'))),
-      vehicle_name: emptyToNull(trim(getRepeatableFieldValue(row, 'vehicle_name'))),
-      rental_days: parseIntegerField(getRepeatableFieldValue(row, 'rental_days')),
-      total_amount: parseNumberField(getRepeatableFieldValue(row, 'total_amount'))
-    };
-
-    if (vehicle.vehicle_id || vehicle.vehicle_name || vehicle.rental_days !== null || vehicle.total_amount !== null) {
+    const vehicleId = emptyToNull(trim(getRepeatableFieldValue(row, 'vehicle_id')));
+    
+    // Only include vehicle if vehicle_id is present
+    if (vehicleId) {
+      const vehicle = {
+        vehicle_id: vehicleId,
+        rental_days: parseIntegerField(getRepeatableFieldValue(row, 'rental_days')),
+        total_amount: parseNumberField(getRepeatableFieldValue(row, 'total_amount'))
+      };
       payload.vehicles.push(vehicle);
     }
   });
