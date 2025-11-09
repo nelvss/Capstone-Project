@@ -4,6 +4,7 @@ let availableVehicles = []; // Store vehicles for dropdown
 let availableVanDestinations = []; // Store van destinations for dropdown
 let availableTours = []; // Store tours for dropdown
 let availablePackages = []; // Store packages for dropdown
+let availableDiving = []; // Store diving options for dropdown
 
 let ownerStatusFilter = 'all';
 
@@ -233,6 +234,30 @@ async function loadPackages() {
   }
 }
 
+// Load diving from API
+async function loadDiving() {
+  try {
+    console.log('🤿 Loading diving options from API...');
+    
+    const response = await fetch(`${API_URL}/api/diving`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load diving options');
+    }
+    
+    availableDiving = result.diving || [];
+    
+    console.log('✅ Diving options loaded successfully:', availableDiving.length, 'options');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error loading diving options:', error);
+    availableDiving = [];
+    return false;
+  }
+}
+
 // Load hotels from API
 async function loadHotels() {
   try {
@@ -415,8 +440,10 @@ function setupBookingEditModal() {
     cancelBtn: modalElement.querySelector('[data-cancel-modal]'),
     vehicleList: modalElement.querySelector('[data-vehicle-list]'),
     vanRentalList: modalElement.querySelector('[data-van-rental-list]'),
+    divingList: modalElement.querySelector('[data-diving-list]'),
     addVehicleBtn: modalElement.querySelector('[data-add-vehicle]'),
     addVanRentalBtn: modalElement.querySelector('[data-add-van-rental]'),
+    addDivingBtn: modalElement.querySelector('[data-add-diving]'),
     saveBtn: modalElement.querySelector('.modal-primary-btn'),
     initialized: true,
     escapeHandlerBound: false
@@ -435,6 +462,7 @@ function setupBookingEditModal() {
   });
   ownerEditModal.addVehicleBtn?.addEventListener('click', () => addVehicleRow());
   ownerEditModal.addVanRentalBtn?.addEventListener('click', () => addVanRentalRow());
+  ownerEditModal.addDivingBtn?.addEventListener('click', () => addDivingRow());
   form?.addEventListener('submit', submitBookingEditForm);
 
   // Setup booking type change handler
@@ -564,6 +592,7 @@ function setupBookingEditModal() {
 
   setRepeatableEmptyState(ownerEditModal.vehicleList, VEHICLE_EMPTY_MESSAGE);
   setRepeatableEmptyState(ownerEditModal.vanRentalList, VAN_EMPTY_MESSAGE);
+  setRepeatableEmptyState(ownerEditModal.divingList, null);
 }
 
 function handleEditModalEscape(event) {
@@ -615,9 +644,15 @@ function closeBookingEditModal() {
     setRepeatableEmptyState(ownerEditModal.vanRentalList, VAN_EMPTY_MESSAGE);
   }
 
+  if (ownerEditModal.divingList) {
+    ownerEditModal.divingList.innerHTML = '';
+    setRepeatableEmptyState(ownerEditModal.divingList, null);
+  }
+
   ownerEditModal.cancelBtn?.removeAttribute('disabled');
   ownerEditModal.addVehicleBtn?.removeAttribute('disabled');
   ownerEditModal.addVanRentalBtn?.removeAttribute('disabled');
+  ownerEditModal.addDivingBtn?.removeAttribute('disabled');
   if (ownerEditModal.saveBtn) {
     ownerEditModal.saveBtn.disabled = false;
     ownerEditModal.saveBtn.textContent = 'Save Changes';
@@ -806,6 +841,16 @@ function populateBookingEditForm(booking) {
     }
   }
 
+  if (ownerEditModal.divingList) {
+    ownerEditModal.divingList.innerHTML = '';
+    const divingBookings = raw.diving_bookings || [];
+    if (divingBookings.length > 0) {
+      divingBookings.forEach(diving => addDivingRow(diving));
+    } else {
+      setRepeatableEmptyState(ownerEditModal.divingList, null);
+    }
+  }
+
   ownerEditModal.container?.scrollTo({ top: 0 });
 }
 
@@ -837,6 +882,13 @@ function updateTotalBookingAmount() {
   // Sum all van rental amounts
   const vanRows = ownerEditModal.vanRentalList?.querySelectorAll('.modal-repeatable-item') || [];
   vanRows.forEach(row => {
+    const amount = parseFloat(getRepeatableFieldValue(row, 'total_amount')) || 0;
+    total += amount;
+  });
+  
+  // Sum all diving amounts
+  const divingRows = ownerEditModal.divingList?.querySelectorAll('.modal-repeatable-item') || [];
+  divingRows.forEach(row => {
     const amount = parseFloat(getRepeatableFieldValue(row, 'total_amount')) || 0;
     total += amount;
   });
@@ -1143,6 +1195,88 @@ function addVanRentalRow(data = {}) {
   totalAmountInput.value = data.total_amount || '';
 }
 
+function createDivingRowElement() {
+  const row = document.createElement('div');
+  row.className = 'modal-repeatable-item';
+  
+  row.innerHTML = `
+    <button type="button" class="modal-row-remove" aria-label="Remove diving">Remove</button>
+    <div class="modal-row-grid">
+      <label class="modal-field">
+        <span class="modal-field-label">Number of Divers</span>
+        <input type="number" min="1" step="1" data-field="number_of_divers" value="1">
+      </label>
+      <label class="modal-field">
+        <span class="modal-field-label">Price Per Head (₱)</span>
+        <input type="number" min="0" step="0.01" data-field="price_per_head" readonly>
+      </label>
+      <label class="modal-field">
+        <span class="modal-field-label">Total Amount (₱)</span>
+        <input type="number" min="0" step="0.01" data-field="total_amount" readonly>
+      </label>
+    </div>
+  `;
+  
+  return row;
+}
+
+function addDivingRow(data = {}) {
+  if (!ownerEditModal?.divingList) return;
+
+  setRepeatableEmptyState(ownerEditModal.divingList, null);
+
+  const row = createDivingRowElement();
+  ownerEditModal.divingList.appendChild(row);
+
+  const removeBtn = row.querySelector('.modal-row-remove');
+  removeBtn?.addEventListener('click', () => {
+    row.remove();
+    if (!ownerEditModal.divingList.querySelector('.modal-repeatable-item')) {
+      setRepeatableEmptyState(ownerEditModal.divingList, null);
+    }
+    updateTotalBookingAmount(); // Update total when diving is removed
+  });
+
+  const diversInput = row.querySelector('[data-field="number_of_divers"]');
+  const pricePerHeadInput = row.querySelector('[data-field="price_per_head"]');
+  const totalAmountInput = row.querySelector('[data-field="total_amount"]');
+
+  // Get the diving price from available diving options (assuming there's a standard diving option)
+  let divingPricePerHead = 0;
+  if (availableDiving && availableDiving.length > 0) {
+    // Use the first diving option or find a default one
+    divingPricePerHead = availableDiving[0].price_per_head || 0;
+  }
+
+  // Function to calculate total amount
+  const calculateTotal = () => {
+    const divers = parseInt(diversInput.value || 1);
+    const pricePerHead = parseFloat(pricePerHeadInput.value || divingPricePerHead);
+    const total = pricePerHead * divers;
+    totalAmountInput.value = total.toFixed(2);
+    updateTotalBookingAmount(); // Update total booking amount
+  };
+
+  // Set the price per head
+  pricePerHeadInput.value = divingPricePerHead.toFixed(2);
+
+  // Event listener for number of divers change
+  diversInput.addEventListener('input', calculateTotal);
+
+  // Set initial values if data is provided
+  diversInput.value = data.number_of_divers || 1;
+  
+  if (data.price_per_head) {
+    pricePerHeadInput.value = data.price_per_head;
+  }
+  
+  if (data.total_amount) {
+    totalAmountInput.value = data.total_amount;
+  } else {
+    calculateTotal();
+  }
+}
+
 function getRepeatableFieldValue(row, field) {
   const el = row.querySelector(`[data-field="${field}"]`);
   if (!el) return '';
@@ -1199,7 +1333,8 @@ function collectBookingFormData() {
     notes: trim(formData.get('notes')),
     total_booking_amount: parseNumberField(formData.get('total_booking_amount')),
     vehicles: [],
-    van_rentals: []
+    van_rentals: [],
+    diving: []
   };
 
   const vehicleRows = ownerEditModal.vehicleList
@@ -1241,6 +1376,22 @@ function collectBookingFormData() {
       van.total_amount !== null
     ) {
       payload.van_rentals.push(van);
+    }
+  });
+
+  const divingRows = ownerEditModal.divingList
+    ? Array.from(ownerEditModal.divingList.querySelectorAll('.modal-repeatable-item'))
+    : [];
+
+  divingRows.forEach(row => {
+    const diving = {
+      number_of_divers: parseIntegerField(getRepeatableFieldValue(row, 'number_of_divers')),
+      price_per_head: parseNumberField(getRepeatableFieldValue(row, 'price_per_head')),
+      total_amount: parseNumberField(getRepeatableFieldValue(row, 'total_amount'))
+    };
+
+    if (diving.number_of_divers !== null || diving.price_per_head !== null || diving.total_amount !== null) {
+      payload.diving.push(diving);
     }
   });
 
@@ -1330,6 +1481,7 @@ async function submitBookingEditForm(event) {
     ownerEditModal.cancelBtn?.setAttribute('disabled', 'disabled');
     ownerEditModal.addVehicleBtn?.setAttribute('disabled', 'disabled');
     ownerEditModal.addVanRentalBtn?.setAttribute('disabled', 'disabled');
+    ownerEditModal.addDivingBtn?.setAttribute('disabled', 'disabled');
 
     const payloadForApi = { ...payload };
     delete payloadForApi.booking_id;
@@ -1406,6 +1558,7 @@ async function submitBookingEditForm(event) {
     ownerEditModal.cancelBtn?.removeAttribute('disabled');
     ownerEditModal.addVehicleBtn?.removeAttribute('disabled');
     ownerEditModal.addVanRentalBtn?.removeAttribute('disabled');
+    ownerEditModal.addDivingBtn?.removeAttribute('disabled');
   }
 }
 
@@ -1707,12 +1860,13 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Check session before loading dashboard
   if (checkSession()) {
     try {
-      // Load vehicles, van destinations, tours, packages, hotels, and bookings from API
+      // Load vehicles, van destinations, tours, packages, hotels, diving, and bookings from API
       await loadVehicles(); // Load vehicles first
       await loadVanDestinations(); // Load van destinations
       await loadTours(); // Load tours
       await loadPackages(); // Load packages
       await loadHotels(); // Load hotels
+      await loadDiving(); // Load diving options
       const bookingsLoaded = await loadBookings();
       
       if (bookingsLoaded) {

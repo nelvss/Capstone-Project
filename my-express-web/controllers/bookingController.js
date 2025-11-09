@@ -105,6 +105,15 @@ async function fetchBookingWithDetails(bookingId) {
       destination: v.van_destination_id ? vanMap[v.van_destination_id] || null : null
     }));
 
+    const { data: divingBookings = [], error: divingError } = await supabase
+      .from('bookings_diving')
+      .select('booking_id, number_of_divers, total_amount, price_per_head')
+      .eq('booking_id', bookingId);
+
+    if (divingError) {
+      console.warn('⚠️ Failed to fetch diving bookings:', divingError.message);
+    }
+
     const { data: paymentData, error: paymentError } = await supabase
       .from('payments')
       .select('total_booking_amount, payment_date')
@@ -123,6 +132,7 @@ async function fetchBookingWithDetails(bookingId) {
       hotels: hotelData,
       vehicle_bookings: vehicleBookingsWithDetails,
       van_rental_bookings: vanRentalsWithDetails,
+      diving_bookings: divingBookings || [],
       total_booking_amount: payment ? payment.total_booking_amount : null,
       payment_date: payment ? payment.payment_date : null
     };
@@ -385,6 +395,24 @@ const getBookings = async (req, res) => {
       }
     }
     
+    let divingBookingsData = {};
+    if (bookingIds.length > 0) {
+      const { data: divingBookings } = await supabase
+        .from('bookings_diving')
+        .select('booking_id, number_of_divers, total_amount, price_per_head')
+        .in('booking_id', bookingIds);
+      
+      if (divingBookings) {
+        divingBookingsData = divingBookings.reduce((acc, diving) => {
+          if (!acc[diving.booking_id]) {
+            acc[diving.booking_id] = [];
+          }
+          acc[diving.booking_id].push(diving);
+          return acc;
+        }, {});
+      }
+    }
+    
     const bookingsWithDetails = bookings.map(booking => {
       const normalizedBookingId = String(booking.booking_id).trim();
       const vanRentals = vanRentalBookingsData[normalizedBookingId] || [];
@@ -395,6 +423,7 @@ const getBookings = async (req, res) => {
         hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
         vehicle_bookings: vehicleBookingsData[booking.booking_id] || [],
         van_rental_bookings: vanRentalsFallback,
+        diving_bookings: divingBookingsData[booking.booking_id] || [],
         total_booking_amount: paymentsData[booking.booking_id] || null
       };
     });
@@ -469,12 +498,14 @@ const updateBooking = async (req, res) => {
       booking_preferences,
       vehicles,
       van_rentals,
+      diving,
       total_booking_amount,
       payment_date
     } = req.body;
 
     const vehicleEntries = Array.isArray(vehicles) ? vehicles : [];
     const vanRentalEntries = Array.isArray(van_rentals) ? van_rentals : [];
+    const divingEntries = Array.isArray(diving) ? diving : [];
 
     const requiredFields = [
       { key: 'customer_first_name', value: customer_first_name },
@@ -674,6 +705,51 @@ const updateBooking = async (req, res) => {
       }
     }
 
+    const { data: deletedDiving, error: deleteDivingError } = await supabase
+      .from('bookings_diving')
+      .delete()
+      .match({ booking_id: bookingIdNormalized })
+      .select('booking_id');
+
+    if (deleteDivingError) {
+      console.error('❌ Error clearing diving bookings:', deleteDivingError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to reset diving bookings',
+        error: deleteDivingError.message
+      });
+    }
+
+    console.log('🧹 Cleared diving bookings count:', deletedDiving ? deletedDiving.length : 0, 'for booking', id);
+
+    const divingRows = divingEntries
+      .map(entry => {
+        if (!entry) return null;
+        return {
+          booking_id: bookingIdNormalized,
+          number_of_divers: parseInteger(entry.number_of_divers) || 0,
+          price_per_head: Number(entry.price_per_head) || 0,
+          total_amount: Number(entry.total_amount) || 0,
+          booking_type: normalizedBookingType
+        };
+      })
+      .filter(entry => entry && (entry.number_of_divers || entry.total_amount));
+
+    if (divingRows.length > 0) {
+      const { error: insertDivingError } = await supabase
+        .from('bookings_diving')
+        .insert(divingRows);
+
+      if (insertDivingError) {
+        console.error('❌ Error inserting diving bookings:', insertDivingError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to save diving bookings',
+          error: insertDivingError.message
+        });
+      }
+    }
+
     const providedTotal = total_booking_amount !== undefined && total_booking_amount !== null && total_booking_amount !== ''
       ? Number(total_booking_amount)
       : null;
@@ -690,7 +766,12 @@ const updateBooking = async (req, res) => {
       return sum + (Number.isFinite(value) ? value : 0);
     }, 0);
 
-    const fallbackTotal = vehiclesSum + vanSum;
+    const divingSum = divingEntries.reduce((sum, entry) => {
+      const value = Number(entry?.total_amount);
+      return sum + (Number.isFinite(value) ? value : 0);
+    }, 0);
+
+    const fallbackTotal = vehiclesSum + vanSum + divingSum;
     const finalTotal = isProvidedTotalValid ? providedTotal : (fallbackTotal > 0 ? fallbackTotal : null);
     const normalizedPaymentDate = payment_date ? String(payment_date) : null;
 
