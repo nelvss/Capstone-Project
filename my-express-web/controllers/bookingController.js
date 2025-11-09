@@ -636,7 +636,7 @@ const updateBooking = async (req, res) => {
     const vehicleRows = vehicleEntries
       .map(entry => ({
         booking_id: bookingIdNormalized,
-        vehicle_id: entry && entry.vehicle_id ? String(entry.vehicle_id).trim() : null,
+        vehicle_id: entry && entry.vehicle_id ? parseInteger(entry.vehicle_id) : null,
         vehicle_name: entry && entry.vehicle_name ? String(entry.vehicle_name).trim() : null,
         rental_days: parseInteger(entry?.rental_days) || 0,
         total_amount: Number(entry?.total_amount) || 0
