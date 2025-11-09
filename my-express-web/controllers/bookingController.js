@@ -584,10 +584,12 @@ const updateBooking = async (req, res) => {
       });
     }
 
-    const { error: deleteVehiclesError } = await supabase
+    const bookingIdNormalized = String(id).trim();
+    const { data: deletedVehicles, error: deleteVehiclesError } = await supabase
       .from('booking_vehicles')
       .delete()
-      .eq('booking_id', id);
+      .match({ booking_id: bookingIdNormalized })
+      .select('booking_id');
 
     if (deleteVehiclesError) {
       console.error('❌ Error clearing vehicle bookings:', deleteVehiclesError);
@@ -598,9 +600,11 @@ const updateBooking = async (req, res) => {
       });
     }
 
+    console.log('🧹 Cleared vehicle bookings count:', deletedVehicles ? deletedVehicles.length : 0, 'for booking', id);
+
     const vehicleRows = vehicleEntries
       .map(entry => ({
-        booking_id: id,
+        booking_id: bookingIdNormalized,
         vehicle_id: entry && entry.vehicle_id ? String(entry.vehicle_id).trim() : null,
         vehicle_name: entry && entry.vehicle_name ? String(entry.vehicle_name).trim() : null,
         rental_days: parseInteger(entry?.rental_days) || 0,
@@ -623,10 +627,11 @@ const updateBooking = async (req, res) => {
       }
     }
 
-    const { error: deleteVanError } = await supabase
+    const { data: deletedVans, error: deleteVanError } = await supabase
       .from('bookings_van_rental')
       .delete()
-      .eq('booking_id', id);
+      .match({ booking_id: bookingIdNormalized })
+      .select('booking_id');
 
     if (deleteVanError) {
       console.error('❌ Error clearing van rentals:', deleteVanError);
@@ -637,12 +642,14 @@ const updateBooking = async (req, res) => {
       });
     }
 
+    console.log('🧹 Cleared van rentals count:', deletedVans ? deletedVans.length : 0, 'for booking', id);
+
     const vanRows = vanRentalEntries
       .map(entry => {
         if (!entry) return null;
         const tripTypeRaw = entry.trip_type ? String(entry.trip_type).toLowerCase() : '';
         return {
-          booking_id: id,
+          booking_id: bookingIdNormalized,
           van_destination_id: entry.van_destination_id ? String(entry.van_destination_id).trim() : null,
           choose_destination: entry.choose_destination ? String(entry.choose_destination).trim() : null,
           trip_type: tripTypeRaw === 'roundtrip' ? 'roundtrip' : 'oneway',
@@ -689,7 +696,7 @@ const updateBooking = async (req, res) => {
 
     if (finalTotal !== null || normalizedPaymentDate) {
       const paymentPayload = {
-        booking_id: id,
+        booking_id: bookingIdNormalized,
         total_booking_amount: finalTotal
       };
 
@@ -700,7 +707,7 @@ const updateBooking = async (req, res) => {
       const { data: existingPayment, error: fetchPaymentError } = await supabase
         .from('payments')
         .select('payment_id')
-        .eq('booking_id', id)
+        .eq('booking_id', bookingIdNormalized)
         .maybeSingle();
 
       if (fetchPaymentError) {
@@ -744,7 +751,7 @@ const updateBooking = async (req, res) => {
       const { error: deletePaymentError } = await supabase
         .from('payments')
         .delete()
-        .eq('booking_id', id);
+        .eq('booking_id', bookingIdNormalized);
 
       if (deletePaymentError) {
         console.warn('⚠️ Failed to delete payment record:', deletePaymentError.message);
