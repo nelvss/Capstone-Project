@@ -11,7 +11,10 @@ const {
   createVehicleBooking,
   createDivingBooking,
   createVanRentalBooking,
-  createPackageBooking
+  createPackageBooking,
+  deleteVehicleBooking,
+  deleteVanRentalBooking,
+  deleteDivingBooking
 } = require('../controllers/bookingController');
 
 router.post('/bookings', createBooking);
@@ -27,6 +30,11 @@ router.post('/booking-vehicles', createVehicleBooking);
 router.post('/booking-diving', createDivingBooking);
 router.post('/booking-van-rental', createVanRentalBooking);
 router.post('/package-booking', createPackageBooking);
+
+// Delete specific booking items
+router.delete('/bookings/:booking_id/vehicles/:vehicle_id', deleteVehicleBooking);
+router.delete('/bookings/:booking_id/van-rentals/:van_destination_id', deleteVanRentalBooking);
+router.delete('/bookings/:booking_id/diving/:diving_id?', deleteDivingBooking);
 
 module.exports = router;
 

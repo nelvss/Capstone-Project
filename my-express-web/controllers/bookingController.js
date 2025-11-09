@@ -1251,6 +1251,152 @@ const createPackageBooking = async (req, res) => {
   }
 };
 
+// Delete specific vehicle booking
+const deleteVehicleBooking = async (req, res) => {
+  try {
+    const { booking_id, vehicle_id } = req.params;
+    
+    console.log(`📝 Deleting vehicle booking: booking_id=${booking_id}, vehicle_id=${vehicle_id}`);
+    
+    if (!booking_id || !vehicle_id) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required parameters: booking_id and vehicle_id' 
+      });
+    }
+    
+    const { data, error } = await supabase
+      .from('booking_vehicles')
+      .delete()
+      .match({ booking_id: String(booking_id).trim(), vehicle_id: parseInt(vehicle_id) })
+      .select();
+    
+    if (error) {
+      console.error('❌ Error deleting vehicle booking:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete vehicle booking', 
+        error: error.message 
+      });
+    }
+    
+    console.log('✅ Vehicle booking deleted successfully:', data);
+    
+    res.json({ 
+      success: true, 
+      message: 'Vehicle booking deleted successfully',
+      deleted: data
+    });
+    
+  } catch (error) {
+    console.error('❌ Vehicle booking deletion error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+};
+
+// Delete specific van rental booking
+const deleteVanRentalBooking = async (req, res) => {
+  try {
+    const { booking_id, van_destination_id } = req.params;
+    
+    console.log(`📝 Deleting van rental booking: booking_id=${booking_id}, van_destination_id=${van_destination_id}`);
+    
+    if (!booking_id || !van_destination_id) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required parameters: booking_id and van_destination_id' 
+      });
+    }
+    
+    const { data, error } = await supabase
+      .from('bookings_van_rental')
+      .delete()
+      .match({ booking_id: String(booking_id).trim(), van_destination_id: parseInt(van_destination_id) })
+      .select();
+    
+    if (error) {
+      console.error('❌ Error deleting van rental booking:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete van rental booking', 
+        error: error.message 
+      });
+    }
+    
+    console.log('✅ Van rental booking deleted successfully:', data);
+    
+    res.json({ 
+      success: true, 
+      message: 'Van rental booking deleted successfully',
+      deleted: data
+    });
+    
+  } catch (error) {
+    console.error('❌ Van rental booking deletion error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+};
+
+// Delete specific diving booking
+const deleteDivingBooking = async (req, res) => {
+  try {
+    const { booking_id, diving_id } = req.params;
+    
+    console.log(`📝 Deleting diving booking: booking_id=${booking_id}, diving_id=${diving_id}`);
+    
+    if (!booking_id) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required parameter: booking_id' 
+      });
+    }
+    
+    // If diving_id is provided, delete specific diving booking, otherwise delete by booking_id only
+    let query = supabase.from('bookings_diving').delete();
+    
+    if (diving_id) {
+      query = query.match({ booking_id: String(booking_id).trim(), diving_id: parseInt(diving_id) });
+    } else {
+      query = query.match({ booking_id: String(booking_id).trim() });
+    }
+    
+    const { data, error } = await query.select();
+    
+    if (error) {
+      console.error('❌ Error deleting diving booking:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete diving booking', 
+        error: error.message 
+      });
+    }
+    
+    console.log('✅ Diving booking deleted successfully:', data);
+    
+    res.json({ 
+      success: true, 
+      message: 'Diving booking deleted successfully',
+      deleted: data
+    });
+    
+  } catch (error) {
+    console.error('❌ Diving booking deletion error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   createBooking,
   getBookings,
@@ -1262,6 +1408,9 @@ module.exports = {
   createVehicleBooking,
   createDivingBooking,
   createVanRentalBooking,
-  createPackageBooking
+  createPackageBooking,
+  deleteVehicleBooking,
+  deleteVanRentalBooking,
+  deleteDivingBooking
 };
 
