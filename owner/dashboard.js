@@ -948,7 +948,34 @@ function addVehicleRow(data = {}) {
   ownerEditModal.vehicleList.appendChild(row);
 
   const removeBtn = row.querySelector('.modal-row-remove');
-  removeBtn?.addEventListener('click', () => {
+  removeBtn?.addEventListener('click', async () => {
+    // If this vehicle is from an existing booking, delete it from the database
+    const vehicleId = vehicleIdField.value;
+    if (vehicleId && currentEditingBooking && currentEditingBooking.id) {
+      const confirmDelete = confirm('Are you sure you want to remove this vehicle from the booking?');
+      if (!confirmDelete) return;
+      
+      try {
+        const bookingId = String(currentEditingBooking.id).split(':')[0];
+        const response = await fetch(`${API_URL}/api/bookings/${bookingId}/vehicles/${vehicleId}`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to delete vehicle');
+        }
+        
+        console.log('✅ Vehicle deleted from database');
+      } catch (error) {
+        console.error('❌ Error deleting vehicle:', error);
+        alert('Failed to remove vehicle: ' + error.message);
+        return; // Don't remove from UI if database deletion failed
+      }
+    }
+    
+    // Remove from UI
     row.remove();
     if (!ownerEditModal.vehicleList.querySelector('.modal-repeatable-item')) {
       setRepeatableEmptyState(ownerEditModal.vehicleList, VEHICLE_EMPTY_MESSAGE);
@@ -1064,7 +1091,34 @@ function addVanRentalRow(data = {}) {
   ownerEditModal.vanRentalList.appendChild(row);
 
   const removeBtn = row.querySelector('.modal-row-remove');
-  removeBtn?.addEventListener('click', () => {
+  removeBtn?.addEventListener('click', async () => {
+    // If this van rental is from an existing booking, delete it from the database
+    const vanDestinationId = row.querySelector('[data-field="van_destination_id"]')?.value;
+    if (vanDestinationId && currentEditingBooking && currentEditingBooking.id) {
+      const confirmDelete = confirm('Are you sure you want to remove this van rental from the booking?');
+      if (!confirmDelete) return;
+      
+      try {
+        const bookingId = String(currentEditingBooking.id).split(':')[0];
+        const response = await fetch(`${API_URL}/api/bookings/${bookingId}/van-rentals/${vanDestinationId}`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to delete van rental');
+        }
+        
+        console.log('✅ Van rental deleted from database');
+      } catch (error) {
+        console.error('❌ Error deleting van rental:', error);
+        alert('Failed to remove van rental: ' + error.message);
+        return; // Don't remove from UI if database deletion failed
+      }
+    }
+    
+    // Remove from UI
     row.remove();
     if (!ownerEditModal.vanRentalList.querySelector('.modal-repeatable-item')) {
       setRepeatableEmptyState(ownerEditModal.vanRentalList, VAN_EMPTY_MESSAGE);
@@ -1229,7 +1283,34 @@ function addDivingRow(data = {}) {
   ownerEditModal.divingList.appendChild(row);
 
   const removeBtn = row.querySelector('.modal-row-remove');
-  removeBtn?.addEventListener('click', () => {
+  removeBtn?.addEventListener('click', async () => {
+    // If this diving booking is from an existing booking, delete it from the database
+    if (currentEditingBooking && currentEditingBooking.id) {
+      const confirmDelete = confirm('Are you sure you want to remove this diving booking?');
+      if (!confirmDelete) return;
+      
+      try {
+        const bookingId = String(currentEditingBooking.id).split(':')[0];
+        // Note: We delete all diving bookings for this booking_id since we don't have a unique diving_id per row
+        const response = await fetch(`${API_URL}/api/bookings/${bookingId}/diving`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to delete diving booking');
+        }
+        
+        console.log('✅ Diving booking deleted from database');
+      } catch (error) {
+        console.error('❌ Error deleting diving booking:', error);
+        alert('Failed to remove diving booking: ' + error.message);
+        return; // Don't remove from UI if database deletion failed
+      }
+    }
+    
+    // Remove from UI
     row.remove();
     if (!ownerEditModal.divingList.querySelector('.modal-repeatable-item')) {
       setRepeatableEmptyState(ownerEditModal.divingList, null);
