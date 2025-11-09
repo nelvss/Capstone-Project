@@ -947,6 +947,11 @@ function addVehicleRow(data = {}) {
   const row = createVehicleRowElement();
   ownerEditModal.vehicleList.appendChild(row);
 
+  const vehicleIdField = row.querySelector('[data-field="vehicle_id"]');
+  const vehicleNameField = row.querySelector('[data-field="vehicle_name"]');
+  const rentalDaysField = row.querySelector('[data-field="rental_days"]');
+  const totalAmountField = row.querySelector('[data-field="total_amount"]');
+
   const removeBtn = row.querySelector('.modal-row-remove');
   removeBtn?.addEventListener('click', async () => {
     // If this vehicle is from an existing booking, delete it from the database
@@ -982,11 +987,6 @@ function addVehicleRow(data = {}) {
     }
     updateTotalBookingAmount(); // Update total when vehicle is removed
   });
-
-  const vehicleIdField = row.querySelector('[data-field="vehicle_id"]');
-  const vehicleNameField = row.querySelector('[data-field="vehicle_name"]');
-  const rentalDaysField = row.querySelector('[data-field="rental_days"]');
-  const totalAmountField = row.querySelector('[data-field="total_amount"]');
 
   // Function to calculate total amount
   const calculateTotal = () => {
