@@ -1,6 +1,15 @@
 const supabase = require('../config/supabase');
 const { generateNextBookingId } = require('../utils/helpers');
 
+let supportsPackageOnlyIdColumn = true;
+
+function isMissingPackageOnlyIdColumnError(error) {
+  if (!error) return false;
+  const message = typeof error.message === 'string' ? error.message : '';
+  const details = typeof error.details === 'string' ? error.details : '';
+  return message.includes('package_only_id') || details.includes('package_only_id');
+}
+
 async function fetchBookingWithDetails(bookingId) {
   try {
     const { data: booking, error: bookingError } = await supabase
@@ -175,7 +184,7 @@ const createBooking = async (req, res) => {
     };
     
     const optionalFields = {};
-    if (package_only_id) optionalFields.package_only_id = package_only_id;
+    if (supportsPackageOnlyIdColumn && package_only_id) optionalFields.package_only_id = package_only_id;
     if (hotel_id) optionalFields.hotel_id = hotel_id;
     if (hotel_nights) optionalFields.hotel_nights = hotel_nights;
 
@@ -197,6 +206,14 @@ const createBooking = async (req, res) => {
           message: 'Booking created successfully',
           booking: data[0]
         });
+      }
+
+      if (supportsPackageOnlyIdColumn && isMissingPackageOnlyIdColumnError(error)) {
+        console.warn('⚠️ package_only_id column missing in bookings table. Retrying without it.');
+        supportsPackageOnlyIdColumn = false;
+        delete optionalFields.package_only_id;
+        attempt -= 1; // retry this attempt without consuming quota
+        continue;
       }
 
       if (error && error.code === '23505') {
@@ -508,22 +525,40 @@ const updateBooking = async (req, res) => {
     };
 
     // Add package_only_id or tour_only_id based on booking type
-    if (normalizedBookingType === 'package_only') {
+    if (supportsPackageOnlyIdColumn && normalizedBookingType === 'package_only') {
       bookingUpdate.package_only_id = package_only_id ? String(package_only_id).trim() : null;
-    } else if (normalizedBookingType === 'tour_only') {
-      // Store tour info in booking_preferences since tour_only_id column might not exist
-      // The tour ID is already in booking_preferences format "Tour Only: Island Tour"
-      bookingUpdate.package_only_id = null; // Clear package ID for tour bookings
+    } else if (supportsPackageOnlyIdColumn && normalizedBookingType === 'tour_only') {
+      bookingUpdate.package_only_id = null; // Clear package ID for tour bookings when supported
     }
 
     console.log('📝 Booking update payload:', JSON.stringify(bookingUpdate, null, 2));
 
-    const { data: updatedBooking, error: bookingError } = await supabase
+    let updatePayload = { ...bookingUpdate };
+    if (!supportsPackageOnlyIdColumn) {
+      delete updatePayload.package_only_id;
+    }
+
+    let updatedBooking;
+    let bookingError;
+
+    ({ data: updatedBooking, error: bookingError } = await supabase
       .from('bookings')
-      .update(bookingUpdate)
+      .update(updatePayload)
       .eq('booking_id', id)
       .select()
-      .single();
+      .single());
+
+    if (bookingError && supportsPackageOnlyIdColumn && isMissingPackageOnlyIdColumnError(bookingError)) {
+      console.warn('⚠️ package_only_id column missing in bookings table. Retrying update without it.');
+      supportsPackageOnlyIdColumn = false;
+      delete updatePayload.package_only_id;
+      ({ data: updatedBooking, error: bookingError } = await supabase
+        .from('bookings')
+        .update(updatePayload)
+        .eq('booking_id', id)
+        .select()
+        .single());
+    }
 
     if (bookingError) {
       console.error('❌ Error updating booking:', bookingError);
