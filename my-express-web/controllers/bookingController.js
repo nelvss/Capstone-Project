@@ -694,17 +694,48 @@ const updateBooking = async (req, res) => {
         payment_date: normalizedPaymentDate
       };
 
-      const { error: upsertPaymentError } = await supabase
+      const { data: existingPayment, error: fetchPaymentError } = await supabase
         .from('payments')
-        .upsert(paymentPayload, { onConflict: 'booking_id' });
+        .select('payment_id')
+        .eq('booking_id', id)
+        .maybeSingle();
 
-      if (upsertPaymentError) {
-        console.error('❌ Error updating payment:', upsertPaymentError);
+      if (fetchPaymentError) {
+        console.error('❌ Error fetching payment:', fetchPaymentError);
         return res.status(500).json({
           success: false,
-          message: 'Failed to update payment information',
-          error: upsertPaymentError.message
+          message: 'Failed to fetch payment information',
+          error: fetchPaymentError.message
         });
+      }
+
+      if (existingPayment) {
+        const { error: updatePaymentError } = await supabase
+          .from('payments')
+          .update(paymentPayload)
+          .eq('payment_id', existingPayment.payment_id);
+
+        if (updatePaymentError) {
+          console.error('❌ Error updating payment:', updatePaymentError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to update payment information',
+            error: updatePaymentError.message
+          });
+        }
+      } else {
+        const { error: insertPaymentError } = await supabase
+          .from('payments')
+          .insert([paymentPayload]);
+
+        if (insertPaymentError) {
+          console.error('❌ Error inserting payment:', insertPaymentError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to save payment information',
+            error: insertPaymentError.message
+          });
+        }
       }
     } else {
       const { error: deletePaymentError } = await supabase
