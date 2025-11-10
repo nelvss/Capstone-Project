@@ -2,6 +2,7 @@ const supabase = require('../config/supabase');
 const { generateNextBookingId } = require('../utils/helpers');
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const ALLOWED_CHOOSE_DESTINATIONS = ['Within Puerto Galera', 'Outside Puerto Galera'];
 
 function isValidUuid(value) {
   return typeof value === 'string' && UUID_REGEX.test(value.trim());
@@ -722,42 +723,94 @@ const updateBooking = async (req, res) => {
       return trimmed;
     };
 
-    const vanRows = vanRentalEntries
-      .map(entry => {
-        if (!entry) return null;
-        const tripTypeRaw = entry.trip_type ? String(entry.trip_type).toLowerCase() : '';
-        const normalizedVanDestinationId = normalizeStringValue(entry.van_destination_id);
-        const normalizedChooseDestination = normalizeStringValue(entry.choose_destination);
+    const parseChooseDestinationOption = (value) => {
+      const normalized = normalizeStringValue(value);
+      if (!normalized) return '';
+      const lower = normalized.toLowerCase();
 
-        // Enforce constraint: at least one of van_destination_id or choose_destination must be provided
-        if (!normalizedVanDestinationId && !normalizedChooseDestination) {
-          return null;
+      for (const option of ALLOWED_CHOOSE_DESTINATIONS) {
+        if (option.toLowerCase() === lower) {
+          return option;
         }
+      }
 
-        let chooseDestinationValue;
-        if (normalizedVanDestinationId) {
-          chooseDestinationValue = '';
-        } else {
-          chooseDestinationValue = normalizedChooseDestination;
+      if (lower.includes('within')) {
+        return 'Within Puerto Galera';
+      }
+      if (lower.includes('outside')) {
+        return 'Outside Puerto Galera';
+      }
+
+      return '';
+    };
+
+    const destinationIds = Array.from(new Set(
+      (vanRentalEntries || [])
+        .map(entry => normalizeStringValue(entry?.van_destination_id))
+        .filter(Boolean)
+    ));
+
+    let destinationChooseMap = {};
+    if (destinationIds.length > 0) {
+      const { data: destinationRows, error: destinationFetchError } = await supabase
+        .from('van_destinations')
+        .select('van_destination_id, location_type, choose_destination')
+        .in('van_destination_id', destinationIds);
+
+      if (destinationFetchError) {
+        console.error('⚠️ Failed to fetch van destinations for choose_destination mapping:', destinationFetchError);
+      } else if (destinationRows) {
+        destinationChooseMap = destinationRows.reduce((acc, row) => {
+          const key = normalizeStringValue(row.van_destination_id);
+          const resolved = parseChooseDestinationOption(row.location_type) ||
+            parseChooseDestinationOption(row.choose_destination);
+          if (key && resolved) {
+            acc[key] = resolved;
+          }
+          return acc;
+        }, {});
+      }
+    }
+
+    const vanRows = [];
+    for (const entry of vanRentalEntries) {
+      if (!entry) {
+        continue;
+      }
+
+      const tripTypeRaw = entry.trip_type ? String(entry.trip_type).toLowerCase() : '';
+      const normalizedVanDestinationId = normalizeStringValue(entry.van_destination_id);
+      const normalizedChooseDestination = normalizeStringValue(entry.choose_destination);va
+
+      if (!normalizedVanDestinationId && !normalizedChooseDestination) {
+        continue;
+      }
+
+      let chooseDestinationValue = '';
+      if (normalizedVanDestinationId) {
+        chooseDestinationValue = destinationChooseMap[normalizedVanDestinationId] || ALLOWED_CHOOSE_DESTINATIONS[0];
+      } else {
+        chooseDestinationValue = parseChooseDestinationOption(normalizedChooseDestination);
+        if (!chooseDestinationValue) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid choose_destination value: "${normalizedChooseDestination}". Expected one of: ${ALLOWED_CHOOSE_DESTINATIONS.join(', ')}`
+          });
         }
+      }
 
-        if (!normalizedVanDestinationId && !chooseDestinationValue) {
-          return null;
-        }
+      const numberOfDays = parseInteger(entry.number_of_days);
+      const totalAmount = Number.isFinite(Number(entry.total_amount)) ? Number(entry.total_amount) : 0;
 
-        const numberOfDays = parseInteger(entry.number_of_days);
-        const totalAmount = Number.isFinite(Number(entry.total_amount)) ? Number(entry.total_amount) : 0;
-
-        return {
-          booking_id: bookingIdNormalized,
-          van_destination_id: normalizedVanDestinationId || null,
-          choose_destination: chooseDestinationValue,
-          trip_type: tripTypeRaw === 'roundtrip' ? 'roundtrip' : 'oneway',
-          number_of_days: Number.isFinite(numberOfDays) ? numberOfDays : 0,
-          total_amount: totalAmount
-        };
-      })
-      .filter(Boolean);
+      vanRows.push({
+        booking_id: bookingIdNormalized,
+        van_destination_id: normalizedVanDestinationId || null,
+        choose_destination: chooseDestinationValue,
+        trip_type: tripTypeRaw === 'roundtrip' ? 'roundtrip' : 'oneway',
+        number_of_days: Number.isFinite(numberOfDays) ? numberOfDays : 0,
+        total_amount: totalAmount
+      });
+    }
 
     if (vanRows.length > 0) {
       console.log('🚐 Van rental rows to insert:', JSON.stringify(vanRows, null, 2));
