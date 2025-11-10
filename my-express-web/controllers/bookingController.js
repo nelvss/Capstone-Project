@@ -754,7 +754,7 @@ const updateBooking = async (req, res) => {
     if (destinationIds.length > 0) {
       const { data: destinationRows, error: destinationFetchError } = await supabase
         .from('van_destinations')
-        .select('van_destination_id, location_type, choose_destination')
+        .select('van_destination_id, location_type')
         .in('van_destination_id', destinationIds);
 
       if (destinationFetchError) {
@@ -762,8 +762,7 @@ const updateBooking = async (req, res) => {
       } else if (destinationRows) {
         destinationChooseMap = destinationRows.reduce((acc, row) => {
           const key = normalizeStringValue(row.van_destination_id);
-          const resolved = parseChooseDestinationOption(row.location_type) ||
-            parseChooseDestinationOption(row.choose_destination);
+          const resolved = parseChooseDestinationOption(row.location_type);
           if (key && resolved) {
             acc[key] = resolved;
           }
@@ -780,7 +779,7 @@ const updateBooking = async (req, res) => {
 
       const tripTypeRaw = entry.trip_type ? String(entry.trip_type).toLowerCase() : '';
       const normalizedVanDestinationId = normalizeStringValue(entry.van_destination_id);
-      const normalizedChooseDestination = normalizeStringValue(entry.choose_destination);va
+      const normalizedChooseDestination = normalizeStringValue(entry.choose_destination);
 
       if (!normalizedVanDestinationId && !normalizedChooseDestination) {
         continue;
