@@ -414,6 +414,24 @@ async function handleCancel(booking, button) {
 }
 
 // Booking edit modal helpers
+function getFocusableElements(container) {
+  if (!container) return [];
+  return Array.from(
+    container.querySelectorAll(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((el) => {
+    return el.offsetParent !== null && !el.hasAttribute('aria-hidden');
+  });
+}
+
+function focusFirstElement(container) {
+  const focusable = getFocusableElements(container);
+  if (focusable.length > 0) {
+    focusable[0].focus();
+  }
+}
+
 function extractDateOnly(value) {
   if (!value) return '';
   if (typeof value === 'string') {
@@ -446,7 +464,8 @@ function setupBookingEditModal() {
     addDivingBtn: modalElement.querySelector('[data-add-diving]'),
     saveBtn: modalElement.querySelector('.modal-primary-btn'),
     initialized: true,
-    escapeHandlerBound: false
+    escapeHandlerBound: false,
+    previouslyFocusedElement: null
   };
 
   modalElement.addEventListener('click', (event) => {
@@ -615,17 +634,32 @@ function openBookingEditModal(booking) {
   ownerEditModal.form.dataset.bookingId = booking.id;
   populateBookingEditForm(booking);
 
+  ownerEditModal.previouslyFocusedElement =
+    document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
   ownerEditModal.container.classList.add('open');
   ownerEditModal.container.setAttribute('aria-hidden', 'false');
   document.body.classList.add('modal-open');
+
+  requestAnimationFrame(() => {
+    focusFirstElement(ownerEditModal.container);
+  });
 }
 
 function closeBookingEditModal() {
   if (!ownerEditModal?.container) return;
 
+  const activeElement = document.activeElement;
+  if (activeElement instanceof HTMLElement && ownerEditModal.container.contains(activeElement)) {
+    activeElement.blur();
+  }
+
   ownerEditModal.container.classList.remove('open');
   ownerEditModal.container.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('modal-open');
+
+  const previousFocus = ownerEditModal.previouslyFocusedElement;
+  ownerEditModal.previouslyFocusedElement = null;
 
   currentEditingBooking = null;
 
@@ -656,6 +690,10 @@ function closeBookingEditModal() {
   if (ownerEditModal.saveBtn) {
     ownerEditModal.saveBtn.disabled = false;
     ownerEditModal.saveBtn.textContent = 'Save Changes';
+  }
+
+  if (previousFocus && typeof previousFocus.focus === 'function') {
+    previousFocus.focus();
   }
 }
 
