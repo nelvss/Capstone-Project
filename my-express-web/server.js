@@ -28,7 +28,9 @@ const corsOptions = {
     'Expires',
     'X-Requested-With',
     'Cache-Control',
-    'cache-control'
+    'cache-control',
+    'Pragma',
+    'pragma'
   ],
   optionsSuccessStatus: 200
 };
