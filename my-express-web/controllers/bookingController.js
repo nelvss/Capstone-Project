@@ -670,16 +670,26 @@ const updateBooking = async (req, res) => {
       .filter(Boolean);
 
     if (vehicleRows.length > 0) {
+      console.log('🚚 Vehicle rows to insert:', JSON.stringify(vehicleRows, null, 2));
+
       const { error: insertVehiclesError } = await supabase
         .from('booking_vehicles')
         .insert(vehicleRows);
 
       if (insertVehiclesError) {
-        console.error('❌ Error inserting vehicle bookings:', insertVehiclesError);
+        console.error('❌ Error inserting vehicle bookings:', {
+          message: insertVehiclesError.message,
+          details: insertVehiclesError.details,
+          hint: insertVehiclesError.hint,
+          code: insertVehiclesError.code
+        });
         return res.status(500).json({
           success: false,
           message: 'Failed to save vehicle bookings',
-          error: insertVehiclesError.message
+          error: insertVehiclesError.message,
+          details: insertVehiclesError.details,
+          hint: insertVehiclesError.hint,
+          code: insertVehiclesError.code
         });
       }
     }
