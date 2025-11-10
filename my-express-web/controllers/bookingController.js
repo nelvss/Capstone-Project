@@ -1,6 +1,12 @@
 const supabase = require('../config/supabase');
 const { generateNextBookingId } = require('../utils/helpers');
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isValidUUID(value) {
+  return typeof value === 'string' && UUID_REGEX.test(value.trim());
+}
+
 let supportsPackageOnlyIdColumn = true;
 
 function isMissingPackageOnlyIdColumnError(error) {
@@ -1255,20 +1261,29 @@ const createPackageBooking = async (req, res) => {
 const deleteVehicleBooking = async (req, res) => {
   try {
     const { booking_id, vehicle_id } = req.params;
-    
+    const normalizedBookingId = typeof booking_id === 'string' ? booking_id.trim() : '';
+    const parsedVehicleId = Number.parseInt(vehicle_id, 10);
+
     console.log(`📝 Deleting vehicle booking: booking_id=${booking_id}, vehicle_id=${vehicle_id}`);
     
-    if (!booking_id || !vehicle_id) {
+    if (!normalizedBookingId || Number.isNaN(parsedVehicleId)) {
       return res.status(400).json({ 
         success: false, 
         message: 'Missing required parameters: booking_id and vehicle_id' 
+      });
+    }
+
+    if (!isValidUUID(normalizedBookingId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking_id. Expected a UUID.'
       });
     }
     
     const { data, error } = await supabase
       .from('booking_vehicles')
       .delete()
-      .match({ booking_id: String(booking_id).trim(), vehicle_id: parseInt(vehicle_id) })
+      .match({ booking_id: normalizedBookingId, vehicle_id: parsedVehicleId })
       .select();
     
     if (error) {
@@ -1302,20 +1317,29 @@ const deleteVehicleBooking = async (req, res) => {
 const deleteVanRentalBooking = async (req, res) => {
   try {
     const { booking_id, van_destination_id } = req.params;
-    
+    const normalizedBookingId = typeof booking_id === 'string' ? booking_id.trim() : '';
+    const parsedVanDestinationId = Number.parseInt(van_destination_id, 10);
+
     console.log(`📝 Deleting van rental booking: booking_id=${booking_id}, van_destination_id=${van_destination_id}`);
     
-    if (!booking_id || !van_destination_id) {
+    if (!normalizedBookingId || Number.isNaN(parsedVanDestinationId)) {
       return res.status(400).json({ 
         success: false, 
         message: 'Missing required parameters: booking_id and van_destination_id' 
+      });
+    }
+
+    if (!isValidUUID(normalizedBookingId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking_id. Expected a UUID.'
       });
     }
     
     const { data, error } = await supabase
       .from('bookings_van_rental')
       .delete()
-      .match({ booking_id: String(booking_id).trim(), van_destination_id: parseInt(van_destination_id) })
+      .match({ booking_id: normalizedBookingId, van_destination_id: parsedVanDestinationId })
       .select();
     
     if (error) {
@@ -1349,23 +1373,39 @@ const deleteVanRentalBooking = async (req, res) => {
 const deleteDivingBooking = async (req, res) => {
   try {
     const { booking_id, diving_id } = req.params;
-    
+    const normalizedBookingId = typeof booking_id === 'string' ? booking_id.trim() : '';
+    const parsedDivingId = diving_id !== undefined ? Number.parseInt(diving_id, 10) : undefined;
+
     console.log(`📝 Deleting diving booking: booking_id=${booking_id}, diving_id=${diving_id}`);
     
-    if (!booking_id) {
+    if (!normalizedBookingId) {
       return res.status(400).json({ 
         success: false, 
         message: 'Missing required parameter: booking_id' 
+      });
+    }
+
+    if (!isValidUUID(normalizedBookingId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking_id. Expected a UUID.'
+      });
+    }
+
+    if (diving_id !== undefined && Number.isNaN(parsedDivingId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid diving_id. Expected a numeric value.'
       });
     }
     
     // If diving_id is provided, delete specific diving booking, otherwise delete by booking_id only
     let query = supabase.from('bookings_diving').delete();
     
-    if (diving_id) {
-      query = query.match({ booking_id: String(booking_id).trim(), diving_id: parseInt(diving_id) });
+    if (diving_id !== undefined) {
+      query = query.match({ booking_id: normalizedBookingId, diving_id: parsedDivingId });
     } else {
-      query = query.match({ booking_id: String(booking_id).trim() });
+      query = query.match({ booking_id: normalizedBookingId });
     }
     
     const { data, error } = await query.select();

@@ -34,7 +34,8 @@ router.post('/package-booking', createPackageBooking);
 // Delete specific booking items
 router.delete('/bookings/:booking_id/vehicles/:vehicle_id', deleteVehicleBooking);
 router.delete('/bookings/:booking_id/van-rentals/:van_destination_id', deleteVanRentalBooking);
-router.delete('/bookings/:booking_id/diving/:diving_id?', deleteDivingBooking);
+router.delete('/bookings/:booking_id/diving', deleteDivingBooking);
+router.delete('/bookings/:booking_id/diving/:diving_id', deleteDivingBooking);
 
 module.exports = router;
 
