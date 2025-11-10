@@ -715,28 +715,51 @@ const updateBooking = async (req, res) => {
       .map(entry => {
         if (!entry) return null;
         const tripTypeRaw = entry.trip_type ? String(entry.trip_type).toLowerCase() : '';
+        const normalizedVanDestinationId = entry.van_destination_id ? String(entry.van_destination_id).trim() : '';
+        const normalizedChooseDestination = entry.choose_destination ? String(entry.choose_destination).trim() : '';
+
+        // Enforce constraint: at least one of van_destination_id or choose_destination must be provided
+        if (!normalizedVanDestinationId && !normalizedChooseDestination) {
+          return null;
+        }
+
+        const chooseDestinationValue = normalizedChooseDestination || null;
+
+        const numberOfDays = parseInteger(entry.number_of_days);
+        const totalAmount = Number.isFinite(Number(entry.total_amount)) ? Number(entry.total_amount) : 0;
+
         return {
           booking_id: bookingIdNormalized,
-          van_destination_id: entry.van_destination_id ? String(entry.van_destination_id).trim() : null,
-          choose_destination: entry.choose_destination ? String(entry.choose_destination).trim() : null,
+          van_destination_id: normalizedVanDestinationId || null,
+          choose_destination: chooseDestinationValue,
           trip_type: tripTypeRaw === 'roundtrip' ? 'roundtrip' : 'oneway',
-          number_of_days: parseInteger(entry.number_of_days) || 0,
-          total_amount: Number(entry.total_amount) || 0
+          number_of_days: Number.isFinite(numberOfDays) ? numberOfDays : 0,
+          total_amount: totalAmount
         };
       })
-      .filter(entry => entry && (entry.van_destination_id || entry.choose_destination || entry.number_of_days || entry.total_amount));
+      .filter(Boolean);
 
     if (vanRows.length > 0) {
+      console.log('🚐 Van rental rows to insert:', JSON.stringify(vanRows, null, 2));
+
       const { error: insertVanError } = await supabase
         .from('bookings_van_rental')
         .insert(vanRows);
 
       if (insertVanError) {
-        console.error('❌ Error inserting van rentals:', insertVanError);
+        console.error('❌ Error inserting van rentals:', {
+          message: insertVanError.message,
+          details: insertVanError.details,
+          hint: insertVanError.hint,
+          code: insertVanError.code
+        });
         return res.status(500).json({
           success: false,
           message: 'Failed to save van rentals',
-          error: insertVanError.message
+          error: insertVanError.message,
+          details: insertVanError.details,
+          hint: insertVanError.hint,
+          code: insertVanError.code
         });
       }
     }
