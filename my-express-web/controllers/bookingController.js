@@ -711,19 +711,36 @@ const updateBooking = async (req, res) => {
 
     console.log('🧹 Cleared van rentals count:', deletedVans ? deletedVans.length : 0, 'for booking', id);
 
+    console.log('🚐 Raw van rental entries:', JSON.stringify(vanRentalEntries, null, 2));
+
+    const normalizeStringValue = (value) => {
+      if (value === undefined || value === null) return '';
+      const trimmed = String(value).trim();
+      if (trimmed === '' || trimmed.toLowerCase() === 'null' || trimmed.toLowerCase() === 'undefined') {
+        return '';
+      }
+      return trimmed;
+    };
+
     const vanRows = vanRentalEntries
       .map(entry => {
         if (!entry) return null;
         const tripTypeRaw = entry.trip_type ? String(entry.trip_type).toLowerCase() : '';
-        const normalizedVanDestinationId = entry.van_destination_id ? String(entry.van_destination_id).trim() : '';
-        const normalizedChooseDestination = entry.choose_destination ? String(entry.choose_destination).trim() : '';
+        const normalizedVanDestinationId = normalizeStringValue(entry.van_destination_id);
+        const normalizedChooseDestination = normalizeStringValue(entry.choose_destination);
 
         // Enforce constraint: at least one of van_destination_id or choose_destination must be provided
         if (!normalizedVanDestinationId && !normalizedChooseDestination) {
           return null;
         }
 
-        const chooseDestinationValue = normalizedChooseDestination || null;
+        const chooseDestinationValue = normalizedVanDestinationId
+          ? null
+          : (normalizedChooseDestination || null);
+
+        if (!normalizedVanDestinationId && !chooseDestinationValue) {
+          return null;
+        }
 
         const numberOfDays = parseInteger(entry.number_of_days);
         const totalAmount = Number.isFinite(Number(entry.total_amount)) ? Number(entry.total_amount) : 0;
