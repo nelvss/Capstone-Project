@@ -91,7 +91,7 @@ async function fetchBookingWithDetails(bookingId) {
 
     const { data: vanBookings = [], error: vanError } = await supabase
       .from('bookings_van_rental')
-      .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination, location_type')
+      .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination')
       .eq('booking_id', bookingId);
 
     if (vanError) {
@@ -118,6 +118,7 @@ async function fetchBookingWithDetails(bookingId) {
 
     const vanRentalsWithDetails = (vanBookings || []).map(v => ({
       ...v,
+      location_type: v.choose_destination || null,
       destination: v.van_destination_id ? vanMap[v.van_destination_id] || null : null
     }));
 
@@ -369,7 +370,7 @@ const getBookings = async (req, res) => {
       
       const { data: vanRentalBookings } = await supabase
         .from('bookings_van_rental')
-        .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination, location_type')
+        .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination')
         .in('booking_id', normalizedBookingIds);
       
       if (vanRentalBookings) {
@@ -396,6 +397,7 @@ const getBookings = async (req, res) => {
           }
           acc[normalizedKey].push({
             ...vrb,
+            location_type: vrb.choose_destination || null,
             destination: vrb.van_destination_id ? vanDestinationsData[vrb.van_destination_id] : null
           });
           return acc;
