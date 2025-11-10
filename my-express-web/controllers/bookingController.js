@@ -126,14 +126,14 @@ async function fetchBookingWithDetails(bookingId) {
     let divingError = null;
     ({ data: divingBookings = [], error: divingError } = await supabase
       .from('bookings_diving')
-      .select('booking_id, number_of_divers, total_amount, price_per_head')
+      .select('diving_id, booking_id, number_of_divers, total_amount, price_per_head, diving_type')
       .eq('booking_id', bookingId));
 
     if (divingError && divingError.code === '42703') {
       console.warn('⚠️ price_per_head column missing in bookings_diving. Retrying without it.');
       ({ data: divingBookings = [], error: divingError } = await supabase
         .from('bookings_diving')
-        .select('booking_id, number_of_divers, total_amount')
+        .select('diving_id, booking_id, number_of_divers, total_amount, diving_type')
         .eq('booking_id', bookingId));
     }
 
@@ -429,14 +429,14 @@ const getBookings = async (req, res) => {
       let divingListError = null;
       ({ data: divingBookings = [], error: divingListError } = await supabase
         .from('bookings_diving')
-        .select('booking_id, number_of_divers, total_amount, price_per_head')
+        .select('diving_id, booking_id, number_of_divers, total_amount, price_per_head, diving_type')
         .in('booking_id', bookingIds));
 
       if (divingListError && divingListError.code === '42703') {
         console.warn('⚠️ price_per_head column missing in bookings_diving. Retrying list without it.');
         ({ data: divingBookings = [], error: divingListError } = await supabase
           .from('bookings_diving')
-          .select('booking_id, number_of_divers, total_amount')
+          .select('diving_id, booking_id, number_of_divers, total_amount, diving_type')
           .in('booking_id', bookingIds));
       }
 
@@ -880,15 +880,32 @@ const updateBooking = async (req, res) => {
     const divingRows = divingEntries
       .map(entry => {
         if (!entry) return null;
-        return {
+
+        const numberOfDivers = parseInteger(entry.number_of_divers);
+        const pricePerHeadRaw = Number(entry.price_per_head);
+        const totalAmountRaw = Number(entry.total_amount);
+        const normalizedDivingType = entry.diving_type ? String(entry.diving_type).trim() : null;
+
+        const row = {
           booking_id: bookingIdNormalized,
-          number_of_divers: parseInteger(entry.number_of_divers) || 0,
-          price_per_head: Number(entry.price_per_head) || 0,
-          total_amount: Number(entry.total_amount) || 0,
+          number_of_divers: Number.isFinite(numberOfDivers) ? numberOfDivers : 0,
+          price_per_head: Number.isFinite(pricePerHeadRaw) ? pricePerHeadRaw : 0,
+          total_amount: Number.isFinite(totalAmountRaw) ? totalAmountRaw : 0,
           booking_type: normalizedBookingType
         };
+
+        if (normalizedDivingType) {
+          row.diving_type = normalizedDivingType;
+        }
+
+        return row;
       })
-      .filter(entry => entry && (entry.number_of_divers || entry.total_amount));
+      .filter(entry => entry && (
+        (Number.isFinite(entry.number_of_divers) && entry.number_of_divers > 0) ||
+        (Number.isFinite(entry.total_amount) && entry.total_amount > 0) ||
+        (Number.isFinite(entry.price_per_head) && entry.price_per_head > 0) ||
+        (entry.diving_type && entry.diving_type.length > 0)
+      ));
 
     if (divingRows.length > 0) {
       const { error: insertDivingError } = await supabase
