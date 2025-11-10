@@ -2,23 +2,18 @@ const supabase = require('../config/supabase');
 const { generateNextBookingId } = require('../utils/helpers');
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const BOOKING_ID_REGEX = /^\d{2}-\d{4,}$/;
 
 function isValidUuid(value) {
   return typeof value === 'string' && UUID_REGEX.test(value.trim());
 }
 
 function isValidBookingId(value) {
-  if (typeof value !== 'string') {
+  if (value === undefined || value === null) {
     return false;
   }
 
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return false;
-  }
-
-  return BOOKING_ID_REGEX.test(trimmed) || isValidUuid(trimmed);
+  const normalized = String(value).trim();
+  return normalized.length > 0;
 }
 
 let supportsPackageOnlyIdColumn = true;
