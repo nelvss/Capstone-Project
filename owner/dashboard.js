@@ -1311,7 +1311,6 @@ function createDivingRowElement() {
         <input type="number" min="0" step="0.01" data-field="total_amount" readonly>
       </label>
     </div>
-    <input type="hidden" data-field="diving_type">
     <input type="hidden" data-field="diving_id">
   `;
   
@@ -1331,7 +1330,6 @@ function addDivingRow(data = {}) {
   const pricePerHeadInput = row.querySelector('[data-field="price_per_head"]');
   const totalAmountInput = row.querySelector('[data-field="total_amount"]');
   const divingSelect = row.querySelector('[data-field="diving_option_id"]');
-  const divingTypeInput = row.querySelector('[data-field="diving_type"]');
   const divingIdInput = row.querySelector('[data-field="diving_id"]');
 
   const normalizedAvailableDiving = Array.isArray(availableDiving) ? availableDiving : [];
@@ -1391,9 +1389,8 @@ function addDivingRow(data = {}) {
       if (Number.isFinite(optionPrice)) {
         pricePerHeadInput.value = optionPrice.toFixed(2);
       }
-      divingTypeInput.value = selectedOption.textContent || '';
     } else {
-      divingTypeInput.value = '';
+      pricePerHeadInput.value = getDefaultPricePerHead().toFixed(2);
     }
     calculateTotal();
   };
@@ -1489,13 +1486,10 @@ function addDivingRow(data = {}) {
 
     if (divingSelect && divingSelect.value) {
       applySelectionToInputs();
-    } else if (data.diving_type) {
-      divingTypeInput.value = data.diving_type;
-      calculateTotal();
     } else {
-      divingTypeInput.value = divingSelect && divingSelect.value
-        ? divingSelect.options[divingSelect.selectedIndex]?.textContent || ''
-        : '';
+      if (!divingSelect?.hasAttribute('disabled')) {
+        pricePerHeadInput.value = getDefaultPricePerHead().toFixed(2);
+      }
       calculateTotal();
     }
 
@@ -1629,7 +1623,6 @@ function collectBookingFormData() {
   divingRows.forEach(row => {
     const divingId = parseIntegerField(getRepeatableFieldValue(row, 'diving_id'));
     const divingOptionId = emptyToNull(trim(getRepeatableFieldValue(row, 'diving_option_id')));
-    const divingType = emptyToNull(trim(getRepeatableFieldValue(row, 'diving_type')));
     const diving = {
       number_of_divers: parseIntegerField(getRepeatableFieldValue(row, 'number_of_divers')),
       price_per_head: parseNumberField(getRepeatableFieldValue(row, 'price_per_head')),
@@ -1644,15 +1637,10 @@ function collectBookingFormData() {
       diving.diving_option_id = divingOptionId;
     }
 
-    if (divingType) {
-      diving.diving_type = divingType;
-    }
-
     if (
       diving.number_of_divers !== null ||
       diving.price_per_head !== null ||
       diving.total_amount !== null ||
-      (diving.diving_type && diving.diving_type.length > 0) ||
       (diving.diving_option_id && String(diving.diving_option_id).trim().length > 0)
     ) {
       payload.diving.push(diving);
