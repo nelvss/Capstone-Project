@@ -734,9 +734,12 @@ const updateBooking = async (req, res) => {
           return null;
         }
 
-        const chooseDestinationValue = normalizedVanDestinationId
-          ? null
-          : (normalizedChooseDestination || null);
+        let chooseDestinationValue;
+        if (normalizedVanDestinationId) {
+          chooseDestinationValue = '';
+        } else {
+          chooseDestinationValue = normalizedChooseDestination;
+        }
 
         if (!normalizedVanDestinationId && !chooseDestinationValue) {
           return null;
