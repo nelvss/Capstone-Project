@@ -91,7 +91,7 @@ async function fetchBookingWithDetails(bookingId) {
 
     const { data: vanBookings = [], error: vanError } = await supabase
       .from('bookings_van_rental')
-      .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination')
+      .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination, location_type')
       .eq('booking_id', bookingId);
 
     if (vanError) {
@@ -359,7 +359,7 @@ const getBookings = async (req, res) => {
       
       const { data: vanRentalBookings } = await supabase
         .from('bookings_van_rental')
-        .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination')
+        .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination, location_type')
         .in('booking_id', normalizedBookingIds);
       
       if (vanRentalBookings) {
@@ -786,8 +786,10 @@ const updateBooking = async (req, res) => {
       }
 
       let chooseDestinationValue = '';
+      let locationTypeValue = '';
       if (normalizedVanDestinationId) {
         chooseDestinationValue = destinationChooseMap[normalizedVanDestinationId] || ALLOWED_CHOOSE_DESTINATIONS[0];
+        locationTypeValue = chooseDestinationValue;
       } else {
         chooseDestinationValue = parseChooseDestinationOption(normalizedChooseDestination);
         if (!chooseDestinationValue) {
@@ -796,6 +798,7 @@ const updateBooking = async (req, res) => {
             message: `Invalid choose_destination value: "${normalizedChooseDestination}". Expected one of: ${ALLOWED_CHOOSE_DESTINATIONS.join(', ')}`
           });
         }
+        locationTypeValue = chooseDestinationValue;
       }
 
       const numberOfDays = parseInteger(entry.number_of_days);
@@ -805,6 +808,7 @@ const updateBooking = async (req, res) => {
         booking_id: bookingIdNormalized,
         van_destination_id: normalizedVanDestinationId || null,
         choose_destination: chooseDestinationValue,
+        location_type: locationTypeValue,
         trip_type: tripTypeRaw === 'roundtrip' ? 'roundtrip' : 'oneway',
         number_of_days: Number.isFinite(numberOfDays) ? numberOfDays : 0,
         total_amount: totalAmount
