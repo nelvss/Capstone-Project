@@ -1295,18 +1295,24 @@ function createDivingRowElement() {
     <button type="button" class="modal-row-remove" aria-label="Remove diving">Remove</button>
     <div class="modal-row-grid">
       <label class="modal-field">
+        <span class="modal-field-label">Diving Experience</span>
+        <select data-field="diving_option_id"></select>
+      </label>
+      <label class="modal-field">
         <span class="modal-field-label">Number of Divers</span>
         <input type="number" min="1" step="1" data-field="number_of_divers" value="1">
       </label>
       <label class="modal-field">
         <span class="modal-field-label">Price Per Head (₱)</span>
-        <input type="number" min="0" step="0.01" data-field="price_per_head" readonly>
+        <input type="number" min="0" step="0.01" data-field="price_per_head">
       </label>
       <label class="modal-field">
         <span class="modal-field-label">Total Amount (₱)</span>
         <input type="number" min="0" step="0.01" data-field="total_amount" readonly>
       </label>
     </div>
+    <input type="hidden" data-field="diving_type">
+    <input type="hidden" data-field="diving_id">
   `;
   
   return row;
@@ -1321,79 +1327,196 @@ function addDivingRow(data = {}) {
   ownerEditModal.divingList.appendChild(row);
 
   const removeBtn = row.querySelector('.modal-row-remove');
+  const diversInput = row.querySelector('[data-field="number_of_divers"]');
+  const pricePerHeadInput = row.querySelector('[data-field="price_per_head"]');
+  const totalAmountInput = row.querySelector('[data-field="total_amount"]');
+  const divingSelect = row.querySelector('[data-field="diving_option_id"]');
+  const divingTypeInput = row.querySelector('[data-field="diving_type"]');
+  const divingIdInput = row.querySelector('[data-field="diving_id"]');
+
+  const normalizedAvailableDiving = Array.isArray(availableDiving) ? availableDiving : [];
+
+  const populateDivingSelect = () => {
+    if (!divingSelect) return;
+
+    divingSelect.innerHTML = '<option value="">Select Diving Experience</option>';
+
+    if (normalizedAvailableDiving.length === 0) {
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = 'No diving options available';
+      emptyOption.disabled = true;
+      divingSelect.appendChild(emptyOption);
+      divingSelect.setAttribute('disabled', 'disabled');
+      return;
+    }
+
+    divingSelect.removeAttribute('disabled');
+
+    normalizedAvailableDiving.forEach(diving => {
+      const option = document.createElement('option');
+      const optionId = diving.diving_id ?? diving.id ?? '';
+      option.value = optionId;
+      option.dataset.price = diving.price_per_head ?? 0;
+      option.textContent = diving.name || `Diving Option ${optionId}`;
+      divingSelect.appendChild(option);
+    });
+  };
+
+  populateDivingSelect();
+
+  const getDefaultPricePerHead = () => {
+    if (normalizedAvailableDiving.length === 0) return 0;
+    const defaultOption = normalizedAvailableDiving[0];
+    return Number(defaultOption?.price_per_head) || 0;
+  };
+
+  const calculateTotal = () => {
+    const divers = parseInt(diversInput.value, 10);
+    const pricePerHead = parseFloat(pricePerHeadInput.value);
+
+    const safeDivers = Number.isFinite(divers) && divers > 0 ? divers : 0;
+    const safePrice = Number.isFinite(pricePerHead) ? pricePerHead : 0;
+    const total = safeDivers * safePrice;
+
+    totalAmountInput.value = total > 0 ? total.toFixed(2) : '0.00';
+    updateTotalBookingAmount();
+  };
+
+  const applySelectionToInputs = () => {
+    if (!divingSelect) return;
+    const selectedOption = divingSelect.options[divingSelect.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+      const optionPrice = parseFloat(selectedOption.dataset.price || '0');
+      if (Number.isFinite(optionPrice)) {
+        pricePerHeadInput.value = optionPrice.toFixed(2);
+      }
+      divingTypeInput.value = selectedOption.textContent || '';
+    } else {
+      divingTypeInput.value = '';
+    }
+    calculateTotal();
+  };
+
   removeBtn?.addEventListener('click', async () => {
-    // If this diving booking is from an existing booking, delete it from the database
-    if (currentEditingBooking && currentEditingBooking.id) {
+    const divingIdValue = parseInt(divingIdInput?.value ?? '', 10);
+    const hasPersistedId = Number.isInteger(divingIdValue) && divingIdValue > 0;
+
+    if (hasPersistedId && currentEditingBooking && currentEditingBooking.id) {
       const confirmDelete = confirm('Are you sure you want to remove this diving booking?');
       if (!confirmDelete) return;
-      
+
       try {
         const bookingId = String(currentEditingBooking.id).split(':')[0];
-        // Note: We delete all diving bookings for this booking_id since we don't have a unique diving_id per row
-        const response = await fetch(`${API_URL}/api/bookings/${bookingId}/diving`, {
+        const response = await fetch(`${API_URL}/api/bookings/${bookingId}/diving/${divingIdValue}`, {
           method: 'DELETE'
         });
-        
+
         const result = await response.json();
-        
+
         if (!result.success) {
           throw new Error(result.message || 'Failed to delete diving booking');
         }
-        
+
         console.log('✅ Diving booking deleted from database');
       } catch (error) {
         console.error('❌ Error deleting diving booking:', error);
         alert('Failed to remove diving booking: ' + error.message);
-        return; // Don't remove from UI if database deletion failed
+        return;
       }
     }
-    
-    // Remove from UI
+
     row.remove();
     if (!ownerEditModal.divingList.querySelector('.modal-repeatable-item')) {
       setRepeatableEmptyState(ownerEditModal.divingList, null);
     }
-    updateTotalBookingAmount(); // Update total when diving is removed
+    updateTotalBookingAmount();
   });
 
-  const diversInput = row.querySelector('[data-field="number_of_divers"]');
-  const pricePerHeadInput = row.querySelector('[data-field="price_per_head"]');
-  const totalAmountInput = row.querySelector('[data-field="total_amount"]');
+  diversInput.addEventListener('input', calculateTotal);
+  pricePerHeadInput.addEventListener('input', calculateTotal);
+  divingSelect?.addEventListener('change', () => {
+    if (divingSelect.hasAttribute('disabled')) return;
+    applySelectionToInputs();
+  });
 
-  // Get the diving price from available diving options (assuming there's a standard diving option)
-  let divingPricePerHead = 0;
-  if (availableDiving && availableDiving.length > 0) {
-    // Use the first diving option or find a default one
-    divingPricePerHead = availableDiving[0].price_per_head || 0;
-  }
+  const initializeFromData = () => {
+    divingIdInput.value = data.diving_id ?? '';
 
-  // Function to calculate total amount
-  const calculateTotal = () => {
-    const divers = parseInt(diversInput.value || 1);
-    const pricePerHead = parseFloat(pricePerHeadInput.value || divingPricePerHead);
-    const total = pricePerHead * divers;
-    totalAmountInput.value = total.toFixed(2);
-    updateTotalBookingAmount(); // Update total booking amount
+    const initialDivers = Number.parseInt(data.number_of_divers, 10);
+    diversInput.value = Number.isInteger(initialDivers) && initialDivers > 0 ? initialDivers : (data.number_of_divers === 0 ? 0 : 1);
+
+    let initialPrice = data.price_per_head !== undefined && data.price_per_head !== null
+      ? Number(data.price_per_head)
+      : getDefaultPricePerHead();
+
+    if (!Number.isFinite(initialPrice)) {
+      initialPrice = getDefaultPricePerHead();
+    }
+
+    pricePerHeadInput.value = initialPrice > 0 ? initialPrice.toFixed(2) : initialPrice.toString();
+
+    if (divingSelect && !divingSelect.hasAttribute('disabled')) {
+      let matchedOption = null;
+
+      if (data.diving_option_id) {
+        matchedOption = Array.from(divingSelect.options).find(option => option.value === String(data.diving_option_id));
+      }
+
+      if (!matchedOption && data.diving_type) {
+        const normalizedType = String(data.diving_type).trim().toLowerCase();
+        matchedOption = Array.from(divingSelect.options).find(option => option.textContent.trim().toLowerCase() === normalizedType);
+      }
+
+      if (!matchedOption && data.diving_type) {
+        const fallbackOption = document.createElement('option');
+        fallbackOption.value = data.diving_option_id ? String(data.diving_option_id) : `legacy-${data.diving_id || Date.now()}`;
+        fallbackOption.textContent = data.diving_type;
+        fallbackOption.dataset.price = initialPrice;
+        divingSelect.appendChild(fallbackOption);
+        matchedOption = fallbackOption;
+      }
+
+      if (matchedOption) {
+        divingSelect.value = matchedOption.value;
+        if (!matchedOption.dataset.price) {
+          matchedOption.dataset.price = initialPrice;
+        }
+      } else if (normalizedAvailableDiving.length > 0) {
+        divingSelect.value = String(normalizedAvailableDiving[0].diving_id ?? normalizedAvailableDiving[0].id ?? '');
+      }
+    }
+
+    if (divingSelect && divingSelect.value) {
+      applySelectionToInputs();
+    } else if (data.diving_type) {
+      divingTypeInput.value = data.diving_type;
+      calculateTotal();
+    } else {
+      divingTypeInput.value = divingSelect && divingSelect.value
+        ? divingSelect.options[divingSelect.selectedIndex]?.textContent || ''
+        : '';
+      calculateTotal();
+    }
+
+    if (data.total_amount !== undefined && data.total_amount !== null) {
+      const totalValue = Number(data.total_amount);
+      if (Number.isFinite(totalValue)) {
+        totalAmountInput.value = totalValue.toFixed(2);
+      }
+    }
   };
 
-  // Set the price per head
-  pricePerHeadInput.value = divingPricePerHead.toFixed(2);
-
-  // Event listener for number of divers change
-  diversInput.addEventListener('input', calculateTotal);
-
-  // Set initial values if data is provided
-  diversInput.value = data.number_of_divers || 1;
-  
-  if (data.price_per_head) {
-    pricePerHeadInput.value = data.price_per_head;
+  if (!data || Object.keys(data).length === 0) {
+    divingIdInput.value = '';
+    if (divingSelect && !divingSelect.hasAttribute('disabled') && normalizedAvailableDiving.length > 0) {
+      divingSelect.value = String(normalizedAvailableDiving[0].diving_id ?? normalizedAvailableDiving[0].id ?? '');
+    }
+    applySelectionToInputs();
+    return;
   }
-  
-  if (data.total_amount) {
-    totalAmountInput.value = data.total_amount;
-  } else {
-    calculateTotal();
-  }
+
+  initializeFromData();
 }
 
 function getRepeatableFieldValue(row, field) {
@@ -1504,13 +1627,34 @@ function collectBookingFormData() {
     : [];
 
   divingRows.forEach(row => {
+    const divingId = parseIntegerField(getRepeatableFieldValue(row, 'diving_id'));
+    const divingOptionId = emptyToNull(trim(getRepeatableFieldValue(row, 'diving_option_id')));
+    const divingType = emptyToNull(trim(getRepeatableFieldValue(row, 'diving_type')));
     const diving = {
       number_of_divers: parseIntegerField(getRepeatableFieldValue(row, 'number_of_divers')),
       price_per_head: parseNumberField(getRepeatableFieldValue(row, 'price_per_head')),
       total_amount: parseNumberField(getRepeatableFieldValue(row, 'total_amount'))
     };
 
-    if (diving.number_of_divers !== null || diving.price_per_head !== null || diving.total_amount !== null) {
+    if (divingId !== null) {
+      diving.diving_id = divingId;
+    }
+
+    if (divingOptionId) {
+      diving.diving_option_id = divingOptionId;
+    }
+
+    if (divingType) {
+      diving.diving_type = divingType;
+    }
+
+    if (
+      diving.number_of_divers !== null ||
+      diving.price_per_head !== null ||
+      diving.total_amount !== null ||
+      (diving.diving_type && diving.diving_type.length > 0) ||
+      (diving.diving_option_id && String(diving.diving_option_id).trim().length > 0)
+    ) {
       payload.diving.push(diving);
     }
   });
