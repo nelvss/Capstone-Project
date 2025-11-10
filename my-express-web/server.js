@@ -13,7 +13,7 @@ console.log('PORT from env:', process.env.PORT);
 console.log('Current working directory:', process.cwd());
 
 // Middleware
-app.use(cors({
+const corsOptions = {
   origin: [
     "https://otgpuertogaleratravel.com",
     "https://www.otgpuertogaleratravel.com",
@@ -31,9 +31,10 @@ app.use(cors({
     'cache-control'
   ],
   optionsSuccessStatus: 200
-}));
+};
 
-app.options('*', cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 image uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
