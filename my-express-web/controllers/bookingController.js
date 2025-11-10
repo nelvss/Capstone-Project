@@ -649,14 +649,25 @@ const updateBooking = async (req, res) => {
     console.log('🧹 Cleared vehicle bookings count:', deletedVehicles ? deletedVehicles.length : 0, 'for booking', id);
 
     const vehicleRows = vehicleEntries
-      .map(entry => ({
-        booking_id: bookingIdNormalized,
-        vehicle_id: entry && entry.vehicle_id ? parseInteger(entry.vehicle_id) : null,
-        vehicle_name: entry && entry.vehicle_name ? String(entry.vehicle_name).trim() : null,
-        rental_days: parseInteger(entry?.rental_days) || 0,
-        total_amount: Number(entry?.total_amount) || 0
-      }))
-      .filter(entry => entry.vehicle_id);
+      .map(entry => {
+        if (!entry) return null;
+        const normalizedVehicleId = entry.vehicle_id !== undefined && entry.vehicle_id !== null
+          ? String(entry.vehicle_id).trim()
+          : '';
+
+        if (!normalizedVehicleId) {
+          return null;
+        }
+
+        return {
+          booking_id: bookingIdNormalized,
+          vehicle_id: normalizedVehicleId,
+          vehicle_name: entry.vehicle_name ? String(entry.vehicle_name).trim() : null,
+          rental_days: parseInteger(entry?.rental_days) || 0,
+          total_amount: Number(entry?.total_amount) || 0
+        };
+      })
+      .filter(Boolean);
 
     if (vehicleRows.length > 0) {
       const { error: insertVehiclesError } = await supabase
