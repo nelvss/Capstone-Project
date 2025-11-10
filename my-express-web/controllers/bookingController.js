@@ -1467,11 +1467,11 @@ const deleteVanRentalBooking = async (req, res) => {
   try {
     const { booking_id, van_destination_id } = req.params;
     const normalizedBookingId = typeof booking_id === 'string' ? booking_id.trim() : '';
-    const parsedVanDestinationId = Number.parseInt(van_destination_id, 10);
+    const normalizedVanDestinationId = typeof van_destination_id === 'string' ? van_destination_id.trim() : '';
 
     console.log(`📝 Deleting van rental booking: booking_id=${booking_id}, van_destination_id=${van_destination_id}`);
     
-    if (!normalizedBookingId || Number.isNaN(parsedVanDestinationId)) {
+    if (!normalizedBookingId || !normalizedVanDestinationId) {
       return res.status(400).json({ 
         success: false, 
         message: 'Missing required parameters: booking_id and van_destination_id' 
@@ -1488,7 +1488,7 @@ const deleteVanRentalBooking = async (req, res) => {
     const { data, error } = await supabase
       .from('bookings_van_rental')
       .delete()
-      .match({ booking_id: normalizedBookingId, van_destination_id: parsedVanDestinationId })
+      .match({ booking_id: normalizedBookingId, van_destination_id: normalizedVanDestinationId })
       .select();
     
     if (error) {
