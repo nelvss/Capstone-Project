@@ -121,10 +121,20 @@ async function fetchBookingWithDetails(bookingId) {
       destination: v.van_destination_id ? vanMap[v.van_destination_id] || null : null
     }));
 
-    const { data: divingBookings = [], error: divingError } = await supabase
+    let divingBookings = [];
+    let divingError = null;
+    ({ data: divingBookings = [], error: divingError } = await supabase
       .from('bookings_diving')
       .select('booking_id, number_of_divers, total_amount, price_per_head')
-      .eq('booking_id', bookingId);
+      .eq('booking_id', bookingId));
+
+    if (divingError && divingError.code === '42703') {
+      console.warn('⚠️ price_per_head column missing in bookings_diving. Retrying without it.');
+      ({ data: divingBookings = [], error: divingError } = await supabase
+        .from('bookings_diving')
+        .select('booking_id, number_of_divers, total_amount')
+        .eq('booking_id', bookingId));
+    }
 
     if (divingError) {
       console.warn('⚠️ Failed to fetch diving bookings:', divingError.message);
@@ -413,12 +423,24 @@ const getBookings = async (req, res) => {
     
     let divingBookingsData = {};
     if (bookingIds.length > 0) {
-      const { data: divingBookings } = await supabase
+      let divingBookings = [];
+      let divingListError = null;
+      ({ data: divingBookings = [], error: divingListError } = await supabase
         .from('bookings_diving')
         .select('booking_id, number_of_divers, total_amount, price_per_head')
-        .in('booking_id', bookingIds);
-      
-      if (divingBookings) {
+        .in('booking_id', bookingIds));
+
+      if (divingListError && divingListError.code === '42703') {
+        console.warn('⚠️ price_per_head column missing in bookings_diving. Retrying list without it.');
+        ({ data: divingBookings = [], error: divingListError } = await supabase
+          .from('bookings_diving')
+          .select('booking_id, number_of_divers, total_amount')
+          .in('booking_id', bookingIds));
+      }
+
+      if (divingListError) {
+        console.warn('⚠️ Failed to fetch diving bookings list:', divingListError.message);
+      } else if (divingBookings) {
         divingBookingsData = divingBookings.reduce((acc, diving) => {
           if (!acc[diving.booking_id]) {
             acc[diving.booking_id] = [];
@@ -786,10 +808,8 @@ const updateBooking = async (req, res) => {
       }
 
       let chooseDestinationValue = '';
-      let locationTypeValue = '';
       if (normalizedVanDestinationId) {
         chooseDestinationValue = destinationChooseMap[normalizedVanDestinationId] || ALLOWED_CHOOSE_DESTINATIONS[0];
-        locationTypeValue = chooseDestinationValue;
       } else {
         chooseDestinationValue = parseChooseDestinationOption(normalizedChooseDestination);
         if (!chooseDestinationValue) {
@@ -798,7 +818,6 @@ const updateBooking = async (req, res) => {
             message: `Invalid choose_destination value: "${normalizedChooseDestination}". Expected one of: ${ALLOWED_CHOOSE_DESTINATIONS.join(', ')}`
           });
         }
-        locationTypeValue = chooseDestinationValue;
       }
 
       const numberOfDays = parseInteger(entry.number_of_days);
@@ -808,7 +827,6 @@ const updateBooking = async (req, res) => {
         booking_id: bookingIdNormalized,
         van_destination_id: normalizedVanDestinationId || null,
         choose_destination: chooseDestinationValue,
-        location_type: locationTypeValue,
         trip_type: tripTypeRaw === 'roundtrip' ? 'roundtrip' : 'oneway',
         number_of_days: Number.isFinite(numberOfDays) ? numberOfDays : 0,
         total_amount: totalAmount
