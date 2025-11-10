@@ -662,7 +662,7 @@ const updateBooking = async (req, res) => {
         return {
           booking_id: bookingIdNormalized,
           vehicle_id: normalizedVehicleId,
-          vehicle_name: entry.vehicle_name ? String(entry.vehicle_name).trim() : null,
+          vehicle_name: entry.vehicle_name ? String(entry.vehicle_name).trim() : normalizedVehicleId,
           rental_days: parseInteger(entry?.rental_days) || 0,
           total_amount: Number(entry?.total_amount) || 0
         };
