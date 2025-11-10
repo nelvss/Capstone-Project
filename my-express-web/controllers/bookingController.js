@@ -126,16 +126,8 @@ async function fetchBookingWithDetails(bookingId) {
     let divingError = null;
     ({ data: divingBookings = [], error: divingError } = await supabase
       .from('bookings_diving')
-      .select('diving_id, booking_id, number_of_divers, total_amount, price_per_head')
+      .select('booking_id, number_of_divers, total_amount')
       .eq('booking_id', bookingId));
-
-    if (divingError && divingError.code === '42703') {
-      console.warn('⚠️ price_per_head column missing in bookings_diving. Retrying without it.');
-      ({ data: divingBookings = [], error: divingError } = await supabase
-        .from('bookings_diving')
-        .select('diving_id, booking_id, number_of_divers, total_amount')
-        .eq('booking_id', bookingId));
-    }
 
     if (divingError) {
       console.warn('⚠️ Failed to fetch diving bookings:', divingError.message);
@@ -429,16 +421,8 @@ const getBookings = async (req, res) => {
       let divingListError = null;
       ({ data: divingBookings = [], error: divingListError } = await supabase
         .from('bookings_diving')
-        .select('diving_id, booking_id, number_of_divers, total_amount, price_per_head')
+        .select('booking_id, number_of_divers, total_amount')
         .in('booking_id', bookingIds));
-
-      if (divingListError && divingListError.code === '42703') {
-        console.warn('⚠️ price_per_head column missing in bookings_diving list. Retrying without it.');
-        ({ data: divingBookings = [], error: divingListError } = await supabase
-          .from('bookings_diving')
-          .select('diving_id, booking_id, number_of_divers, total_amount')
-          .in('booking_id', bookingIds));
-      }
 
       if (divingListError) {
         console.warn('⚠️ Failed to fetch diving bookings list:', divingListError.message);
@@ -882,21 +866,18 @@ const updateBooking = async (req, res) => {
         if (!entry) return null;
 
         const numberOfDivers = parseInteger(entry.number_of_divers);
-        const pricePerHeadRaw = Number(entry.price_per_head);
         const totalAmountRaw = Number(entry.total_amount);
 
         return {
           booking_id: bookingIdNormalized,
           number_of_divers: Number.isFinite(numberOfDivers) ? numberOfDivers : 0,
-          price_per_head: Number.isFinite(pricePerHeadRaw) ? pricePerHeadRaw : 0,
           total_amount: Number.isFinite(totalAmountRaw) ? totalAmountRaw : 0,
           booking_type: normalizedBookingType
         };
       })
       .filter(entry => entry && (
         (Number.isFinite(entry.number_of_divers) && entry.number_of_divers > 0) ||
-        (Number.isFinite(entry.total_amount) && entry.total_amount > 0) ||
-        (Number.isFinite(entry.price_per_head) && entry.price_per_head > 0)
+        (Number.isFinite(entry.total_amount) && entry.total_amount > 0)
       ));
 
     if (divingRows.length > 0) {
@@ -1527,14 +1508,13 @@ const deleteVanRentalBooking = async (req, res) => {
   }
 };
 
-// Delete specific diving booking
+// Delete diving bookings by booking ID
 const deleteDivingBooking = async (req, res) => {
   try {
-    const { booking_id, diving_id } = req.params;
+    const { booking_id } = req.params;
     const normalizedBookingId = typeof booking_id === 'string' ? booking_id.trim() : '';
-    const parsedDivingId = diving_id !== undefined ? Number.parseInt(diving_id, 10) : undefined;
 
-    console.log(`📝 Deleting diving booking: booking_id=${booking_id}, diving_id=${diving_id}`);
+    console.log(`📝 Deleting diving bookings: booking_id=${booking_id}`);
     
     if (!normalizedBookingId) {
       return res.status(400).json({ 
@@ -1549,24 +1529,12 @@ const deleteDivingBooking = async (req, res) => {
         message: 'Invalid booking_id.'
       });
     }
-
-    if (diving_id !== undefined && Number.isNaN(parsedDivingId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid diving_id. Expected a numeric value.'
-      });
-    }
     
-    // If diving_id is provided, delete specific diving booking, otherwise delete by booking_id only
-    let query = supabase.from('bookings_diving').delete();
-    
-    if (diving_id !== undefined) {
-      query = query.match({ booking_id: normalizedBookingId, diving_id: parsedDivingId });
-    } else {
-      query = query.match({ booking_id: normalizedBookingId });
-    }
-    
-    const { data, error } = await query.select();
+    const { data, error } = await supabase
+      .from('bookings_diving')
+      .delete()
+      .match({ booking_id: normalizedBookingId })
+      .select();
     
     if (error) {
       console.error('❌ Error deleting diving booking:', error);
@@ -1577,11 +1545,11 @@ const deleteDivingBooking = async (req, res) => {
       });
     }
     
-    console.log('✅ Diving booking deleted successfully:', data);
+    console.log('✅ Diving bookings deleted successfully:', data);
     
     res.json({ 
       success: true, 
-      message: 'Diving booking deleted successfully',
+      message: 'Diving bookings deleted successfully',
       deleted: data
     });
     
