@@ -2,9 +2,23 @@ const supabase = require('../config/supabase');
 const { generateNextBookingId } = require('../utils/helpers');
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const BOOKING_ID_REGEX = /^\d{2}-\d{4,}$/;
 
-function isValidUUID(value) {
+function isValidUuid(value) {
   return typeof value === 'string' && UUID_REGEX.test(value.trim());
+}
+
+function isValidBookingId(value) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  return BOOKING_ID_REGEX.test(trimmed) || isValidUuid(trimmed);
 }
 
 let supportsPackageOnlyIdColumn = true;
@@ -1262,28 +1276,28 @@ const deleteVehicleBooking = async (req, res) => {
   try {
     const { booking_id, vehicle_id } = req.params;
     const normalizedBookingId = typeof booking_id === 'string' ? booking_id.trim() : '';
-    const parsedVehicleId = Number.parseInt(vehicle_id, 10);
+    const normalizedVehicleId = typeof vehicle_id === 'string' ? vehicle_id.trim() : '';
 
     console.log(`📝 Deleting vehicle booking: booking_id=${booking_id}, vehicle_id=${vehicle_id}`);
     
-    if (!normalizedBookingId || Number.isNaN(parsedVehicleId)) {
+    if (!normalizedBookingId || !normalizedVehicleId) {
       return res.status(400).json({ 
         success: false, 
         message: 'Missing required parameters: booking_id and vehicle_id' 
       });
     }
 
-    if (!isValidUUID(normalizedBookingId)) {
+    if (!isValidBookingId(normalizedBookingId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid booking_id. Expected a UUID.'
+        message: 'Invalid booking_id.'
       });
     }
     
     const { data, error } = await supabase
       .from('booking_vehicles')
       .delete()
-      .match({ booking_id: normalizedBookingId, vehicle_id: parsedVehicleId })
+      .match({ booking_id: normalizedBookingId, vehicle_id: normalizedVehicleId })
       .select();
     
     if (error) {
@@ -1329,10 +1343,10 @@ const deleteVanRentalBooking = async (req, res) => {
       });
     }
 
-    if (!isValidUUID(normalizedBookingId)) {
+    if (!isValidBookingId(normalizedBookingId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid booking_id. Expected a UUID.'
+        message: 'Invalid booking_id.'
       });
     }
     
@@ -1385,10 +1399,10 @@ const deleteDivingBooking = async (req, res) => {
       });
     }
 
-    if (!isValidUUID(normalizedBookingId)) {
+    if (!isValidBookingId(normalizedBookingId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid booking_id. Expected a UUID.'
+        message: 'Invalid booking_id.'
       });
     }
 
