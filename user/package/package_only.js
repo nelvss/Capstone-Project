@@ -2926,14 +2926,14 @@
             
             console.log('Destination selected:', selectedDestination);
             
-            // Hide all dynamic containers first
-            if (placeSelectionContainer) placeSelectionContainer.style.display = 'none';
-            if (withinTripTypeContainer) withinTripTypeContainer.style.display = 'none';
-            if (withinDaysContainer) withinDaysContainer.style.display = 'none';
-            if (outsidePlaceContainer) outsidePlaceContainer.style.display = 'none';
-            if (tripTypeContainer) tripTypeContainer.style.display = 'none';
-            if (outsideDaysContainer) outsideDaysContainer.style.display = 'none';
-            if (vanTotalAmountContainer) vanTotalAmountContainer.style.display = 'none';
+            // Hide all dynamic containers first - use classList instead of style
+            if (placeSelectionContainer) placeSelectionContainer.classList.add('hidden-container');
+            if (withinTripTypeContainer) withinTripTypeContainer.classList.add('hidden-container');
+            if (withinDaysContainer) withinDaysContainer.classList.add('hidden-container');
+            if (outsidePlaceContainer) outsidePlaceContainer.classList.add('hidden-container');
+            if (tripTypeContainer) tripTypeContainer.classList.add('hidden-container');
+            if (outsideDaysContainer) outsideDaysContainer.classList.add('hidden-container');
+            if (vanTotalAmountContainer) vanTotalAmountContainer.classList.add('hidden-container');
             
             // Reset selections
             if (placeSelect) placeSelect.value = '';
@@ -2944,19 +2944,19 @@
             if (outsideNumberOfDays) outsideNumberOfDays.value = '';
             if (vanAmountInput) vanAmountInput.value = '';
             
-            // Show appropriate containers based on selection - ALL fields visible
+            // Show appropriate containers based on selection - Remove hidden-container class
             if (selectedDestination === 'Within Puerto Galera') {
                 console.log('Showing Within PG fields');
-                if (placeSelectionContainer) placeSelectionContainer.style.display = 'block';
-                if (withinTripTypeContainer) withinTripTypeContainer.style.display = 'block';
-                if (withinDaysContainer) withinDaysContainer.style.display = 'block';
-                if (vanTotalAmountContainer) vanTotalAmountContainer.style.display = 'block';
+                if (placeSelectionContainer) placeSelectionContainer.classList.remove('hidden-container');
+                if (withinTripTypeContainer) withinTripTypeContainer.classList.remove('hidden-container');
+                if (withinDaysContainer) withinDaysContainer.classList.remove('hidden-container');
+                if (vanTotalAmountContainer) vanTotalAmountContainer.classList.remove('hidden-container');
             } else if (selectedDestination === 'Outside Puerto Galera') {
                 console.log('Showing Outside PG fields');
-                if (outsidePlaceContainer) outsidePlaceContainer.style.display = 'block';
-                if (tripTypeContainer) tripTypeContainer.style.display = 'block';
-                if (outsideDaysContainer) outsideDaysContainer.style.display = 'block';
-                if (vanTotalAmountContainer) vanTotalAmountContainer.style.display = 'block';
+                if (outsidePlaceContainer) outsidePlaceContainer.classList.remove('hidden-container');
+                if (tripTypeContainer) tripTypeContainer.classList.remove('hidden-container');
+                if (outsideDaysContainer) outsideDaysContainer.classList.remove('hidden-container');
+                if (vanTotalAmountContainer) vanTotalAmountContainer.classList.remove('hidden-container');
             }
             
             // Clear total amount calculation when destination changes
