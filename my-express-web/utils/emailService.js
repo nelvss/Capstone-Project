@@ -28,7 +28,7 @@ const emailTemplates = {
         <meta name="color-scheme" content="light">
         <meta name="supported-color-schemes" content="light">
       </head>
-      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f2937 !important;">
+      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: 'Poppins', sans-serif; color: #1f2937 !important;">
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f7fa; padding: 40px 20px;">
           <tr>
             <td align="center">
@@ -150,7 +150,7 @@ const emailTemplates = {
         <meta name="color-scheme" content="light">
         <meta name="supported-color-schemes" content="light">
       </head>
-      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f2937 !important;">
+      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: 'Poppins', sans-serif; color: #1f2937 !important;">
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f7fa; padding: 40px 20px;">
           <tr>
             <td align="center">
@@ -274,7 +274,7 @@ const emailTemplates = {
         <meta name="color-scheme" content="light">
         <meta name="supported-color-schemes" content="light">
       </head>
-      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f2937 !important;">
+      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: 'Poppins', sans-serif; color: #1f2937 !important;">
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f7fa; padding: 40px 20px;">
           <tr>
             <td align="center">
