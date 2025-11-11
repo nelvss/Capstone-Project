@@ -804,6 +804,28 @@ body {
     display: none;
 }
 
+.van-section {
+    transition: opacity 0.2s ease;
+}
+
+.van-disabled {
+    opacity: 0.55;
+}
+
+.van-disabled label {
+    color: #6c757d;
+}
+
+.van-disabled select,
+.van-disabled input,
+.van-disabled .form-select,
+.van-disabled .form-control {
+    pointer-events: none;
+    cursor: not-allowed;
+    background-color: #f1f3f5;
+    color: #6c757d;
+}
+
 /* Button styles */
 .btn-gray {
     background-color: #6c757d;
