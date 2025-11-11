@@ -1758,6 +1758,8 @@
             // Add new listener
             newOption.addEventListener("change", () => {
                 console.log('🏨 Hotel selection changed:', newOption.value);
+                // Update package availability based on hotel
+                updatePackageAvailability(newOption.value);
                 // Force fresh fetch of packages to ensure latest prices
                 fetchPackages().then(() => {
                     // Update package dropdown prices when hotel changes
@@ -1770,6 +1772,134 @@
                 });
                 saveCurrentFormData(); // Save data when hotel selection changes
             });
+        });
+    }
+
+    // Function to update package availability based on selected hotel
+    function updatePackageAvailability(selectedHotel) {
+        console.log('🔍 Checking package availability for hotel:', selectedHotel);
+        
+        // Normalize hotel name
+        const normalizedHotel = normalizeHotelName(selectedHotel);
+        console.log('📋 Normalized hotel name:', normalizedHotel);
+        
+        // Define which packages are NOT available for Casa de Honcho
+        const casaDeHonchoUnavailablePackages = ['Package 3', 'Package 4'];
+        
+        // Check if selected hotel is Casa de Honcho
+        const isCasaDeHoncho = normalizedHotel === 'Casa de Honcho';
+        
+        // Get all package selection options
+        const packageOptions = document.querySelectorAll('.package-selection-option');
+        
+        packageOptions.forEach(option => {
+            const packageValue = option.value;
+            const parentDiv = option.closest('.form-check');
+            const label = parentDiv?.querySelector('label');
+            
+            // Check if this package is unavailable for the selected hotel
+            const isUnavailable = isCasaDeHoncho && casaDeHonchoUnavailablePackages.includes(packageValue);
+            
+            if (isUnavailable) {
+                // Disable the package option
+                option.disabled = true;
+                
+                // Add visual styling to show it's disabled
+                if (parentDiv) {
+                    parentDiv.style.opacity = '0.5';
+                    parentDiv.style.cursor = 'not-allowed';
+                }
+                if (label) {
+                    label.style.cursor = 'not-allowed';
+                }
+                
+                // If this package is currently selected, uncheck it
+                if (option.checked) {
+                    option.checked = false;
+                    console.log(`⚠️ Unchecked ${packageValue} because it's not available for ${selectedHotel}`);
+                    
+                    // Update the selected package text
+                    const selectedPackageText = document.getElementById('selectedPackageText');
+                    if (selectedPackageText) {
+                        selectedPackageText.textContent = 'Select Package';
+                    }
+                    
+                    // Recalculate prices
+                    updatePackageSelectionPricing();
+                    calculateTotalAmount();
+                }
+                
+                // Add "Not Available" badge to the label
+                if (label && !label.querySelector('.unavailable-badge')) {
+                    const unavailableBadge = document.createElement('span');
+                    unavailableBadge.className = 'badge bg-secondary ms-2 unavailable-badge';
+                    unavailableBadge.textContent = 'Not Available';
+                    unavailableBadge.style.fontSize = '0.7rem';
+                    label.appendChild(unavailableBadge);
+                }
+                
+                console.log(`🚫 Disabled ${packageValue} for ${selectedHotel}`);
+            } else {
+                // Enable the package option
+                option.disabled = false;
+                
+                // Remove disabled styling
+                if (parentDiv) {
+                    parentDiv.style.opacity = '1';
+                    parentDiv.style.cursor = 'pointer';
+                }
+                if (label) {
+                    label.style.cursor = 'pointer';
+                }
+                
+                // Remove "Not Available" badge if it exists
+                const unavailableBadge = label?.querySelector('.unavailable-badge');
+                if (unavailableBadge) {
+                    unavailableBadge.remove();
+                }
+                
+                console.log(`✅ Enabled ${packageValue} for ${selectedHotel}`);
+            }
+        });
+        
+        // Also update the package dropdown buttons (Package 1, 2, 3, 4 info buttons)
+        const packageDropdownButtons = [
+            { id: 'package3Dropdown', package: 'Package 3' },
+            { id: 'package4Dropdown', package: 'Package 4' }
+        ];
+        
+        packageDropdownButtons.forEach(({ id, package: packageName }) => {
+            const button = document.getElementById(id);
+            if (button) {
+                const isUnavailable = isCasaDeHoncho && casaDeHonchoUnavailablePackages.includes(packageName);
+                
+                if (isUnavailable) {
+                    // Add visual indication that this package is not available
+                    button.style.opacity = '0.6';
+                    button.style.cursor = 'not-allowed';
+                    
+                    // Add a note in the dropdown
+                    const dropdown = button.nextElementSibling;
+                    if (dropdown && !dropdown.querySelector('.unavailable-note')) {
+                        const note = document.createElement('div');
+                        note.className = 'alert alert-warning mb-0 mt-2 unavailable-note';
+                        note.style.fontSize = '0.85rem';
+                        note.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i><strong>Not Available</strong> for Casa de Honcho';
+                        dropdown.appendChild(note);
+                    }
+                } else {
+                    // Remove unavailable styling
+                    button.style.opacity = '1';
+                    button.style.cursor = 'pointer';
+                    
+                    // Remove unavailable note
+                    const dropdown = button.nextElementSibling;
+                    const note = dropdown?.querySelector('.unavailable-note');
+                    if (note) {
+                        note.remove();
+                    }
+                }
+            }
         });
     }
 
@@ -2197,7 +2327,11 @@
                 // Restore selected hotel
                 if (tourSelections.selectedHotel) {
                     const hotelRadio = document.querySelector(`input[name="hotel-selection"][value="${tourSelections.selectedHotel}"]`);
-                    if (hotelRadio) hotelRadio.checked = true;
+                    if (hotelRadio) {
+                        hotelRadio.checked = true;
+                        // Update package availability when hotel is restored
+                        updatePackageAvailability(tourSelections.selectedHotel);
+                    }
                 }
                 
                 // Restore rental vehicles
@@ -2420,19 +2554,17 @@
         // Re-attach event listeners to new hotel options
         attachHotelSelectionListeners();
         
-        // Update package prices if packages are already loaded
-        if (packagesData && packagesData.length > 0) {
-            // Wait a bit for hotel options to be rendered, then update prices
-            setTimeout(() => {
-                const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
-                if (selectedHotel) {
-                    updatePackageDropdownPrices(selectedHotel.value);
-                } else if (hotelsData && hotelsData.length > 0) {
-                    // Use first hotel as default
-                    updatePackageDropdownPrices(hotelsData[0].name);
-                }
-            }, 200);
-        }
+        // Check if a hotel is already selected and update package availability
+        setTimeout(() => {
+            const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+            if (selectedHotel) {
+                updatePackageAvailability(selectedHotel.value);
+                updatePackageDropdownPrices(selectedHotel.value);
+            } else if (hotelsData && hotelsData.length > 0) {
+                // Use first hotel as default for price display
+                updatePackageDropdownPrices(hotelsData[0].name);
+            }
+        }, 200);
         
         console.log('✅ Hotel options generated successfully');
     }
