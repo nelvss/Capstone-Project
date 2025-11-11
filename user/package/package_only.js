@@ -2912,7 +2912,7 @@
         destinationSelect.addEventListener('change', function() {
             const selectedDestination = this.value;
             
-            // Hide all dynamic containers
+            // Hide all dynamic containers first
             placeSelectionContainer.style.display = 'none';
             withinTripTypeContainer.style.display = 'none';
             withinDaysContainer.style.display = 'none';
@@ -2930,7 +2930,7 @@
             if (outsideNumberOfDays) outsideNumberOfDays.value = '';
             if (vanAmountInput) vanAmountInput.value = '';
             
-            // Show appropriate container based on selection
+            // Show appropriate containers based on selection - ALL fields visible
             if (selectedDestination === 'Within Puerto Galera') {
                 placeSelectionContainer.style.display = 'block';
                 withinTripTypeContainer.style.display = 'block';
@@ -2942,6 +2942,9 @@
                 outsideDaysContainer.style.display = 'block';
                 vanTotalAmountContainer.style.display = 'block';
             }
+            
+            // Clear total amount calculation when destination changes
+            calculateTotalAmount();
             
             // Save data when destination changes
             saveCurrentFormData();
