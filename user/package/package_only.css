@@ -902,3 +902,49 @@ body {
 .step2-error-message {
     display: none;
 }
+
+/* Disabled Package Option Styling */
+.package-option-item input[type="radio"]:disabled ~ label {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.package-option-item input[type="radio"]:disabled {
+    cursor: not-allowed !important;
+}
+
+.package-option-item:has(input[type="radio"]:disabled) {
+    background-color: #f8f9fa !important;
+    border-left: 3px solid #6c757d;
+}
+
+.package-option-item:has(input[type="radio"]:disabled):hover {
+    background-color: #f8f9fa !important;
+}
+
+.unavailable-badge {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.5rem !important;
+    font-weight: 600 !important;
+}
+
+/* Package dropdown button styling when unavailable */
+.btn[style*="opacity: 0.6"] {
+    position: relative;
+}
+
+.btn[style*="opacity: 0.6"]::after {
+    content: '⚠️';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 1rem;
+}
+
+/* Unavailable note in dropdown */
+.unavailable-note {
+    font-size: 0.85rem !important;
+    padding: 0.5rem !important;
+    margin-top: 0.75rem !important;
+}
