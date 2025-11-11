@@ -1095,7 +1095,7 @@
         }
         
         // Get van rental amount (van rental with tourist franchise)
-        const vanRentalAmountText = document.getElementById('amountOfVanRental')?.value;
+        const vanRentalAmountText = document.getElementById('vanTotalAmount')?.value;
         if (vanRentalAmountText) {
             const vanRentalAmount = parseFloat(vanRentalAmountText.replace(/[₱,]/g, '')) || 0;
             total += vanRentalAmount;
@@ -1556,7 +1556,7 @@
             const placeSelect = document.getElementById('placeSelect');
             const tripTypeSelect = document.getElementById('tripTypeSelect');
             const numberOfDaysSelect = document.getElementById('vanNumberOfDays');
-            const vanTotalAmount = document.getElementById('amountOfVanRental');
+            const vanTotalAmount = document.getElementById('vanTotalAmount');
 
             if (!destinationSelect || !destinationSelect.value) return null;
 
@@ -1599,7 +1599,7 @@
             selectedHotel: document.querySelector('.hotels-option:checked')?.value || '',
             packageAmount: document.getElementById('amountOfPackage').value,
             vehicleAmount: document.getElementById('amountOfVehicle').value,
-            vanRentalAmount: document.getElementById('amountOfVanRental')?.value || '',
+            vanRentalAmount: document.getElementById('vanTotalAmount')?.value || '',
             divingAmount: document.getElementById('amountOfDiving').value,
             totalAmount: document.getElementById('totalAmount').value,
             selectedVanRental: selectedVanRental // Add van rental data
@@ -1801,7 +1801,7 @@
     const placeSelect = document.getElementById('placeSelect');
     const tripTypeSelect = document.getElementById('tripTypeSelect');
     const vanNumberOfDays = document.getElementById('vanNumberOfDays');
-    const vanAmountInput = document.getElementById('amountOfVanRental');
+    const vanAmountInput = document.getElementById('vanTotalAmount');
 
     const vanControlContainers = [placeSelectionContainer, tripTypeContainer, vanDaysContainer];
     const vanControls = [placeSelect, tripTypeSelect, vanNumberOfDays];
