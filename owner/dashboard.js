@@ -65,6 +65,14 @@ function mapBookingRecord(apiBooking) {
     ? `₱${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     : '₱0';
 
+  let divingInfo = 'N/A';
+  if (apiBooking.diving_bookings && apiBooking.diving_bookings.length > 0) {
+    const totalDivers = apiBooking.diving_bookings.reduce((sum, diving) => {
+      return sum + (diving.number_of_divers || 0);
+    }, 0);
+    divingInfo = totalDivers > 0 ? String(totalDivers) : 'N/A';
+  }
+
   let hotelDisplay = 'No Hotel Selected';
   if (apiBooking.booking_type === 'tour_only') {
     hotelDisplay = 'N/A';
@@ -76,6 +84,7 @@ function mapBookingRecord(apiBooking) {
   rawBooking.payment_date = apiBooking.payment_date || null;
   if (!rawBooking.vehicle_bookings) rawBooking.vehicle_bookings = [];
   if (!rawBooking.van_rental_bookings) rawBooking.van_rental_bookings = [];
+  if (!rawBooking.diving_bookings) rawBooking.diving_bookings = [];
   if (!rawBooking.booking_preferences) rawBooking.booking_preferences = '';
 
   return {
@@ -84,6 +93,7 @@ function mapBookingRecord(apiBooking) {
     services: apiBooking.booking_preferences || 'N/A',
     rental: vehicleInfo,
     vanRental: vanRentalInfo,
+    diving: divingInfo,
     arrival: apiBooking.arrival_date,
     departure: apiBooking.departure_date,
     hotel: hotelDisplay,
@@ -1815,6 +1825,7 @@ function renderTable() {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -1834,6 +1845,7 @@ function renderTable() {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -1848,6 +1860,7 @@ function renderTable() {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -1865,6 +1878,7 @@ function renderTable() {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -1927,6 +1941,7 @@ function filterTable(searchTerm) {
       b.services.toLowerCase().includes(searchLower) ||
       b.rental.toLowerCase().includes(searchLower) ||
       b.vanRental.toLowerCase().includes(searchLower) ||
+      b.diving.toLowerCase().includes(searchLower) ||
       b.arrival.toLowerCase().includes(searchLower) ||
       b.departure.toLowerCase().includes(searchLower) ||
       b.hotel.toLowerCase().includes(searchLower) ||
@@ -1945,6 +1960,7 @@ function filterTable(searchTerm) {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -1964,6 +1980,7 @@ function filterTable(searchTerm) {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -1978,6 +1995,7 @@ function filterTable(searchTerm) {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -1995,6 +2013,7 @@ function filterTable(searchTerm) {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
@@ -2024,7 +2043,7 @@ function filterTable(searchTerm) {
   // Show message if no results found
   if (filteredBookings.length === 0) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="12" style="text-align: center; padding: 20px; color: #64748b;">No bookings found matching "${searchTerm}"</td>`;
+    tr.innerHTML = `<td colspan="13" style="text-align: center; padding: 20px; color: #64748b;">No bookings found matching "${searchTerm}"</td>`;
     tbody.appendChild(tr);
   }
 }
