@@ -1729,6 +1729,9 @@
     // Store the last selected package value globally to allow toggling
     let lastSelectedPackage = null;
     
+    // Store the last selected hotel value globally to allow toggling
+    let lastSelectedHotel = null;
+    
     // Add event listeners for package selection radio buttons
     function attachPackageSelectionListeners() {
         const packageSelectionOptions = document.querySelectorAll(".package-selection-option");
@@ -1792,22 +1795,67 @@
             const newOption = option.cloneNode(true);
             option.parentNode.replaceChild(newOption, option);
             
-            // Add new listener
+            // Add click event to allow deselection by clicking the same option
+            newOption.addEventListener("click", (e) => {
+                // Check if this was already selected before the click
+                const wasSelected = newOption.value === lastSelectedHotel;
+                
+                // Use setTimeout to check state after the default behavior
+                setTimeout(() => {
+                    if (wasSelected) {
+                        // Deselect the option
+                        newOption.checked = false;
+                        lastSelectedHotel = null;
+                        
+                        // Update UI and calculations
+                        console.log('🏨 Hotel deselected:', newOption.value);
+                        
+                        // Clear package availability restrictions
+                        updatePackageAvailability(null);
+                        
+                        // Update pricing with no hotel selected
+                        updatePackageSelectionPricing();
+                        setTimeout(() => {
+                            calculateTotalAmount();
+                        }, 10);
+                        
+                        // Update the selected hotel text
+                        const selectedHotelText = document.getElementById('selectedHotelText');
+                        if (selectedHotelText) {
+                            selectedHotelText.textContent = 'Choose Your Hotel';
+                        }
+                        
+                        saveCurrentFormData();
+                    } else {
+                        // Update the last selected value
+                        lastSelectedHotel = newOption.value;
+                        console.log('🏨 Hotel selected:', newOption.value);
+                    }
+                }, 0);
+            });
+            
+            // Add change listener
             newOption.addEventListener("change", () => {
-                console.log('🏨 Hotel selection changed:', newOption.value);
-                // Update package availability based on hotel
-                updatePackageAvailability(newOption.value);
-                // Force fresh fetch of packages to ensure latest prices
-                fetchPackages().then(() => {
-                    // Update package dropdown prices when hotel changes
-                    updatePackageDropdownPrices(newOption.value);
-                    updatePackageSelectionPricing();
-                    // Force immediate total calculation
-                    setTimeout(() => {
-                        calculateTotalAmount();
-                    }, 10);
-                });
-                saveCurrentFormData(); // Save data when hotel selection changes
+                if (newOption.checked) {
+                    console.log('🏨 Hotel selection changed:', newOption.value);
+                    lastSelectedHotel = newOption.value;
+                    
+                    // Update package availability based on hotel
+                    updatePackageAvailability(newOption.value);
+                    
+                    // Force fresh fetch of packages to ensure latest prices
+                    fetchPackages().then(() => {
+                        // Update package dropdown prices when hotel changes
+                        updatePackageDropdownPrices(newOption.value);
+                        updatePackageSelectionPricing();
+                        // Force immediate total calculation
+                        setTimeout(() => {
+                            calculateTotalAmount();
+                        }, 10);
+                    });
+                    
+                    saveCurrentFormData(); // Save data when hotel selection changes
+                }
             });
         });
     }
@@ -1815,6 +1863,56 @@
     // Function to update package availability based on selected hotel
     function updatePackageAvailability(selectedHotel) {
         console.log('🔍 Checking package availability for hotel:', selectedHotel);
+        
+        // If no hotel selected, enable all packages
+        if (!selectedHotel) {
+            console.log('✅ No hotel selected - enabling all packages');
+            const packageOptions = document.querySelectorAll('.package-selection-option');
+            packageOptions.forEach(option => {
+                const parentDiv = option.closest('.form-check');
+                const label = parentDiv?.querySelector('label');
+                
+                // Enable the package option
+                option.disabled = false;
+                
+                // Remove disabled styling
+                if (parentDiv) {
+                    parentDiv.style.opacity = '1';
+                    parentDiv.style.cursor = 'pointer';
+                }
+                if (label) {
+                    label.style.cursor = 'pointer';
+                }
+                
+                // Remove "Not Available" badge if it exists
+                const unavailableBadge = label?.querySelector('.unavailable-badge');
+                if (unavailableBadge) {
+                    unavailableBadge.remove();
+                }
+            });
+            
+            // Also update the package dropdown buttons
+            const packageDropdownButtons = [
+                { id: 'package3Dropdown', package: 'Package 3' },
+                { id: 'package4Dropdown', package: 'Package 4' }
+            ];
+            
+            packageDropdownButtons.forEach(({ id }) => {
+                const button = document.getElementById(id);
+                if (button) {
+                    button.style.opacity = '1';
+                    button.style.cursor = 'pointer';
+                    
+                    const dropdown = button.nextElementSibling;
+                    const note = dropdown?.querySelector('.unavailable-note');
+                    if (note) {
+                        note.remove();
+                    }
+                }
+            });
+            
+            return;
+        }
         
         // Normalize hotel name
         const normalizedHotel = normalizeHotelName(selectedHotel);
@@ -2370,6 +2468,8 @@
                     const hotelRadio = document.querySelector(`input[name="hotel-selection"][value="${tourSelections.selectedHotel}"]`);
                     if (hotelRadio) {
                         hotelRadio.checked = true;
+                        // Update the global lastSelectedHotel variable
+                        lastSelectedHotel = tourSelections.selectedHotel;
                         // Update package availability when hotel is restored
                         updatePackageAvailability(tourSelections.selectedHotel);
                     }
