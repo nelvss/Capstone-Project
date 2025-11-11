@@ -797,6 +797,10 @@ body {
     max-width: 100%;
     overflow: hidden;
     box-sizing: border-box;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 /* Hidden display styles */
