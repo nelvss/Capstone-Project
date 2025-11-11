@@ -804,6 +804,18 @@ body {
     display: none;
 }
 
+.van-fixed-row {
+    min-height: 120px;
+    align-items: stretch !important;
+}
+
+.van-fixed-col > .van-section {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
 .van-section {
     transition: opacity 0.2s ease;
 }
