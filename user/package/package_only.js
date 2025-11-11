@@ -2888,6 +2888,18 @@
     const outsideNumberOfDays = document.getElementById('outsideNumberOfDays');
     const vanAmountInput = document.getElementById('vanTotalAmount');
 
+    // Debug logging to verify elements are found
+    console.log('Van Rental Elements Check:', {
+        destinationSelect: !!destinationSelect,
+        placeSelectionContainer: !!placeSelectionContainer,
+        withinTripTypeContainer: !!withinTripTypeContainer,
+        withinDaysContainer: !!withinDaysContainer,
+        outsidePlaceContainer: !!outsidePlaceContainer,
+        tripTypeContainer: !!tripTypeContainer,
+        outsideDaysContainer: !!outsideDaysContainer,
+        vanTotalAmountContainer: !!vanTotalAmountContainer
+    });
+
     // Handle dropdown button clicks for Choose Destination
     const destinationDropdownItems = document.querySelectorAll('#destinationDropdown + .dropdown-menu .dropdown-item');
     const destinationSelectedText = document.getElementById('destinationSelectedText');
@@ -2912,14 +2924,16 @@
         destinationSelect.addEventListener('change', function() {
             const selectedDestination = this.value;
             
+            console.log('Destination selected:', selectedDestination);
+            
             // Hide all dynamic containers first
-            placeSelectionContainer.style.display = 'none';
-            withinTripTypeContainer.style.display = 'none';
-            withinDaysContainer.style.display = 'none';
-            outsidePlaceContainer.style.display = 'none';
-            tripTypeContainer.style.display = 'none';
-            outsideDaysContainer.style.display = 'none';
-            vanTotalAmountContainer.style.display = 'none';
+            if (placeSelectionContainer) placeSelectionContainer.style.display = 'none';
+            if (withinTripTypeContainer) withinTripTypeContainer.style.display = 'none';
+            if (withinDaysContainer) withinDaysContainer.style.display = 'none';
+            if (outsidePlaceContainer) outsidePlaceContainer.style.display = 'none';
+            if (tripTypeContainer) tripTypeContainer.style.display = 'none';
+            if (outsideDaysContainer) outsideDaysContainer.style.display = 'none';
+            if (vanTotalAmountContainer) vanTotalAmountContainer.style.display = 'none';
             
             // Reset selections
             if (placeSelect) placeSelect.value = '';
@@ -2932,15 +2946,17 @@
             
             // Show appropriate containers based on selection - ALL fields visible
             if (selectedDestination === 'Within Puerto Galera') {
-                placeSelectionContainer.style.display = 'block';
-                withinTripTypeContainer.style.display = 'block';
-                withinDaysContainer.style.display = 'block';
-                vanTotalAmountContainer.style.display = 'block';
+                console.log('Showing Within PG fields');
+                if (placeSelectionContainer) placeSelectionContainer.style.display = 'block';
+                if (withinTripTypeContainer) withinTripTypeContainer.style.display = 'block';
+                if (withinDaysContainer) withinDaysContainer.style.display = 'block';
+                if (vanTotalAmountContainer) vanTotalAmountContainer.style.display = 'block';
             } else if (selectedDestination === 'Outside Puerto Galera') {
-                outsidePlaceContainer.style.display = 'block';
-                tripTypeContainer.style.display = 'block';
-                outsideDaysContainer.style.display = 'block';
-                vanTotalAmountContainer.style.display = 'block';
+                console.log('Showing Outside PG fields');
+                if (outsidePlaceContainer) outsidePlaceContainer.style.display = 'block';
+                if (tripTypeContainer) tripTypeContainer.style.display = 'block';
+                if (outsideDaysContainer) outsideDaysContainer.style.display = 'block';
+                if (vanTotalAmountContainer) vanTotalAmountContainer.style.display = 'block';
             }
             
             // Clear total amount calculation when destination changes
