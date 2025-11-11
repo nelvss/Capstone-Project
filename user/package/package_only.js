@@ -213,64 +213,17 @@
 
     // Populate van destination dropdowns based on location type
     function populateVanDestinationDropdowns() {
-        const placeSelect = document.getElementById('placeSelect');
-        const outsidePlaceSelect = document.getElementById('outsidePlaceSelect');
-        
         if (!vanDestinationsData || vanDestinationsData.length === 0) {
             console.warn('⚠️ No van destinations data available');
             return;
         }
 
-        // Clear existing options (keep the first "Select place..." option)
-        if (placeSelect) {
-            // Keep the first option and remove the rest
-            while (placeSelect.options.length > 1) {
-                placeSelect.remove(1);
-            }
-        }
+        const currentDestination = destinationSelect?.value || '';
+        const currentPlace = document.getElementById('placeSelect')?.value || '';
 
-        if (outsidePlaceSelect) {
-            // Keep the first option and remove the rest
-            while (outsidePlaceSelect.options.length > 1) {
-                outsidePlaceSelect.remove(1);
-            }
-        }
+        populatePlaceOptions(currentDestination, currentPlace);
 
-        // Populate "Within Puerto Galera" destinations
-        const withinDestinations = vanDestinationsData.filter(dest => 
-            dest.location_type && dest.location_type.toLowerCase() === 'within puerto galera'
-        );
-
-        withinDestinations.forEach(dest => {
-            if (placeSelect && dest.destination_name) {
-                const option = document.createElement('option');
-                option.value = dest.destination_name;
-                option.textContent = dest.destination_name;
-                option.dataset.vanDestinationId = dest.van_destination_id;
-                option.dataset.onewayPrice = dest.oneway_price || 0;
-                option.dataset.roundtripPrice = dest.roundtrip_price || 0;
-                placeSelect.appendChild(option);
-            }
-        });
-
-        // Populate "Outside Puerto Galera" destinations
-        const outsideDestinations = vanDestinationsData.filter(dest => 
-            dest.location_type && dest.location_type.toLowerCase() === 'outside puerto galera'
-        );
-
-        outsideDestinations.forEach(dest => {
-            if (outsidePlaceSelect && dest.destination_name) {
-                const option = document.createElement('option');
-                option.value = dest.destination_name;
-                option.textContent = dest.destination_name;
-                option.dataset.vanDestinationId = dest.van_destination_id;
-                option.dataset.onewayPrice = dest.oneway_price || 0;
-                option.dataset.roundtripPrice = dest.roundtrip_price || 0;
-                outsidePlaceSelect.appendChild(option);
-            }
-        });
-
-        console.log(`✅ Populated ${withinDestinations.length} Within PG and ${outsideDestinations.length} Outside PG destinations`);
+        console.log('✅ Van destination options refreshed for', currentDestination || 'no selection');
     }
 
     // Get van destination by name
@@ -2143,19 +2096,9 @@
     window.previousStep = function() {
         // Collect van rental data
         const destinationSelect = document.getElementById('destinationSelect')?.value || '';
-        let vanPlace = '';
-        let vanTripType = '';
-        let vanDays = '';
-        
-        if (destinationSelect === 'Within Puerto Galera') {
-            vanPlace = document.getElementById('placeSelect')?.value || '';
-            vanTripType = document.getElementById('withinTripTypeSelect')?.value || '';
-            vanDays = document.getElementById('withinNumberOfDays')?.value || '';
-        } else if (destinationSelect === 'Outside Puerto Galera') {
-            vanPlace = document.getElementById('outsidePlaceSelect')?.value || '';
-            vanTripType = document.getElementById('tripTypeSelect')?.value || '';
-            vanDays = document.getElementById('outsideNumberOfDays')?.value || '';
-        }
+        const vanPlace = document.getElementById('placeSelect')?.value || '';
+        const vanTripType = document.getElementById('tripTypeSelect')?.value || '';
+        const vanDays = document.getElementById('vanNumberOfDays')?.value || '';
         
         // Save current tour selections to sessionStorage before going back
         const tourSelections = {
@@ -2203,17 +2146,9 @@
             vanDestination: destinationSelect,
             vanPlace: vanPlace,
             vanDestinationId: (() => {
-                // Get van_destination_id from selected option
-                if (destinationSelect === 'Within Puerto Galera') {
-                    const selectEl = document.getElementById('placeSelect');
-                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
-                    return selectedOption?.dataset.vanDestinationId || null;
-                } else if (destinationSelect === 'Outside Puerto Galera') {
-                    const selectEl = document.getElementById('outsidePlaceSelect');
-                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
-                    return selectedOption?.dataset.vanDestinationId || null;
-                }
-                return null;
+                const selectEl = document.getElementById('placeSelect');
+                const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                return selectedOption?.dataset.vanDestinationId || null;
             })(),
             vanTripType: vanTripType,
             vanDays: vanDays,
@@ -2269,19 +2204,9 @@
         
         // Collect van rental data
         const destinationSelect = document.getElementById('destinationSelect')?.value || '';
-        let vanPlace = '';
-        let vanTripType = '';
-        let vanDays = '';
-        
-        if (destinationSelect === 'Within Puerto Galera') {
-            vanPlace = document.getElementById('placeSelect')?.value || '';
-            vanTripType = document.getElementById('withinTripTypeSelect')?.value || '';
-            vanDays = document.getElementById('withinNumberOfDays')?.value || '';
-        } else if (destinationSelect === 'Outside Puerto Galera') {
-            vanPlace = document.getElementById('outsidePlaceSelect')?.value || '';
-            vanTripType = document.getElementById('tripTypeSelect')?.value || '';
-            vanDays = document.getElementById('outsideNumberOfDays')?.value || '';
-        }
+        const vanPlace = document.getElementById('placeSelect')?.value || '';
+        const vanTripType = document.getElementById('tripTypeSelect')?.value || '';
+        const vanDays = document.getElementById('vanNumberOfDays')?.value || '';
         
         const tourSelections = {
             touristCount: document.getElementById('touristCount').value,
@@ -2329,17 +2254,9 @@
             vanDestination: destinationSelect,
             vanPlace: vanPlace,
             vanDestinationId: (() => {
-                // Get van_destination_id from selected option
-                if (destinationSelect === 'Within Puerto Galera') {
-                    const selectEl = document.getElementById('placeSelect');
-                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
-                    return selectedOption?.dataset.vanDestinationId || null;
-                } else if (destinationSelect === 'Outside Puerto Galera') {
-                    const selectEl = document.getElementById('outsidePlaceSelect');
-                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
-                    return selectedOption?.dataset.vanDestinationId || null;
-                }
-                return null;
+                const selectEl = document.getElementById('placeSelect');
+                const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                return selectedOption?.dataset.vanDestinationId || null;
             })(),
             vanTripType: vanTripType,
             vanDays: vanDays,
@@ -2507,33 +2424,19 @@
                         
                         // Wait for the change event to update the UI, then restore other fields
                         setTimeout(() => {
-                            if (tourSelections.vanDestination === 'Within Puerto Galera') {
-                                if (tourSelections.vanPlace) {
-                                    const placeSelect = document.getElementById('placeSelect');
-                                    if (placeSelect) placeSelect.value = tourSelections.vanPlace;
-                                }
-                                if (tourSelections.vanTripType) {
-                                    const withinTripTypeSelect = document.getElementById('withinTripTypeSelect');
-                                    if (withinTripTypeSelect) withinTripTypeSelect.value = tourSelections.vanTripType;
-                                }
-                                if (tourSelections.vanDays) {
-                                    const withinNumberOfDays = document.getElementById('withinNumberOfDays');
-                                    if (withinNumberOfDays) withinNumberOfDays.value = tourSelections.vanDays;
-                                }
-                            } else if (tourSelections.vanDestination === 'Outside Puerto Galera') {
-                                if (tourSelections.vanPlace) {
-                                    const outsidePlaceSelect = document.getElementById('outsidePlaceSelect');
-                                    if (outsidePlaceSelect) outsidePlaceSelect.value = tourSelections.vanPlace;
-                                }
-                                if (tourSelections.vanTripType) {
-                                    const tripTypeSelect = document.getElementById('tripTypeSelect');
-                                    if (tripTypeSelect) tripTypeSelect.value = tourSelections.vanTripType;
-                                }
-                                if (tourSelections.vanDays) {
-                                    const outsideNumberOfDays = document.getElementById('outsideNumberOfDays');
-                                    if (outsideNumberOfDays) outsideNumberOfDays.value = tourSelections.vanDays;
-                                }
+                            if (tourSelections.vanPlace) {
+                                const placeSelectEl = document.getElementById('placeSelect');
+                                if (placeSelectEl) placeSelectEl.value = tourSelections.vanPlace;
                             }
+                            if (tourSelections.vanTripType) {
+                                const tripTypeSelectEl = document.getElementById('tripTypeSelect');
+                                if (tripTypeSelectEl) tripTypeSelectEl.value = tourSelections.vanTripType;
+                            }
+                            if (tourSelections.vanDays) {
+                                const vanDaysSelectEl = document.getElementById('vanNumberOfDays');
+                                if (vanDaysSelectEl) vanDaysSelectEl.value = tourSelections.vanDays;
+                            }
+                            updateVanPrice();
                         }, 50);
                     }
                 }
@@ -2753,19 +2656,9 @@
         
         // Collect van rental data
         const destinationSelect = document.getElementById('destinationSelect')?.value || '';
-        let vanPlace = '';
-        let vanTripType = '';
-        let vanDays = '';
-        
-        if (destinationSelect === 'Within Puerto Galera') {
-            vanPlace = document.getElementById('placeSelect')?.value || '';
-            vanTripType = document.getElementById('withinTripTypeSelect')?.value || '';
-            vanDays = document.getElementById('withinNumberOfDays')?.value || '';
-        } else if (destinationSelect === 'Outside Puerto Galera') {
-            vanPlace = document.getElementById('outsidePlaceSelect')?.value || '';
-            vanTripType = document.getElementById('tripTypeSelect')?.value || '';
-            vanDays = document.getElementById('outsideNumberOfDays')?.value || '';
-        }
+        const vanPlace = document.getElementById('placeSelect')?.value || '';
+        const vanTripType = document.getElementById('tripTypeSelect')?.value || '';
+        const vanDays = document.getElementById('vanNumberOfDays')?.value || '';
         
         // Get package_only_id for selected package
         const selectedPackageForId = document.querySelector('input[name="package-selection"]:checked')?.value || null;
@@ -2825,17 +2718,9 @@
             vanDestination: destinationSelect,
             vanPlace: vanPlace,
             vanDestinationId: (() => {
-                // Get van_destination_id from selected option
-                if (destinationSelect === 'Within Puerto Galera') {
-                    const selectEl = document.getElementById('placeSelect');
-                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
-                    return selectedOption?.dataset.vanDestinationId || null;
-                } else if (destinationSelect === 'Outside Puerto Galera') {
-                    const selectEl = document.getElementById('outsidePlaceSelect');
-                    const selectedOption = selectEl?.options[selectEl?.selectedIndex];
-                    return selectedOption?.dataset.vanDestinationId || null;
-                }
-                return null;
+                const selectEl = document.getElementById('placeSelect');
+                const selectedOption = selectEl?.options[selectEl?.selectedIndex];
+                return selectedOption?.dataset.vanDestinationId || null;
             })(),
             vanTripType: vanTripType,
             vanDays: vanDays,
@@ -2874,30 +2759,25 @@
     
     const destinationSelect = document.getElementById('destinationSelect');
     const placeSelectionContainer = document.getElementById('placeSelectionContainer');
-    const withinTripTypeContainer = document.getElementById('withinTripTypeContainer');
-    const withinDaysContainer = document.getElementById('withinDaysContainer');
-    const outsidePlaceContainer = document.getElementById('outsidePlaceContainer');
     const tripTypeContainer = document.getElementById('tripTypeContainer');
-    const outsideDaysContainer = document.getElementById('outsideDaysContainer');
+    const vanDaysContainer = document.getElementById('vanDaysContainer');
     const vanTotalAmountContainer = document.getElementById('vanTotalAmountContainer');
     const placeSelect = document.getElementById('placeSelect');
-    const withinTripTypeSelect = document.getElementById('withinTripTypeSelect');
-    const withinNumberOfDays = document.getElementById('withinNumberOfDays');
-    const outsidePlaceSelect = document.getElementById('outsidePlaceSelect');
     const tripTypeSelect = document.getElementById('tripTypeSelect');
-    const outsideNumberOfDays = document.getElementById('outsideNumberOfDays');
+    const vanNumberOfDays = document.getElementById('vanNumberOfDays');
     const vanAmountInput = document.getElementById('vanTotalAmount');
 
     // Debug logging to verify elements are found
     console.log('Van Rental Elements Check:', {
         destinationSelect: !!destinationSelect,
         placeSelectionContainer: !!placeSelectionContainer,
-        withinTripTypeContainer: !!withinTripTypeContainer,
-        withinDaysContainer: !!withinDaysContainer,
-        outsidePlaceContainer: !!outsidePlaceContainer,
         tripTypeContainer: !!tripTypeContainer,
-        outsideDaysContainer: !!outsideDaysContainer,
-        vanTotalAmountContainer: !!vanTotalAmountContainer
+        vanDaysContainer: !!vanDaysContainer,
+        vanTotalAmountContainer: !!vanTotalAmountContainer,
+        placeSelect: !!placeSelect,
+        tripTypeSelect: !!tripTypeSelect,
+        vanNumberOfDays: !!vanNumberOfDays,
+        vanAmountInput: !!vanAmountInput
     });
 
     // Handle dropdown button clicks for Choose Destination
@@ -2920,18 +2800,31 @@
         });
     });
 
-    const withinContainers = [placeSelectionContainer, withinTripTypeContainer, withinDaysContainer];
-    const outsideContainers = [outsidePlaceContainer, tripTypeContainer, outsideDaysContainer];
-    const withinControls = [placeSelect, withinTripTypeSelect, withinNumberOfDays];
-    const outsideControls = [outsidePlaceSelect, tripTypeSelect, outsideNumberOfDays];
+    const vanControlContainers = [placeSelectionContainer, tripTypeContainer, vanDaysContainer];
+    const vanControls = [placeSelect, tripTypeSelect, vanNumberOfDays];
 
-    function setVanSectionState(containers, controls, enabled) {
-        containers.forEach(container => {
+    function resetVanSelections() {
+        if (placeSelect) {
+            placeSelect.selectedIndex = 0;
+        }
+        if (tripTypeSelect) {
+            tripTypeSelect.value = '';
+        }
+        if (vanNumberOfDays) {
+            vanNumberOfDays.value = '';
+        }
+        if (vanAmountInput) {
+            vanAmountInput.value = '';
+        }
+    }
+
+    function setVanControlsEnabled(enabled) {
+        vanControlContainers.forEach(container => {
             if (!container) return;
             container.classList.toggle('van-disabled', !enabled);
         });
 
-        controls.forEach(control => {
+        vanControls.forEach(control => {
             if (!control) return;
             control.disabled = !enabled;
             if (!enabled) {
@@ -2958,18 +2851,118 @@
         }
     }
 
-    function handleDestinationSelection(selectedDestination) {
-        console.log('Destination selected:', selectedDestination);
+    function clearPlaceOptions() {
+        if (!placeSelect) return;
+        while (placeSelect.options.length > 1) {
+            placeSelect.remove(1);
+        }
+    }
 
-        const enableWithin = selectedDestination === 'Within Puerto Galera';
-        const enableOutside = selectedDestination === 'Outside Puerto Galera';
+    function getDestinationsByLocationType(locationType) {
+        if (!locationType || !vanDestinationsData) {
+            return [];
+        }
+        const normalized = locationType.toLowerCase();
+        return vanDestinationsData.filter(dest => 
+            dest.location_type && dest.location_type.toLowerCase() === normalized
+        );
+    }
 
-        setVanSectionState(withinContainers, withinControls, enableWithin);
-        setVanSectionState(outsideContainers, outsideControls, enableOutside);
-        setVanTotalState(enableWithin || enableOutside);
+    function populatePlaceOptions(locationType, selectedValue = '') {
+        if (!placeSelect) return;
+
+        const previousValue = selectedValue || placeSelect.value;
+        clearPlaceOptions();
+
+        if (!locationType) {
+            return;
+        }
+
+        const destinations = getDestinationsByLocationType(locationType);
+        destinations.forEach(dest => {
+            if (!dest.destination_name) return;
+            const option = document.createElement('option');
+            option.value = dest.destination_name;
+            option.textContent = dest.destination_name;
+            option.dataset.vanDestinationId = dest.van_destination_id;
+            option.dataset.onewayPrice = dest.oneway_price || 0;
+            option.dataset.roundtripPrice = dest.roundtrip_price || 0;
+            placeSelect.appendChild(option);
+        });
+
+        if (previousValue) {
+            placeSelect.value = previousValue;
+        }
+    }
+
+    function updateVanPrice() {
+        if (!vanAmountInput) {
+            calculateTotalAmount();
+            return;
+        }
+
+        const destinationValue = destinationSelect?.value || '';
+        const selectedOption = placeSelect ? placeSelect.options[placeSelect.selectedIndex] : null;
+        const tripType = tripTypeSelect?.value || '';
+        const days = parseInt(vanNumberOfDays?.value || '', 10) || 0;
+
+        if (!destinationValue || !selectedOption || !tripType || !days) {
+            vanAmountInput.value = '';
+            calculateTotalAmount();
+            return;
+        }
+
+        const priceKey = tripType === 'oneway' ? 'onewayPrice' : 'roundtripPrice';
+        const basePrice = parseFloat(selectedOption.dataset[priceKey]) || 0;
+
+        if (basePrice > 0) {
+            const totalPrice = basePrice * days;
+            vanAmountInput.value = `₱${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        } else {
+            vanAmountInput.value = '';
+        }
 
         calculateTotalAmount();
-        saveCurrentFormData();
+    }
+
+    function handleDestinationSelection(selectedDestination, options = {}) {
+        const { preserveValues = false, selectedPlace = '', selectedTripType = '', selectedDays = '' } = options;
+        console.log('Destination selected:', selectedDestination);
+
+        const isWithin = selectedDestination === 'Within Puerto Galera';
+        const isOutside = selectedDestination === 'Outside Puerto Galera';
+        const enableControls = isWithin || isOutside;
+
+        if (!preserveValues) {
+            resetVanSelections();
+        }
+
+        setVanControlsEnabled(enableControls);
+        setVanTotalState(enableControls);
+
+        const locationType = isWithin ? 'Within Puerto Galera' : isOutside ? 'Outside Puerto Galera' : '';
+        if (enableControls) {
+            const desiredPlace = preserveValues ? selectedPlace : '';
+            populatePlaceOptions(locationType, desiredPlace);
+
+            if (preserveValues && placeSelect && selectedPlace) {
+                placeSelect.value = selectedPlace;
+            }
+            if (preserveValues && tripTypeSelect && selectedTripType) {
+                tripTypeSelect.value = selectedTripType;
+            }
+            if (preserveValues && vanNumberOfDays && selectedDays) {
+                vanNumberOfDays.value = selectedDays;
+            }
+        } else {
+            clearPlaceOptions();
+        }
+
+        updateVanPrice();
+
+        if (!preserveValues) {
+            saveCurrentFormData();
+        }
     }
 
     if (destinationSelect) {
@@ -2977,85 +2970,31 @@
             handleDestinationSelection(this.value);
         });
 
-        // Apply initial state on load
         handleDestinationSelection(destinationSelect.value || '');
     } else {
-        // Ensure default disabled state if select is missing
-        setVanSectionState(withinContainers, withinControls, false);
-        setVanSectionState(outsideContainers, outsideControls, false);
+        setVanControlsEnabled(false);
         setVanTotalState(false);
     }
 
-    // Handle Within PG place, trip type, and days selection
-    if (placeSelect && withinTripTypeSelect && withinNumberOfDays) {
-        function updateWithinPrice() {
-            const selectedPlace = placeSelect.options[placeSelect.selectedIndex];
-            const tripType = withinTripTypeSelect.value;
-            const days = parseInt(withinNumberOfDays.value) || 0;
-            
-            if (!selectedPlace || !tripType || !days || !vanAmountInput) {
-                if (vanAmountInput) vanAmountInput.value = '';
-                return;
-            }
-            
-            let basePrice = 0;
-            if (tripType === 'oneway') {
-                // Use database price from data attribute
-                basePrice = parseFloat(selectedPlace.dataset.onewayPrice) || 0;
-            } else if (tripType === 'roundtrip') {
-                // Use database price from data attribute
-                basePrice = parseFloat(selectedPlace.dataset.roundtripPrice) || 0;
-            }
-            
-            if (basePrice && basePrice > 0) {
-                const totalPrice = basePrice * days;
-                vanAmountInput.value = `₱${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            } else {
-                vanAmountInput.value = '';
-            }
-            
-            calculateTotalAmount();
-        }
-        
-        placeSelect.addEventListener('change', () => { updateWithinPrice(); saveCurrentFormData(); });
-        withinTripTypeSelect.addEventListener('change', () => { updateWithinPrice(); saveCurrentFormData(); });
-        withinNumberOfDays.addEventListener('change', () => { updateWithinPrice(); saveCurrentFormData(); });
+    if (placeSelect) {
+        placeSelect.addEventListener('change', () => {
+            updateVanPrice();
+            saveCurrentFormData();
+        });
     }
 
-    // Handle Outside PG place, trip type, and days selection
-    if (outsidePlaceSelect && tripTypeSelect && outsideNumberOfDays) {
-        function updateOutsidePrice() {
-            const selectedPlace = outsidePlaceSelect.options[outsidePlaceSelect.selectedIndex];
-            const tripType = tripTypeSelect.value;
-            const days = parseInt(outsideNumberOfDays.value) || 0;
-            
-            if (!selectedPlace || !tripType || !days || !vanAmountInput) {
-                if (vanAmountInput) vanAmountInput.value = '';
-                return;
-            }
-            
-            let basePrice = 0;
-            if (tripType === 'oneway') {
-                // Use database price from data attribute
-                basePrice = parseFloat(selectedPlace.dataset.onewayPrice) || 0;
-            } else if (tripType === 'roundtrip') {
-                // Use database price from data attribute
-                basePrice = parseFloat(selectedPlace.dataset.roundtripPrice) || 0;
-            }
-            
-            if (basePrice && basePrice > 0) {
-                const totalPrice = basePrice * days;
-                vanAmountInput.value = `₱${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            } else {
-                vanAmountInput.value = '';
-            }
-            
-            calculateTotalAmount();
-        }
-        
-        outsidePlaceSelect.addEventListener('change', () => { updateOutsidePrice(); saveCurrentFormData(); });
-        tripTypeSelect.addEventListener('change', () => { updateOutsidePrice(); saveCurrentFormData(); });
-        outsideNumberOfDays.addEventListener('change', () => { updateOutsidePrice(); saveCurrentFormData(); });
+    if (tripTypeSelect) {
+        tripTypeSelect.addEventListener('change', () => {
+            updateVanPrice();
+            saveCurrentFormData();
+        });
+    }
+
+    if (vanNumberOfDays) {
+        vanNumberOfDays.addEventListener('change', () => {
+            updateVanPrice();
+            saveCurrentFormData();
+        });
     }
 
     // Initialize vehicles data when page loads
