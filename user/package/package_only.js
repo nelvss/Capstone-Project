@@ -1730,9 +1730,37 @@
     function attachPackageSelectionListeners() {
         const packageSelectionOptions = document.querySelectorAll(".package-selection-option");
         console.log('Found package selection options:', packageSelectionOptions.length);
+        
+        // Store the last selected value to allow toggling
+        let lastSelectedValue = null;
+        
         packageSelectionOptions.forEach(option => {
+            // Add click event to allow deselection by clicking the same option
+            option.addEventListener("click", (e) => {
+                // If clicking the currently selected option, deselect it
+                if (option.checked && option.value === lastSelectedValue) {
+                    e.preventDefault();
+                    option.checked = false;
+                    lastSelectedValue = null;
+                    
+                    // Update UI and calculations
+                    console.log('Package deselected:', option.value);
+                    updatePackageSelectionPricing();
+                    setTimeout(() => {
+                        calculateTotalAmount();
+                    }, 10);
+                    updateHotelsRowVisibility();
+                    clearStep2Error();
+                    clearTouristCountErrorIfNoTours();
+                    saveCurrentFormData();
+                } else {
+                    lastSelectedValue = option.value;
+                }
+            });
+            
             option.addEventListener("change", () => {
                 console.log('Package selection changed:', option.value);
+                lastSelectedValue = option.value;
                 updatePackageSelectionPricing();
                 // Force immediate total calculation
                 setTimeout(() => {
