@@ -811,6 +811,10 @@ body {
 
 .van-rental-container {
     overflow: hidden !important;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .van-fixed-row {
