@@ -67,10 +67,16 @@ function mapBookingRecord(apiBooking) {
 
   let divingInfo = 'N/A';
   if (apiBooking.diving_bookings && apiBooking.diving_bookings.length > 0) {
+    console.log(`🤿 Booking ${apiBooking.booking_id} has diving data:`, apiBooking.diving_bookings);
     const totalDivers = apiBooking.diving_bookings.reduce((sum, diving) => {
-      return sum + (diving.number_of_divers || 0);
+      const divers = parseInt(diving.number_of_divers) || 0;
+      console.log(`   - Diving entry: ${divers} divers`);
+      return sum + divers;
     }, 0);
     divingInfo = totalDivers > 0 ? String(totalDivers) : 'N/A';
+    console.log(`   Total divers for booking ${apiBooking.booking_id}: ${divingInfo}`);
+  } else {
+    console.log(`⚠️ Booking ${apiBooking.booking_id} has no diving data. diving_bookings:`, apiBooking.diving_bookings);
   }
 
   let hotelDisplay = 'No Hotel Selected';
