@@ -1726,50 +1726,59 @@
         });
     }
 
+    // Store the last selected package value globally to allow toggling
+    let lastSelectedPackage = null;
+    
     // Add event listeners for package selection radio buttons
     function attachPackageSelectionListeners() {
         const packageSelectionOptions = document.querySelectorAll(".package-selection-option");
         console.log('Found package selection options:', packageSelectionOptions.length);
         
-        // Store the last selected value to allow toggling
-        let lastSelectedValue = null;
-        
         packageSelectionOptions.forEach(option => {
             // Add click event to allow deselection by clicking the same option
             option.addEventListener("click", (e) => {
-                // If clicking the currently selected option, deselect it
-                if (option.checked && option.value === lastSelectedValue) {
-                    e.preventDefault();
-                    option.checked = false;
-                    lastSelectedValue = null;
-                    
-                    // Update UI and calculations
-                    console.log('Package deselected:', option.value);
+                // Check if this was already selected before the click
+                const wasSelected = option.value === lastSelectedPackage;
+                
+                // Use setTimeout to check state after the default behavior
+                setTimeout(() => {
+                    if (wasSelected) {
+                        // Deselect the option
+                        option.checked = false;
+                        lastSelectedPackage = null;
+                        
+                        // Update UI and calculations
+                        console.log('Package deselected:', option.value);
+                        updatePackageSelectionPricing();
+                        setTimeout(() => {
+                            calculateTotalAmount();
+                        }, 10);
+                        updateHotelsRowVisibility();
+                        clearStep2Error();
+                        clearTouristCountErrorIfNoTours();
+                        saveCurrentFormData();
+                    } else {
+                        // Update the last selected value
+                        lastSelectedPackage = option.value;
+                        console.log('Package selected:', option.value);
+                    }
+                }, 0);
+            });
+            
+            option.addEventListener("change", () => {
+                if (option.checked) {
+                    console.log('Package selection changed:', option.value);
+                    lastSelectedPackage = option.value;
                     updatePackageSelectionPricing();
+                    // Force immediate total calculation
                     setTimeout(() => {
                         calculateTotalAmount();
                     }, 10);
                     updateHotelsRowVisibility();
                     clearStep2Error();
                     clearTouristCountErrorIfNoTours();
-                    saveCurrentFormData();
-                } else {
-                    lastSelectedValue = option.value;
+                    saveCurrentFormData(); // Save data when package selection changes
                 }
-            });
-            
-            option.addEventListener("change", () => {
-                console.log('Package selection changed:', option.value);
-                lastSelectedValue = option.value;
-                updatePackageSelectionPricing();
-                // Force immediate total calculation
-                setTimeout(() => {
-                    calculateTotalAmount();
-                }, 10);
-                updateHotelsRowVisibility();
-                clearStep2Error();
-                clearTouristCountErrorIfNoTours();
-                saveCurrentFormData(); // Save data when package selection changes
             });
         });
     }
@@ -2349,7 +2358,11 @@
                 // Restore selected package
                 if (tourSelections.selectedPackage) {
                     const packageRadio = document.querySelector(`input[name="package-selection"][value="${tourSelections.selectedPackage}"]`);
-                    if (packageRadio) packageRadio.checked = true;
+                    if (packageRadio) {
+                        packageRadio.checked = true;
+                        // Update the global lastSelectedPackage variable
+                        lastSelectedPackage = tourSelections.selectedPackage;
+                    }
                 }
                 
                 // Restore selected hotel
