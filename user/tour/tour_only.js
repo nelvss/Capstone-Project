@@ -1874,43 +1874,65 @@
     const outsideNumberOfDays = document.getElementById('outsideNumberOfDays');
     const vanAmountInput = document.getElementById('amountOfVanRental');
 
-    if (destinationSelect) {
-        destinationSelect.addEventListener('change', function() {
-            const selectedDestination = this.value;
-            
-            // Hide all dynamic containers
-            placeSelectionContainer.style.display = 'none';
-            withinTripTypeContainer.style.display = 'none';
-            withinDaysContainer.style.display = 'none';
-            outsidePlaceContainer.style.display = 'none';
-            tripTypeContainer.style.display = 'none';
-            outsideDaysContainer.style.display = 'none';
-            vanTotalAmountContainer.style.display = 'none';
-            
-            // Reset selections
-            if (placeSelect) placeSelect.value = '';
-            if (withinTripTypeSelect) withinTripTypeSelect.value = '';
-            if (withinNumberOfDays) withinNumberOfDays.value = '';
-            if (outsidePlaceSelect) outsidePlaceSelect.value = '';
-            if (tripTypeSelect) tripTypeSelect.value = '';
-            if (outsideNumberOfDays) outsideNumberOfDays.value = '';
-            if (vanAmountInput) vanAmountInput.value = '';
-            // Ensure total updates when van amount resets
-            calculateTotalAmount();
-            
-            // Show appropriate container based on selection
-            if (selectedDestination === 'Within Puerto Galera') {
-                placeSelectionContainer.style.display = 'block';
-                withinTripTypeContainer.style.display = 'block';
-                withinDaysContainer.style.display = 'block';
-                vanTotalAmountContainer.style.display = 'block';
-            } else if (selectedDestination === 'Outside Puerto Galera') {
-                outsidePlaceContainer.style.display = 'block';
-                tripTypeContainer.style.display = 'block';
-                outsideDaysContainer.style.display = 'block';
-                vanTotalAmountContainer.style.display = 'block';
+    const withinContainers = [placeSelectionContainer, withinTripTypeContainer, withinDaysContainer];
+    const outsideContainers = [outsidePlaceContainer, tripTypeContainer, outsideDaysContainer];
+    const withinControls = [placeSelect, withinTripTypeSelect, withinNumberOfDays];
+    const outsideControls = [outsidePlaceSelect, tripTypeSelect, outsideNumberOfDays];
+
+    function setVanSectionState(containers, controls, enabled) {
+        containers.forEach(container => {
+            if (!container) return;
+            container.classList.toggle('van-disabled', !enabled);
+        });
+
+        controls.forEach(control => {
+            if (!control) return;
+            control.disabled = !enabled;
+            if (!enabled) {
+                const tagName = (control.tagName || '').toUpperCase();
+                if (tagName === 'SELECT') {
+                    control.selectedIndex = 0;
+                } else {
+                    control.value = '';
+                }
             }
         });
+    }
+
+    function setVanTotalState(enabled) {
+        if (vanTotalAmountContainer) {
+            vanTotalAmountContainer.classList.toggle('van-disabled', !enabled);
+        }
+
+        if (vanAmountInput) {
+            vanAmountInput.disabled = !enabled;
+            if (!enabled) {
+                vanAmountInput.value = '';
+            }
+        }
+
+        calculateTotalAmount();
+    }
+
+    function handleDestinationSelection(selectedDestination) {
+        const enableWithin = selectedDestination === 'Within Puerto Galera';
+        const enableOutside = selectedDestination === 'Outside Puerto Galera';
+
+        setVanSectionState(withinContainers, withinControls, enableWithin);
+        setVanSectionState(outsideContainers, outsideControls, enableOutside);
+        setVanTotalState(enableWithin || enableOutside);
+    }
+
+    if (destinationSelect) {
+        destinationSelect.addEventListener('change', function() {
+            handleDestinationSelection(this.value);
+        });
+
+        handleDestinationSelection(destinationSelect.value || '');
+    } else {
+        setVanSectionState(withinContainers, withinControls, false);
+        setVanSectionState(outsideContainers, outsideControls, false);
+        setVanTotalState(false);
     }
 
     // Handle Within PG place, trip type, and days selection

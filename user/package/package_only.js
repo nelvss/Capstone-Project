@@ -2920,51 +2920,70 @@
         });
     });
 
+    const withinContainers = [placeSelectionContainer, withinTripTypeContainer, withinDaysContainer];
+    const outsideContainers = [outsidePlaceContainer, tripTypeContainer, outsideDaysContainer];
+    const withinControls = [placeSelect, withinTripTypeSelect, withinNumberOfDays];
+    const outsideControls = [outsidePlaceSelect, tripTypeSelect, outsideNumberOfDays];
+
+    function setVanSectionState(containers, controls, enabled) {
+        containers.forEach(container => {
+            if (!container) return;
+            container.classList.toggle('van-disabled', !enabled);
+        });
+
+        controls.forEach(control => {
+            if (!control) return;
+            control.disabled = !enabled;
+            if (!enabled) {
+                const tagName = (control.tagName || '').toUpperCase();
+                if (tagName === 'SELECT') {
+                    control.selectedIndex = 0;
+                } else {
+                    control.value = '';
+                }
+            }
+        });
+    }
+
+    function setVanTotalState(enabled) {
+        if (vanTotalAmountContainer) {
+            vanTotalAmountContainer.classList.toggle('van-disabled', !enabled);
+        }
+
+        if (vanAmountInput) {
+            vanAmountInput.disabled = !enabled;
+            if (!enabled) {
+                vanAmountInput.value = '';
+            }
+        }
+    }
+
+    function handleDestinationSelection(selectedDestination) {
+        console.log('Destination selected:', selectedDestination);
+
+        const enableWithin = selectedDestination === 'Within Puerto Galera';
+        const enableOutside = selectedDestination === 'Outside Puerto Galera';
+
+        setVanSectionState(withinContainers, withinControls, enableWithin);
+        setVanSectionState(outsideContainers, outsideControls, enableOutside);
+        setVanTotalState(enableWithin || enableOutside);
+
+        calculateTotalAmount();
+        saveCurrentFormData();
+    }
+
     if (destinationSelect) {
         destinationSelect.addEventListener('change', function() {
-            const selectedDestination = this.value;
-            
-            console.log('Destination selected:', selectedDestination);
-            
-            // Hide all dynamic containers first - use classList instead of style
-            if (placeSelectionContainer) placeSelectionContainer.classList.add('hidden-container');
-            if (withinTripTypeContainer) withinTripTypeContainer.classList.add('hidden-container');
-            if (withinDaysContainer) withinDaysContainer.classList.add('hidden-container');
-            if (outsidePlaceContainer) outsidePlaceContainer.classList.add('hidden-container');
-            if (tripTypeContainer) tripTypeContainer.classList.add('hidden-container');
-            if (outsideDaysContainer) outsideDaysContainer.classList.add('hidden-container');
-            if (vanTotalAmountContainer) vanTotalAmountContainer.classList.add('hidden-container');
-            
-            // Reset selections
-            if (placeSelect) placeSelect.value = '';
-            if (withinTripTypeSelect) withinTripTypeSelect.value = '';
-            if (withinNumberOfDays) withinNumberOfDays.value = '';
-            if (outsidePlaceSelect) outsidePlaceSelect.value = '';
-            if (tripTypeSelect) tripTypeSelect.value = '';
-            if (outsideNumberOfDays) outsideNumberOfDays.value = '';
-            if (vanAmountInput) vanAmountInput.value = '';
-            
-            // Show appropriate containers based on selection - Remove hidden-container class
-            if (selectedDestination === 'Within Puerto Galera') {
-                console.log('Showing Within PG fields');
-                if (placeSelectionContainer) placeSelectionContainer.classList.remove('hidden-container');
-                if (withinTripTypeContainer) withinTripTypeContainer.classList.remove('hidden-container');
-                if (withinDaysContainer) withinDaysContainer.classList.remove('hidden-container');
-                if (vanTotalAmountContainer) vanTotalAmountContainer.classList.remove('hidden-container');
-            } else if (selectedDestination === 'Outside Puerto Galera') {
-                console.log('Showing Outside PG fields');
-                if (outsidePlaceContainer) outsidePlaceContainer.classList.remove('hidden-container');
-                if (tripTypeContainer) tripTypeContainer.classList.remove('hidden-container');
-                if (outsideDaysContainer) outsideDaysContainer.classList.remove('hidden-container');
-                if (vanTotalAmountContainer) vanTotalAmountContainer.classList.remove('hidden-container');
-            }
-            
-            // Clear total amount calculation when destination changes
-            calculateTotalAmount();
-            
-            // Save data when destination changes
-            saveCurrentFormData();
+            handleDestinationSelection(this.value);
         });
+
+        // Apply initial state on load
+        handleDestinationSelection(destinationSelect.value || '');
+    } else {
+        // Ensure default disabled state if select is missing
+        setVanSectionState(withinContainers, withinControls, false);
+        setVanSectionState(outsideContainers, outsideControls, false);
+        setVanTotalState(false);
     }
 
     // Handle Within PG place, trip type, and days selection
