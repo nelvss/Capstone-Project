@@ -12,6 +12,31 @@
     // Store QR codes data
     let qrCodesData = [];
     
+    // Initialize Socket.IO connection
+    let socket = null;
+    function initializeSocketIO() {
+        try {
+            const serverURL = API_BASE_URL.replace('/api', '');
+            socket = io(serverURL, {
+                transports: ['websocket', 'polling'],
+                reconnection: true
+            });
+
+            socket.on('connect', () => {
+                console.log('🔌 User connected to server:', socket.id);
+            });
+
+            socket.on('disconnect', () => {
+                console.log('🔌 User disconnected from server');
+            });
+        } catch (error) {
+            console.error('❌ Socket.IO initialization error:', error);
+        }
+    }
+    
+    // Initialize Socket.IO on page load
+    initializeSocketIO();
+    
     // Load QR codes from database
     async function loadQRCodes() {
         try {
@@ -530,6 +555,18 @@
                 throw new Error('Booking created but server did not return a booking ID');
             }
             console.log('Booking created successfully with ID:', bookingId);
+            
+            // Emit Socket.IO event for new booking
+            if (socket && socket.connected) {
+                socket.emit('new-booking', {
+                    bookingId: bookingId,
+                    customerName: `${bookingData.firstName} ${bookingData.lastName}`,
+                    email: bookingData.emailAddress,
+                    bookingType: 'package_only',
+                    timestamp: new Date().toISOString()
+                });
+                console.log('🔌 Socket.IO event emitted for new booking');
+            }
             
             // Submit package booking details
             if (bookingData.selectedPackage) {

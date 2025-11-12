@@ -230,6 +230,24 @@ const createBooking = async (req, res) => {
 
       if (!error) {
         console.log('✅ Booking created successfully:', data[0]);
+        
+        // Emit Socket.IO event for new booking
+        try {
+          const io = req.app.get('io');
+          if (io) {
+            io.emit('booking-update', {
+              type: 'new',
+              booking: data[0],
+              bookingId: data[0].booking_id,
+              customerName: `${customer_first_name} ${customer_last_name}`,
+              timestamp: new Date().toISOString()
+            });
+            console.log('🔌 Socket.IO event emitted for new booking');
+          }
+        } catch (socketError) {
+          console.error('⚠️ Socket.IO emit error:', socketError);
+        }
+        
         return res.json({ 
           success: true, 
           message: 'Booking created successfully',
@@ -986,6 +1004,23 @@ const updateBooking = async (req, res) => {
 
     const detailedBooking = await fetchBookingWithDetails(id);
 
+    // Emit Socket.IO event for booking update
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('booking-update', {
+          type: 'update',
+          booking: detailedBooking,
+          bookingId: id,
+          status: payload.status,
+          timestamp: new Date().toISOString()
+        });
+        console.log('🔌 Socket.IO event emitted for booking update');
+      }
+    } catch (socketError) {
+      console.error('⚠️ Socket.IO emit error:', socketError);
+    }
+
     res.json({
       success: true,
       message: 'Booking updated successfully',
@@ -1040,6 +1075,21 @@ const updateBookingStatus = async (req, res) => {
     }
     
     console.log('✅ Booking status updated successfully');
+    
+    // Emit Socket.IO event for status change
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('payment-status-changed', {
+          bookingId: id,
+          status: status,
+          timestamp: new Date().toISOString()
+        });
+        console.log('🔌 Socket.IO event emitted for status change');
+      }
+    } catch (socketError) {
+      console.error('⚠️ Socket.IO emit error:', socketError);
+    }
     
     res.json({ 
       success: true, 

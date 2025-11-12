@@ -16,6 +16,113 @@ let staffEditModal = null;
 const VEHICLE_EMPTY_MESSAGE = 'No vehicles added yet. Use "Add Vehicle" to include one.';
 const VAN_EMPTY_MESSAGE = 'No van rentals added yet. Use "Add Van Rental" to include one.';
 
+// Socket.IO Connection
+let socket = null;
+function initializeSocketIO() {
+  try {
+    socket = io(API_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5
+    });
+
+    socket.on('connect', () => {
+      console.log('🔌 Staff connected to server:', socket.id);
+      showNotification('✅ Real-time updates connected', 'success');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('🔌 Staff disconnected from server');
+      showNotification('⚠️ Real-time updates disconnected', 'warning');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('🔌 Connection error:', error);
+    });
+
+    // Listen for booking updates
+    socket.on('booking-update', async (data) => {
+      console.log('📋 New booking update received:', data);
+      showNotification('🎉 New booking received!', 'success');
+      
+      // Play notification sound (optional)
+      playNotificationSound();
+      
+      // Reload bookings to get the latest data
+      await loadBookings();
+      renderTable();
+      updateStaffStats();
+    });
+
+    // Listen for payment status changes
+    socket.on('payment-status-changed', async (data) => {
+      console.log('💳 Payment status changed:', data);
+      showNotification('💳 Payment status updated', 'info');
+      
+      // Reload bookings to reflect payment changes
+      await loadBookings();
+      renderTable();
+      updateStaffStats();
+    });
+  } catch (error) {
+    console.error('❌ Socket.IO initialization error:', error);
+  }
+}
+
+// Notification function
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    background: ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+    max-width: 300px;
+    font-size: 14px;
+  `;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease-out';
+    setTimeout(() => notification.remove(), 300);
+  }, 5000);
+}
+
+// Optional: Play notification sound
+function playNotificationSound() {
+  try {
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCuIzfPTgjMGHm7A7+OZURE');
+    audio.volume = 0.3;
+    audio.play().catch(e => console.log('Audio play failed:', e));
+  } catch (error) {
+    console.log('Notification sound not available');
+  }
+}
+
+// Add CSS animation for notifications
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from { transform: translateX(400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(400px); opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
+
 function mapBookingRecord(apiBooking) {
   if (!apiBooking) return null;
 
@@ -980,6 +1087,10 @@ function checkSession() {
 document.addEventListener('DOMContentLoaded', async function() {
   if (checkSession()) {
     setupBookingEditModal();
+    
+    // Initialize Socket.IO connection
+    initializeSocketIO();
+    
     try {
       // Load bookings from API
       const bookingsLoaded = await loadBookings();
