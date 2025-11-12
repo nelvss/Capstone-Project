@@ -631,6 +631,64 @@ async function handleVehicleDelete({ vehicleId, vehicleName, deleteButton, card,
   }
 }
 
+function compressImage(file, maxSizeMB = 2) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const img = new Image();
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Calculate new dimensions while maintaining aspect ratio
+        const maxWidth = 1920;
+        const maxHeight = 1080;
+        
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = width * ratio;
+          height = height * ratio;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Start with quality 0.8 and reduce if needed
+        let quality = 0.8;
+        let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        
+        // Check size and reduce quality if necessary
+        while (compressedDataUrl.length > maxSizeMB * 1024 * 1024 * 1.37 && quality > 0.1) {
+          quality -= 0.1;
+          compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        
+        console.log(`🖼️ Image compressed: Original size ~${(file.size / 1024).toFixed(0)}KB, Compressed ~${(compressedDataUrl.length / 1024 / 1.37).toFixed(0)}KB, Quality: ${quality.toFixed(1)}`);
+        
+        resolve(compressedDataUrl);
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load image for compression'));
+      };
+      
+      img.src = e.target.result;
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Unable to read the selected file'));
+    };
+    
+    reader.readAsDataURL(file);
+  });
+}
+
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1267,7 +1325,7 @@ async function handleDivingImageUpload({ divingId, file, uploadButton, inlineSta
   }
 
   try {
-    const imageData = await readFileAsBase64(file);
+    const imageData = await compressImage(file, 2); // Compress to max 2MB
 
     const response = await fetch(`${API_BASE_URL}/diving/${divingId}/upload-image`, {
       method: 'POST',
@@ -1507,7 +1565,7 @@ async function handleCreateDiving() {
       console.log('📤 Starting image upload for diving:', newDiving.diving_id);
       
       try {
-        const imageData = await readFileAsBase64(newDivingImageFile);
+        const imageData = await compressImage(newDivingImageFile, 2); // Compress to max 2MB
         console.log('📦 Image data prepared, size:', imageData.length, 'chars');
         
         const imageResponse = await fetch(`${API_BASE_URL}/diving/${newDiving.diving_id}/upload-image`, {
