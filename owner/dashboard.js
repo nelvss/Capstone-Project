@@ -19,6 +19,107 @@ const API_URL = (window.API_URL && window.API_URL.length > 0)
   ? window.API_URL
   : 'https://api.otgpuertogaleratravel.com';
 
+// Socket.IO Connection
+let socket = null;
+function initializeSocketIO() {
+  try {
+    socket = io(API_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5
+    });
+
+    socket.on('connect', () => {
+      console.log('🔌 Connected to server:', socket.id);
+      showNotification('✅ Real-time updates connected', 'success');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('🔌 Disconnected from server');
+      showNotification('⚠️ Real-time updates disconnected', 'warning');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('🔌 Connection error:', error);
+    });
+
+    // Listen for booking updates
+    socket.on('booking-update', async (data) => {
+      console.log('📋 New booking update received:', data);
+      showNotification('🎉 New booking received!', 'success');
+      
+      // Reload bookings to get the latest data
+      await loadBookings();
+      renderTable();
+      updateOwnerStats();
+    });
+
+    // Listen for payment status changes
+    socket.on('payment-status-changed', async (data) => {
+      console.log('💳 Payment status changed:', data);
+      showNotification('💳 Payment status updated', 'info');
+      
+      // Reload bookings to reflect payment changes
+      await loadBookings();
+      renderTable();
+      updateOwnerStats();
+    });
+
+    // Listen for analytics updates
+    socket.on('analytics-refresh', () => {
+      console.log('📊 Analytics refresh requested');
+      showNotification('📊 Analytics data updated', 'info');
+    });
+  } catch (error) {
+    console.error('❌ Socket.IO initialization error:', error);
+  }
+}
+
+// Notification function
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    background: ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+    max-width: 300px;
+    font-size: 14px;
+  `;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease-out';
+    setTimeout(() => notification.remove(), 300);
+  }, 5000);
+}
+
+// Add CSS animation for notifications
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from { transform: translateX(400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(400px); opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
+
 function mapBookingRecord(apiBooking) {
   if (!apiBooking) return null;
 
@@ -2120,6 +2221,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Show loading screen immediately
   showLoadingScreen();
+  
+  // Initialize Socket.IO connection
+  initializeSocketIO();
   
   // Check session before loading dashboard
   if (checkSession()) {
