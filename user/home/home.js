@@ -1030,6 +1030,54 @@ document.addEventListener('DOMContentLoaded', function () {
     autoResizeTextarea();
   }
 
+  // Star Rating Functionality
+  let selectedRating = 0;
+  const starRating = document.getElementById('starRating');
+  const ratingText = document.getElementById('ratingText');
+  
+  if (starRating) {
+    const stars = starRating.querySelectorAll('i');
+    
+    // Hover effect
+    stars.forEach((star, index) => {
+      star.addEventListener('mouseenter', function() {
+        stars.forEach((s, i) => {
+          if (i <= index) {
+            s.classList.remove('far');
+            s.classList.add('fas');
+          } else {
+            s.classList.remove('fas');
+            s.classList.add('far');
+          }
+        });
+      });
+    });
+    
+    // Mouse leave - reset to selected rating
+    starRating.addEventListener('mouseleave', function() {
+      stars.forEach((s, i) => {
+        if (i < selectedRating) {
+          s.classList.remove('far');
+          s.classList.add('fas');
+        } else {
+          s.classList.remove('fas');
+          s.classList.add('far');
+        }
+      });
+    });
+    
+    // Click to select rating
+    stars.forEach((star, index) => {
+      star.addEventListener('click', function() {
+        selectedRating = index + 1;
+        const ratingLabels = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+        ratingText.textContent = `You rated: ${selectedRating} star${selectedRating > 1 ? 's' : ''} - ${ratingLabels[index]}`;
+        ratingText.style.color = '#ffc107';
+        ratingText.style.fontWeight = '600';
+      });
+    });
+  }
+
   // Send feedback functionality
   const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
   if (sendFeedbackBtn) {
@@ -1046,15 +1094,22 @@ document.addEventListener('DOMContentLoaded', function () {
       sendFeedbackBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SENDING...';
       
       try {
-        // Send feedback to API
+        // Send feedback to API (include rating if selected)
+        const feedbackData = {
+          message: feedbackText
+        };
+        
+        // Add rating only if user selected one
+        if (selectedRating > 0) {
+          feedbackData.rating = selectedRating;
+        }
+        
         const response = await fetch(`${API_BASE_URL}/submit-feedback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            message: feedbackText
-          })
+          body: JSON.stringify(feedbackData)
         });
         
         const result = await response.json();
@@ -1062,6 +1117,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (result.success) {
           // Clear the textarea
           document.getElementById('feedback').value = '';
+          
+          // Reset star rating
+          selectedRating = 0;
+          if (starRating) {
+            const stars = starRating.querySelectorAll('i');
+            stars.forEach(s => {
+              s.classList.remove('fas');
+              s.classList.add('far');
+            });
+            ratingText.textContent = 'Click to rate (optional)';
+            ratingText.style.color = '';
+            ratingText.style.fontWeight = '';
+          }
           
           // Show success message
           alert('Thank you for your feedback! Your message has been sent successfully.');
