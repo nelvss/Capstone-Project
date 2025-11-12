@@ -2304,7 +2304,7 @@ function resolveTourId(tour) {
 function setTourData(tours) {
   const filteredTours = (Array.isArray(tours) ? tours : []).filter(tour => {
     const category = (tour?.category || '').trim();
-    return category && ['Inland Tour', 'Snorkeling Tour', 'Island Tour'].includes(category);
+    return category && ['Inland Tour', 'Snorkeling Tour', 'Island Hopping'].includes(category);
   });
 
   tourState.data = filteredTours;
