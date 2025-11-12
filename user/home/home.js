@@ -551,6 +551,13 @@ async function loadDiving() {
           `;
           divingCarouselInner.appendChild(carouselItem);
         });
+      } else {
+        // Show default logo.png if no images
+        divingCarouselInner.innerHTML = `
+          <div class="carousel-item active h-100">
+            <img src="../../Images/logo.png" class="d-block w-100 h-100 object-fit-cover" alt="${diving.name}">
+          </div>
+        `;
       }
     }
 
@@ -565,13 +572,15 @@ async function loadDiving() {
     if (divingMoreInfoBtn) {
       let infoHtml = '';
       
-      // Add first image if available
+      // Add first image if available, otherwise use logo
       const images = diving.images && diving.images.length > 0 
         ? diving.images 
         : (diving.diving_image ? [{ image_url: diving.diving_image }] : []);
       
       if (images.length > 0) {
         infoHtml += `<img src='${images[0].image_url}' alt='${diving.name}' class='img-fluid rounded mb-2'>`;
+      } else {
+        infoHtml += `<img src='../../Images/logo.png' alt='${diving.name}' class='img-fluid rounded mb-2'>`;
       }
       
       // Add title
@@ -631,6 +640,11 @@ async function loadDiving() {
         src: img.image_url,
         alt: diving.name
       }));
+    } else {
+      // Use logo.png as default
+      serviceImages['Diving'] = [
+        { src: '../../Images/logo.png', alt: diving.name }
+      ];
     }
 
     console.log('✅ Diving data loaded dynamically from database');
