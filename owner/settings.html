@@ -502,21 +502,20 @@
               <span class="vehicle-status-tag" aria-live="polite"></span>
             </header>
             <div class="vehicle-card-body">
-              <div class="vehicle-media">
-                <div class="vehicle-image-wrapper">
-                  <img class="vehicle-image" alt="Diving image">
-                  <div class="vehicle-image-actions">
-                    <button type="button" class="btn-secondary vehicle-upload-btn">Upload Image</button>
-                    <input type="file" class="vehicle-file-input" accept="image/*" hidden>
-                    <small class="vehicle-image-hint">Stored in Supabase bucket <code>diving-image</code></small>
-                  </div>
-                </div>
-              </div>
               <div class="vehicle-form">
                 <label class="form-field">
                   <span>Price per head (₱)</span>
                   <input type="number" min="0" step="0.01" class="vehicle-price" placeholder="0.00">
                 </label>
+
+                <div class="tour-images-section">
+                  <h4>Images</h4>
+                  <div class="diving-images-gallery"></div>
+                  <button type="button" class="btn-secondary diving-upload-image-btn">📷 Upload Image</button>
+                  <input type="file" class="diving-file-input" accept="image/*" hidden>
+                  <small class="vehicle-image-hint">Stored in Supabase bucket <code>diving-image</code></small>
+                </div>
+
                 <div class="vehicle-form-actions">
                   <button type="button" class="btn-primary vehicle-save-btn">Save Changes</button>
                   <button type="button" class="btn-danger vehicle-delete-btn">🗑️ Delete</button>

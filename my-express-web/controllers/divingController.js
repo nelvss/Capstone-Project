@@ -19,12 +19,23 @@ const getDiving = async (req, res) => {
       });
     }
     
-    const divingRecords = (data || []).map(diving => {
+    // Fetch images for each diving record
+    const divingRecords = await Promise.all((data || []).map(async (diving) => {
+      const { data: images } = await supabase
+        .from('diving_images')
+        .select('*')
+        .eq('diving_id', diving.diving_id)
+        .order('created_at', { ascending: true });
+      
+      diving.images = images || [];
+      
+      // Keep backward compatibility with diving_image field
       if (diving.diving_image) {
         diving.diving_image = fixDivingImageUrl(diving.diving_image);
       }
+      
       return diving;
-    });
+    }));
     
     console.log('✅ Diving records fetched successfully:', divingRecords.length, 'records');
     
@@ -212,19 +223,45 @@ const uploadDivingImage = async (req, res) => {
       identifier: `diving-${normalizedDivingId}`
     });
 
-    const { data, error } = await supabase
-      .from('diving')
-      .update({ diving_image: publicUrl })
-      .eq('diving_id', normalizedDivingId)
+    // Insert into diving_images table
+    const { data: imageData_db, error: imageError } = await supabase
+      .from('diving_images')
+      .insert([{
+        diving_id: normalizedDivingId,
+        image_url: publicUrl
+      }])
       .select('*');
 
-    if (error) {
-      console.error('❌ Error saving diving image URL:', error);
+    if (imageError) {
+      console.error('❌ Error saving diving image:', imageError);
       return res.status(500).json({
         success: false,
-        message: 'Failed to store diving image URL',
-        error: error.message
+        message: 'Failed to store diving image',
+        error: imageError.message
       });
+    }
+
+    // Also update the main diving_image field for backward compatibility
+    await supabase
+      .from('diving')
+      .update({ diving_image: publicUrl })
+      .eq('diving_id', normalizedDivingId);
+
+    // Fetch updated diving record with all images
+    const { data: divingData } = await supabase
+      .from('diving')
+      .select('*')
+      .eq('diving_id', normalizedDivingId)
+      .single();
+
+    const { data: images } = await supabase
+      .from('diving_images')
+      .select('*')
+      .eq('diving_id', normalizedDivingId)
+      .order('created_at', { ascending: true });
+
+    if (divingData) {
+      divingData.images = images || [];
     }
 
     res.json({
@@ -232,7 +269,8 @@ const uploadDivingImage = async (req, res) => {
       message: 'Diving image uploaded successfully',
       imageUrl: publicUrl,
       fileName: filePath,
-      diving: data[0]
+      image: imageData_db[0],
+      diving: divingData
     });
   } catch (error) {
     console.error('❌ Diving image upload error:', error);
@@ -314,11 +352,57 @@ const deleteDiving = async (req, res) => {
   }
 };
 
+const deleteDivingImage = async (req, res) => {
+  try {
+    const { divingId, imageId } = req.params;
+    const normalizedDivingId = normalizeDivingId(divingId);
+    const normalizedImageId = normalizeDivingId(imageId);
+
+    if (normalizedDivingId === null || normalizedImageId === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid diving ID or image ID'
+      });
+    }
+
+    const { error } = await supabase
+      .from('diving_images')
+      .delete()
+      .eq('image_id', normalizedImageId)
+      .eq('diving_id', normalizedDivingId);
+
+    if (error) {
+      console.error('❌ Error deleting diving image:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete diving image',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Diving image deleted successfully');
+
+    res.json({
+      success: true,
+      message: 'Diving image deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ Diving image deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getDiving,
   createDiving,
   updateDiving,
   uploadDivingImage,
-  deleteDiving
+  deleteDiving,
+  deleteDivingImage
 };
+
 
