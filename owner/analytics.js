@@ -35,8 +35,10 @@ window.API_URL = window.API_URL || 'https://api.otgpuertogaleratravel.com';
 // Toggle to use API or fallback sample data (default: true to use API)
 window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? window.USE_ANALYTICS_API : true;
 
-// Socket.io connection for real-time updates
-let socket = null;
+// Socket.io connection for real-time updates (check if already declared in dashboard.js)
+if (typeof socket === 'undefined') {
+    var socket = null;
+}
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 
