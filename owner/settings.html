@@ -235,6 +235,24 @@
 
         <div id="van-error" class="vehicle-error" role="alert" hidden></div>
 
+        <!-- Van Images Gallery Section -->
+        <div class="van-images-section mb-4">
+          <div class="section-heading">
+            <div>
+              <h3>Van Rental Images</h3>
+              <p class="section-subtitle">Manage images for the van rental service. Images are stored in <code>van_images</code> table and <code>van-images</code> bucket.</p>
+            </div>
+            <div class="vehicle-actions-bar">
+              <button id="van-upload-image-btn" class="btn-primary" type="button">📷 Upload Image</button>
+              <input type="file" id="van-image-file-input" accept="image/*" hidden>
+              <button id="van-images-refresh-btn" class="btn-secondary" type="button">↻ Refresh Images</button>
+              <span id="van-images-sync-status" class="vehicle-sync-status" aria-live="polite">Images: loading...</span>
+            </div>
+          </div>
+          <div id="van-images-error" class="vehicle-error" role="alert" hidden></div>
+          <div id="van-images-gallery" class="tour-images-gallery"></div>
+        </div>
+
         <div id="van-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
           <header class="vehicle-card-header">
             <div>

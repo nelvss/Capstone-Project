@@ -4391,6 +4391,247 @@ function initializePackageManager() {
   loadPackages();
 }
 
+// Van Images management state and functions
+const vanImagesState = {
+  data: [],
+  lastSynced: null,
+  isLoading: false
+};
+
+const vanImagesUI = {
+  gallery: null,
+  error: null,
+  syncStatus: null,
+  refreshBtn: null,
+  uploadBtn: null,
+  fileInput: null
+};
+
+function setVanImagesError(message = '') {
+  if (!vanImagesUI.error) {
+    return;
+  }
+
+  if (message) {
+    vanImagesUI.error.textContent = message;
+    vanImagesUI.error.hidden = false;
+  } else {
+    vanImagesUI.error.textContent = '';
+    vanImagesUI.error.hidden = true;
+  }
+}
+
+function updateVanImagesSyncStatus() {
+  if (!vanImagesUI.syncStatus) {
+    return;
+  }
+
+  if (!vanImagesState.lastSynced) {
+    vanImagesUI.syncStatus.textContent = 'Images: waiting...';
+    return;
+  }
+
+  const count = vanImagesState.data.length;
+  vanImagesUI.syncStatus.textContent = `Images: ${count} photo${count !== 1 ? 's' : ''}`;
+}
+
+async function loadVanImages() {
+  if (!vanImagesUI.gallery) {
+    return;
+  }
+
+  setVanImagesError('');
+  vanImagesState.isLoading = true;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/van-images`);
+    const result = await parseJsonResponse(response);
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to load van images');
+    }
+
+    vanImagesState.data = result.images || [];
+    vanImagesState.lastSynced = new Date();
+    updateVanImagesSyncStatus();
+    renderVanImages();
+  } catch (error) {
+    console.error('❌ Failed to load van images:', error);
+    vanImagesState.data = [];
+    setVanImagesError(`Failed to load van images: ${error.message}`);
+  } finally {
+    vanImagesState.isLoading = false;
+  }
+}
+
+function renderVanImages() {
+  if (!vanImagesUI.gallery) {
+    return;
+  }
+
+  vanImagesUI.gallery.innerHTML = '';
+
+  if (vanImagesState.data.length === 0) {
+    vanImagesUI.gallery.innerHTML = '<p class="text-muted">No images uploaded yet. Click "Upload Image" to add photos.</p>';
+    return;
+  }
+
+  vanImagesState.data.forEach(image => {
+    const imageCard = document.createElement('div');
+    imageCard.className = 'tour-image-card';
+    imageCard.innerHTML = `
+      <img src="${image.image_url}" alt="Van rental image" class="tour-image-preview">
+      <button type="button" class="tour-image-delete-btn" data-image-id="${image.van_images_id}">🗑️</button>
+    `;
+
+    const deleteBtn = imageCard.querySelector('.tour-image-delete-btn');
+    deleteBtn.addEventListener('click', () => {
+      handleDeleteVanImage(image.van_images_id, imageCard);
+    });
+
+    vanImagesUI.gallery.appendChild(imageCard);
+  });
+}
+
+async function handleUploadVanImage(file) {
+  if (!file) {
+    return;
+  }
+
+  if (vanImagesUI.uploadBtn) {
+    vanImagesUI.uploadBtn.disabled = true;
+    vanImagesUI.uploadBtn.textContent = '⏳ Uploading...';
+  }
+
+  setVanImagesError('');
+
+  try {
+    const imageData = await readFileAsBase64(file);
+
+    const response = await fetch(`${API_BASE_URL}/van-images/upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        imageData,
+        fileName: file.name
+      }),
+      cache: 'no-cache'
+    });
+
+    const result = await parseJsonResponse(response);
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to upload van image');
+    }
+
+    // Add new image to state
+    vanImagesState.data.push(result.image);
+    updateVanImagesSyncStatus();
+    renderVanImages();
+
+    showSuccessMessage('Van image uploaded successfully!');
+  } catch (error) {
+    console.error('❌ Error uploading van image:', error);
+    setVanImagesError(`Upload failed: ${error.message}`);
+  } finally {
+    if (vanImagesUI.uploadBtn) {
+      vanImagesUI.uploadBtn.disabled = false;
+      vanImagesUI.uploadBtn.textContent = '📷 Upload Image';
+    }
+
+    if (vanImagesUI.fileInput) {
+      vanImagesUI.fileInput.value = '';
+    }
+  }
+}
+
+async function handleDeleteVanImage(imageId, imageCard) {
+  const confirmed = confirm('Are you sure you want to delete this van image?\n\nThis action cannot be undone.');
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/van-images/${imageId}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json'
+      },
+      cache: 'no-cache'
+    });
+
+    const result = await parseJsonResponse(response);
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to delete van image');
+    }
+
+    // Remove from state
+    vanImagesState.data = vanImagesState.data.filter(img => img.van_images_id !== imageId);
+    updateVanImagesSyncStatus();
+
+    // Remove card from DOM with animation
+    if (imageCard && imageCard.parentElement) {
+      imageCard.style.opacity = '0';
+      imageCard.style.transform = 'scale(0.95)';
+      imageCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+      setTimeout(() => {
+        imageCard.remove();
+        // Re-render if no images left
+        if (vanImagesState.data.length === 0) {
+          renderVanImages();
+        }
+      }, 300);
+    }
+
+    showSuccessMessage('Van image deleted successfully!');
+  } catch (error) {
+    console.error('❌ Error deleting van image:', error);
+    setVanImagesError(`Delete failed: ${error.message}`);
+  }
+}
+
+function initializeVanImagesManager() {
+  vanImagesUI.gallery = document.getElementById('van-images-gallery');
+  vanImagesUI.error = document.getElementById('van-images-error');
+  vanImagesUI.syncStatus = document.getElementById('van-images-sync-status');
+  vanImagesUI.refreshBtn = document.getElementById('van-images-refresh-btn');
+  vanImagesUI.uploadBtn = document.getElementById('van-upload-image-btn');
+  vanImagesUI.fileInput = document.getElementById('van-image-file-input');
+
+  if (!vanImagesUI.gallery) {
+    return;
+  }
+
+  updateVanImagesSyncStatus();
+
+  if (vanImagesUI.uploadBtn && vanImagesUI.fileInput) {
+    vanImagesUI.uploadBtn.addEventListener('click', () => {
+      vanImagesUI.fileInput.click();
+    });
+
+    vanImagesUI.fileInput.addEventListener('change', () => {
+      const [file] = vanImagesUI.fileInput.files || [];
+      if (file) {
+        handleUploadVanImage(file);
+      }
+    });
+  }
+
+  if (vanImagesUI.refreshBtn) {
+    vanImagesUI.refreshBtn.addEventListener('click', () => {
+      loadVanImages();
+    });
+  }
+
+  loadVanImages();
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', () => {
   if (!checkSession()) {
@@ -4401,6 +4642,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeVehicleManager();
   initializeDivingManager();
   initializeVanDestinationManager();
+  initializeVanImagesManager();
   initializeTourManager();
   initializeQrcodeManager();
   console.log('Settings page ready');

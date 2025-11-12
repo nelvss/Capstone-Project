@@ -240,20 +240,29 @@ async function loadVanRental() {
   const listWithinElement = document.getElementById('vanRentalListWithin');
   const listOutsideElement = document.getElementById('vanRentalListOutside');
   const moreInfoButton = document.getElementById('vanRentalMoreInfo');
+  const carouselInner = document.getElementById('vanRentalCarouselInner');
 
-  if (!priceElement || !listWithinElement || !listOutsideElement || !moreInfoButton) {
+  if (!priceElement || !listWithinElement || !listOutsideElement || !moreInfoButton || !carouselInner) {
     return;
   }
+
+  const placeholderSlide = `
+    <div class="carousel-item active h-100">
+      <img src="../../Images/Commuter.jpg" class="d-block w-100 h-100 object-fit-cover" alt="Van rental placeholder">
+    </div>
+  `;
 
   listWithinElement.innerHTML = '<li class="vehicle-rental-list-item">Fetching...</li>';
   listOutsideElement.innerHTML = '<li class="vehicle-rental-list-item">Fetching...</li>';
   moreInfoButton.dataset.info = '<strong>Van Rental</strong><br>Loading destination list...';
+  carouselInner.innerHTML = placeholderSlide;
 
   try {
-    const url = `${API_BASE_URL}/van-destinations`;
-    console.log('🔄 Fetching van destinations from:', url);
+    // Load van destinations
+    const destUrl = `${API_BASE_URL}/van-destinations`;
+    console.log('🔄 Fetching van destinations from:', destUrl);
     
-    const response = await fetch(url, {
+    const destResponse = await fetch(destUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -261,20 +270,69 @@ async function loadVanRental() {
       mode: 'cors'
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    if (!destResponse.ok) {
+      throw new Error(`HTTP ${destResponse.status}: ${destResponse.statusText}`);
     }
 
-    const result = await response.json();
+    const destResult = await destResponse.json();
 
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to fetch van destinations');
+    if (!destResult.success) {
+      throw new Error(destResult.message || 'Failed to fetch van destinations');
     }
 
-    const destinations = (result.destinations || []).filter(dest => {
+    const destinations = (destResult.destinations || []).filter(dest => {
       const name = (dest?.destination_name || '').trim();
       return name && name.toLowerCase() !== 'n/a';
     });
+
+    // Load van images
+    const imagesUrl = `${API_BASE_URL}/van-images`;
+    console.log('🔄 Fetching van images from:', imagesUrl);
+    
+    const imagesResponse = await fetch(imagesUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors'
+    });
+
+    let vanImages = [];
+    if (imagesResponse.ok) {
+      const imagesResult = await imagesResponse.json();
+      if (imagesResult.success) {
+        vanImages = imagesResult.images || [];
+      }
+    }
+
+    // Update carousel with van images
+    if (vanImages.length > 0) {
+      carouselInner.innerHTML = '';
+      vanImages.forEach((image, index) => {
+        const carouselItem = document.createElement('div');
+        carouselItem.className = `carousel-item h-100 ${index === 0 ? 'active' : ''}`;
+        carouselItem.innerHTML = `
+          <img src="${image.image_url}" class="d-block w-100 h-100 object-fit-cover" alt="Van rental">
+        `;
+        carouselInner.appendChild(carouselItem);
+      });
+
+      // Update service images for gallery
+      serviceImages['Van Rental'] = vanImages.map(img => ({
+        src: img.image_url,
+        alt: 'Van rental'
+      }));
+    } else {
+      // Keep default images if no images in database
+      carouselInner.innerHTML = `
+        <div class="carousel-item active h-100">
+          <img src="../../Images/Commuter.jpg" class="d-block w-100 h-100 object-fit-cover" alt="Commuter Van">
+        </div>
+        <div class="carousel-item h-100">
+          <img src="../../Images/Grandia.jpg" class="d-block w-100 h-100 object-fit-cover" alt="Grandia Van">
+        </div>
+      `;
+    }
 
     // Separate destinations by location type
     const withinDestinations = destinations.filter(dest => {

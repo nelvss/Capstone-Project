@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { uploadImageToStorage } = require('../utils/imageUpload');
 
 const getVanDestinations = async (req, res) => {
   try {
@@ -31,6 +32,180 @@ const getVanDestinations = async (req, res) => {
       success: false, 
       message: 'Internal server error',
       error: error.message 
+    });
+  }
+};
+
+const getVanImages = async (req, res) => {
+  try {
+    console.log('📊 Fetching van images...');
+    
+    const { data, error } = await supabase
+      .from('van_images')
+      .select('*')
+      .order('van_images_id', { ascending: true });
+    
+    if (error) {
+      console.error('❌ Error fetching van images:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch van images', 
+        error: error.message 
+      });
+    }
+    
+    console.log('✅ Van images fetched successfully:', data?.length || 0, 'images');
+    
+    res.json({ 
+      success: true, 
+      images: data || []
+    });
+    
+  } catch (error) {
+    console.error('❌ Van images fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+};
+
+const uploadVanImage = async (req, res) => {
+  try {
+    const { imageData, fileName } = req.body;
+
+    console.log('📤 Uploading van image:', fileName);
+
+    if (!imageData || !fileName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Image data and file name are required'
+      });
+    }
+
+    // Upload image to van-images bucket
+    const imageUrl = await uploadImageToStorage(imageData, fileName, 'van-images');
+
+    // Insert into van_images table
+    const { data, error } = await supabase
+      .from('van_images')
+      .insert([{ image_url: imageUrl }])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error inserting van image:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to save van image',
+        error: error.message
+      });
+    }
+
+    console.log('✅ Van image uploaded successfully:', data[0]);
+
+    res.json({
+      success: true,
+      message: 'Van image uploaded successfully',
+      image: data[0],
+      imageUrl
+    });
+  } catch (error) {
+    console.error('❌ Van image upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+const deleteVanImage = async (req, res) => {
+  try {
+    const { imageId } = req.params;
+
+    if (!imageId || imageId.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid image ID'
+      });
+    }
+
+    console.log('🗑️ Deleting van image:', imageId.trim());
+
+    // Fetch the image to get the URL before deleting
+    const { data: existingImage, error: fetchError } = await supabase
+      .from('van_images')
+      .select('van_images_id, image_url')
+      .eq('van_images_id', imageId.trim())
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('❌ Error checking van image existence:', fetchError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify van image before deletion',
+        error: fetchError.message
+      });
+    }
+
+    if (!existingImage) {
+      return res.status(404).json({
+        success: false,
+        message: 'Van image not found'
+      });
+    }
+
+    // Delete from van_images table
+    const { error: deleteError } = await supabase
+      .from('van_images')
+      .delete()
+      .eq('van_images_id', imageId.trim());
+
+    if (deleteError) {
+      console.error('❌ Error deleting van image:', deleteError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete van image',
+        error: deleteError.message
+      });
+    }
+
+    // Optionally delete from storage as well
+    if (existingImage.image_url) {
+      try {
+        // Extract file path from URL
+        const urlParts = existingImage.image_url.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        
+        const { error: storageError } = await supabase.storage
+          .from('van-images')
+          .remove([fileName]);
+
+        if (storageError) {
+          console.warn('⚠️ Warning: Could not delete image from storage:', storageError.message);
+        }
+      } catch (storageErr) {
+        console.warn('⚠️ Warning: Error deleting from storage:', storageErr);
+      }
+    }
+
+    console.log('✅ Van image deleted successfully:', existingImage.van_images_id);
+
+    res.json({
+      success: true,
+      message: 'Van image deleted successfully',
+      deletedImage: {
+        van_images_id: existingImage.van_images_id,
+        image_url: existingImage.image_url
+      }
+    });
+  } catch (error) {
+    console.error('❌ Van image deletion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
     });
   }
 };
@@ -276,6 +451,9 @@ module.exports = {
   getVanDestinations,
   createVanDestination,
   updateVanDestination,
-  deleteVanDestination
+  deleteVanDestination,
+  getVanImages,
+  uploadVanImage,
+  deleteVanImage
 };
 
