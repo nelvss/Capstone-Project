@@ -35,6 +35,127 @@ window.API_URL = window.API_URL || 'https://api.otgpuertogaleratravel.com';
 // Toggle to use API or fallback sample data (default: true to use API)
 window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? window.USE_ANALYTICS_API : true;
 
+// Socket.io connection for real-time updates
+let socket = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+
+function initializeSocketConnection() {
+    if (!window.USE_ANALYTICS_API) {
+        console.log('ℹ️ Socket.io disabled (API disabled)');
+        return;
+    }
+
+    try {
+        // Connect to Socket.io server
+        socket = io(window.API_URL, {
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: MAX_RECONNECT_ATTEMPTS
+        });
+
+        // Connection successful
+        socket.on('connect', () => {
+            console.log('✅ Socket.io connected:', socket.id);
+            reconnectAttempts = 0;
+            updateConnectionStatus(true);
+        });
+
+        // Connection error
+        socket.on('connect_error', (error) => {
+            console.warn('⚠️ Socket.io connection error:', error.message);
+            reconnectAttempts++;
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.error('❌ Socket.io max reconnection attempts reached');
+                updateConnectionStatus(false);
+            }
+        });
+
+        // Disconnection
+        socket.on('disconnect', (reason) => {
+            console.log('🔌 Socket.io disconnected:', reason);
+            updateConnectionStatus(false);
+        });
+
+        // Listen for real-time analytics updates
+        socket.on('analytics-refresh', () => {
+            console.log('📊 Real-time analytics update received');
+            showRealtimeNotification('Analytics data updated', 'info');
+            refreshAnalyticsData();
+        });
+
+        // Listen for new bookings
+        socket.on('booking-update', (data) => {
+            console.log('📋 New booking update received:', data);
+            if (data.type === 'new') {
+                showRealtimeNotification(`New booking from ${data.customerName || 'customer'}`, 'success');
+            } else {
+                showRealtimeNotification('Booking updated', 'info');
+            }
+            refreshAnalyticsData();
+        });
+
+        // Listen for payment updates
+        socket.on('payment-status-changed', (data) => {
+            console.log('💳 Payment status changed:', data);
+            showRealtimeNotification(`Payment status: ${data.status}`, 'info');
+            refreshAnalyticsData();
+        });
+
+        console.log('🔌 Socket.io initialization complete');
+    } catch (error) {
+        console.error('❌ Failed to initialize Socket.io:', error);
+    }
+}
+
+function updateConnectionStatus(isConnected) {
+    const statusIndicator = document.getElementById('connection-status');
+    if (statusIndicator) {
+        if (isConnected) {
+            statusIndicator.className = 'connection-status connected';
+            statusIndicator.title = 'Real-time updates active';
+        } else {
+            statusIndicator.className = 'connection-status disconnected';
+            statusIndicator.title = 'Real-time updates unavailable';
+        }
+    }
+}
+
+async function refreshAnalyticsData() {
+    console.log('🔄 Refreshing analytics data...');
+    
+    // Show loading indicator
+    const refreshButton = document.getElementById('refresh-data');
+    if (refreshButton) {
+        refreshButton.classList.add('loading');
+        refreshButton.disabled = true;
+    }
+    
+    try {
+        // Reload data from API
+        await fetchAnalyticsDataFromApi();
+        
+        // Update UI
+        populateAnalyticsUI();
+        
+        // Reinitialize charts
+        initializeCharts();
+        
+        // Show success notification
+        showNotification('Analytics data updated in real-time', 'success');
+    } catch (error) {
+        console.error('❌ Failed to refresh analytics data:', error);
+        showNotification('Failed to refresh analytics data', 'error');
+    } finally {
+        if (refreshButton) {
+            refreshButton.classList.remove('loading');
+            refreshButton.disabled = false;
+        }
+    }
+}
+
 // Dynamic analytics data - will be populated from API
 let analyticsData = {};
 let demandForecastCache = null;
@@ -366,6 +487,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!checkSession()) {
         return;
     }
+    
+    // Initialize Socket.io connection for real-time updates
+    initializeSocketConnection();
     
     // Navigation functionality
     initializeNavigation();
@@ -1727,6 +1851,43 @@ function showNotification(message, type = 'info') {
             notification.parentNode.removeChild(notification);
         }
     }, 5000);
+}
+
+function showRealtimeNotification(message, type = 'info') {
+    // Create real-time notification element
+    const notification = document.createElement('div');
+    notification.className = 'realtime-notification';
+    
+    const iconMap = {
+        success: 'fa-check-circle',
+        info: 'fa-info-circle',
+        warning: 'fa-exclamation-triangle',
+        error: 'fa-times-circle'
+    };
+    
+    const icon = iconMap[type] || iconMap.info;
+    
+    notification.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Add animation
+    setTimeout(() => {
+        notification.style.animation = 'slideInRight 0.3s ease';
+    }, 10);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
 }
 
 // Initialize real-time updates (simulated)

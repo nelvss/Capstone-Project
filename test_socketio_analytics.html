@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io Analytics Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .status-card {
+            margin-bottom: 20px;
+        }
+        .connected {
+            color: #28a745;
+        }
+        .disconnected {
+            color: #dc3545;
+        }
+        .event-log {
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .event-entry {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #007bff;
+            background: #f8f9fa;
+        }
+        .event-entry.success {
+            border-left-color: #28a745;
+        }
+        .event-entry.error {
+            border-left-color: #dc3545;
+        }
+        .event-entry.warning {
+            border-left-color: #ffc107;
+        }
+        .timestamp {
+            color: #6c757d;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">
+            <i class="fas fa-plug"></i> Socket.io Analytics Test
+        </h1>
+
+        <!-- Status Card -->
+        <div class="card status-card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h5>Connection Status</h5>
+                        <h2 id="status" class="disconnected">
+                            <i class="fas fa-circle-notch fa-spin"></i> Connecting...
+                        </h2>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Socket ID</h5>
+                        <p id="socket-id" class="text-muted">Not connected</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Events Received</h5>
+                        <h2 id="event-count">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-vials"></i> Test Controls</h5>
+            </div>
+            <div class="card-body">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-primary" onclick="testBookingUpdate()">
+                        <i class="fas fa-calendar-plus"></i> Simulate Booking Update
+                    </button>
+                    <button class="btn btn-success" onclick="testPaymentUpdate()">
+                        <i class="fas fa-credit-card"></i> Simulate Payment Update
+                    </button>
+                    <button class="btn btn-info" onclick="testAnalyticsRefresh()">
+                        <i class="fas fa-chart-line"></i> Simulate Analytics Refresh
+                    </button>
+                    <button class="btn btn-warning" onclick="clearLog()">
+                        <i class="fas fa-trash"></i> Clear Log
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-list"></i> Event Log</h5>
+            </div>
+            <div class="card-body">
+                <div id="event-log" class="event-log">
+                    <div class="text-muted text-center">
+                        <i class="fas fa-clock"></i> Waiting for events...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="alert alert-info mt-4">
+            <h5><i class="fas fa-info-circle"></i> How to Test</h5>
+            <ol>
+                <li>Make sure the server is running on <code>http://localhost:3000</code> or your API URL</li>
+                <li>Check if the connection status shows "Connected"</li>
+                <li>Click the test buttons to simulate events</li>
+                <li>Watch the event log for real-time updates</li>
+                <li>Try creating a real booking to see actual events</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000' 
+            : 'https://api.otgpuertogaleratravel.com';
+        
+        let socket = null;
+        let eventCount = 0;
+
+        // Initialize Socket.io connection
+        function initSocket() {
+            socket = io(API_URL, {
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionAttempts: 5
+            });
+
+            // Connection events
+            socket.on('connect', () => {
+                updateStatus('Connected', 'success');
+                document.getElementById('socket-id').textContent = socket.id;
+                logEvent('Connected to server', 'success', { socketId: socket.id });
+            });
+
+            socket.on('connect_error', (error) => {
+                updateStatus('Connection Error', 'error');
+                logEvent('Connection error', 'error', { message: error.message });
+            });
+
+            socket.on('disconnect', (reason) => {
+                updateStatus('Disconnected', 'error');
+                document.getElementById('socket-id').textContent = 'Not connected';
+                logEvent('Disconnected from server', 'warning', { reason });
+            });
+
+            // Analytics events
+            socket.on('analytics-refresh', (data) => {
+                eventCount++;
+                updateEventCount();
+                logEvent('Analytics Refresh', 'success', data);
+            });
+
+            socket.on('booking-update', (data) => {
+                eventCount++;
+                updateEventCount();
+                logEvent('Booking Update', 'success', data);
+            });
+
+            socket.on('payment-status-changed', (data) => {
+                eventCount++;
+                updateEventCount();
+                logEvent('Payment Status Changed', 'success', data);
+            });
+        }
+
+        function updateStatus(text, type) {
+            const statusEl = document.getElementById('status');
+            const iconMap = {
+                success: 'fa-check-circle connected',
+                error: 'fa-times-circle disconnected',
+                warning: 'fa-exclamation-triangle text-warning'
+            };
+            const icon = iconMap[type] || 'fa-circle-notch fa-spin';
+            statusEl.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+        }
+
+        function updateEventCount() {
+            document.getElementById('event-count').textContent = eventCount;
+        }
+
+        function logEvent(eventName, type, data) {
+            const logEl = document.getElementById('event-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const entry = document.createElement('div');
+            entry.className = `event-entry ${type}`;
+            entry.innerHTML = `
+                <div><strong>${eventName}</strong> <span class="timestamp">${timestamp}</span></div>
+                <div class="text-muted"><pre>${JSON.stringify(data || {}, null, 2)}</pre></div>
+            `;
+            
+            // Remove "waiting" message if it exists
+            const waitingMsg = logEl.querySelector('.text-muted.text-center');
+            if (waitingMsg) {
+                waitingMsg.remove();
+            }
+            
+            logEl.insertBefore(entry, logEl.firstChild);
+            
+            // Limit to 50 entries
+            while (logEl.children.length > 50) {
+                logEl.removeChild(logEl.lastChild);
+            }
+        }
+
+        function testBookingUpdate() {
+            if (!socket || !socket.connected) {
+                alert('Not connected to server!');
+                return;
+            }
+            socket.emit('booking-update', {
+                type: 'new',
+                bookingId: 'TEST-' + Date.now(),
+                customerName: 'Test Customer',
+                timestamp: new Date().toISOString()
+            });
+            logEvent('Test Event Sent: Booking Update', 'warning', { test: true });
+        }
+
+        function testPaymentUpdate() {
+            if (!socket || !socket.connected) {
+                alert('Not connected to server!');
+                return;
+            }
+            socket.emit('payment-update', {
+                bookingId: 'TEST-' + Date.now(),
+                status: 'confirmed',
+                timestamp: new Date().toISOString()
+            });
+            logEvent('Test Event Sent: Payment Update', 'warning', { test: true });
+        }
+
+        function testAnalyticsRefresh() {
+            if (!socket || !socket.connected) {
+                alert('Not connected to server!');
+                return;
+            }
+            socket.emit('analytics-update');
+            logEvent('Test Event Sent: Analytics Refresh', 'warning', { test: true });
+        }
+
+        function clearLog() {
+            const logEl = document.getElementById('event-log');
+            logEl.innerHTML = '<div class="text-muted text-center"><i class="fas fa-clock"></i> Waiting for events...</div>';
+            eventCount = 0;
+            updateEventCount();
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', initSocket);
+    </script>
+</body>
+</html>

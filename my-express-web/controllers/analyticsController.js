@@ -33,6 +33,19 @@ const getRevenue = async (req, res) => {
     
     console.log('✅ Revenue analytics fetched successfully');
     
+    // Emit Socket.IO event for analytics update
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('analytics-refresh', {
+          type: 'revenue',
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (socketError) {
+      console.error('⚠️ Socket.IO emit error:', socketError);
+    }
+    
     res.json({ 
       success: true, 
       analytics: {
