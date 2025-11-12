@@ -471,6 +471,7 @@ async function handleConfirm(booking, button) {
       button.style.backgroundColor = '#10b981';
       booking.status = 'confirmed';
       if (booking.raw) booking.raw.status = 'confirmed';
+      showNotification('✅ Booking confirmed successfully', 'success');
       renderTable();
     } else {
       console.warn(`Failed to send confirmation email: ${result.message}`);
@@ -516,6 +517,7 @@ async function handleCancel(booking, button) {
       button.style.backgroundColor = '#ef4444';
       booking.status = 'cancelled';
       if (booking.raw) booking.raw.status = 'cancelled';
+      showNotification('❌ Booking cancelled successfully', 'warning');
       renderTable();
     } else {
       console.warn(`Failed to send cancellation email: ${result.message}`);
@@ -1902,7 +1904,7 @@ async function submitBookingEditForm(event) {
     renderTable();
     updateOwnerStats();
 
-    alert('Booking updated successfully.');
+    showNotification('✏️ Booking updated successfully', 'info');
   } catch (error) {
     console.error('Error updating booking:', error);
     alert(error.message || 'Failed to update booking. Please try again.');
