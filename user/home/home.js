@@ -383,6 +383,130 @@ async function loadVanRental() {
   }
 }
 
+async function loadTourOnly() {
+  try {
+    const url = `${API_BASE_URL}/tours`;
+    console.log('🔄 Fetching tours from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors'
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to fetch tours');
+    }
+
+    const tours = result.tours || [];
+    
+    // Map tours by category
+    const toursByCategory = {
+      'Snorkeling Tour': tours.find(t => t.category === 'Snorkeling Tour'),
+      'Inland Tour': tours.find(t => t.category === 'Inland Tour'),
+      'Island Tour': tours.find(t => t.category === 'Island Hopping')
+    };
+
+    // Update Snorkeling Tour card
+    updateTourCard('snorkelingTourCarousel', toursByCategory['Snorkeling Tour'], 'Snorkeling Tour');
+    
+    // Update Inland Tour card
+    updateTourCard('inlandCarousel', toursByCategory['Inland Tour'], 'Inland Tour');
+    
+    // Update Island Hopping card (note: database uses "Island Tour", display uses "Island Hopping")
+    updateTourCard('islandHoppingCarousel', toursByCategory['Island Tour'], 'Island Hopping');
+
+    console.log('✅ Tours loaded dynamically from database');
+  } catch (error) {
+    console.error('❌ Error loading tours:', error);
+    console.error('Error details:', {
+      message: error.message,
+      url: `${API_BASE_URL}/tours`,
+      stack: error.stack
+    });
+    // Keep hardcoded content as fallback
+  }
+}
+
+function updateTourCard(carouselId, tour, displayName) {
+  if (!tour) {
+    console.warn(`⚠️ No tour data found for ${displayName}, keeping hardcoded content`);
+    return;
+  }
+
+  // Update carousel images if available
+  const carouselInner = document.querySelector(`#${carouselId} .carousel-inner`);
+  if (carouselInner && tour.images && tour.images.length > 0) {
+    carouselInner.innerHTML = '';
+    tour.images.forEach((image, index) => {
+      const carouselItem = document.createElement('div');
+      carouselItem.className = `carousel-item h-100 ${index === 0 ? 'active' : ''}`;
+      carouselItem.innerHTML = `
+        <img src="${image.image_url}" class="d-block w-100 h-100 object-fit-cover" alt="${displayName}">
+      `;
+      carouselInner.appendChild(carouselItem);
+    });
+  }
+
+  // Update pricing display
+  const priceTag = document.querySelector(`#${carouselId}`).closest('.card').querySelector('.price-tag');
+  if (priceTag && tour.pricing && tour.pricing.length > 0) {
+    // Find the lowest price from pricing tiers
+    const prices = tour.pricing.map(p => p.price_per_head).filter(p => p > 0);
+    if (prices.length > 0) {
+      const minPrice = Math.min(...prices);
+      priceTag.querySelector('div').textContent = formatCurrency(minPrice);
+    }
+  }
+
+  // Update "More Info" button with dynamic pricing tiers
+  const moreInfoBtn = document.querySelector(`#${carouselId}`).closest('.card').querySelector('.btn-more-info');
+  if (moreInfoBtn && tour.pricing && tour.pricing.length > 0) {
+    let pricingInfo = `<strong>${displayName}</strong><br>`;
+    
+    // Add image if available
+    if (tour.images && tour.images.length > 0) {
+      pricingInfo += `<img src='${tour.images[0].image_url}' alt='${displayName}' class='img-fluid rounded mb-2'><br>`;
+    }
+    
+    // Add pricing tiers
+    pricingInfo += '<br><strong>Pricing:</strong><br>';
+    tour.pricing.forEach(tier => {
+      if (tier.min_tourist === tier.max_tourist) {
+        pricingInfo += `${tier.min_tourist} pax - ${formatCurrency(tier.price_per_head)} per pax<br>`;
+      } else {
+        pricingInfo += `${tier.min_tourist}-${tier.max_tourist} pax - ${formatCurrency(tier.price_per_head)} per pax<br>`;
+      }
+    });
+    
+    // Keep the original inclusions info (hardcoded)
+    const originalInfo = moreInfoBtn.getAttribute('data-info');
+    const inclusionsMatch = originalInfo.match(/<br><br>Inclusions:.*$/s);
+    if (inclusionsMatch) {
+      pricingInfo += inclusionsMatch[0];
+    }
+    
+    moreInfoBtn.setAttribute('data-info', pricingInfo);
+    moreInfoBtn.setAttribute('data-title', displayName);
+  }
+
+  // Update image gallery for modal
+  if (tour.images && tour.images.length > 0) {
+    serviceImages[displayName] = tour.images.map(img => ({
+      src: img.image_url,
+      alt: displayName
+    }));
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Re-evaluate API_BASE_URL to ensure meta tag is available
   API_BASE_URL = getApiBaseUrl();
@@ -392,6 +516,7 @@ document.addEventListener('DOMContentLoaded', function () {
   loadDynamicContent();
   loadVehicleRental();
   loadVanRental();
+  loadTourOnly();
 
   // Navbar scroll behavior (shrink + shadow)
   const navbar = document.querySelector('nav.navbar');
@@ -726,78 +851,79 @@ document.addEventListener('DOMContentLoaded', function () {
 // Image collections for each service
 const serviceImages = {
   'Snorkeling Tour': [
-    { src: '../Images/coral_garden.jpg', alt: 'Coral Garden' },
-    { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' },
-    { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams' },
-    { src: '../Images/white_beach.jpg', alt: 'White Beach' }
+    { src: '../../Images/coral_garden.jpg', alt: 'Coral Garden' },
+    { src: '../../Images/muelle_beach.jpg', alt: 'Muelle Beach' },
+    { src: '../../Images/giant_clamps.jpg', alt: 'Giant Clams' },
+    { src: '../../Images/white_beach.jpg', alt: 'White Beach' }
   ],
   'Inland Tour': [
-    { src: '../Images/tamaraw_falls.jpg', alt: 'Tamaraw Falls' },
-    { src: '../Images/virgin_beach.jpg', alt: 'Virgin Beach' },
-    { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' }
+    { src: '../../Images/tamaraw_falls.jpg', alt: 'Tamaraw Falls' },
+    { src: '../../Images/virgin_beach.jpg', alt: 'Virgin Beach' },
+    { src: '../../Images/muelle_beach.jpg', alt: 'Muelle Beach' }
   ],
   'Island Hopping': [
-    { src: '../Images/long_beach.jpg', alt: 'Long Beach' },
-    { src: '../Images/white_beach.jpg', alt: 'White Beach' },
-    { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams' },
-    { src: '../Images/muelle_beach.jpg', alt: 'Muelle Beach' }
+    { src: '../../Images/long_beach.jpg', alt: 'Long Beach' },
+    { src: '../../Images/white_beach.jpg', alt: 'White Beach' },
+    { src: '../../Images/giant_clamps.jpg', alt: 'Giant Clams' },
+    { src: '../../Images/muelle_beach.jpg', alt: 'Muelle Beach' }
   ],
   'Vehicle Rental': [
-    { src: '../Images/adv_160.png', alt: 'ADV 160' },
-    { src: '../Images/nmax.png', alt: 'NMAX' },
-    { src: '../Images/versys_650.png', alt: 'Versys 650' },
-    { src: '../Images/versys_1000.png', alt: 'Versys 1000' },
-    { src: '../Images/tuktuk.png', alt: 'Tuktuk' },
-    { src: '../Images/mirage.jpg', alt: 'Mirage' },
-    { src: '../Images/wigo.png', alt: 'Wigo' }
+    { src: '../../Images/adv_160.png', alt: 'ADV 160' },
+    { src: '../../Images/nmax.png', alt: 'NMAX' },
+    { src: '../../Images/versys_650.png', alt: 'Versys 650' },
+    { src: '../../Images/versys_1000.png', alt: 'Versys 1000' },
+    { src: '../../Images/tuktuk.png', alt: 'Tuktuk' },
+    { src: '../../Images/mirage.jpg', alt: 'Mirage' },
+    { src: '../../Images/wigo.png', alt: 'Wigo' }
   ],
   'The Mangyan Grand Hotel': [
-    { src: '../Images/mangyan.jpg', alt: 'Mangyan Grand Hotel' },
-    { src: '../Images/mangyan2.jpg', alt: 'Mangyan Grand Hotel 2' },
-    { src: '../Images/mangyan3.jpg', alt: 'Mangyan Grand Hotel 3' },
-    { src: '../Images/mangyan4.jpg', alt: 'Mangyan Grand Hotel 4' },
-    { src: '../Images/mangyan5.jpg', alt: 'Mangyan Grand Hotel 5' },
-    { src: '../Images/mangyan6.jpg', alt: 'Mangyan Grand Hotel 6' },
-    { src: '../Images/mangyan7.jpg', alt: 'Mangyan Grand Hotel 7' },
-    { src: '../Images/mangyan8.jpg', alt: 'Mangyan Grand Hotel 8' }
+    { src: '../../Images/mangyan.jpg', alt: 'Mangyan Grand Hotel' },
+    { src: '../../Images/mangyan2.jpg', alt: 'Mangyan Grand Hotel 2' },
+    { src: '../../Images/mangyan3.jpg', alt: 'Mangyan Grand Hotel 3' },
+    { src: '../../Images/mangyan4.jpg', alt: 'Mangyan Grand Hotel 4' },
+    { src: '../../Images/mangyan5.jpg', alt: 'Mangyan Grand Hotel 5' },
+    { src: '../../Images/mangyan6.jpg', alt: 'Mangyan Grand Hotel 6' },
+    { src: '../../Images/mangyan7.jpg', alt: 'Mangyan Grand Hotel 7' },
+    { src: '../../Images/mangyan8.jpg', alt: 'Mangyan Grand Hotel 8' }
   ],
   'SouthView': [
-    { src: '../Images/southview.jpg', alt: 'SouthView' },
-    { src: '../Images/southview2.jpg', alt: 'SouthView 2' },
-    { src: '../Images/southview3.jpg', alt: 'SouthView 3' },
-    { src: '../Images/southview4.jpg', alt: 'SouthView 4' },
-    { src: '../Images/southview5.jpg', alt: 'SouthView 5' },
-    { src: '../Images/southview6.jpg', alt: 'SouthView 6' }
+    { src: '../../Images/southview.jpg', alt: 'SouthView' },
+    { src: '../../Images/southview2.jpg', alt: 'SouthView 2' },
+    { src: '../../Images/southview3.jpg', alt: 'SouthView 3' },
+    { src: '../../Images/southview4.jpg', alt: 'SouthView 4' },
+    { src: '../../Images/southview5.jpg', alt: 'SouthView 5' },
+    { src: '../../Images/southview6.jpg', alt: 'SouthView 6' }
   ],
   'Ilaya': [
-    { src: '../Images/ilaya.jpg', alt: 'Ilaya' },
-    { src: '../Images/ilaya2.jpg', alt: 'Ilaya 2' },
-    { src: '../Images/ilaya3.jpg', alt: 'Ilaya 3' },
-    { src: '../Images/ilaya4.jpg', alt: 'Ilaya 4' }
+    { src: '../../Images/ilaya.jpg', alt: 'Ilaya' },
+    { src: '../../Images/ilaya2.jpg', alt: 'Ilaya 2' },
+    { src: '../../Images/ilaya3.jpg', alt: 'Ilaya 3' },
+    { src: '../../Images/ilaya4.jpg', alt: 'Ilaya 4' }
   ],
   'Transient House': [
-    { src: '../Images/tr1.jpg', alt: 'Transient House 1' },
-    { src: '../Images/tr2.jpg', alt: 'Transient House 2' },
-    { src: '../Images/tr3.jpg', alt: 'Transient House 3' },
-    { src: '../Images/tr4.jpg', alt: 'Transient House 4' },
-    { src: '../Images/tr5.jpg', alt: 'Transient House 5' },
-    { src: '../Images/tr7.jpg', alt: 'Transient House 7' },
-    { src: '../Images/tr8.jpg', alt: 'Transient House 8' },
-    { src: '../Images/tr9.jpg', alt: 'Transient House 9' },
-    { src: '../Images/tr10.jpg', alt: 'Transient House 10' },
-    { src: '../Images/tr11.jpg', alt: 'Transient House 11' },
-    { src: '../Images/tr12.jpg', alt: 'Transient House 12' }
+    { src: '../../Images/tr1.jpg', alt: 'Transient House 1' },
+    { src: '../../Images/tr2.jpg', alt: 'Transient House 2' },
+    { src: '../../Images/tr3.jpg', alt: 'Transient House 3' },
+    { src: '../../Images/tr4.jpg', alt: 'Transient House 4' },
+    { src: '../../Images/tr5.jpg', alt: 'Transient House 5' },
+    { src: '../../Images/tr7.jpg', alt: 'Transient House 7' },
+    { src: '../../Images/tr8.jpg', alt: 'Transient House 8' },
+    { src: '../../Images/tr9.jpg', alt: 'Transient House 9' },
+    { src: '../../Images/tr10.jpg', alt: 'Transient House 10' },
+    { src: '../../Images/tr11.jpg', alt: 'Transient House 11' },
+    { src: '../../Images/tr12.jpg', alt: 'Transient House 12' }
   ],
   'Bliss': [
-    { src: '../Images/bliss.jpg', alt: 'Bliss 1' },
-    { src: '../Images/bliss2.jpg', alt: 'Bliss 2' },
-    { src: '../Images/bliss3.jpg', alt: 'Bliss 3' },
-    { src: '../Images/bliss4.jpg', alt: 'Bliss 4' },
-    { src: '../Images/bliss5.jpg', alt: 'Bliss 5' }
+    { src: '../../Images/bliss.jpg', alt: 'Bliss 1' },
+    { src: '../../Images/bliss2.jpg', alt: 'Bliss 2' },
+    { src: '../../Images/bliss3.jpg', alt: 'Bliss 3' },
+    { src: '../../Images/bliss4.jpg', alt: 'Bliss 4' },
+    { src: '../../Images/bliss5.jpg', alt: 'Bliss 5' }
   ],
   'Diving': [
-    { src: '../Images/coral_garden.jpg', alt: 'Coral Garden Diving' },
-    { src: '../Images/giant_clamps.jpg', alt: 'Giant Clams Diving' },
-    { src: '../Images/white_beach.jpg', alt: 'White Beach Diving' }
+    { src: '../../Images/coral_garden.jpg', alt: 'Coral Garden Diving' },
+    { src: '../../Images/giant_clamps.jpg', alt: 'Giant Clams Diving' },
+    { src: '../../Images/white_beach.jpg', alt: 'White Beach Diving' }
   ]
 };
+// Note: Tour images (Snorkeling Tour, Inland Tour, Island Hopping) will be dynamically updated from database
