@@ -635,20 +635,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var popupModal = document.getElementById('popupModal');
   var popupModalBody = document.getElementById('popupModalBody');
   if (popupModal && popupModalBody) {
-    // Fix aria-hidden accessibility issue - ensure it's removed before Bootstrap tries to focus elements
-    popupModal.addEventListener('show.bs.modal', function(e) {
-      // Remove aria-hidden early to prevent focus issues
-      if (popupModal.hasAttribute('aria-hidden')) {
-        popupModal.removeAttribute('aria-hidden');
-      }
-    });
-    
     popupModal.addEventListener('shown.bs.modal', function() {
-      // Ensure aria-hidden is false when modal is fully shown (Bootstrap should do this, but we ensure it)
-      if (popupModal.getAttribute('aria-hidden') !== 'false') {
-        popupModal.setAttribute('aria-hidden', 'false');
-      }
-      
       var imgs = popupModalBody.querySelectorAll('img');
       imgs.forEach(function(img) {
         img.style.cursor = 'zoom-in';
@@ -660,27 +647,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     
     popupModal.addEventListener('hidden.bs.modal', function() {
-      // Bootstrap handles this, but we ensure it's set for consistency
       var overlays = document.querySelectorAll('.lightbox-overlay');
       overlays.forEach(function(overlay) { overlay.remove(); });
-    });
-  }
-  
-  // Fix aria-hidden for image gallery modal as well
-  var imageGalleryModal = document.getElementById('imageGalleryModal');
-  if (imageGalleryModal) {
-    imageGalleryModal.addEventListener('show.bs.modal', function() {
-      // Remove aria-hidden early to prevent focus issues
-      if (imageGalleryModal.hasAttribute('aria-hidden')) {
-        imageGalleryModal.removeAttribute('aria-hidden');
-      }
-    });
-    
-    imageGalleryModal.addEventListener('shown.bs.modal', function() {
-      // Ensure aria-hidden is false when modal is fully shown
-      if (imageGalleryModal.getAttribute('aria-hidden') !== 'false') {
-        imageGalleryModal.setAttribute('aria-hidden', 'false');
-      }
     });
   }
 
