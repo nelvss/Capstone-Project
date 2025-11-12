@@ -467,9 +467,9 @@ function updateTourCard(carouselId, tour, displayName) {
     }
   }
 
-  // Update "More Info" button with dynamic pricing tiers
+  // Update "More Info" button with dynamic pricing tiers and description
   const moreInfoBtn = document.querySelector(`#${carouselId}`).closest('.card').querySelector('.btn-more-info');
-  if (moreInfoBtn && tour.pricing && tour.pricing.length > 0) {
+  if (moreInfoBtn) {
     let pricingInfo = `<strong>${displayName}</strong><br>`;
     
     // Add image if available
@@ -477,17 +477,24 @@ function updateTourCard(carouselId, tour, displayName) {
       pricingInfo += `<img src='${tour.images[0].image_url}' alt='${displayName}' class='img-fluid rounded mb-2'><br>`;
     }
     
-    // Add pricing tiers
-    pricingInfo += '<br><strong>Pricing:</strong><br>';
-    tour.pricing.forEach(tier => {
-      if (tier.min_tourist === tier.max_tourist) {
-        pricingInfo += `${tier.min_tourist} pax - ${formatCurrency(tier.price_per_head)} per pax<br>`;
-      } else {
-        pricingInfo += `${tier.min_tourist}-${tier.max_tourist} pax - ${formatCurrency(tier.price_per_head)} per pax<br>`;
-      }
-    });
+    // Add description from database if available
+    if (tour.description && tour.description.trim()) {
+      pricingInfo += `<br>${tour.description}<br>`;
+    }
     
-    // Keep the original inclusions info (hardcoded)
+    // Add pricing tiers if available
+    if (tour.pricing && tour.pricing.length > 0) {
+      pricingInfo += '<br><strong>Pricing:</strong><br>';
+      tour.pricing.forEach(tier => {
+        if (tier.min_tourist === tier.max_tourist) {
+          pricingInfo += `${tier.min_tourist} pax - ${formatCurrency(tier.price_per_head)} per pax<br>`;
+        } else {
+          pricingInfo += `${tier.min_tourist}-${tier.max_tourist} pax - ${formatCurrency(tier.price_per_head)} per pax<br>`;
+        }
+      });
+    }
+    
+    // Keep the original inclusions info (hardcoded) as fallback or additional info
     const originalInfo = moreInfoBtn.getAttribute('data-info');
     const inclusionsMatch = originalInfo.match(/<br><br>Inclusions:.*$/s);
     if (inclusionsMatch) {
