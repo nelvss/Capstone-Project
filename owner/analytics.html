@@ -95,52 +95,180 @@
 
         <!-- Overview Section -->
         <section id="overview" class="analytics-section">
+          <!-- Date Range Filter -->
           <div class="row mb-4">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <div class="row align-items-end">
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold">Start Date</label>
+                      <input type="date" class="form-control" id="filter-start-date">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold">End Date</label>
+                      <input type="date" class="form-control" id="filter-end-date">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold">Quick Filter</label>
+                      <select class="form-select" id="filter-quick-range">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month" selected>This Month</option>
+                        <option value="quarter">This Quarter</option>
+                        <option value="year">This Year</option>
+                        <option value="all">All Time</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <button class="btn btn-primary w-100" id="apply-filter-btn">
+                        <i class="fas fa-filter me-2"></i>Apply Filter
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metric Cards -->
+          <div class="row mb-4">
+            <!-- Total Bookings Card -->
             <div class="col-md-3">
-              <div class="card metric-card">
-                <div class="card-body text-center">
+              <div class="card metric-card clickable" data-metric="bookings" onclick="showMetricDetails('bookings')">
+                <div class="card-body text-center position-relative">
+                  <div class="metric-actions">
+                    <button class="btn btn-sm btn-light" onclick="exportMetricData(event, 'bookings')" title="Export Data">
+                      <i class="fas fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light" onclick="refreshMetric(event, 'bookings')" title="Refresh">
+                      <i class="fas fa-sync-alt"></i>
+                    </button>
+                  </div>
                   <div class="metric-icon bg-primary">
                     <i class="fas fa-calendar-check"></i>
                   </div>
-                  <h3 class="metric-value" id="total-bookings">1,247</h3>
+                  <h3 class="metric-value" id="total-bookings">
+                    <span class="loading-placeholder">Loading...</span>
+                  </h3>
                   <p class="metric-label">Total Bookings</p>
-                  <span class="metric-change positive">+12.5%</span>
+                  <div class="metric-details">
+                    <small class="text-muted d-block" id="bookings-period">This Month</small>
+                    <span class="metric-change" id="bookings-change">--</span>
+                  </div>
+                  <div class="metric-breakdown mt-2">
+                    <small class="d-block text-muted">
+                      <span class="badge bg-success me-1" id="confirmed-count">0</span> Confirmed
+                      <span class="badge bg-warning text-dark ms-2" id="pending-count">0</span> Pending
+                    </small>
+                  </div>
+                  <canvas id="bookings-sparkline" class="metric-sparkline"></canvas>
                 </div>
               </div>
             </div>
+
+            <!-- Total Revenue Card -->
             <div class="col-md-3">
-              <div class="card metric-card">
-                <div class="card-body text-center">
+              <div class="card metric-card clickable" data-metric="revenue" onclick="showMetricDetails('revenue')">
+                <div class="card-body text-center position-relative">
+                  <div class="metric-actions">
+                    <button class="btn btn-sm btn-light" onclick="exportMetricData(event, 'revenue')" title="Export Data">
+                      <i class="fas fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light" onclick="refreshMetric(event, 'revenue')" title="Refresh">
+                      <i class="fas fa-sync-alt"></i>
+                    </button>
+                  </div>
                   <div class="metric-icon bg-success">
                     <i class="fas fa-peso-sign"></i>
                   </div>
-                  <h3 class="metric-value" id="total-revenue">₱2.4M</h3>
+                  <h3 class="metric-value" id="total-revenue">
+                    <span class="loading-placeholder">Loading...</span>
+                  </h3>
                   <p class="metric-label">Total Revenue</p>
-                  <span class="metric-change positive">+18.2%</span>
+                  <div class="metric-details">
+                    <small class="text-muted d-block" id="revenue-period">This Month</small>
+                    <span class="metric-change" id="revenue-change">--</span>
+                  </div>
+                  <div class="metric-breakdown mt-2">
+                    <small class="d-block text-muted">
+                      Avg: <span class="fw-bold" id="avg-booking-value">₱0</span>
+                    </small>
+                  </div>
+                  <canvas id="revenue-sparkline" class="metric-sparkline"></canvas>
                 </div>
               </div>
             </div>
+
+            <!-- Active Customers Card -->
             <div class="col-md-3">
-              <div class="card metric-card">
-                <div class="card-body text-center">
+              <div class="card metric-card clickable" data-metric="customers" onclick="showMetricDetails('customers')">
+                <div class="card-body text-center position-relative">
+                  <div class="metric-actions">
+                    <button class="btn btn-sm btn-light" onclick="exportMetricData(event, 'customers')" title="Export Data">
+                      <i class="fas fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light" onclick="refreshMetric(event, 'customers')" title="Refresh">
+                      <i class="fas fa-sync-alt"></i>
+                    </button>
+                  </div>
                   <div class="metric-icon bg-warning">
                     <i class="fas fa-users"></i>
                   </div>
-                  <h3 class="metric-value" id="total-customers">892</h3>
+                  <h3 class="metric-value" id="total-customers">
+                    <span class="loading-placeholder">Loading...</span>
+                  </h3>
                   <p class="metric-label">Active Customers</p>
-                  <span class="metric-change positive">+7.8%</span>
+                  <div class="metric-details">
+                    <small class="text-muted d-block" id="customers-period">This Month</small>
+                    <span class="metric-change" id="customers-change">--</span>
+                  </div>
+                  <div class="metric-breakdown mt-2">
+                    <small class="d-block text-muted">
+                      <span class="fw-bold" id="new-customers">0</span> New
+                      <span class="ms-2 fw-bold" id="returning-customers">0</span> Returning
+                    </small>
+                  </div>
+                  <canvas id="customers-sparkline" class="metric-sparkline"></canvas>
                 </div>
               </div>
             </div>
+
+            <!-- Average Rating Card -->
             <div class="col-md-3">
-              <div class="card metric-card">
-                <div class="card-body text-center">
+              <div class="card metric-card clickable" data-metric="rating" onclick="showMetricDetails('rating')">
+                <div class="card-body text-center position-relative">
+                  <div class="metric-actions">
+                    <button class="btn btn-sm btn-light" onclick="exportMetricData(event, 'rating')" title="Export Data">
+                      <i class="fas fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light" onclick="refreshMetric(event, 'rating')" title="Refresh">
+                      <i class="fas fa-sync-alt"></i>
+                    </button>
+                  </div>
                   <div class="metric-icon bg-info">
                     <i class="fas fa-star"></i>
                   </div>
-                  <h3 class="metric-value" id="avg-rating">4.8</h3>
+                  <h3 class="metric-value" id="avg-rating">
+                    <span class="loading-placeholder">Loading...</span>
+                  </h3>
                   <p class="metric-label">Average Rating</p>
-                  <span class="metric-change positive">+0.3</span>
+                  <div class="metric-details">
+                    <small class="text-muted d-block" id="rating-period">This Month</small>
+                    <span class="metric-change" id="rating-change">--</span>
+                  </div>
+                  <div class="metric-breakdown mt-2">
+                    <small class="d-block text-muted">
+                      <i class="fas fa-star text-warning"></i>
+                      <i class="fas fa-star text-warning"></i>
+                      <i class="fas fa-star text-warning"></i>
+                      <i class="fas fa-star text-warning"></i>
+                      <i class="fas fa-star-half-alt text-warning"></i>
+                    </small>
+                    <small class="d-block text-muted">
+                      Based on <span class="fw-bold" id="total-reviews">0</span> reviews
+                    </small>
+                  </div>
                 </div>
               </div>
             </div>
@@ -420,6 +548,80 @@
             </div>
           </div>
         </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric Details Modal -->
+  <div class="modal fade" id="metricDetailsModal" tabindex="-1" aria-labelledby="metricDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="metricDetailsModalLabel">
+            <i class="fas fa-chart-line me-2"></i>
+            <span id="modal-metric-title">Metric Details</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="metric-detail-card">
+                <div class="metric-detail-icon" id="modal-metric-icon">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="metric-detail-value">
+                  <h2 id="modal-metric-value">0</h2>
+                  <p id="modal-metric-label">Total Value</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="metric-detail-card">
+                <div class="metric-detail-stats">
+                  <div class="stat-item">
+                    <span class="stat-label">Previous Period</span>
+                    <span class="stat-value" id="modal-previous-value">0</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Change</span>
+                    <span class="stat-value" id="modal-change-value">0%</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Trend</span>
+                    <span class="stat-value" id="modal-trend-value">
+                      <i class="fas fa-arrow-up text-success"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Breakdown Section -->
+          <div class="row mb-3">
+            <div class="col-12">
+              <h6 class="mb-3">Breakdown by Status</h6>
+              <div id="modal-breakdown-content">
+                <!-- Will be populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart Section -->
+          <div class="row">
+            <div class="col-12">
+              <h6 class="mb-3">Trend Analysis</h6>
+              <canvas id="modal-trend-chart" style="max-height: 300px;"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="exportDetailedReport()">
+            <i class="fas fa-file-export me-2"></i>Export Report
+          </button>
+        </div>
       </div>
     </div>
   </div>
