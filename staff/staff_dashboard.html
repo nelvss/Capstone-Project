@@ -46,29 +46,66 @@
     </header>
     <section class="stats">
       <div class="stat-card stat-blue">
-        <div class="stat-value" id="total-bookings">7</div>
-        <div class="stat-label">Total Bookings</div>
+        <div class="stat-icon-wrapper">
+          <i class="fas fa-calendar-check stat-icon"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="total-bookings">7</div>
+          <div class="stat-label">Total Bookings</div>
+        </div>
+        <div class="stat-trend">
+          <i class="fas fa-arrow-up"></i>
+          <span>+12%</span>
+        </div>
       </div>
       <div class="stat-card stat-yellow">
-        <div class="stat-value" id="pending-bookings">7</div>
-        <div class="stat-label">Pending Bookings</div>
+        <div class="stat-icon-wrapper">
+          <i class="fas fa-clock stat-icon"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="pending-bookings">7</div>
+          <div class="stat-label">Pending Bookings</div>
+        </div>
+        <div class="stat-trend pending">
+          <i class="fas fa-minus"></i>
+          <span>Awaiting</span>
+        </div>
       </div>
       <div class="stat-card stat-green">
-        <div class="stat-value" id="confirmed-bookings">0</div>
-        <div class="stat-label">Confirmed Bookings</div>
+        <div class="stat-icon-wrapper">
+          <i class="fas fa-check-circle stat-icon"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="confirmed-bookings">0</div>
+          <div class="stat-label">Confirmed Bookings</div>
+        </div>
+        <div class="stat-trend positive">
+          <i class="fas fa-arrow-up"></i>
+          <span>+8%</span>
+        </div>
       </div>
       <div class="stat-card stat-red">
-        <div class="stat-value" id="cancelled-bookings">0</div>
-        <div class="stat-label">Cancelled Bookings</div>
+        <div class="stat-icon-wrapper">
+          <i class="fas fa-times-circle stat-icon"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="cancelled-bookings">0</div>
+          <div class="stat-label">Cancelled Bookings</div>
+        </div>
+        <div class="stat-trend negative">
+          <i class="fas fa-arrow-down"></i>
+          <span>-5%</span>
+        </div>
       </div>
     </section>
     <section class="search-section">
       <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search">
-        <span class="search-icon"></span>
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search bookings, customers...">
       </div>
       <div class="filter-container">
-        <label for="staff-status-filter" style="margin-right:8px;color:#475569;font-weight:500;">Status:</label>
+        <i class="fas fa-filter filter-icon"></i>
+        <label for="staff-status-filter" class="filter-label">Status:</label>
         <select id="staff-status-filter" onchange="staffFilterChange()">
           <option value="all">All</option>
           <option value="confirmed">Confirmed</option>
