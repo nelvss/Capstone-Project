@@ -1416,13 +1416,30 @@
 
   <!-- Pop-up Modal -->
   <div class="modal fade" id="popupModal" tabindex="-1" aria-labelledby="popupModalLabel">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="popupModalLabel">More Info</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content modern-modal">
+        <div class="modal-header modern-modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon-wrapper">
+              <i class="bi bi-info-circle-fill"></i>
+            </div>
+            <div>
+              <h5 class="modal-title modern-modal-title" id="popupModalLabel">Tour Details</h5>
+              <p class="modal-subtitle">Everything you need to know</p>
+            </div>
+          </div>
+          <button type="button" class="btn-close modern-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" id="popupModalBody">
+        <div class="modal-body modern-modal-body" id="popupModalBody">
+          <!-- Content will be dynamically injected here -->
+        </div>
+        <div class="modal-footer modern-modal-footer">
+          <button type="button" class="btn btn-modern-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-2"></i>Close
+          </button>
+          <a href="../form/booking_form.html" class="btn btn-modern-primary">
+            <i class="bi bi-calendar-check me-2"></i>Book Now
+          </a>
         </div>
       </div>
     </div>
