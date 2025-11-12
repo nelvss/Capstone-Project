@@ -498,6 +498,134 @@ async function loadTourOnly() {
   }
 }
 
+async function loadDiving() {
+  try {
+    const url = `${API_BASE_URL}/diving`;
+    console.log('🔄 Fetching diving data from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors'
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to fetch diving data');
+    }
+
+    const divingRecords = (result.diving || []).filter(diving => {
+      const name = (diving?.name || '').trim().toLowerCase();
+      return name && name !== 'n/a';
+    });
+
+    if (divingRecords.length === 0) {
+      console.log('ℹ️ No diving records found, using hardcoded content as fallback');
+      return;
+    }
+
+    // Use the first diving record (or you can choose based on specific criteria)
+    const diving = divingRecords[0];
+
+    // Update diving card carousel with image
+    const divingCarouselInner = document.querySelector('#divingCarousel .carousel-inner');
+    if (divingCarouselInner && diving.diving_image) {
+      divingCarouselInner.innerHTML = `
+        <div class="carousel-item active h-100">
+          <img src="${diving.diving_image}" class="d-block w-100 h-100 object-fit-cover" alt="${diving.name}">
+        </div>
+      `;
+    }
+
+    // Update price display
+    const divingPriceTag = document.querySelector('#divingCarousel').closest('.card').querySelector('.price-tag div');
+    if (divingPriceTag && diving.price_per_head) {
+      divingPriceTag.textContent = formatCurrency(diving.price_per_head);
+    }
+
+    // Update "More Info" button with dynamic data
+    const divingMoreInfoBtn = document.querySelector('#divingCarousel').closest('.card').querySelector('.btn-more-info');
+    if (divingMoreInfoBtn) {
+      let infoHtml = '';
+      
+      // Add image if available
+      if (diving.diving_image) {
+        infoHtml += `<img src='${diving.diving_image}' alt='${diving.name}' class='img-fluid rounded mb-2'>`;
+      }
+      
+      // Add title
+      infoHtml += `<br><strong>${diving.name}</strong>`;
+      
+      // Add description from database if available
+      if (diving.description && diving.description.trim()) {
+        infoHtml += `
+          <div class="description-section">
+            <p><i class="bi bi-info-circle me-2"></i>${diving.description}</p>
+          </div>
+        `;
+      }
+      
+      // Add price
+      if (diving.price_per_head) {
+        infoHtml += `
+          <div class="pricing-section">
+            <div class="pricing-title"><i class="bi bi-currency-dollar"></i>Pricing</div>
+            <div class="pricing-item">
+              <span class="pricing-cost">${formatCurrency(diving.price_per_head)} per person</span>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Add hardcoded inclusions as additional info
+      infoHtml += `
+        <div class="inclusions-section">
+          <div class="inclusions-title"><i class="bi bi-check-circle"></i>Inclusions</div>
+          <div class="inclusion-item">
+            <i class="bi bi-check2"></i>
+            <span>Diving Equipment</span>
+          </div>
+          <div class="inclusion-item">
+            <i class="bi bi-check2"></i>
+            <span>Certified Instructor</span>
+          </div>
+          <div class="inclusion-item">
+            <i class="bi bi-check2"></i>
+            <span>Safety First</span>
+          </div>
+        </div>
+      `;
+      
+      divingMoreInfoBtn.setAttribute('data-info', infoHtml);
+      divingMoreInfoBtn.setAttribute('data-title', diving.name);
+    }
+
+    // Update service images for gallery
+    if (diving.diving_image) {
+      serviceImages['Diving'] = [
+        { src: diving.diving_image, alt: diving.name }
+      ];
+    }
+
+    console.log('✅ Diving data loaded dynamically from database');
+  } catch (error) {
+    console.error('❌ Error loading diving data:', error);
+    console.error('Error details:', {
+      message: error.message,
+      url: `${API_BASE_URL}/diving`,
+      stack: error.stack
+    });
+    // Keep hardcoded content as fallback
+  }
+}
+
 function updateTourCard(carouselId, tour, displayName) {
   if (!tour) {
     console.log(`ℹ️ No tour data found for ${displayName}, using hardcoded content as fallback`);
@@ -621,6 +749,7 @@ document.addEventListener('DOMContentLoaded', function () {
   loadVehicleRental();
   loadVanRental();
   loadTourOnly();
+  loadDiving();
 
   // Navbar scroll behavior (shrink + shadow)
   const navbar = document.querySelector('nav.navbar');
