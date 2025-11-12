@@ -25,9 +25,12 @@ const getDiving = async (req, res) => {
         .from('diving_images')
         .select('*')
         .eq('diving_id', diving.diving_id)
-        .order('created_at', { ascending: true });
+        .order('diving_images_id', { ascending: true });
       
-      diving.images = images || [];
+      diving.images = (images || []).map(img => ({
+        ...img,
+        image_id: img.diving_images_id // Map to expected field name
+      }));
       
       // Keep backward compatibility with diving_image field
       if (diving.diving_image) {
@@ -258,10 +261,13 @@ const uploadDivingImage = async (req, res) => {
       .from('diving_images')
       .select('*')
       .eq('diving_id', normalizedDivingId)
-      .order('created_at', { ascending: true });
+      .order('diving_images_id', { ascending: true });
 
     if (divingData) {
-      divingData.images = images || [];
+      divingData.images = (images || []).map(img => ({
+        ...img,
+        image_id: img.diving_images_id // Map to expected field name
+      }));
     }
 
     res.json({
@@ -368,7 +374,7 @@ const deleteDivingImage = async (req, res) => {
     const { error } = await supabase
       .from('diving_images')
       .delete()
-      .eq('image_id', normalizedImageId)
+      .eq('diving_images_id', normalizedImageId)
       .eq('diving_id', normalizedDivingId);
 
     if (error) {
