@@ -470,35 +470,70 @@ function updateTourCard(carouselId, tour, displayName) {
   // Update "More Info" button with dynamic pricing tiers and description
   const moreInfoBtn = document.querySelector(`#${carouselId}`).closest('.card').querySelector('.btn-more-info');
   if (moreInfoBtn) {
-    let pricingInfo = `<strong>${displayName}</strong><br>`;
+    let pricingInfo = '';
     
     // Add image if available
     if (tour.images && tour.images.length > 0) {
-      pricingInfo += `<img src='${tour.images[0].image_url}' alt='${displayName}' class='img-fluid rounded mb-2'><br>`;
+      pricingInfo += `<img src='${tour.images[0].image_url}' alt='${displayName}' class='img-fluid'>`;
     }
     
-    // Add description from database if available
+    // Add description from database if available in a styled section
     if (tour.description && tour.description.trim()) {
-      pricingInfo += `<br>${tour.description}<br>`;
+      pricingInfo += `
+        <div class="description-section">
+          <p><i class="bi bi-info-circle me-2"></i>${tour.description}</p>
+        </div>
+      `;
     }
     
-    // Add pricing tiers if available
+    // Add pricing tiers in a styled section if available
     if (tour.pricing && tour.pricing.length > 0) {
-      pricingInfo += '<br><strong>Pricing:</strong><br>';
+      pricingInfo += `
+        <div class="pricing-section">
+          <div class="pricing-title"><i class="bi bi-currency-dollar"></i>Pricing</div>
+      `;
       tour.pricing.forEach(tier => {
-        if (tier.min_tourist === tier.max_tourist) {
-          pricingInfo += `${tier.min_tourist} pax - ${formatCurrency(tier.price_per_head)} per pax<br>`;
-        } else {
-          pricingInfo += `${tier.min_tourist}-${tier.max_tourist} pax - ${formatCurrency(tier.price_per_head)} per pax<br>`;
-        }
+        const paxRange = tier.min_tourist === tier.max_tourist 
+          ? `${tier.min_tourist} pax` 
+          : `${tier.min_tourist}-${tier.max_tourist} pax`;
+        
+        pricingInfo += `
+          <div class="pricing-item">
+            <span class="pricing-pax"><i class="bi bi-people-fill"></i>${paxRange}</span>
+            <span class="pricing-cost">${formatCurrency(tier.price_per_head)} per pax</span>
+          </div>
+        `;
       });
+      pricingInfo += '</div>';
     }
     
-    // Keep the original inclusions info (hardcoded) as fallback or additional info
+    // Keep the original inclusions info (hardcoded) as fallback or additional info in a styled section
     const originalInfo = moreInfoBtn.getAttribute('data-info');
-    const inclusionsMatch = originalInfo.match(/<br><br>Inclusions:.*$/s);
+    const inclusionsMatch = originalInfo.match(/Inclusions:(.*)$/s);
     if (inclusionsMatch) {
-      pricingInfo += inclusionsMatch[0];
+      const inclusionsText = inclusionsMatch[1].trim();
+      if (inclusionsText) {
+        // Parse inclusions and format them nicely
+        const inclusionsList = inclusionsText.split('<br>').filter(item => item.trim());
+        if (inclusionsList.length > 0) {
+          pricingInfo += `
+            <div class="inclusions-section">
+              <div class="inclusions-title"><i class="bi bi-check-circle"></i>Inclusions</div>
+          `;
+          inclusionsList.forEach(item => {
+            const cleanItem = item.trim();
+            if (cleanItem) {
+              pricingInfo += `
+                <div class="inclusion-item">
+                  <i class="bi bi-check2"></i>
+                  <span>${cleanItem}</span>
+                </div>
+              `;
+            }
+          });
+          pricingInfo += '</div>';
+        }
+      }
     }
     
     moreInfoBtn.setAttribute('data-info', pricingInfo);
