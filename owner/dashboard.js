@@ -19,33 +19,33 @@ const API_URL = (window.API_URL && window.API_URL.length > 0)
   ? window.API_URL
   : 'https://api.otgpuertogaleratravel.com';
 
-// Socket.IO Connection
-let socket = null;
+// Socket.IO Connection (use window.socket to share with analytics.js)
+window.socket = window.socket || null;
 function initializeSocketIO() {
   try {
-    socket = io(API_URL, {
+    window.socket = io(API_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 5
     });
 
-    socket.on('connect', () => {
-      console.log('🔌 Connected to server:', socket.id);
+    window.socket.on('connect', () => {
+      console.log('🔌 Connected to server:', window.socket.id);
       showNotification('✅ Real-time updates connected', 'success');
     });
 
-    socket.on('disconnect', () => {
+    window.socket.on('disconnect', () => {
       console.log('🔌 Disconnected from server');
       showNotification('⚠️ Real-time updates disconnected', 'warning');
     });
 
-    socket.on('connect_error', (error) => {
+    window.socket.on('connect_error', (error) => {
       console.error('🔌 Connection error:', error);
     });
 
     // Listen for booking updates
-    socket.on('booking-update', async (data) => {
+    window.socket.on('booking-update', async (data) => {
       console.log('📋 New booking update received:', data);
       showNotification('🎉 New booking received!', 'success');
       
@@ -56,7 +56,7 @@ function initializeSocketIO() {
     });
 
     // Listen for payment status changes
-    socket.on('payment-status-changed', async (data) => {
+    window.socket.on('payment-status-changed', async (data) => {
       console.log('💳 Payment status changed:', data);
       showNotification('💳 Payment status updated', 'info');
       
@@ -67,7 +67,7 @@ function initializeSocketIO() {
     });
 
     // Listen for analytics updates
-    socket.on('analytics-refresh', () => {
+    window.socket.on('analytics-refresh', () => {
       console.log('📊 Analytics refresh requested');
       showNotification('📊 Analytics data updated', 'info');
     });

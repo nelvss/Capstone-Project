@@ -35,10 +35,8 @@ window.API_URL = window.API_URL || 'https://api.otgpuertogaleratravel.com';
 // Toggle to use API or fallback sample data (default: true to use API)
 window.USE_ANALYTICS_API = (typeof window.USE_ANALYTICS_API === 'boolean') ? window.USE_ANALYTICS_API : true;
 
-// Socket.io connection for real-time updates (check if already declared in dashboard.js)
-if (typeof socket === 'undefined') {
-    var socket = null;
-}
+// Socket.io connection for real-time updates (use window.socket to avoid conflicts with dashboard.js)
+window.socket = window.socket || null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 
@@ -50,7 +48,7 @@ function initializeSocketConnection() {
 
     try {
         // Connect to Socket.io server
-        socket = io(window.API_URL, {
+        window.socket = io(window.API_URL, {
             transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionDelay: 1000,
@@ -59,14 +57,14 @@ function initializeSocketConnection() {
         });
 
         // Connection successful
-        socket.on('connect', () => {
-            console.log('✅ Socket.io connected:', socket.id);
+        window.socket.on('connect', () => {
+            console.log('✅ Socket.io connected:', window.socket.id);
             reconnectAttempts = 0;
             updateConnectionStatus(true);
         });
 
         // Connection error
-        socket.on('connect_error', (error) => {
+        window.socket.on('connect_error', (error) => {
             console.warn('⚠️ Socket.io connection error:', error.message);
             reconnectAttempts++;
             if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
@@ -76,20 +74,20 @@ function initializeSocketConnection() {
         });
 
         // Disconnection
-        socket.on('disconnect', (reason) => {
+        window.socket.on('disconnect', (reason) => {
             console.log('🔌 Socket.io disconnected:', reason);
             updateConnectionStatus(false);
         });
 
         // Listen for real-time analytics updates
-        socket.on('analytics-refresh', () => {
+        window.socket.on('analytics-refresh', () => {
             console.log('📊 Real-time analytics update received');
             showRealtimeNotification('Analytics data updated', 'info');
             refreshAnalyticsData();
         });
 
         // Listen for new bookings
-        socket.on('booking-update', (data) => {
+        window.socket.on('booking-update', (data) => {
             console.log('📋 New booking update received:', data);
             if (data.type === 'new') {
                 showRealtimeNotification(`New booking from ${data.customerName || 'customer'}`, 'success');
@@ -100,7 +98,7 @@ function initializeSocketConnection() {
         });
 
         // Listen for payment updates
-        socket.on('payment-status-changed', (data) => {
+        window.socket.on('payment-status-changed', (data) => {
             console.log('💳 Payment status changed:', data);
             showRealtimeNotification(`Payment status: ${data.status}`, 'info');
             refreshAnalyticsData();
