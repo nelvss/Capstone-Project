@@ -534,14 +534,24 @@ async function loadDiving() {
     // Use the first diving record (or you can choose based on specific criteria)
     const diving = divingRecords[0];
 
-    // Update diving card carousel with image
+    // Update diving card carousel with images
     const divingCarouselInner = document.querySelector('#divingCarousel .carousel-inner');
-    if (divingCarouselInner && diving.diving_image) {
-      divingCarouselInner.innerHTML = `
-        <div class="carousel-item active h-100">
-          <img src="${diving.diving_image}" class="d-block w-100 h-100 object-fit-cover" alt="${diving.name}">
-        </div>
-      `;
+    if (divingCarouselInner) {
+      const images = diving.images && diving.images.length > 0 
+        ? diving.images 
+        : (diving.diving_image ? [{ image_url: diving.diving_image }] : []);
+      
+      if (images.length > 0) {
+        divingCarouselInner.innerHTML = '';
+        images.forEach((image, index) => {
+          const carouselItem = document.createElement('div');
+          carouselItem.className = `carousel-item h-100 ${index === 0 ? 'active' : ''}`;
+          carouselItem.innerHTML = `
+            <img src="${image.image_url}" class="d-block w-100 h-100 object-fit-cover" alt="${diving.name}">
+          `;
+          divingCarouselInner.appendChild(carouselItem);
+        });
+      }
     }
 
     // Update price display
@@ -555,9 +565,13 @@ async function loadDiving() {
     if (divingMoreInfoBtn) {
       let infoHtml = '';
       
-      // Add image if available
-      if (diving.diving_image) {
-        infoHtml += `<img src='${diving.diving_image}' alt='${diving.name}' class='img-fluid rounded mb-2'>`;
+      // Add first image if available
+      const images = diving.images && diving.images.length > 0 
+        ? diving.images 
+        : (diving.diving_image ? [{ image_url: diving.diving_image }] : []);
+      
+      if (images.length > 0) {
+        infoHtml += `<img src='${images[0].image_url}' alt='${diving.name}' class='img-fluid rounded mb-2'>`;
       }
       
       // Add title
@@ -607,11 +621,16 @@ async function loadDiving() {
       divingMoreInfoBtn.setAttribute('data-title', diving.name);
     }
 
-    // Update service images for gallery
-    if (diving.diving_image) {
-      serviceImages['Diving'] = [
-        { src: diving.diving_image, alt: diving.name }
-      ];
+    // Update service images for gallery - support multiple images
+    const images = diving.images && diving.images.length > 0 
+      ? diving.images 
+      : (diving.diving_image ? [{ image_url: diving.diving_image }] : []);
+    
+    if (images.length > 0) {
+      serviceImages['Diving'] = images.map(img => ({
+        src: img.image_url,
+        alt: diving.name
+      }));
     }
 
     console.log('✅ Diving data loaded dynamically from database');
