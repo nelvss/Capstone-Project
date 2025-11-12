@@ -323,15 +323,19 @@ async function loadVanRental() {
         alt: 'Van rental'
       }));
     } else {
-      // Keep default images if no images in database
+      // No images in database - show placeholder message
       carouselInner.innerHTML = `
         <div class="carousel-item active h-100">
-          <img src="../../Images/Commuter.jpg" class="d-block w-100 h-100 object-fit-cover" alt="Commuter Van">
-        </div>
-        <div class="carousel-item h-100">
-          <img src="../../Images/Grandia.jpg" class="d-block w-100 h-100 object-fit-cover" alt="Grandia Van">
+          <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+            <div class="text-center p-4">
+              <i class="fas fa-image fa-3x text-muted mb-3"></i>
+              <p class="text-muted">No images available</p>
+            </div>
+          </div>
         </div>
       `;
+      // Clear service images for gallery
+      serviceImages['Van Rental'] = [];
     }
 
     // Separate destinations by location type
