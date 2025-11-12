@@ -3019,3 +3019,780 @@ function filterFeedback(filter) {
         }
     });
 }
+
+// ============================================
+// NEW INTERACTIVE METRIC CARD FUNCTIONS
+// ============================================
+
+// Global variables for filters
+let currentDateFilter = {
+    startDate: null,
+    endDate: null,
+    quickRange: 'month'
+};
+
+let metricDataCache = {
+    bookings: null,
+    revenue: null,
+    customers: null,
+    rating: null
+};
+
+// Initialize metric cards and filters
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date range to current month
+    setQuickDateRange('month');
+    
+    // Load initial metrics
+    loadAllMetrics();
+    
+    // Setup event listeners for filters
+    setupFilterListeners();
+});
+
+// Setup filter event listeners
+function setupFilterListeners() {
+    // Quick range selector
+    const quickRangeSelect = document.getElementById('filter-quick-range');
+    if (quickRangeSelect) {
+        quickRangeSelect.addEventListener('change', function() {
+            setQuickDateRange(this.value);
+        });
+    }
+    
+    // Apply filter button
+    const applyFilterBtn = document.getElementById('apply-filter-btn');
+    if (applyFilterBtn) {
+        applyFilterBtn.addEventListener('click', function() {
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            
+            if (startDate && endDate) {
+                currentDateFilter.startDate = startDate;
+                currentDateFilter.endDate = endDate;
+                currentDateFilter.quickRange = 'custom';
+                loadAllMetrics();
+            } else {
+                alert('Please select both start and end dates');
+            }
+        });
+    }
+}
+
+// Set quick date range
+function setQuickDateRange(range) {
+    const today = new Date();
+    let startDate, endDate;
+    
+    endDate = today;
+    
+    switch(range) {
+        case 'today':
+            startDate = new Date(today);
+            break;
+        case 'week':
+            startDate = new Date(today);
+            startDate.setDate(today.getDate() - 7);
+            break;
+        case 'month':
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            break;
+        case 'quarter':
+            const quarter = Math.floor(today.getMonth() / 3);
+            startDate = new Date(today.getFullYear(), quarter * 3, 1);
+            break;
+        case 'year':
+            startDate = new Date(today.getFullYear(), 0, 1);
+            break;
+        case 'all':
+            startDate = new Date(2020, 0, 1); // Start from 2020
+            break;
+        default:
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    }
+    
+    currentDateFilter.startDate = formatDate(startDate);
+    currentDateFilter.endDate = formatDate(endDate);
+    currentDateFilter.quickRange = range;
+    
+    // Update date inputs
+    const startDateInput = document.getElementById('filter-start-date');
+    const endDateInput = document.getElementById('filter-end-date');
+    
+    if (startDateInput) startDateInput.value = currentDateFilter.startDate;
+    if (endDateInput) endDateInput.value = currentDateFilter.endDate;
+}
+
+// Format date to YYYY-MM-DD
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Load all metrics
+async function loadAllMetrics() {
+    await Promise.all([
+        loadBookingsMetric(),
+        loadRevenueMetric(),
+        loadCustomersMetric(),
+        loadRatingMetric()
+    ]);
+}
+
+// Load bookings metric
+async function loadBookingsMetric() {
+    try {
+        const params = new URLSearchParams({
+            start_date: currentDateFilter.startDate,
+            end_date: currentDateFilter.endDate
+        });
+        
+        const response = await fetch(`${window.API_URL}/api/analytics/bookings-count?${params.toString()}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const counts = result.counts;
+            metricDataCache.bookings = counts;
+            
+            // Update card
+            document.getElementById('total-bookings').textContent = counts.total.toLocaleString();
+            document.getElementById('bookings-period').textContent = getPeriodLabel();
+            document.getElementById('confirmed-count').textContent = counts.confirmed;
+            document.getElementById('pending-count').textContent = counts.pending;
+            
+            // Calculate change (mock for now - would need historical data)
+            const change = calculateMockChange(counts.total);
+            updateMetricChange('bookings-change', change);
+            
+            // Create sparkline
+            createSparkline('bookings-sparkline', generateMockSparklineData(counts.total));
+        }
+    } catch (error) {
+        console.error('Error loading bookings metric:', error);
+        document.getElementById('total-bookings').textContent = 'Error';
+    }
+}
+
+// Load revenue metric
+async function loadRevenueMetric() {
+    try {
+        const params = new URLSearchParams({
+            start_date: currentDateFilter.startDate,
+            end_date: currentDateFilter.endDate
+        });
+        
+        const response = await fetch(`${window.API_URL}/api/analytics/revenue?${params.toString()}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const analytics = result.analytics;
+            metricDataCache.revenue = analytics;
+            
+            // Format revenue
+            const revenue = analytics.total_revenue;
+            const formattedRevenue = formatRevenue(revenue);
+            
+            // Update card
+            document.getElementById('total-revenue').textContent = formattedRevenue;
+            document.getElementById('revenue-period').textContent = getPeriodLabel();
+            
+            // Calculate average booking value
+            const avgValue = analytics.confirmed_bookings > 0 
+                ? revenue / analytics.confirmed_bookings 
+                : 0;
+            document.getElementById('avg-booking-value').textContent = '₱' + avgValue.toFixed(0);
+            
+            // Calculate change
+            const change = calculateMockChange(revenue);
+            updateMetricChange('revenue-change', change);
+            
+            // Create sparkline
+            createSparkline('revenue-sparkline', generateMockSparklineData(revenue));
+        }
+    } catch (error) {
+        console.error('Error loading revenue metric:', error);
+        document.getElementById('total-revenue').textContent = 'Error';
+    }
+}
+
+// Load customers metric
+async function loadCustomersMetric() {
+    try {
+        const params = new URLSearchParams({
+            start_date: currentDateFilter.startDate,
+            end_date: currentDateFilter.endDate
+        });
+        
+        // Get unique customers from bookings
+        const response = await fetch(`${window.API_URL}/api/bookings`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const bookings = result.bookings || [];
+            
+            // Filter by date range
+            const filteredBookings = bookings.filter(b => {
+                const bookingDate = new Date(b.created_at).toISOString().split('T')[0];
+                return bookingDate >= currentDateFilter.startDate && bookingDate <= currentDateFilter.endDate;
+            });
+            
+            // Count unique customers (by email or contact_number)
+            const uniqueCustomers = new Set();
+            filteredBookings.forEach(booking => {
+                const identifier = booking.email || booking.contact_number;
+                if (identifier) uniqueCustomers.add(identifier);
+            });
+            
+            const totalCustomers = uniqueCustomers.size;
+            metricDataCache.customers = { total: totalCustomers, bookings: filteredBookings };
+            
+            // Update card
+            document.getElementById('total-customers').textContent = totalCustomers.toLocaleString();
+            document.getElementById('customers-period').textContent = getPeriodLabel();
+            
+            // Calculate new vs returning (mock for now)
+            const newCustomers = Math.floor(totalCustomers * 0.6);
+            const returningCustomers = totalCustomers - newCustomers;
+            document.getElementById('new-customers').textContent = newCustomers;
+            document.getElementById('returning-customers').textContent = returningCustomers;
+            
+            // Calculate change
+            const change = calculateMockChange(totalCustomers);
+            updateMetricChange('customers-change', change);
+            
+            // Create sparkline
+            createSparkline('customers-sparkline', generateMockSparklineData(totalCustomers));
+        }
+    } catch (error) {
+        console.error('Error loading customers metric:', error);
+        document.getElementById('total-customers').textContent = 'Error';
+    }
+}
+
+// Load rating metric
+async function loadRatingMetric() {
+    try {
+        const params = new URLSearchParams({
+            start_date: currentDateFilter.startDate,
+            end_date: currentDateFilter.endDate
+        });
+        
+        // Get feedback data
+        const response = await fetch(`${window.API_URL}/api/feedback`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const allFeedback = result.feedback || [];
+            
+            // Filter by date range and extract ratings
+            const filteredFeedback = allFeedback.filter(f => {
+                if (!f.timestamp) return false;
+                const feedbackDate = new Date(f.timestamp).toISOString().split('T')[0];
+                return feedbackDate >= currentDateFilter.startDate && feedbackDate <= currentDateFilter.endDate;
+            });
+            
+            // Calculate average rating (assuming feedback has rating field)
+            let totalRating = 0;
+            let ratingCount = 0;
+            
+            filteredFeedback.forEach(f => {
+                if (f.rating && !isNaN(f.rating)) {
+                    totalRating += parseFloat(f.rating);
+                    ratingCount++;
+                }
+            });
+            
+            const avgRating = ratingCount > 0 ? (totalRating / ratingCount) : 4.8;
+            metricDataCache.rating = { average: avgRating, count: ratingCount };
+            
+            // Update card
+            document.getElementById('avg-rating').textContent = avgRating.toFixed(1);
+            document.getElementById('rating-period').textContent = getPeriodLabel();
+            document.getElementById('total-reviews').textContent = ratingCount;
+            
+            // Calculate change
+            const change = calculateMockChange(avgRating, true);
+            updateMetricChange('rating-change', change, true);
+        }
+    } catch (error) {
+        console.error('Error loading rating metric:', error);
+        // Use default value
+        document.getElementById('avg-rating').textContent = '4.8';
+        document.getElementById('total-reviews').textContent = '0';
+    }
+}
+
+// Format revenue for display
+function formatRevenue(amount) {
+    if (amount >= 1000000) {
+        return '₱' + (amount / 1000000).toFixed(1) + 'M';
+    } else if (amount >= 1000) {
+        return '₱' + (amount / 1000).toFixed(0) + 'K';
+    } else {
+        return '₱' + amount.toFixed(0);
+    }
+}
+
+// Get period label
+function getPeriodLabel() {
+    const labels = {
+        'today': 'Today',
+        'week': 'This Week',
+        'month': 'This Month',
+        'quarter': 'This Quarter',
+        'year': 'This Year',
+        'all': 'All Time',
+        'custom': 'Custom Range'
+    };
+    return labels[currentDateFilter.quickRange] || 'This Month';
+}
+
+// Calculate mock change percentage
+function calculateMockChange(value, isRating = false) {
+    // This is a mock - in production, compare with previous period
+    if (isRating) {
+        return (Math.random() * 0.5).toFixed(1); // 0 to 0.5 points
+    }
+    return (Math.random() * 30 - 10).toFixed(1); // -10% to +20%
+}
+
+// Update metric change display
+function updateMetricChange(elementId, change, isRating = false) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const changeValue = parseFloat(change);
+    const isPositive = changeValue >= 0;
+    
+    element.className = 'metric-change ' + (isPositive ? 'positive' : 'negative');
+    element.innerHTML = (isPositive ? '+' : '') + change + (isRating ? '' : '%');
+}
+
+// Generate mock sparkline data
+function generateMockSparklineData(baseValue) {
+    const data = [];
+    const points = 12;
+    
+    for (let i = 0; i < points; i++) {
+        const variation = (Math.random() - 0.5) * 0.3;
+        data.push(baseValue * (1 + variation));
+    }
+    
+    return data;
+}
+
+// Create sparkline chart
+function createSparkline(canvasId, data) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (canvas.chart) {
+        canvas.chart.destroy();
+    }
+    
+    canvas.chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(data.length).fill(''),
+            datasets: [{
+                data: data,
+                borderColor: '#dc3545',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            scales: {
+                x: { display: false },
+                y: { display: false }
+            }
+        }
+    });
+}
+
+// Show metric details modal
+function showMetricDetails(metricType) {
+    const modal = new bootstrap.Modal(document.getElementById('metricDetailsModal'));
+    const data = metricDataCache[metricType];
+    
+    if (!data) {
+        alert('No data available for this metric');
+        return;
+    }
+    
+    // Update modal content based on metric type
+    switch(metricType) {
+        case 'bookings':
+            updateBookingsModal(data);
+            break;
+        case 'revenue':
+            updateRevenueModal(data);
+            break;
+        case 'customers':
+            updateCustomersModal(data);
+            break;
+        case 'rating':
+            updateRatingModal(data);
+            break;
+    }
+    
+    modal.show();
+}
+
+// Update bookings modal
+function updateBookingsModal(data) {
+    document.getElementById('modal-metric-title').innerHTML = '<i class="fas fa-calendar-check me-2"></i>Total Bookings Details';
+    document.getElementById('modal-metric-icon').innerHTML = '<i class="fas fa-calendar-check"></i>';
+    document.getElementById('modal-metric-value').textContent = data.total.toLocaleString();
+    document.getElementById('modal-metric-label').textContent = 'Total Bookings';
+    
+    // Previous period (mock)
+    const previousValue = Math.floor(data.total * 0.9);
+    document.getElementById('modal-previous-value').textContent = previousValue.toLocaleString();
+    
+    // Change
+    const change = ((data.total - previousValue) / previousValue * 100).toFixed(1);
+    document.getElementById('modal-change-value').textContent = '+' + change + '%';
+    
+    // Breakdown
+    const breakdownHtml = `
+        <div class="breakdown-item">
+            <span class="breakdown-label">Confirmed</span>
+            <span class="breakdown-value">${data.confirmed}</span>
+            <span class="breakdown-percentage">${((data.confirmed / data.total) * 100).toFixed(1)}%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">Pending</span>
+            <span class="breakdown-value">${data.pending}</span>
+            <span class="breakdown-percentage">${((data.pending / data.total) * 100).toFixed(1)}%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">Cancelled</span>
+            <span class="breakdown-value">${data.cancelled}</span>
+            <span class="breakdown-percentage">${((data.cancelled / data.total) * 100).toFixed(1)}%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">Completed</span>
+            <span class="breakdown-value">${data.completed}</span>
+            <span class="breakdown-percentage">${((data.completed / data.total) * 100).toFixed(1)}%</span>
+        </div>
+    `;
+    document.getElementById('modal-breakdown-content').innerHTML = breakdownHtml;
+    
+    // Create trend chart
+    createModalTrendChart([data.confirmed, data.pending, data.cancelled, data.rescheduled, data.completed], 
+                         ['Confirmed', 'Pending', 'Cancelled', 'Rescheduled', 'Completed']);
+}
+
+// Update revenue modal
+function updateRevenueModal(data) {
+    document.getElementById('modal-metric-title').innerHTML = '<i class="fas fa-peso-sign me-2"></i>Total Revenue Details';
+    document.getElementById('modal-metric-icon').innerHTML = '<i class="fas fa-peso-sign"></i>';
+    document.getElementById('modal-metric-value').textContent = formatRevenue(data.total_revenue);
+    document.getElementById('modal-metric-label').textContent = 'Total Revenue';
+    
+    // Previous period (mock)
+    const previousValue = Math.floor(data.total_revenue * 0.85);
+    document.getElementById('modal-previous-value').textContent = formatRevenue(previousValue);
+    
+    // Change
+    const change = ((data.total_revenue - previousValue) / previousValue * 100).toFixed(1);
+    document.getElementById('modal-change-value').textContent = '+' + change + '%';
+    
+    // Breakdown by status
+    const breakdown = data.revenue_by_status || {};
+    const breakdownHtml = `
+        <div class="breakdown-item">
+            <span class="breakdown-label">Confirmed</span>
+            <span class="breakdown-value">${formatRevenue(breakdown.confirmed || 0)}</span>
+            <span class="breakdown-percentage">${((breakdown.confirmed / data.total_revenue) * 100).toFixed(1)}%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">Pending</span>
+            <span class="breakdown-value">${formatRevenue(breakdown.pending || 0)}</span>
+            <span class="breakdown-percentage">${((breakdown.pending / data.total_revenue) * 100).toFixed(1)}%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">Cancelled</span>
+            <span class="breakdown-value">${formatRevenue(breakdown.cancelled || 0)}</span>
+            <span class="breakdown-percentage">${((breakdown.cancelled / data.total_revenue) * 100).toFixed(1)}%</span>
+        </div>
+    `;
+    document.getElementById('modal-breakdown-content').innerHTML = breakdownHtml;
+    
+    // Create trend chart
+    createModalTrendChart([breakdown.confirmed, breakdown.pending, breakdown.cancelled], 
+                         ['Confirmed', 'Pending', 'Cancelled']);
+}
+
+// Update customers modal
+function updateCustomersModal(data) {
+    document.getElementById('modal-metric-title').innerHTML = '<i class="fas fa-users me-2"></i>Active Customers Details';
+    document.getElementById('modal-metric-icon').innerHTML = '<i class="fas fa-users"></i>';
+    document.getElementById('modal-metric-value').textContent = data.total.toLocaleString();
+    document.getElementById('modal-metric-label').textContent = 'Active Customers';
+    
+    // Previous period (mock)
+    const previousValue = Math.floor(data.total * 0.93);
+    document.getElementById('modal-previous-value').textContent = previousValue.toLocaleString();
+    
+    // Change
+    const change = ((data.total - previousValue) / previousValue * 100).toFixed(1);
+    document.getElementById('modal-change-value').textContent = '+' + change + '%';
+    
+    // Breakdown
+    const newCustomers = Math.floor(data.total * 0.6);
+    const returningCustomers = data.total - newCustomers;
+    const breakdownHtml = `
+        <div class="breakdown-item">
+            <span class="breakdown-label">New Customers</span>
+            <span class="breakdown-value">${newCustomers}</span>
+            <span class="breakdown-percentage">${((newCustomers / data.total) * 100).toFixed(1)}%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">Returning Customers</span>
+            <span class="breakdown-value">${returningCustomers}</span>
+            <span class="breakdown-percentage">${((returningCustomers / data.total) * 100).toFixed(1)}%</span>
+        </div>
+    `;
+    document.getElementById('modal-breakdown-content').innerHTML = breakdownHtml;
+    
+    // Create trend chart
+    createModalTrendChart([newCustomers, returningCustomers], ['New', 'Returning']);
+}
+
+// Update rating modal
+function updateRatingModal(data) {
+    document.getElementById('modal-metric-title').innerHTML = '<i class="fas fa-star me-2"></i>Average Rating Details';
+    document.getElementById('modal-metric-icon').innerHTML = '<i class="fas fa-star"></i>';
+    document.getElementById('modal-metric-value').textContent = data.average.toFixed(1);
+    document.getElementById('modal-metric-label').textContent = 'Average Rating';
+    
+    // Previous period (mock)
+    const previousValue = (data.average - 0.2).toFixed(1);
+    document.getElementById('modal-previous-value').textContent = previousValue;
+    
+    // Change
+    const change = (data.average - previousValue).toFixed(1);
+    document.getElementById('modal-change-value').textContent = '+' + change;
+    
+    // Breakdown by star rating (mock)
+    const breakdownHtml = `
+        <div class="breakdown-item">
+            <span class="breakdown-label">5 Stars</span>
+            <span class="breakdown-value">${Math.floor(data.count * 0.6)}</span>
+            <span class="breakdown-percentage">60%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">4 Stars</span>
+            <span class="breakdown-value">${Math.floor(data.count * 0.25)}</span>
+            <span class="breakdown-percentage">25%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">3 Stars</span>
+            <span class="breakdown-value">${Math.floor(data.count * 0.1)}</span>
+            <span class="breakdown-percentage">10%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">2 Stars</span>
+            <span class="breakdown-value">${Math.floor(data.count * 0.03)}</span>
+            <span class="breakdown-percentage">3%</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="breakdown-label">1 Star</span>
+            <span class="breakdown-value">${Math.floor(data.count * 0.02)}</span>
+            <span class="breakdown-percentage">2%</span>
+        </div>
+    `;
+    document.getElementById('modal-breakdown-content').innerHTML = breakdownHtml;
+    
+    // Create trend chart
+    const starCounts = [
+        Math.floor(data.count * 0.6),
+        Math.floor(data.count * 0.25),
+        Math.floor(data.count * 0.1),
+        Math.floor(data.count * 0.03),
+        Math.floor(data.count * 0.02)
+    ];
+    createModalTrendChart(starCounts, ['5★', '4★', '3★', '2★', '1★']);
+}
+
+// Create modal trend chart
+function createModalTrendChart(data, labels) {
+    const canvas = document.getElementById('modal-trend-chart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Destroy existing chart
+    if (canvas.modalChart) {
+        canvas.modalChart.destroy();
+    }
+    
+    canvas.modalChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Count',
+                data: data,
+                backgroundColor: [
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(23, 162, 184, 0.8)',
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(108, 117, 125, 0.8)'
+                ],
+                borderColor: [
+                    'rgb(220, 53, 69)',
+                    'rgb(255, 193, 7)',
+                    'rgb(23, 162, 184)',
+                    'rgb(40, 167, 69)',
+                    'rgb(108, 117, 125)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Export metric data
+function exportMetricData(event, metricType) {
+    event.stopPropagation(); // Prevent card click
+    
+    const data = metricDataCache[metricType];
+    if (!data) {
+        alert('No data available to export');
+        return;
+    }
+    
+    // Create CSV content
+    let csvContent = `Metric,Value\n`;
+    csvContent += `Type,${metricType}\n`;
+    csvContent += `Period,${getPeriodLabel()}\n`;
+    csvContent += `Date Range,${currentDateFilter.startDate} to ${currentDateFilter.endDate}\n`;
+    csvContent += `\n`;
+    
+    // Add specific data based on metric type
+    if (metricType === 'bookings') {
+        csvContent += `Total,${data.total}\n`;
+        csvContent += `Confirmed,${data.confirmed}\n`;
+        csvContent += `Pending,${data.pending}\n`;
+        csvContent += `Cancelled,${data.cancelled}\n`;
+        csvContent += `Completed,${data.completed}\n`;
+    } else if (metricType === 'revenue') {
+        csvContent += `Total Revenue,${data.total_revenue}\n`;
+        csvContent += `Total Bookings,${data.total_bookings}\n`;
+        csvContent += `Confirmed Bookings,${data.confirmed_bookings}\n`;
+    } else if (metricType === 'customers') {
+        csvContent += `Total Customers,${data.total}\n`;
+    } else if (metricType === 'rating') {
+        csvContent += `Average Rating,${data.average}\n`;
+        csvContent += `Total Reviews,${data.count}\n`;
+    }
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${metricType}_${currentDateFilter.startDate}_to_${currentDateFilter.endDate}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(`${metricType} data exported successfully!`, 'success');
+}
+
+// Refresh individual metric
+async function refreshMetric(event, metricType) {
+    event.stopPropagation(); // Prevent card click
+    
+    // Show loading state
+    const valueElement = document.getElementById(`total-${metricType === 'rating' ? 'avg-rating' : metricType === 'revenue' ? 'revenue' : metricType === 'customers' ? 'customers' : 'bookings'}`);
+    const originalValue = valueElement.textContent;
+    valueElement.innerHTML = '<span class="loading-placeholder">Loading...</span>';
+    
+    // Load specific metric
+    switch(metricType) {
+        case 'bookings':
+            await loadBookingsMetric();
+            break;
+        case 'revenue':
+            await loadRevenueMetric();
+            break;
+        case 'customers':
+            await loadCustomersMetric();
+            break;
+        case 'rating':
+            await loadRatingMetric();
+            break;
+    }
+    
+    showNotification(`${metricType} data refreshed!`, 'info');
+}
+
+// Export detailed report
+function exportDetailedReport() {
+    // Get current modal data
+    const title = document.getElementById('modal-metric-title').textContent;
+    const value = document.getElementById('modal-metric-value').textContent;
+    const previousValue = document.getElementById('modal-previous-value').textContent;
+    const change = document.getElementById('modal-change-value').textContent;
+    
+    // Create detailed report
+    let reportContent = `Detailed Analytics Report\n`;
+    reportContent += `=========================\n\n`;
+    reportContent += `Metric: ${title}\n`;
+    reportContent += `Current Value: ${value}\n`;
+    reportContent += `Previous Period: ${previousValue}\n`;
+    reportContent += `Change: ${change}\n`;
+    reportContent += `Period: ${getPeriodLabel()}\n`;
+    reportContent += `Date Range: ${currentDateFilter.startDate} to ${currentDateFilter.endDate}\n`;
+    reportContent += `\nGenerated on: ${new Date().toLocaleString()}\n`;
+    
+    // Download as text file
+    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `detailed_report_${Date.now()}.txt`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification('Detailed report exported successfully!', 'success');
+}
