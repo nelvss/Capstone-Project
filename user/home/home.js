@@ -438,7 +438,7 @@ async function loadTourOnly() {
 
 function updateTourCard(carouselId, tour, displayName) {
   if (!tour) {
-    console.warn(`⚠️ No tour data found for ${displayName}, keeping hardcoded content`);
+    console.log(`ℹ️ No tour data found for ${displayName}, using hardcoded content as fallback`);
     return;
   }
 
