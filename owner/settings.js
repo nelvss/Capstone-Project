@@ -1049,6 +1049,155 @@ function updateDivingInState(diving) {
   divingState.data = divingState.data.map(item => (resolveDivingId(item) === id ? diving : item));
 }
 
+function renderDivingImages(container, images, divingId) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = '';
+
+  if (!Array.isArray(images) || images.length === 0) {
+    container.innerHTML = '<p class="text-muted small mb-0">No images uploaded yet</p>';
+    return;
+  }
+
+  images.forEach(image => {
+    const imageWrapper = document.createElement('div');
+    imageWrapper.className = 'tour-image-wrapper';
+    imageWrapper.style.position = 'relative';
+    imageWrapper.style.display = 'inline-block';
+    imageWrapper.style.marginRight = '10px';
+    imageWrapper.style.marginBottom = '10px';
+
+    const img = document.createElement('img');
+    img.src = image.image_url;
+    img.alt = 'Diving image';
+    img.style.width = '100px';
+    img.style.height = '100px';
+    img.style.objectFit = 'cover';
+    img.style.borderRadius = '4px';
+    img.style.display = 'block';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-danger btn-sm';
+    deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+    deleteBtn.style.position = 'absolute';
+    deleteBtn.style.top = '5px';
+    deleteBtn.style.right = '5px';
+    deleteBtn.style.padding = '2px 6px';
+    deleteBtn.style.fontSize = '12px';
+
+    const inlineStatus = document.createElement('small');
+    inlineStatus.className = 'vehicle-inline-status';
+    inlineStatus.style.display = 'none';
+    inlineStatus.style.position = 'absolute';
+    inlineStatus.style.bottom = '5px';
+    inlineStatus.style.left = '5px';
+    inlineStatus.style.right = '5px';
+    inlineStatus.style.fontSize = '10px';
+    inlineStatus.style.padding = '2px 4px';
+    inlineStatus.style.borderRadius = '3px';
+    inlineStatus.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    inlineStatus.style.color = 'white';
+    inlineStatus.style.textAlign = 'center';
+
+    const card = container.closest('.vehicle-card');
+    const statusTag = card?.querySelector('.vehicle-status-tag');
+
+    deleteBtn.addEventListener('click', () => {
+      handleDivingImageDelete({
+        divingId,
+        imageId: image.image_id,
+        imageWrapper,
+        inlineStatus,
+        statusTag
+      });
+    });
+
+    imageWrapper.appendChild(img);
+    imageWrapper.appendChild(deleteBtn);
+    imageWrapper.appendChild(inlineStatus);
+    container.appendChild(imageWrapper);
+  });
+}
+
+async function handleDivingImageDelete({ divingId, imageId, imageWrapper, inlineStatus, statusTag }) {
+  const confirmed = confirm('Are you sure you want to delete this image?');
+  
+  if (!confirmed) {
+    return;
+  }
+
+  if (inlineStatus) {
+    inlineStatus.textContent = 'Deleting...';
+    inlineStatus.style.display = 'block';
+  }
+
+  if (statusTag) {
+    setStatusTag(statusTag, 'Deleting image...', 'default');
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/diving/${divingId}/images/${imageId}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json'
+      },
+      cache: 'no-cache'
+    });
+
+    const result = await parseJsonResponse(response);
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to delete diving image');
+    }
+
+    const updatedDiving = result.diving;
+    updateDivingInState(updatedDiving);
+
+    if (imageWrapper && imageWrapper.parentElement) {
+      imageWrapper.style.opacity = '0';
+      imageWrapper.style.transform = 'scale(0.8)';
+      imageWrapper.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      
+      setTimeout(() => {
+        imageWrapper.remove();
+
+        const gallery = imageWrapper.parentElement;
+        if (gallery && (!updatedDiving?.images || updatedDiving.images.length === 0)) {
+          gallery.innerHTML = '<p class="text-muted small mb-0">No images uploaded yet</p>';
+        }
+      }, 300);
+    }
+
+    if (statusTag) {
+      setStatusTag(statusTag, 'Image deleted', 'success');
+    }
+
+    showSuccessMessage('Image deleted successfully!');
+  } catch (error) {
+    console.error('❌ Error deleting diving image:', error);
+    
+    if (inlineStatus) {
+      inlineStatus.textContent = 'Delete failed';
+      inlineStatus.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
+    }
+
+    if (statusTag) {
+      setStatusTag(statusTag, 'Delete failed', 'error');
+    }
+
+    alert(`Failed to delete image: ${error.message}`);
+  } finally {
+    if (inlineStatus) {
+      setTimeout(() => {
+        inlineStatus.style.display = 'none';
+      }, 3000);
+    }
+  }
+}
+
 function setDivingLoading(isLoading) {
   divingState.isLoading = isLoading;
 
@@ -1162,9 +1311,9 @@ function createDivingCard(diving) {
   const priceInput = fragment.querySelector('.vehicle-price');
   const saveButton = fragment.querySelector('.vehicle-save-btn');
   const inlineStatus = fragment.querySelector('.vehicle-inline-status');
-  const imageElement = fragment.querySelector('.vehicle-image');
-  const uploadButton = fragment.querySelector('.vehicle-upload-btn');
-  const fileInput = fragment.querySelector('.vehicle-file-input');
+  const imagesGallery = fragment.querySelector('.diving-images-gallery');
+  const uploadButton = fragment.querySelector('.diving-upload-image-btn');
+  const fileInput = fragment.querySelector('.diving-file-input');
   const deleteButton = fragment.querySelector('.vehicle-delete-btn');
 
   if (card) {
@@ -1187,10 +1336,8 @@ function createDivingCard(diving) {
     priceInput.value = getPriceDisplayValue(diving?.price_per_head);
   }
 
-  if (imageElement) {
-    const imageUrl = diving?.diving_image;
-    imageElement.src = (imageUrl && imageUrl.trim() !== '') ? imageUrl : '../Images/logo.png';
-    imageElement.alt = `${diving?.name || 'Diving'} preview`;
+  if (imagesGallery) {
+    renderDivingImages(imagesGallery, diving?.images || [], id);
   }
 
   if (saveButton) {
@@ -1222,7 +1369,7 @@ function createDivingCard(diving) {
         uploadButton,
         inlineStatus,
         statusTag,
-        imageElement,
+        imagesGallery,
         fileInput
       });
     });
@@ -1316,7 +1463,7 @@ async function handleDivingSave({ divingId, priceInput, saveButton, inlineStatus
   }
 }
 
-async function handleDivingImageUpload({ divingId, file, uploadButton, inlineStatus, statusTag, imageElement, fileInput }) {
+async function handleDivingImageUpload({ divingId, file, uploadButton, inlineStatus, statusTag, imagesGallery, fileInput }) {
   showInlineStatus(inlineStatus, 'Uploading image...');
   setStatusTag(statusTag, 'Uploading...', 'default');
 
@@ -1349,13 +1496,13 @@ async function handleDivingImageUpload({ divingId, file, uploadButton, inlineSta
     const updatedDiving = result.diving;
     updateDivingInState(updatedDiving);
 
-    if (imageElement && result.imageUrl) {
-      imageElement.src = result.imageUrl;
+    if (imagesGallery) {
+      renderDivingImages(imagesGallery, updatedDiving?.images || [], divingId);
     }
 
-    showInlineStatus(inlineStatus, 'Image updated successfully', 'success');
-    setStatusTag(statusTag, 'Image updated', 'success');
-    showSuccessMessage(`${updatedDiving?.name || 'Diving record'} image updated!`);
+    showInlineStatus(inlineStatus, 'Image uploaded successfully', 'success');
+    setStatusTag(statusTag, 'Image uploaded', 'success');
+    showSuccessMessage(`${updatedDiving?.name || 'Diving record'} image uploaded!`);
   } catch (error) {
     console.error('❌ Error uploading diving image:', error);
     showInlineStatus(inlineStatus, `Upload failed: ${error.message}`, 'error');
