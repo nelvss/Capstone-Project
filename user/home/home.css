@@ -2178,6 +2178,37 @@ nav.navbar {
     padding: 2rem;
 }
 
+/* Star Rating Styles */
+.star-rating {
+    display: flex;
+    gap: 8px;
+    font-size: 2rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.star-rating i {
+    color: #ddd;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.star-rating i:hover,
+.star-rating i.active {
+    color: #ffc107;
+    transform: scale(1.1);
+}
+
+.star-rating i.fas {
+    color: #ffc107;
+}
+
+#ratingText {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.85rem;
+}
+
 /* Form Labels */
 .contact-form-body .form-label {
     font-family: 'Poppins', sans-serif;

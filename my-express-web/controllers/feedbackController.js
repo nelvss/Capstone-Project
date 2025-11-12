@@ -2,7 +2,7 @@ const supabase = require('../config/supabase');
 
 const submitFeedback = async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, rating } = req.body;
     
     if (!message || message.trim() === '') {
       return res.status(400).json({ 
@@ -11,17 +11,34 @@ const submitFeedback = async (req, res) => {
       });
     }
     
-    console.log('📝 Submitting feedback:', { message: message.trim() });
+    // Validate rating if provided (must be between 1-5)
+    if (rating !== undefined && rating !== null) {
+      const ratingNum = parseInt(rating);
+      if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Rating must be between 1 and 5' 
+        });
+      }
+    }
+    
+    console.log('📝 Submitting feedback:', { message: message.trim(), rating: rating || 'not provided' });
+    
+    // Build feedback object
+    const feedbackData = {
+      anonymous_name: 'Anonymous',
+      message: message.trim(),
+      date: new Date().toISOString()
+    };
+    
+    // Add rating only if provided
+    if (rating !== undefined && rating !== null) {
+      feedbackData.rating = parseInt(rating);
+    }
     
     const { data, error } = await supabase
       .from('feedback')
-      .insert([
-        {
-          anonymous_name: 'Anonymous',
-          message: message.trim(),
-          date: new Date().toISOString()
-        }
-      ])
+      .insert([feedbackData])
       .select();
     
     if (error) {
