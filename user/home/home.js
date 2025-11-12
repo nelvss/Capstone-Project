@@ -412,7 +412,7 @@ async function loadTourOnly() {
     const toursByCategory = {
       'Snorkeling Tour': tours.find(t => t.category === 'Snorkeling Tour'),
       'Inland Tour': tours.find(t => t.category === 'Inland Tour'),
-      'Island Tour': tours.find(t => t.category === 'Island Tour')
+      'Island Hopping': tours.find(t => t.category === 'Island Hopping')
     };
 
     // Update Snorkeling Tour card
@@ -421,8 +421,8 @@ async function loadTourOnly() {
     // Update Inland Tour card
     updateTourCard('inlandCarousel', toursByCategory['Inland Tour'], 'Inland Tour');
     
-    // Update Island Hopping card (display name is "Island Hopping", database category is "Island Tour")
-    updateTourCard('islandHoppingCarousel', toursByCategory['Island Tour'], 'Island Hopping');
+    // Update Island Hopping card
+    updateTourCard('islandHoppingCarousel', toursByCategory['Island Hopping'], 'Island Hopping');
 
     console.log('✅ Tours loaded dynamically from database');
   } catch (error) {
@@ -438,7 +438,7 @@ async function loadTourOnly() {
 
 function updateTourCard(carouselId, tour, displayName) {
   if (!tour) {
-    console.warn(`⚠️ No tour data found for ${displayName}, keeping hardcoded content`);
+    console.log(`ℹ️ No tour data found for ${displayName}, using hardcoded content as fallback`);
     return;
   }
 
