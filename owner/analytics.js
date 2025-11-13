@@ -3018,8 +3018,7 @@ async function loadFeedback() {
                     month: 'long', 
                     day: 'numeric' 
                 }),
-                timestamp: feedback.feedback_id,
-                status: 'unread' // Default status for new feedback
+                timestamp: feedback.feedback_id
             };
             
             const feedbackItem = createFeedbackItem(formattedFeedback);
@@ -3042,26 +3041,18 @@ async function loadFeedback() {
 
 // Create feedback item HTML
 function createFeedbackItem(feedback) {
-    const badgeClass = feedback.status === 'unread' ? 'bg-danger' : 'bg-secondary';
-    const badgeText = feedback.status === 'unread' ? 'Unread' : 'Read';
-    const actionButton = feedback.status === 'unread' 
-        ? '<button class="btn btn-sm btn-outline-primary mark-read"><i class="fas fa-check me-1"></i>Mark as Read</button>'
-        : '<button class="btn btn-sm btn-outline-secondary mark-unread"><i class="fas fa-envelope me-1"></i>Mark as Unread</button>';
-    
     return `
-        <div class="feedback-item ${feedback.status}" data-timestamp="${feedback.timestamp}">
+        <div class="feedback-item" data-timestamp="${feedback.timestamp}">
             <div class="feedback-header">
                 <div class="feedback-info">
                     <span class="feedback-name">${feedback.name}</span>
                     <span class="feedback-date">${feedback.date}</span>
                 </div>
-                <span class="badge ${badgeClass}">${badgeText}</span>
             </div>
             <div class="feedback-message">
                 ${feedback.message}
             </div>
             <div class="feedback-actions">
-                ${actionButton}
                 <button class="btn btn-sm btn-outline-danger delete-feedback">
                     <i class="fas fa-trash me-1"></i>Delete
                 </button>
@@ -3072,24 +3063,6 @@ function createFeedbackItem(feedback) {
 
 // Attach event listeners to feedback items
 function attachFeedbackListeners() {
-    // Mark as read
-    document.querySelectorAll('.mark-read').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const feedbackItem = this.closest('.feedback-item');
-            const timestamp = feedbackItem.dataset.timestamp;
-            updateFeedbackStatus(timestamp, 'read');
-        });
-    });
-    
-    // Mark as unread
-    document.querySelectorAll('.mark-unread').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const feedbackItem = this.closest('.feedback-item');
-            const timestamp = feedbackItem.dataset.timestamp;
-            updateFeedbackStatus(timestamp, 'unread');
-        });
-    });
-    
     // Delete feedback
     document.querySelectorAll('.delete-feedback').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -3100,46 +3073,6 @@ function attachFeedbackListeners() {
             }
         });
     });
-    
-    // Feedback filter buttons
-    document.querySelectorAll('.btn-group[role="group"] .btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const filter = this.dataset.filter;
-            
-            // Update active button
-            document.querySelectorAll('.btn-group[role="group"] .btn').forEach(b => {
-                b.classList.remove('active');
-            });
-            this.classList.add('active');
-            
-            // Filter feedback items
-            filterFeedback(filter);
-        });
-    });
-}
-
-// Update feedback status
-async function updateFeedbackStatus(timestamp, status) {
-    try {
-        const response = await fetch(`${window.API_URL}/api/feedback/${timestamp}/status`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ status })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            // Reload feedback to show updated status
-            loadFeedback();
-        } else {
-            console.error('Failed to update feedback status:', result.message);
-        }
-    } catch (error) {
-        console.error('Error updating feedback status:', error);
-    }
 }
 
 // Delete feedback
@@ -3162,23 +3095,6 @@ async function deleteFeedback(timestamp) {
         console.error('Error deleting feedback:', error);
         alert('Failed to delete feedback. Please try again.');
     }
-}
-
-// Filter feedback
-function filterFeedback(filter) {
-    const feedbackItems = document.querySelectorAll('.feedback-item');
-    
-    feedbackItems.forEach(item => {
-        if (filter === 'all') {
-            item.style.display = 'block';
-        } else if (filter === 'unread' && item.classList.contains('unread')) {
-            item.style.display = 'block';
-        } else if (filter === 'read' && item.classList.contains('read')) {
-            item.style.display = 'block';
-        } else {
-            item.style.display = 'none';
-        }
-    });
 }
 
 // ============================================
