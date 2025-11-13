@@ -1963,24 +1963,6 @@ function renderTable() {
       <td>${b.email}</td>
       <td>
         <span class="action-badge cancelled">Cancelled</span>
-      </td>` : ownerStatusFilter === 'rescheduled' ? `
-      <td>${b.id}</td>
-      <td>${b.name}</td>
-      <td>${b.services}</td>
-      <td>${b.rental}</td>
-      <td>${b.vanRental}</td>
-      <td>${b.diving}</td>
-      <td>${b.arrival}</td>
-      <td>${b.departure}</td>
-      <td>${b.hotel}</td>
-      <td>${b.price}</td>
-      <td>${b.contact}</td>
-      <td>${b.email}</td>
-      <td>
-        <div class="action-buttons">
-          <button class="action-btn btn-edit" data-action="edit">Edit</button>
-          <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
-        </div>
       </td>` : `
       <td>${b.id}</td>
       <td>${b.name}</td>
@@ -2027,12 +2009,12 @@ function updateOwnerStats() {
     acc.total += 1;
     acc[b.status] = (acc[b.status] || 0) + 1;
     return acc;
-  }, { total: 0, pending: 0, confirmed: 0, cancelled: 0, rescheduled: 0 });
+  }, { total: 0, pending: 0, confirmed: 0, cancelled: 0 });
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = String(val); };
   set('owner-total-bookings', totals.total);
   set('owner-pending-bookings', totals.pending);
-  set('owner-confirmed-bookings', totals.confirmed + totals.rescheduled);
+  set('owner-confirmed-bookings', totals.confirmed);
   set('owner-cancelled-bookings', totals.cancelled);
 }
 
@@ -2098,24 +2080,6 @@ function filterTable(searchTerm) {
       <td>${b.email}</td>
       <td>
         <span class="action-badge cancelled">Cancelled</span>
-      </td>` : ownerStatusFilter === 'rescheduled' ? `
-      <td>${b.id}</td>
-      <td>${b.name}</td>
-      <td>${b.services}</td>
-      <td>${b.rental}</td>
-      <td>${b.vanRental}</td>
-      <td>${b.diving}</td>
-      <td>${b.arrival}</td>
-      <td>${b.departure}</td>
-      <td>${b.hotel}</td>
-      <td>${b.price}</td>
-      <td>${b.contact}</td>
-      <td>${b.email}</td>
-      <td>
-        <div class="action-buttons">
-          <button class="action-btn btn-edit" data-action="edit">Edit</button>
-          <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
-        </div>
       </td>` : `
       <td>${b.id}</td>
       <td>${b.name}</td>
