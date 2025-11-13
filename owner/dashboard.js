@@ -1843,12 +1843,7 @@ async function submitBookingEditForm(event) {
 
     const payloadForApi = { ...payload };
     delete payloadForApi.booking_id;
-    
-    // Automatically set status to 'edited' when updating a booking
-    // unless the status was explicitly changed in the form
-    if (payloadForApi.status === currentEditingBooking.status) {
-      payloadForApi.status = 'edited';
-    }
+    payloadForApi.status = payloadForApi.status || currentEditingBooking.status;
 
     // Ensure we have a clean booking ID without any suffixes
     const bookingId = String(currentEditingBooking.id).split(':')[0];
@@ -1929,7 +1924,7 @@ function renderTable() {
   const tbody = document.getElementById('booking-table-body');
   if (!tbody) return; // Not on dashboard page
   tbody.innerHTML = '';
-  const rows = bookings.filter(b => ownerStatusFilter === 'all' ? true : (b.status === ownerStatusFilter));
+  const rows = bookings.filter(b => ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter));
   rows.forEach(b => {
     const tr = document.createElement('tr');
     const actions = ownerStatusFilter === 'all' 
@@ -1968,7 +1963,7 @@ function renderTable() {
       <td>${b.email}</td>
       <td>
         <span class="action-badge cancelled">Cancelled</span>
-      </td>` : ownerStatusFilter === 'edited' ? `
+      </td>` : ownerStatusFilter === 'rescheduled' ? `
       <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
@@ -2103,7 +2098,7 @@ function filterTable(searchTerm) {
       <td>${b.email}</td>
       <td>
         <span class="action-badge cancelled">Cancelled</span>
-      </td>` : ownerStatusFilter === 'edited' ? `
+      </td>` : ownerStatusFilter === 'rescheduled' ? `
       <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
