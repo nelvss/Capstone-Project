@@ -72,13 +72,17 @@ async function uploadImageToStorage({
   const { data: buckets, error: listError } = await supabase.storage.listBuckets();
   if (listError) {
     console.error('❌ Error listing buckets:', listError);
+    console.error('Full error details:', JSON.stringify(listError, null, 2));
   } else {
+    console.log(`📋 Available buckets:`, buckets?.map(b => b.name) || []);
     const bucketExists = buckets?.some(b => b.name === bucket);
     if (!bucketExists) {
       const error = new Error(`Bucket "${bucket}" does not exist. Please create it in Supabase Storage.`);
       error.statusCode = 404;
       error.details = { bucket, availableBuckets: buckets?.map(b => b.name) || [] };
       throw error;
+    } else {
+      console.log(`✅ Bucket "${bucket}" found`);
     }
   }
 
@@ -91,15 +95,24 @@ async function uploadImageToStorage({
 
   if (uploadError) {
     console.error('❌ Storage upload error:', uploadError);
+    console.error('❌ Full upload error details:', JSON.stringify(uploadError, null, 2));
+    console.error('❌ Upload details:', {
+      bucket,
+      fileName: uniqueFileName,
+      fileSize: buffer.length,
+      mimeType
+    });
     
     // Provide more specific error messages
     let errorMessage = 'Failed to upload image to storage';
     if (uploadError.message?.includes('Bucket') || uploadError.message?.includes('bucket')) {
       errorMessage = `Bucket "${bucket}" not found or not accessible. Please ensure the bucket exists and is configured correctly.`;
-    } else if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
-      errorMessage = `Permission denied. Please check storage policies for bucket "${bucket}".`;
+    } else if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy') || uploadError.message?.includes('Forbidden')) {
+      errorMessage = `Permission denied. Please check storage policies for bucket "${bucket}". The service role key may not have upload permissions.`;
     } else if (uploadError.message) {
       errorMessage = uploadError.message;
+    } else if (uploadError.error) {
+      errorMessage = uploadError.error;
     }
     
     const error = new Error(errorMessage);

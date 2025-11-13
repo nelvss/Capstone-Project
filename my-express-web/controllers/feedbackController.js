@@ -26,8 +26,21 @@ const submitFeedback = async (req, res) => {
     console.log('📝 Submitting feedback:', { 
       message: message.trim(), 
       rating: rating || 'not provided',
-      imageCount: images ? images.length : 0
+      imageCount: images ? images.length : 0,
+      hasImages: !!images,
+      imagesType: Array.isArray(images) ? 'array' : typeof images
     });
+    
+    // Debug: Log first image structure if available
+    if (images && Array.isArray(images) && images.length > 0) {
+      console.log('📸 First image structure:', {
+        hasData: !!images[0].data,
+        dataLength: images[0].data ? images[0].data.length : 0,
+        dataPrefix: images[0].data ? images[0].data.substring(0, 50) : 'none',
+        hasFileName: !!images[0].fileName,
+        fileName: images[0].fileName
+      });
+    }
     
     // Build feedback object
     const feedbackData = {
