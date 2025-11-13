@@ -1352,7 +1352,7 @@ async function loadFeedback() {
         return;
       }
       
-      feedbackContainer.innerHTML = result.feedback.map(fb => {
+      feedbackContainer.innerHTML = result.feedback.map((fb, index) => {
         const date = new Date(fb.date);
         const formattedDate = date.toLocaleDateString('en-US', { 
           year: 'numeric', 
@@ -1377,35 +1377,45 @@ async function loadFeedback() {
           }
         }
         
+        // Debug: Log if images are found
+        if (imageUrls.length > 0) {
+          console.log(`Feedback ${index + 1} has ${imageUrls.length} image(s)`, imageUrls);
+        }
+        
+        // Use feedback_id if available, otherwise use index as fallback
+        const uniqueId = fb.feedback_id || fb.id || `feedback-${index}`;
+        
         const imagesHtml = imageUrls.length > 0 ? `
           <div class="feedback-images-container">
             ${imageUrls.length === 1 ? `
-              <img src="${imageUrls[0]}" class="card-img-top feedback-image" alt="Feedback image" 
+              <img src="${escapeHtml(imageUrls[0])}" class="card-img-top feedback-image" alt="Feedback image" 
                    style="height: 200px; object-fit: cover; cursor: pointer;"
-                   onclick="window.open('${imageUrls[0]}', '_blank')">
+                   onclick="window.open('${escapeHtml(imageUrls[0])}', '_blank')"
+                   onerror="this.style.display='none'; console.error('Failed to load feedback image');">
             ` : `
-              <div id="carousel-${fb.feedback_id}" class="carousel slide" data-bs-ride="carousel">
+              <div id="carousel-${uniqueId}" class="carousel slide" data-bs-ride="false">
                 <div class="carousel-inner">
                   ${imageUrls.map((url, idx) => `
                     <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-                      <img src="${url}" class="d-block w-100 feedback-image" alt="Feedback image ${idx + 1}" 
+                      <img src="${escapeHtml(url)}" class="d-block w-100 feedback-image" alt="Feedback image ${idx + 1}" 
                            style="height: 200px; object-fit: cover; cursor: pointer;"
-                           onclick="window.open('${url}', '_blank')">
+                           onclick="window.open('${escapeHtml(url)}', '_blank')"
+                           onerror="this.style.display='none'; console.error('Failed to load feedback image ${idx + 1}');">
                     </div>
                   `).join('')}
                 </div>
                 ${imageUrls.length > 1 ? `
-                  <button class="carousel-control-prev" type="button" data-bs-target="#carousel-${fb.feedback_id}" data-bs-slide="prev">
+                  <button class="carousel-control-prev" type="button" data-bs-target="#carousel-${uniqueId}" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Previous</span>
                   </button>
-                  <button class="carousel-control-next" type="button" data-bs-target="#carousel-${fb.feedback_id}" data-bs-slide="next">
+                  <button class="carousel-control-next" type="button" data-bs-target="#carousel-${uniqueId}" data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Next</span>
                   </button>
                   <div class="carousel-indicators">
                     ${imageUrls.map((_, idx) => `
-                      <button type="button" data-bs-target="#carousel-${fb.feedback_id}" data-bs-slide-to="${idx}" 
+                      <button type="button" data-bs-target="#carousel-${uniqueId}" data-bs-slide-to="${idx}" 
                               class="${idx === 0 ? 'active' : ''}" aria-current="${idx === 0 ? 'true' : 'false'}" 
                               aria-label="Slide ${idx + 1}"></button>
                     `).join('')}
@@ -1427,7 +1437,7 @@ async function loadFeedback() {
                 <p class="card-text flex-grow-1">${escapeHtml(fb.message)}</p>
                 <div class="mt-auto">
                   <small class="text-muted">
-                    <i class="fas fa-user me-1"></i>${fb.anonymous_name || 'Anonymous'}
+                    <i class="fas fa-user me-1"></i>${escapeHtml(fb.anonymous_name || 'Anonymous')}
                     <span class="ms-3">
                       <i class="fas fa-calendar me-1"></i>${formattedDate}
                     </span>
@@ -1438,6 +1448,37 @@ async function loadFeedback() {
           </div>
         `;
       }).join('');
+      
+      // Initialize Bootstrap carousels after rendering
+      setTimeout(() => {
+        result.feedback.forEach((fb, index) => {
+          // Parse image URLs for this feedback item
+          let imageUrls = [];
+          if (fb.image_url) {
+            try {
+              const parsed = JSON.parse(fb.image_url);
+              imageUrls = Array.isArray(parsed) ? parsed : [fb.image_url];
+            } catch (e) {
+              imageUrls = [fb.image_url];
+            }
+          }
+          
+          if (imageUrls.length > 1) {
+            const uniqueId = fb.feedback_id || fb.id || `feedback-${index}`;
+            const carouselElement = document.getElementById(`carousel-${uniqueId}`);
+            if (carouselElement) {
+              try {
+                new bootstrap.Carousel(carouselElement, {
+                  ride: false,
+                  interval: false
+                });
+              } catch (e) {
+                console.warn('Could not initialize carousel:', e);
+              }
+            }
+          }
+        });
+      }, 100);
     } else {
       throw new Error(result.message || 'Failed to load feedback');
     }
