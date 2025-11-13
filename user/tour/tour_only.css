@@ -813,6 +813,15 @@ body {
 .van-fixed-row {
     min-height: 120px;
     align-items: stretch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.van-fixed-col {
+    flex: 0 0 33.333333% !important;
+    max-width: 33.333333% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
 }
 
 .van-fixed-col > .van-section {
@@ -820,6 +829,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    max-width: 100% !important;
 }
 
 .van-section {
@@ -842,6 +852,34 @@ body {
     cursor: not-allowed;
     background-color: #f1f3f5;
     color: #6c757d;
+}
+
+/* Prevent card stretching from van rental section */
+.border.rounded-3.p-3.mb-3.bg-white.shadow-sm {
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Fix place select dropdown to prevent expansion */
+#placeSelectionContainer,
+#placeSelectionContainer .van-section {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+#placeSelect {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#placeSelect option {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 /* Button styles */

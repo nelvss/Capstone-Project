@@ -817,11 +817,14 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    max-width: 100% !important;
 }
 
 .van-fixed-row {
     margin-left: 0 !important;
     margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 /* Maintain consistent height for van rental control rows */
@@ -835,6 +838,34 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+}
+
+/* Prevent card stretching from van rental section */
+.border.rounded-3.p-3.mb-3.bg-white.shadow-sm {
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Fix place select dropdown to prevent expansion */
+#placeSelectionContainer,
+#placeSelectionContainer .van-section {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+#placeSelect {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#placeSelect option {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 /* ===== PACKAGE SELECTION DROPDOWN STYLING ===== */
