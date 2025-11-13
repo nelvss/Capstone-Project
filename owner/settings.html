@@ -61,7 +61,6 @@
     <section class="settings-tabs">
       <div class="tab-buttons">
         <button class="tab-btn active" data-tab="package" onclick="showTab(event, 'package')">📦 Package Only</button>
-        <button class="tab-btn" data-tab="tour" onclick="showTab(event, 'tour')">🧭 Tour Only</button>
         <button class="tab-btn" data-tab="van" onclick="showTab(event, 'van')">🚐 Van Rental</button>
         <button class="tab-btn" data-tab="vehicle" onclick="showTab(event, 'vehicle')">🚗 Vehicle Rental</button>
         <button class="tab-btn" data-tab="diving" onclick="showTab(event, 'diving')">🤿 Diving</button>
@@ -118,98 +117,6 @@
                 <div class="vehicle-form-actions">
                   <button type="button" class="btn-primary package-save-btn">Save Changes</button>
                   <button type="button" class="btn-danger package-delete-btn">🗑️ Delete</button>
-                  <span class="vehicle-inline-status" aria-live="polite"></span>
-                </div>
-              </div>
-            </div>
-          </article>
-        </template>
-      </div>
-    </section>
-
-    <section id="tour-tab" class="tab-content">
-      <div class="settings-section">
-        <div class="section-heading">
-          <div>
-            <h2>Tour Only Settings</h2>
-            <p class="section-subtitle">Manage tours synced with Supabase. Update categories, pricing tiers, and images stored in the <code>tour_only</code>, <code>tour_pricing</code>, and <code>tour_images</code> tables.</p>
-          </div>
-          <div class="vehicle-actions-bar">
-            <button id="tour-add-btn" class="btn-primary" type="button">➕ Add Tour</button>
-            <button id="tour-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
-            <span id="tour-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
-          </div>
-        </div>
-
-        <div id="tour-error" class="vehicle-error" role="alert" hidden></div>
-
-        <div id="tour-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
-          <header class="vehicle-card-header">
-            <div>
-              <h3>New Tour</h3>
-              <p class="vehicle-id">Creating new...</p>
-            </div>
-            <span class="vehicle-status-tag">New</span>
-          </header>
-          <div class="vehicle-card-body">
-            <div class="vehicle-form">
-              <label class="form-field">
-                <span>Category</span>
-                <select id="new-tour-category">
-                  <option value="">Select category</option>
-                  <option value="Inland Tour">Inland Tour</option>
-                  <option value="Snorkeling Tour">Snorkeling Tour</option>
-                  <option value="Island Hopping">Island Hopping</option>
-                </select>
-              </label>
-              <div class="vehicle-form-actions">
-                <button type="button" id="new-tour-save-btn" class="btn-primary">Create Tour</button>
-                <button type="button" id="new-tour-cancel-btn" class="btn-secondary">Cancel</button>
-                <span id="new-tour-status" aria-live="polite"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="tour-list" class="vehicle-list" role="list"></div>
-
-        <template id="tour-card-template">
-          <article class="vehicle-card" role="listitem">
-            <header class="vehicle-card-header">
-              <div>
-                <h3 class="tour-category"></h3>
-                <p class="vehicle-id"></p>
-              </div>
-              <span class="vehicle-status-tag" aria-live="polite"></span>
-            </header>
-            <div class="vehicle-card-body">
-              <div class="vehicle-form">
-                <label class="form-field">
-                  <span>Category</span>
-                  <select class="tour-category-select">
-                    <option value="Inland Tour">Inland Tour</option>
-                    <option value="Snorkeling Tour">Snorkeling Tour</option>
-                    <option value="Island Hopping">Island Hopping</option>
-                  </select>
-                </label>
-                
-                <div class="tour-images-section">
-                  <h4>Images</h4>
-                  <div class="tour-images-gallery"></div>
-                  <button type="button" class="btn-secondary tour-upload-image-btn">📷 Upload Image</button>
-                  <input type="file" class="tour-file-input" accept="image/*" hidden>
-                  <small class="vehicle-image-hint">Stored in Supabase bucket <code>tour-images</code></small>
-                </div>
-
-                <div class="tour-pricing-section">
-                  <h4>Pricing Tiers</h4>
-                  <div class="tour-pricing-list"></div>
-                  <button type="button" class="btn-secondary tour-add-pricing-btn">➕ Add Pricing Tier</button>
-                </div>
-
-                <div class="vehicle-form-actions">
-                  <button type="button" class="btn-primary tour-save-btn">Save Changes</button>
-                  <button type="button" class="btn-danger tour-delete-btn">🗑️ Delete</button>
                   <span class="vehicle-inline-status" aria-live="polite"></span>
                 </div>
               </div>
