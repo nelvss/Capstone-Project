@@ -1045,3 +1045,73 @@ body {
     padding: 0.5rem !important;
     margin-top: 0.75rem !important;
 }
+
+/* ===== PAYMENT OPTIONS STYLING ===== */
+.payment-options .form-check {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.payment-option-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.payment-option-card .form-check-label {
+    cursor: pointer;
+    width: 100%;
+}
+
+.payment-option-card .card {
+    transition: all 0.3s ease;
+    border: 2px solid #dee2e6;
+    background: white;
+}
+
+.payment-option-card .card:hover {
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
+}
+
+.payment-option-card .form-check-input:checked + .form-check-label .card {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+}
+
+.payment-option-card .card-body {
+    padding: 2rem 1.5rem;
+    background: transparent !important;
+    min-height: 0;
+}
+
+.payment-option-card .fa-lg {
+    font-size: 2.5rem !important;
+}
+
+.payment-option-card .badge {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.card-body-compact {
+    padding: 1.5rem 1rem;
+}
+
+/* Responsive adjustments for payment options */
+@media (max-width: 768px) {
+    .payment-option-card .card-body {
+        padding: 1.5rem 1rem;
+    }
+    
+    .payment-option-card .fa-lg {
+        font-size: 2rem !important;
+    }
+    
+    .payment-option-card h6 {
+        font-size: 1.1rem;
+    }
+}
