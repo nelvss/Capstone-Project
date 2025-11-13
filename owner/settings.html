@@ -415,50 +415,12 @@
             <p class="section-subtitle">Manage the diving inventory synced with Supabase. Update pricing and images stored in the <code>diving</code> table.</p>
           </div>
           <div class="vehicle-actions-bar">
-            <button id="diving-add-btn" class="btn-primary" type="button">➕ Add Diving</button>
             <button id="diving-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
             <span id="diving-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
           </div>
         </div>
 
         <div id="diving-error" class="vehicle-error" role="alert" hidden></div>
-
-        <div id="diving-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
-          <header class="vehicle-card-header">
-            <div>
-              <h3>New Diving</h3>
-              <p class="vehicle-id">Creating new...</p>
-            </div>
-            <span class="vehicle-status-tag">New</span>
-          </header>
-          <div class="vehicle-card-body">
-            <div class="vehicle-media">
-              <div class="vehicle-image-wrapper">
-                <img class="vehicle-image" src="/Images/logo.png" alt="Diving image">
-                <div class="vehicle-image-actions">
-                  <button type="button" id="new-diving-upload-btn" class="btn-secondary vehicle-upload-btn">Upload Image</button>
-                  <input type="file" id="new-diving-file-input" class="vehicle-file-input" accept="image/*" hidden>
-                  <small class="vehicle-image-hint">Stored in Supabase bucket <code>diving-image</code></small>
-                </div>
-              </div>
-            </div>
-            <div class="vehicle-form">
-              <label class="form-field">
-                <span>Diving Name</span>
-                <input type="text" id="new-diving-name" placeholder="e.g., Scuba Diving Adventure">
-              </label>
-              <label class="form-field">
-                <span>Price per head (₱)</span>
-                <input type="number" min="0" step="0.01" id="new-diving-price" placeholder="0.00">
-              </label>
-              <div class="vehicle-form-actions">
-                <button type="button" id="new-diving-save-btn" class="btn-primary">Create Diving</button>
-                <button type="button" id="new-diving-cancel-btn" class="btn-secondary">Cancel</button>
-                <span id="new-diving-status" aria-live="polite"></span>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div id="diving-list" class="vehicle-list" role="list"></div>
 
