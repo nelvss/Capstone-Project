@@ -1130,9 +1130,6 @@ document.addEventListener('DOMContentLoaded', function () {
             ratingText.style.color = '';
             ratingText.style.fontWeight = '';
           }
-          
-          // Show success message
-          alert('Thank you for your feedback! Your message has been sent successfully.');
         } else {
           // Show error message
           alert(`Failed to send feedback: ${result.message}`);

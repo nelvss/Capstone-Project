@@ -824,8 +824,6 @@ async function submitBookingEditForm(event) {
     closeBookingEditModal();
     renderTable();
     updateStaffStats();
-
-    alert('Booking updated successfully.');
   } catch (error) {
     console.error('Error updating booking:', error);
     alert(error.message || 'Failed to update booking. Please try again.');

@@ -835,9 +835,6 @@
             sessionStorage.removeItem('selectedPaymentMethod');
             sessionStorage.removeItem('paidAmount');
             
-            // Show success message
-            alert('✅ Booking submitted successfully! Your booking reference is: ' + bookingId);
-            
             // Move to confirmation step
             currentStep = 7;
             showStep(currentStep);
