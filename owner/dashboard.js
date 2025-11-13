@@ -1843,7 +1843,12 @@ async function submitBookingEditForm(event) {
 
     const payloadForApi = { ...payload };
     delete payloadForApi.booking_id;
-    payloadForApi.status = payloadForApi.status || currentEditingBooking.status;
+    
+    // Automatically set status to 'edited' when updating a booking
+    // unless the status was explicitly changed in the form
+    if (payloadForApi.status === currentEditingBooking.status) {
+      payloadForApi.status = 'edited';
+    }
 
     // Ensure we have a clean booking ID without any suffixes
     const bookingId = String(currentEditingBooking.id).split(':')[0];
