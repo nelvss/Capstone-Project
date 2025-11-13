@@ -210,6 +210,95 @@ const deleteFeedback = async (req, res) => {
     
     console.log(`📝 Deleting feedback with ID: ${id}`);
     
+    // First, fetch the feedback to get image URLs before deleting
+    const { data: existingFeedback, error: fetchError } = await supabase
+      .from('feedback')
+      .select('feedback_id, image_url')
+      .eq('feedback_id', id)
+      .maybeSingle();
+    
+    if (fetchError) {
+      console.error('❌ Error fetching feedback before deletion:', fetchError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch feedback before deletion',
+        error: fetchError.message 
+      });
+    }
+    
+    if (!existingFeedback) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Feedback not found'
+      });
+    }
+    
+    // Delete images from storage if they exist
+    if (existingFeedback.image_url) {
+      try {
+        let imageUrls = [];
+        
+        // Parse image_url if it's a JSON string
+        if (typeof existingFeedback.image_url === 'string') {
+          try {
+            imageUrls = JSON.parse(existingFeedback.image_url);
+          } catch (parseError) {
+            // If parsing fails, treat it as a single URL string
+            imageUrls = [existingFeedback.image_url];
+          }
+        } else if (Array.isArray(existingFeedback.image_url)) {
+          imageUrls = existingFeedback.image_url;
+        }
+        
+        if (imageUrls && imageUrls.length > 0) {
+          console.log(`🗑️ Deleting ${imageUrls.length} image(s) from storage...`);
+          
+          // Extract file paths from URLs
+          const filePaths = imageUrls.map(url => {
+            try {
+              // Extract the file path from the full URL
+              // URL format: https://[project].supabase.co/storage/v1/object/public/feedback-images/[filename]
+              const urlObj = new URL(url);
+              const pathParts = urlObj.pathname.split('/');
+              // Find the index of 'feedback-images' and get everything after it
+              const bucketIndex = pathParts.indexOf('feedback-images');
+              if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+                // Get the file path after the bucket name (handles nested paths)
+                return pathParts.slice(bucketIndex + 1).join('/');
+              }
+              // Fallback: just get the last part
+              const fileName = pathParts[pathParts.length - 1];
+              // Remove query parameters if any
+              return fileName.split('?')[0];
+            } catch (urlError) {
+              // If URL parsing fails, try simple string split
+              const urlParts = url.split('/');
+              const fileName = urlParts[urlParts.length - 1];
+              return fileName ? fileName.split('?')[0] : null;
+            }
+          }).filter(fileName => fileName); // Remove any empty values
+          
+          if (filePaths.length > 0) {
+            // Delete all images from storage
+            const { error: storageError } = await supabase.storage
+              .from('feedback-images')
+              .remove(filePaths);
+            
+            if (storageError) {
+              console.warn('⚠️ Warning: Could not delete some images from storage:', storageError.message);
+              // Continue with database deletion even if storage deletion fails
+            } else {
+              console.log(`✅ Successfully deleted ${filePaths.length} image(s) from storage`);
+            }
+          }
+        }
+      } catch (storageErr) {
+        console.warn('⚠️ Warning: Error deleting images from storage:', storageErr);
+        // Continue with database deletion even if storage deletion fails
+      }
+    }
+    
+    // Delete feedback from database
     const { error } = await supabase
       .from('feedback')
       .delete()
@@ -224,11 +313,11 @@ const deleteFeedback = async (req, res) => {
       });
     }
     
-    console.log('✅ Feedback deleted successfully');
+    console.log('✅ Feedback deleted successfully from database');
     
     res.json({ 
       success: true, 
-      message: 'Feedback deleted successfully'
+      message: 'Feedback and associated images deleted successfully'
     });
     
   } catch (error) {
