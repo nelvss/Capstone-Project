@@ -83,12 +83,15 @@ body {
 .card {
     border: none;
     border-radius: 20px;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: visible;
     min-height: 500px;
     background-color: rgba(255, 255, 255, 0.95);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .card-header {
@@ -305,6 +308,9 @@ body {
     padding-left: 1rem;
     padding-right: 1rem;
     max-width: 1200px;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
 }
 
 .row {
@@ -892,13 +898,35 @@ body {
     max-width: 100% !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
+    width: 100% !important;
 }
 
-/* Ensure the main card doesn't expand */
+/* Ensure the main card doesn't expand - override any other rules */
 .card {
     max-width: 100% !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+
+/* Ensure van rental rows don't expand */
+.van-fixed-row {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+}
+
+/* Additional constraint for select elements inside van rental */
+#destinationSelect,
+#placeSelect,
+#tripTypeSelect,
+#vanNumberOfDays {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
 }
 
 /* ===== PACKAGE SELECTION DROPDOWN STYLING ===== */
