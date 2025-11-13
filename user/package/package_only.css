@@ -83,15 +83,12 @@ body {
 .card {
     border: none;
     border-radius: 20px;
-    overflow-x: hidden;
-    overflow-y: visible;
+    overflow: visible;
     min-height: 500px;
     background-color: rgba(255, 255, 255, 0.95);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    max-width: 100% !important;
-    box-sizing: border-box !important;
 }
 
 .card-header {
@@ -809,7 +806,25 @@ body {
     overflow: hidden !important;
 }
 
-/* Ensure van rental columns maintain fixed width */
+/* Van rental container styles - Matching Tour Only */
+.van-rental-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.van-fixed-row {
+    min-height: 120px;
+    align-items: stretch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
 .van-fixed-col {
     flex: 0 0 33.333333% !important;
     max-width: 33.333333% !important;
@@ -818,40 +833,12 @@ body {
     min-width: 0 !important;
 }
 
-.van-rental-container {
-    overflow: hidden !important;
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-.van-fixed-row {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-/* Maintain consistent height for van rental control rows */
-.van-fixed-row {
-    min-height: 120px;
-    align-items: stretch !important;
-}
-
 .van-fixed-col > .van-section {
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    min-width: 0 !important;
 }
 
 /* Prevent card stretching from van rental section */
@@ -898,89 +885,18 @@ body {
 }
 
 
-/* Ensure the card body doesn't expand */
+/* Ensure the card body doesn't expand - Matching Tour Only */
 .card-body {
     max-width: 100% !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
-    width: 100% !important;
 }
 
-/* Ensure the main card doesn't expand - override any other rules */
+/* Ensure the main card doesn't expand - Matching Tour Only */
 .card {
     max-width: 100% !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
-    width: 100% !important;
-}
-
-
-/* Ensure van rental rows don't expand */
-.van-fixed-row {
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
-}
-
-/* Additional constraint for select elements inside van rental */
-#destinationSelect,
-#placeSelect,
-#tripTypeSelect,
-#vanNumberOfDays {
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    min-width: 0 !important;
-}
-
-/* Force all col-4 elements in van rental to stay fixed width */
-.van-fixed-row .col-4 {
-    flex: 0 0 33.333333% !important;
-    max-width: 33.333333% !important;
-    width: 33.333333% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    position: relative !important;
-}
-
-/* Ensure the row itself cannot expand */
-.van-fixed-row {
-    flex-wrap: nowrap !important;
-    display: flex !important;
-}
-
-
-/* Prevent select from expanding when opened */
-select.form-select {
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    min-width: 0 !important;
-}
-
-/* Force select to use fixed width calculation */
-select.form-select:focus {
-    max-width: 100% !important;
-    width: 100% !important;
-}
-
-/* Prevent select from expanding based on option text length */
-select.form-select,
-select.form-select option {
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-}
-
-/* Critical: Force the entire van rental section to not expand */
-.border.rounded-3.p-3.mb-3.bg-white.shadow-sm:has(.van-rental-container) {
-    max-width: 100% !important;
-    width: 100% !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box !important;
-    position: relative !important;
 }
 
 /* ===== PACKAGE SELECTION DROPDOWN STYLING ===== */
@@ -1058,11 +974,6 @@ select.form-select option {
 
 .van-section {
     transition: opacity 0.2s ease;
-    max-width: 100% !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    min-width: 0 !important;
 }
 
 .van-disabled {
