@@ -818,6 +818,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.querySelectorAll('a.nav-link.slant[href^="#"]').forEach((anchor) => {
     anchor.addEventListener('click', function (e) {
+      // Skip if this is a more info button
+      if (this.classList.contains('btn-more-info')) return;
+      
       const targetId = this.getAttribute('href');
       if (!targetId || targetId === '#') return;
       const target = document.querySelector(targetId);
@@ -881,6 +884,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const button = e.target.closest('.btn-more-info');
     if (button) {
       e.preventDefault();
+      e.stopPropagation();
       const title = button.getAttribute('data-title') || 'More Info';
       const info = button.getAttribute('data-info') || '';
       
