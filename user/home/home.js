@@ -1390,7 +1390,9 @@ async function loadFeedback() {
             ${imageUrls.length === 1 ? `
               <img src="${escapeHtml(imageUrls[0])}" class="card-img-top feedback-image" alt="Feedback image" 
                    style="height: 200px; object-fit: cover; cursor: pointer;"
-                   onclick="showFeedbackImageModal(${JSON.stringify(imageUrls)}, 0)"
+                   data-image-urls='${JSON.stringify(imageUrls)}'
+                   data-image-index="0"
+                   onclick="if(typeof showFeedbackImageModal === 'function') { showFeedbackImageModal(${JSON.stringify(imageUrls)}, 0); } else { console.error('showFeedbackImageModal not found'); }"
                    onerror="this.style.display='none'; console.error('Failed to load feedback image');">
             ` : `
               <div id="carousel-${uniqueId}" class="carousel slide" data-bs-ride="false">
@@ -1399,7 +1401,9 @@ async function loadFeedback() {
                     <div class="carousel-item ${idx === 0 ? 'active' : ''}">
                       <img src="${escapeHtml(url)}" class="d-block w-100 feedback-image" alt="Feedback image ${idx + 1}" 
                            style="height: 200px; object-fit: cover; cursor: pointer;"
-                           onclick="showFeedbackImageModal(${JSON.stringify(imageUrls)}, ${idx})"
+                           data-image-urls='${JSON.stringify(imageUrls)}'
+                           data-image-index="${idx}"
+                           onclick="if(typeof showFeedbackImageModal === 'function') { showFeedbackImageModal(${JSON.stringify(imageUrls)}, ${idx}); } else { console.error('showFeedbackImageModal not found'); }"
                            onerror="this.style.display='none'; console.error('Failed to load feedback image ${idx + 1}');">
                     </div>
                   `).join('')}
@@ -1449,7 +1453,7 @@ async function loadFeedback() {
         `;
       }).join('');
       
-      // Initialize Bootstrap carousels after rendering
+      // Initialize Bootstrap carousels after rendering and add click handlers
       setTimeout(() => {
         result.feedback.forEach((fb, index) => {
           // Parse image URLs for this feedback item
@@ -1463,22 +1467,47 @@ async function loadFeedback() {
             }
           }
           
-          if (imageUrls.length > 1) {
+          // Add click event listeners to images
+          if (imageUrls.length > 0) {
             const uniqueId = fb.feedback_id || fb.id || `feedback-${index}`;
-            const carouselElement = document.getElementById(`carousel-${uniqueId}`);
-            if (carouselElement) {
-              try {
-                new bootstrap.Carousel(carouselElement, {
-                  ride: false,
-                  interval: false
+            
+            // For single images
+            if (imageUrls.length === 1) {
+              const img = document.querySelector(`[data-image-index="0"][data-image-urls*="${imageUrls[0].substring(0, 50)}"]`);
+              if (img) {
+                img.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  showFeedbackImageModal(imageUrls, 0);
                 });
-              } catch (e) {
-                console.warn('Could not initialize carousel:', e);
+              }
+            } else {
+              // For carousel images
+              imageUrls.forEach((url, idx) => {
+                const img = document.querySelector(`#carousel-${uniqueId} .carousel-item:nth-child(${idx + 1}) img`);
+                if (img) {
+                  img.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showFeedbackImageModal(imageUrls, idx);
+                  });
+                }
+              });
+              
+              // Initialize carousel
+              const carouselElement = document.getElementById(`carousel-${uniqueId}`);
+              if (carouselElement) {
+                try {
+                  new bootstrap.Carousel(carouselElement, {
+                    ride: false,
+                    interval: false
+                  });
+                } catch (e) {
+                  console.warn('Could not initialize carousel:', e);
+                }
               }
             }
           }
         });
-      }, 100);
+      }, 200);
     } else {
       throw new Error(result.message || 'Failed to load feedback');
     }
@@ -1493,12 +1522,29 @@ async function loadFeedback() {
   }
 }
 
-// Function to show feedback image in modal
-function showFeedbackImageModal(imageUrls, startIndex = 0) {
+// Function to show feedback image in modal - must be global for onclick handlers
+window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
+  console.log('showFeedbackImageModal called with:', { imageUrls, startIndex });
+  
   const modal = document.getElementById('feedbackImageModal');
   const carouselInner = document.getElementById('feedbackImageCarouselInner');
   
-  if (!modal || !carouselInner) return;
+  if (!modal) {
+    console.error('❌ Feedback image modal not found!');
+    return;
+  }
+  
+  if (!carouselInner) {
+    console.error('❌ Feedback image carousel inner not found!');
+    return;
+  }
+  
+  // Ensure imageUrls is an array
+  if (!Array.isArray(imageUrls)) {
+    imageUrls = [imageUrls];
+  }
+  
+  console.log('Setting up modal with', imageUrls.length, 'image(s)');
   
   // Clear existing images
   carouselInner.innerHTML = '';
@@ -1509,7 +1555,7 @@ function showFeedbackImageModal(imageUrls, startIndex = 0) {
     carouselItem.className = `carousel-item ${index === startIndex ? 'active' : ''}`;
     carouselItem.innerHTML = `
       <img src="${url}" class="d-block w-100" alt="Feedback image ${index + 1}" 
-           style="max-height: 80vh; object-fit: contain; margin: 0 auto;">
+           style="max-height: 80vh; object-fit: contain; margin: 0 auto; display: block;">
     `;
     carouselInner.appendChild(carouselItem);
   });
@@ -1526,23 +1572,79 @@ function showFeedbackImageModal(imageUrls, startIndex = 0) {
     if (nextBtn) nextBtn.style.display = 'none';
   }
   
-  // Initialize and show modal
-  const bootstrapModal = new bootstrap.Modal(modal);
-  bootstrapModal.show();
+  // Check if Bootstrap is available
+  if (typeof bootstrap === 'undefined') {
+    console.error('❌ Bootstrap is not loaded!');
+    // Fallback: show modal using basic display
+    modal.style.display = 'block';
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop fade show';
+    backdrop.id = 'feedbackModalBackdrop';
+    backdrop.onclick = function() {
+      modal.style.display = 'none';
+      modal.classList.remove('show');
+      document.body.classList.remove('modal-open');
+      backdrop.remove();
+    };
+    document.body.appendChild(backdrop);
+    return;
+  }
   
-  // Initialize carousel after modal is shown
-  modal.addEventListener('shown.bs.modal', function() {
-    const carousel = new bootstrap.Carousel(document.getElementById('feedbackImageCarousel'), {
-      ride: false,
-      interval: false
-    });
-    
-    // Navigate to start index
-    if (startIndex > 0) {
-      carousel.to(startIndex);
+  // Initialize and show modal
+  try {
+    // Remove any existing modal instance
+    const existingModal = bootstrap.Modal.getInstance(modal);
+    if (existingModal) {
+      existingModal.dispose();
     }
-  }, { once: true });
-}
+    
+    const bootstrapModal = new bootstrap.Modal(modal, {
+      backdrop: true,
+      keyboard: true
+    });
+    bootstrapModal.show();
+    console.log('✅ Modal shown');
+    
+    // Initialize carousel after modal is shown
+    const initCarousel = function() {
+      const carouselElement = document.getElementById('feedbackImageCarousel');
+      if (carouselElement) {
+        // Dispose existing carousel if any
+        const existingCarousel = bootstrap.Carousel.getInstance(carouselElement);
+        if (existingCarousel) {
+          existingCarousel.dispose();
+        }
+        
+        const carousel = new bootstrap.Carousel(carouselElement, {
+          ride: false,
+          interval: false
+        });
+        
+        // Navigate to start index
+        if (startIndex > 0) {
+          setTimeout(() => {
+            carousel.to(startIndex);
+          }, 100);
+        }
+      }
+    };
+    
+    // Initialize carousel when modal is shown
+    if (modal.classList.contains('show')) {
+      initCarousel();
+    } else {
+      modal.addEventListener('shown.bs.modal', initCarousel, { once: true });
+    }
+  } catch (error) {
+    console.error('❌ Error showing modal:', error);
+    // Fallback display
+    modal.style.display = 'block';
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+  }
+};
 
 // Image collections for each service
 const serviceImages = {
