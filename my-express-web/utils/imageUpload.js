@@ -68,6 +68,20 @@ async function uploadImageToStorage({
 
   console.log(`📤 Uploading image to bucket "${bucket}" as ${uniqueFileName} (MIME: ${mimeType})`);
 
+  // Check if bucket exists first
+  const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+  if (listError) {
+    console.error('❌ Error listing buckets:', listError);
+  } else {
+    const bucketExists = buckets?.some(b => b.name === bucket);
+    if (!bucketExists) {
+      const error = new Error(`Bucket "${bucket}" does not exist. Please create it in Supabase Storage.`);
+      error.statusCode = 404;
+      error.details = { bucket, availableBuckets: buckets?.map(b => b.name) || [] };
+      throw error;
+    }
+  }
+
   const { error: uploadError } = await supabase.storage
     .from(bucket)
     .upload(uniqueFileName, buffer, {
@@ -77,7 +91,18 @@ async function uploadImageToStorage({
 
   if (uploadError) {
     console.error('❌ Storage upload error:', uploadError);
-    const error = new Error('Failed to upload image to storage');
+    
+    // Provide more specific error messages
+    let errorMessage = 'Failed to upload image to storage';
+    if (uploadError.message?.includes('Bucket') || uploadError.message?.includes('bucket')) {
+      errorMessage = `Bucket "${bucket}" not found or not accessible. Please ensure the bucket exists and is configured correctly.`;
+    } else if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
+      errorMessage = `Permission denied. Please check storage policies for bucket "${bucket}".`;
+    } else if (uploadError.message) {
+      errorMessage = uploadError.message;
+    }
+    
+    const error = new Error(errorMessage);
     error.statusCode = 500;
     error.details = uploadError;
     throw error;

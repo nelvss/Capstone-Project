@@ -44,9 +44,19 @@ const submitFeedback = async (req, res) => {
     // Handle multiple image uploads if provided
     if (images && Array.isArray(images) && images.length > 0) {
       const uploadedUrls = [];
+      const uploadErrors = [];
       
-      for (const imageItem of images) {
+      console.log(`📤 Attempting to upload ${images.length} image(s) to feedback-images bucket`);
+      
+      for (let i = 0; i < images.length; i++) {
+        const imageItem = images[i];
         try {
+          console.log(`📤 Uploading image ${i + 1}/${images.length}: ${imageItem.fileName}`);
+          
+          if (!imageItem.data || !imageItem.fileName) {
+            throw new Error(`Image ${i + 1} is missing data or filename`);
+          }
+          
           const uploadResult = await uploadImageToStorage({
             imageData: imageItem.data,
             fileName: imageItem.fileName,
@@ -56,16 +66,39 @@ const submitFeedback = async (req, res) => {
           });
           
           uploadedUrls.push(uploadResult.publicUrl);
-          console.log('✅ Image uploaded successfully:', uploadResult.publicUrl);
+          console.log(`✅ Image ${i + 1} uploaded successfully:`, uploadResult.publicUrl);
         } catch (uploadError) {
-          console.error('❌ Image upload error:', uploadError);
-          // Continue with other images if one fails
+          const errorMessage = uploadError.details?.message || uploadError.message || 'Unknown error';
+          console.error(`❌ Image ${i + 1} upload error:`, {
+            fileName: imageItem?.fileName,
+            error: errorMessage,
+            details: uploadError.details
+          });
+          uploadErrors.push({
+            imageIndex: i + 1,
+            fileName: imageItem?.fileName,
+            error: errorMessage
+          });
         }
       }
       
       // Store image URLs as JSON array in image_url field
       if (uploadedUrls.length > 0) {
         feedbackData.image_url = JSON.stringify(uploadedUrls);
+        console.log(`✅ Successfully uploaded ${uploadedUrls.length}/${images.length} image(s)`);
+      } else {
+        console.error('❌ All image uploads failed!', uploadErrors);
+        // Return error if all uploads failed
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload images. Please check bucket configuration.',
+          errors: uploadErrors
+        });
+      }
+      
+      // Warn if some uploads failed
+      if (uploadErrors.length > 0 && uploadedUrls.length > 0) {
+        console.warn(`⚠️ ${uploadErrors.length} image(s) failed to upload, but ${uploadedUrls.length} succeeded`);
       }
     }
     
