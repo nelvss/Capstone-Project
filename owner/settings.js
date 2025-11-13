@@ -2384,7 +2384,7 @@ function createTourCard(tour) {
   const categoryElement = fragment.querySelector('.tour-category');
   const idElement = fragment.querySelector('.vehicle-id');
   const statusTag = fragment.querySelector('.vehicle-status-tag');
-  const categorySelect = fragment.querySelector('.tour-category-select');
+  const categoryReadonly = fragment.querySelector('.tour-category-readonly');
   const saveButton = fragment.querySelector('.tour-save-btn');
   const inlineStatus = fragment.querySelector('.vehicle-inline-status');
   const deleteButton = fragment.querySelector('.tour-delete-btn');
@@ -2410,11 +2410,8 @@ function createTourCard(tour) {
     setStatusTag(statusTag, 'Synced');
   }
 
-  if (categorySelect) {
-    categorySelect.value = tour?.category || '';
-    // Make category dropdown fixed/disabled - cannot be changed
-    categorySelect.disabled = true;
-    categorySelect.setAttribute('readonly', 'readonly');
+  if (categoryReadonly) {
+    categoryReadonly.value = tour?.category || '';
   }
 
   // Render images
