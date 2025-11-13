@@ -2893,6 +2893,14 @@
         if (previousValue) {
             placeSelect.value = previousValue;
         }
+        
+        // Force select to maintain fixed width after options are added
+        if (placeSelect) {
+            placeSelect.style.width = '100%';
+            placeSelect.style.maxWidth = '100%';
+            placeSelect.style.boxSizing = 'border-box';
+            placeSelect.style.minWidth = '0';
+        }
     }
 
     function updateVanPrice() {

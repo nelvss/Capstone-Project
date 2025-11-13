@@ -847,6 +847,11 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
 }
 
 /* Prevent card stretching from van rental section */
@@ -929,6 +934,55 @@ body {
     min-width: 0 !important;
 }
 
+/* Force all col-4 elements in van rental to stay fixed width */
+.van-fixed-row .col-4 {
+    flex: 0 0 33.333333% !important;
+    max-width: 33.333333% !important;
+    width: 33.333333% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* Ensure the row itself cannot expand */
+.van-fixed-row {
+    flex-wrap: nowrap !important;
+    display: flex !important;
+}
+
+
+/* Prevent select from expanding when opened */
+select.form-select {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+}
+
+/* Force select to use fixed width calculation */
+select.form-select:focus {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Prevent select from expanding based on option text length */
+select.form-select,
+select.form-select option {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Critical: Force the entire van rental section to not expand */
+.border.rounded-3.p-3.mb-3.bg-white.shadow-sm:has(.van-rental-container) {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+}
+
 /* ===== PACKAGE SELECTION DROPDOWN STYLING ===== */
 .package-selection-options .package-option-item {
     transition: all 0.2s ease;
@@ -1004,6 +1058,11 @@ body {
 
 .van-section {
     transition: opacity 0.2s ease;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
 }
 
 .van-disabled {
