@@ -508,16 +508,6 @@ header h1 {
   justify-content: center;
   margin-bottom: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: iconPulse 2s ease-in-out infinite;
-}
-
-@keyframes iconPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
 }
 
 .stat-icon {
