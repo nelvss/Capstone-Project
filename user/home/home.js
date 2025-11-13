@@ -1385,12 +1385,15 @@ async function loadFeedback() {
         // Use feedback_id if available, otherwise use index as fallback
         const uniqueId = fb.feedback_id || fb.id || `feedback-${index}`;
         
+        // Encode image URLs as base64 to avoid HTML attribute issues
+        const encodedImageUrls = btoa(JSON.stringify(imageUrls));
+        
         const imagesHtml = imageUrls.length > 0 ? `
           <div class="feedback-images-container">
             ${imageUrls.length === 1 ? `
               <img src="${escapeHtml(imageUrls[0])}" class="card-img-top feedback-image" alt="Feedback image" 
                    style="height: 200px; object-fit: cover; cursor: pointer;"
-                   data-feedback-images='${JSON.stringify(imageUrls)}'
+                   data-feedback-images="${encodedImageUrls}"
                    data-feedback-start="0"
                    onerror="this.style.display='none'; console.error('Failed to load feedback image');">
             ` : `
@@ -1400,7 +1403,7 @@ async function loadFeedback() {
                     <div class="carousel-item ${idx === 0 ? 'active' : ''}">
                       <img src="${escapeHtml(url)}" class="d-block w-100 feedback-image" alt="Feedback image ${idx + 1}" 
                            style="height: 200px; object-fit: cover; cursor: pointer;"
-                           data-feedback-images='${JSON.stringify(imageUrls)}'
+                           data-feedback-images="${encodedImageUrls}"
                            data-feedback-start="${idx}"
                            onerror="this.style.display='none'; console.error('Failed to load feedback image ${idx + 1}');">
                     </div>
@@ -1481,7 +1484,14 @@ async function loadFeedback() {
                 e.preventDefault();
                 e.stopPropagation();
                 try {
-                  const imageUrls = JSON.parse(this.getAttribute('data-feedback-images'));
+                  const encodedData = this.getAttribute('data-feedback-images');
+                  if (!encodedData) {
+                    console.error('No image data found');
+                    return;
+                  }
+                  // Decode base64
+                  const imageUrlsStr = atob(encodedData);
+                  const imageUrls = JSON.parse(imageUrlsStr);
                   const startIndex = parseInt(this.getAttribute('data-feedback-start')) || 0;
                   console.log('Image clicked, opening modal:', { imageUrls, startIndex });
                   if (typeof showFeedbackImageModal === 'function') {
