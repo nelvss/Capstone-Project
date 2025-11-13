@@ -1390,7 +1390,7 @@ async function loadFeedback() {
             ${imageUrls.length === 1 ? `
               <img src="${escapeHtml(imageUrls[0])}" class="card-img-top feedback-image" alt="Feedback image" 
                    style="height: 200px; object-fit: cover; cursor: pointer;"
-                   onclick="window.open('${escapeHtml(imageUrls[0])}', '_blank')"
+                   onclick="showFeedbackImageModal(${JSON.stringify(imageUrls)}, 0)"
                    onerror="this.style.display='none'; console.error('Failed to load feedback image');">
             ` : `
               <div id="carousel-${uniqueId}" class="carousel slide" data-bs-ride="false">
@@ -1399,7 +1399,7 @@ async function loadFeedback() {
                     <div class="carousel-item ${idx === 0 ? 'active' : ''}">
                       <img src="${escapeHtml(url)}" class="d-block w-100 feedback-image" alt="Feedback image ${idx + 1}" 
                            style="height: 200px; object-fit: cover; cursor: pointer;"
-                           onclick="window.open('${escapeHtml(url)}', '_blank')"
+                           onclick="showFeedbackImageModal(${JSON.stringify(imageUrls)}, ${idx})"
                            onerror="this.style.display='none'; console.error('Failed to load feedback image ${idx + 1}');">
                     </div>
                   `).join('')}
@@ -1491,6 +1491,57 @@ async function loadFeedback() {
       </div>
     `;
   }
+}
+
+// Function to show feedback image in modal
+function showFeedbackImageModal(imageUrls, startIndex = 0) {
+  const modal = document.getElementById('feedbackImageModal');
+  const carouselInner = document.getElementById('feedbackImageCarouselInner');
+  
+  if (!modal || !carouselInner) return;
+  
+  // Clear existing images
+  carouselInner.innerHTML = '';
+  
+  // Add images to carousel
+  imageUrls.forEach((url, index) => {
+    const carouselItem = document.createElement('div');
+    carouselItem.className = `carousel-item ${index === startIndex ? 'active' : ''}`;
+    carouselItem.innerHTML = `
+      <img src="${url}" class="d-block w-100" alt="Feedback image ${index + 1}" 
+           style="max-height: 80vh; object-fit: contain; margin: 0 auto;">
+    `;
+    carouselInner.appendChild(carouselItem);
+  });
+  
+  // Show/hide navigation buttons based on number of images
+  const prevBtn = modal.querySelector('.carousel-control-prev');
+  const nextBtn = modal.querySelector('.carousel-control-next');
+  
+  if (imageUrls.length > 1) {
+    if (prevBtn) prevBtn.style.display = 'flex';
+    if (nextBtn) nextBtn.style.display = 'flex';
+  } else {
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+  }
+  
+  // Initialize and show modal
+  const bootstrapModal = new bootstrap.Modal(modal);
+  bootstrapModal.show();
+  
+  // Initialize carousel after modal is shown
+  modal.addEventListener('shown.bs.modal', function() {
+    const carousel = new bootstrap.Carousel(document.getElementById('feedbackImageCarousel'), {
+      ride: false,
+      interval: false
+    });
+    
+    // Navigate to start index
+    if (startIndex > 0) {
+      carousel.to(startIndex);
+    }
+  }, { once: true });
 }
 
 // Image collections for each service

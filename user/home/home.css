@@ -33,6 +33,25 @@
     cursor: zoom-in;
 }
 
+/* Feedback Image Modal Styles */
+#feedbackImageModal .modal-content {
+    background: #1a1a1a;
+    border: none;
+}
+
+#feedbackImageModal .carousel-item img {
+    width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+#feedbackImageModal .carousel-control-prev,
+#feedbackImageModal .carousel-control-next {
+    width: 5%;
+}
+
 #imageGalleryModal .carousel-item img.zoomed {
     cursor: zoom-out;
     object-fit: cover;
