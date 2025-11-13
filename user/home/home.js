@@ -1390,9 +1390,8 @@ async function loadFeedback() {
             ${imageUrls.length === 1 ? `
               <img src="${escapeHtml(imageUrls[0])}" class="card-img-top feedback-image" alt="Feedback image" 
                    style="height: 200px; object-fit: cover; cursor: pointer;"
-                   data-image-urls='${JSON.stringify(imageUrls)}'
-                   data-image-index="0"
-                   onclick="if(typeof showFeedbackImageModal === 'function') { showFeedbackImageModal(${JSON.stringify(imageUrls)}, 0); } else { console.error('showFeedbackImageModal not found'); }"
+                   data-feedback-images='${JSON.stringify(imageUrls)}'
+                   data-feedback-start="0"
                    onerror="this.style.display='none'; console.error('Failed to load feedback image');">
             ` : `
               <div id="carousel-${uniqueId}" class="carousel slide" data-bs-ride="false">
@@ -1401,9 +1400,8 @@ async function loadFeedback() {
                     <div class="carousel-item ${idx === 0 ? 'active' : ''}">
                       <img src="${escapeHtml(url)}" class="d-block w-100 feedback-image" alt="Feedback image ${idx + 1}" 
                            style="height: 200px; object-fit: cover; cursor: pointer;"
-                           data-image-urls='${JSON.stringify(imageUrls)}'
-                           data-image-index="${idx}"
-                           onclick="if(typeof showFeedbackImageModal === 'function') { showFeedbackImageModal(${JSON.stringify(imageUrls)}, ${idx}); } else { console.error('showFeedbackImageModal not found'); }"
+                           data-feedback-images='${JSON.stringify(imageUrls)}'
+                           data-feedback-start="${idx}"
                            onerror="this.style.display='none'; console.error('Failed to load feedback image ${idx + 1}');">
                     </div>
                   `).join('')}
@@ -1467,32 +1465,38 @@ async function loadFeedback() {
             }
           }
           
-          // Add click event listeners to images
+          // Add click event listeners to images using data attributes
           if (imageUrls.length > 0) {
             const uniqueId = fb.feedback_id || fb.id || `feedback-${index}`;
             
-            // For single images
-            if (imageUrls.length === 1) {
-              const img = document.querySelector(`[data-image-index="0"][data-image-urls*="${imageUrls[0].substring(0, 50)}"]`);
-              if (img) {
-                img.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  showFeedbackImageModal(imageUrls, 0);
-                });
-              }
-            } else {
-              // For carousel images
-              imageUrls.forEach((url, idx) => {
-                const img = document.querySelector(`#carousel-${uniqueId} .carousel-item:nth-child(${idx + 1}) img`);
-                if (img) {
-                  img.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    showFeedbackImageModal(imageUrls, idx);
-                  });
+            // Find all feedback images and add click handlers
+            const feedbackImages = document.querySelectorAll(`[data-feedback-images]`);
+            feedbackImages.forEach(img => {
+              // Remove any existing listeners
+              const newImg = img.cloneNode(true);
+              img.parentNode.replaceChild(newImg, img);
+              
+              // Add click listener
+              newImg.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                  const imageUrls = JSON.parse(this.getAttribute('data-feedback-images'));
+                  const startIndex = parseInt(this.getAttribute('data-feedback-start')) || 0;
+                  console.log('Image clicked, opening modal:', { imageUrls, startIndex });
+                  if (typeof showFeedbackImageModal === 'function') {
+                    showFeedbackImageModal(imageUrls, startIndex);
+                  } else {
+                    console.error('showFeedbackImageModal function not found');
+                  }
+                } catch (err) {
+                  console.error('Error parsing image data:', err);
                 }
               });
-              
-              // Initialize carousel
+            });
+            
+            // Initialize carousel for multiple images
+            if (imageUrls.length > 1) {
               const carouselElement = document.getElementById(`carousel-${uniqueId}`);
               if (carouselElement) {
                 try {
