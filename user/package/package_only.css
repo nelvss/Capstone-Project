@@ -809,6 +809,7 @@ body {
     max-width: 33.333333% !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
+    min-width: 0 !important;
 }
 
 .van-rental-container {
@@ -818,6 +819,8 @@ body {
     flex-direction: column;
     justify-content: space-between;
     max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .van-fixed-row {
@@ -844,6 +847,8 @@ body {
 .border.rounded-3.p-3.mb-3.bg-white.shadow-sm {
     max-width: 100% !important;
     overflow: hidden !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Fix place select dropdown to prevent expansion */
@@ -851,6 +856,8 @@ body {
 #placeSelectionContainer .van-section {
     max-width: 100% !important;
     width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 #placeSelect {
@@ -860,6 +867,7 @@ body {
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
+    min-width: 0 !important;
 }
 
 #placeSelect option {
@@ -873,6 +881,23 @@ body {
 .van-fixed-col .form-select {
     max-width: 100% !important;
     width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+
+/* Ensure the card body doesn't expand */
+.card-body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure the main card doesn't expand */
+.card {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
     box-sizing: border-box !important;
 }
 
@@ -942,13 +967,7 @@ body {
     color: black !important;
 }
 
-/* Van rental container styling */
-.van-rental-container {
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-    box-sizing: border-box;
-}
+/* Van rental container styling - consolidated with rules above */
 
 /* Conditional display containers */
 .hidden-container {
