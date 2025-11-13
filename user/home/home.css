@@ -2771,4 +2771,59 @@ nav.navbar {
     }
 }
 
+/* Image Upload Styles */
+.image-upload-wrapper {
+    margin-bottom: 1rem;
+}
+
+.image-upload-preview {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.image-upload-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+}
+
+/* Feedback Cards */
+.feedback-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.feedback-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.feedback-image {
+    transition: transform 0.3s ease;
+}
+
+.feedback-image:hover {
+    transform: scale(1.05);
+}
+
+.feedback-card .card-body {
+    padding: 1.5rem;
+}
+
+.feedback-card .card-text {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+/* Section Header Line */
+.section-header-line {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    border-radius: 2px;
+    margin: 0 auto;
+}
 

@@ -1083,6 +1083,63 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Image upload handling
+  let selectedImageFile = null;
+  let selectedImageData = null;
+
+  // Image selection button
+  const selectImageBtn = document.getElementById('selectImageBtn');
+  const feedbackImageInput = document.getElementById('feedbackImage');
+  const imagePreview = document.getElementById('imagePreview');
+  const previewImage = document.getElementById('previewImage');
+  const removeImageBtn = document.getElementById('removeImageBtn');
+
+  if (selectImageBtn && feedbackImageInput) {
+    selectImageBtn.addEventListener('click', () => {
+      feedbackImageInput.click();
+    });
+
+    feedbackImageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Image size must be less than 5MB');
+          return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file');
+          return;
+        }
+
+        selectedImageFile = file;
+        
+        // Convert to base64 for preview and upload
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          selectedImageData = event.target.result;
+          previewImage.src = selectedImageData;
+          imagePreview.style.display = 'block';
+          selectImageBtn.textContent = 'Change Image';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    if (removeImageBtn) {
+      removeImageBtn.addEventListener('click', () => {
+        selectedImageFile = null;
+        selectedImageData = null;
+        feedbackImageInput.value = '';
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+        selectImageBtn.textContent = 'Choose Image';
+      });
+    }
+  }
+
   // Send feedback functionality
   const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
   if (sendFeedbackBtn) {
@@ -1099,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function () {
       sendFeedbackBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SENDING...';
       
       try {
-        // Send feedback to API (include rating if selected)
+        // Send feedback to API (include rating and image if selected)
         const feedbackData = {
           message: feedbackText
         };
@@ -1107,6 +1164,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add rating only if user selected one
         if (selectedRating > 0) {
           feedbackData.rating = selectedRating;
+        }
+        
+        // Add image if selected
+        if (selectedImageData && selectedImageFile) {
+          feedbackData.imageData = selectedImageData;
+          feedbackData.fileName = selectedImageFile.name;
         }
         
         const response = await fetch(`${API_BASE_URL}/submit-feedback`, {
@@ -1120,8 +1183,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const result = await response.json();
         
         if (result.success) {
-          // Clear the textarea
+          // Clear the form
           document.getElementById('feedback').value = '';
+          
+          // Reset image
+          selectedImageFile = null;
+          selectedImageData = null;
+          if (feedbackImageInput) feedbackImageInput.value = '';
+          if (imagePreview) imagePreview.style.display = 'none';
+          if (selectImageBtn) selectImageBtn.textContent = 'Choose Image';
           
           // Reset star rating
           selectedRating = 0;
@@ -1135,6 +1205,12 @@ document.addEventListener('DOMContentLoaded', function () {
             ratingText.style.color = '';
             ratingText.style.fontWeight = '';
           }
+          
+          // Show success message
+          alert('Thank you for your feedback! Your message has been submitted successfully.');
+          
+          // Reload feedback to show the new one
+          loadFeedback();
         } else {
           // Show error message
           alert(`Failed to send feedback: ${result.message}`);
@@ -1150,7 +1226,94 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
+
+  // Load and display feedback
+  loadFeedback();
 });
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Load and display feedback
+async function loadFeedback() {
+  const feedbackContainer = document.getElementById('feedbackContainer');
+  const feedbackLoader = document.getElementById('feedbackLoader');
+  
+  if (!feedbackContainer) return;
+  
+  try {
+    if (feedbackLoader) feedbackLoader.style.display = 'block';
+    
+    const response = await fetch(`${API_BASE_URL}/feedback`);
+    const result = await response.json();
+    
+    if (result.success && result.feedback) {
+      if (feedbackLoader) feedbackLoader.style.display = 'none';
+      
+      if (result.feedback.length === 0) {
+        feedbackContainer.innerHTML = `
+          <div class="col-12 text-center">
+            <p class="text-muted">No feedback yet. Be the first to share your experience!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      feedbackContainer.innerHTML = result.feedback.map(fb => {
+        const date = new Date(fb.date);
+        const formattedDate = date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        const stars = fb.rating ? Array.from({ length: 5 }, (_, i) => 
+          i < fb.rating ? '<i class="fas fa-star text-warning"></i>' : '<i class="far fa-star text-warning"></i>'
+        ).join('') : '';
+        
+        return `
+          <div class="col-md-6 col-lg-4">
+            <div class="card feedback-card h-100 shadow-sm">
+              ${fb.image_url ? `
+                <img src="${fb.image_url}" class="card-img-top feedback-image" alt="Feedback image" 
+                     style="height: 200px; object-fit: cover; cursor: pointer;"
+                     onclick="window.open('${fb.image_url}', '_blank')">
+              ` : ''}
+              <div class="card-body d-flex flex-column">
+                <div class="mb-2">
+                  ${stars}
+                </div>
+                <p class="card-text flex-grow-1">${escapeHtml(fb.message)}</p>
+                <div class="mt-auto">
+                  <small class="text-muted">
+                    <i class="fas fa-user me-1"></i>${fb.anonymous_name || 'Anonymous'}
+                    <span class="ms-3">
+                      <i class="fas fa-calendar me-1"></i>${formattedDate}
+                    </span>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      throw new Error(result.message || 'Failed to load feedback');
+    }
+  } catch (error) {
+    console.error('Error loading feedback:', error);
+    if (feedbackLoader) feedbackLoader.style.display = 'none';
+    feedbackContainer.innerHTML = `
+      <div class="col-12 text-center">
+        <p class="text-danger">Failed to load feedback. Please try again later.</p>
+      </div>
+    `;
+  }
+}
 
 // Image collections for each service
 const serviceImages = {

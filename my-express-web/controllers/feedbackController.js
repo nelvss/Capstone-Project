@@ -1,8 +1,9 @@
 const supabase = require('../config/supabase');
+const { uploadImageToStorage } = require('../utils/imageUpload');
 
 const submitFeedback = async (req, res) => {
   try {
-    const { message, rating } = req.body;
+    const { message, rating, imageData, fileName } = req.body;
     
     if (!message || message.trim() === '') {
       return res.status(400).json({ 
@@ -22,7 +23,11 @@ const submitFeedback = async (req, res) => {
       }
     }
     
-    console.log('📝 Submitting feedback:', { message: message.trim(), rating: rating || 'not provided' });
+    console.log('📝 Submitting feedback:', { 
+      message: message.trim(), 
+      rating: rating || 'not provided',
+      hasImage: !!imageData 
+    });
     
     // Build feedback object
     const feedbackData = {
@@ -34,6 +39,26 @@ const submitFeedback = async (req, res) => {
     // Add rating only if provided
     if (rating !== undefined && rating !== null) {
       feedbackData.rating = parseInt(rating);
+    }
+    
+    // Handle image upload if provided
+    if (imageData && fileName) {
+      try {
+        const uploadResult = await uploadImageToStorage({
+          imageData,
+          fileName,
+          bucket: 'feedback-images',
+          keyPrefix: 'feedback',
+          identifier: 'feedback'
+        });
+        
+        feedbackData.image_url = uploadResult.publicUrl;
+        console.log('✅ Image uploaded successfully:', uploadResult.publicUrl);
+      } catch (uploadError) {
+        console.error('❌ Image upload error:', uploadError);
+        // Continue without image if upload fails
+        // Or return error if image is required
+      }
     }
     
     const { data, error } = await supabase

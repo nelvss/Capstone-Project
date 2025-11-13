@@ -1418,6 +1418,27 @@
                           rows="8" placeholder="Tell us what's on your mind..."></textarea>
               </div>
 
+              <!-- Image Upload Section -->
+              <div class="mb-4">
+                <label for="feedbackImage" class="form-label">
+                  <i class="fas fa-image me-2"></i>Share a Photo (Optional)
+                </label>
+                <div class="image-upload-wrapper">
+                  <input type="file" class="form-control" id="feedbackImage" 
+                         accept="image/*" style="display: none;">
+                  <div class="image-upload-preview" id="imagePreview" style="display: none;">
+                    <img id="previewImage" src="" alt="Preview" class="img-thumbnail">
+                    <button type="button" class="btn btn-sm btn-danger mt-2" id="removeImageBtn">
+                      <i class="fas fa-times me-1"></i>Remove
+                    </button>
+                  </div>
+                  <button type="button" class="btn btn-outline-secondary w-100" id="selectImageBtn">
+                    <i class="fas fa-upload me-2"></i>Choose Image
+                  </button>
+                </div>
+                <small class="text-muted">Maximum file size: 5MB. Supported formats: JPG, PNG, WebP, GIF</small>
+              </div>
+
               <button class="btn btn-send-message w-100" id="sendFeedbackBtn">
                 <i class="fas fa-paper-plane me-2"></i>Send Message
                 <span class="btn-shine"></span>
@@ -1430,6 +1451,27 @@
     </div>
   </section>
 
+  <!-- Customer Feedback Section -->
+  <section id="customer-feedback" class="py-5 bg-light">
+    <div class="container mt-5 mb-5">
+      <!-- Section Header -->
+      <div class="text-center mb-5">
+        <h2 class="display-4 fw-bold text-dark mb-3">What Our Customers Say</h2>
+        <div class="mx-auto section-header-line"></div>
+        <p class="lead text-muted mt-3">Real experiences from travelers who visited Puerto Galera</p>
+      </div>
+
+      <!-- Feedback Grid -->
+      <div class="row g-4" id="feedbackContainer">
+        <!-- Feedback cards will be dynamically loaded here -->
+        <div class="col-12 text-center">
+          <div class="spinner-border text-primary" role="status" id="feedbackLoader">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- Pop-up Modal -->
   <div class="modal fade" id="popupModal" tabindex="-1" aria-labelledby="popupModalLabel">
