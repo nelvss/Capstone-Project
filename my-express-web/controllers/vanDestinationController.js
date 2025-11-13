@@ -85,7 +85,14 @@ const uploadVanImage = async (req, res) => {
     }
 
     // Upload image to van-images bucket
-    const imageUrl = await uploadImageToStorage(imageData, fileName, 'van-images');
+    const result = await uploadImageToStorage({
+      imageData,
+      fileName,
+      bucket: 'van-images',
+      identifier: 'van-rental'
+    });
+
+    const imageUrl = result.publicUrl;
 
     // Insert into van_images table
     const { data, error } = await supabase
