@@ -878,10 +878,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Delegate click for all 'More Info' buttons
   document.body.addEventListener('click', function (e) {
-    if (e.target.matches('.btn-more-info')) {
+    const button = e.target.closest('.btn-more-info');
+    if (button) {
       e.preventDefault();
-      const title = e.target.getAttribute('data-title') || 'More Info';
-      const info = e.target.getAttribute('data-info') || '';
+      const title = button.getAttribute('data-title') || 'More Info';
+      const info = button.getAttribute('data-info') || '';
       
       document.getElementById('popupModalLabel').textContent = title;
       
