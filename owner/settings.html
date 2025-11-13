@@ -135,41 +135,12 @@
             <p class="section-subtitle">Manage tours synced with Supabase. Update categories, pricing tiers, and images stored in the <code>tour_only</code>, <code>tour_pricing</code>, and <code>tour_images</code> tables.</p>
           </div>
           <div class="vehicle-actions-bar">
-            <button id="tour-add-btn" class="btn-primary" type="button">➕ Add Tour</button>
             <button id="tour-refresh-btn" class="btn-secondary" type="button">↻ Refresh</button>
             <span id="tour-sync-status" class="vehicle-sync-status" aria-live="polite">Last synced: waiting...</span>
           </div>
         </div>
 
         <div id="tour-error" class="vehicle-error" role="alert" hidden></div>
-
-        <div id="tour-new-card" class="vehicle-card vehicle-new-card" role="article" hidden>
-          <header class="vehicle-card-header">
-            <div>
-              <h3>New Tour</h3>
-              <p class="vehicle-id">Creating new...</p>
-            </div>
-            <span class="vehicle-status-tag">New</span>
-          </header>
-          <div class="vehicle-card-body">
-            <div class="vehicle-form">
-              <label class="form-field">
-                <span>Category</span>
-                <select id="new-tour-category">
-                  <option value="">Select category</option>
-                  <option value="Inland Tour">Inland Tour</option>
-                  <option value="Snorkeling Tour">Snorkeling Tour</option>
-                  <option value="Island Hopping">Island Hopping</option>
-                </select>
-              </label>
-              <div class="vehicle-form-actions">
-                <button type="button" id="new-tour-save-btn" class="btn-primary">Create Tour</button>
-                <button type="button" id="new-tour-cancel-btn" class="btn-secondary">Cancel</button>
-                <span id="new-tour-status" aria-live="polite"></span>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div id="tour-list" class="vehicle-list" role="list"></div>
 

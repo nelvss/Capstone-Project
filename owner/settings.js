@@ -3280,109 +3280,6 @@ async function handlePricingDelete({ tourId, pricingId, tierWrapper, inlineStatu
   }
 }
 
-function showNewTourCard() {
-  const newCard = document.getElementById('tour-new-card');
-  const listContainer = tourUI.list?.parentElement;
-
-  if (!newCard || !listContainer) {
-    return;
-  }
-
-  if (newCard.parentElement !== listContainer) {
-    listContainer.insertBefore(newCard, tourUI.list);
-  }
-
-  newCard.hidden = false;
-  newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function hideNewTourCard() {
-  const newCard = document.getElementById('tour-new-card');
-  if (newCard) {
-    newCard.hidden = true;
-  }
-}
-
-function clearNewTourForm() {
-  const categoryInput = document.getElementById('new-tour-category');
-  const statusEl = document.getElementById('new-tour-status');
-
-  if (categoryInput) {
-    categoryInput.value = '';
-  }
-  if (statusEl) {
-    statusEl.textContent = '';
-    delete statusEl.dataset.status;
-  }
-}
-
-async function handleCreateTour() {
-  const categoryInput = document.getElementById('new-tour-category');
-  const statusEl = document.getElementById('new-tour-status');
-  const saveBtn = document.getElementById('new-tour-save-btn');
-  const cancelBtn = document.getElementById('new-tour-cancel-btn');
-
-  if (!categoryInput || !statusEl || !saveBtn || !cancelBtn) {
-    return;
-  }
-
-  const category = (categoryInput.value || '').trim();
-
-  if (!category) {
-    showInlineStatus(statusEl, 'Select a category.', 'error');
-    setTimeout(() => clearInlineStatus(statusEl), 3000);
-    return;
-  }
-
-  const payload = {
-    category
-  };
-
-  showInlineStatus(statusEl, 'Creating tour...');
-  saveBtn.disabled = true;
-  cancelBtn.disabled = true;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/tours`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(payload),
-      cache: 'no-cache'
-    });
-
-    const result = await parseJsonResponse(response);
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to create tour');
-    }
-
-    const newTour = result.tour;
-    
-    setTourData([...tourState.data, newTour]);
-    
-    const newCardFragment = createTourCard(newTour);
-    if (tourUI.list && newCardFragment) {
-      tourUI.list.appendChild(newCardFragment);
-    } else {
-      renderTours();
-    }
-    
-    hideNewTourCard();
-    clearNewTourForm();
-    showSuccessMessage(`${newTour.category || 'Tour'} created successfully!`);
-  } catch (error) {
-    console.error('❌ Error creating tour:', error);
-    showInlineStatus(statusEl, `Creation failed: ${error.message}`, 'error');
-  } finally {
-    saveBtn.disabled = false;
-    cancelBtn.disabled = false;
-    setTimeout(() => clearInlineStatus(statusEl), 4000);
-  }
-}
-
 function initializeTourManager() {
   tourUI.list = document.getElementById('tour-list');
   tourUI.error = document.getElementById('tour-error');
@@ -3395,27 +3292,6 @@ function initializeTourManager() {
   }
 
   updateTourSyncStatus();
-
-  const addBtn = document.getElementById('tour-add-btn');
-  if (addBtn) {
-    addBtn.addEventListener('click', () => {
-      showNewTourCard();
-      document.getElementById('new-tour-category')?.focus();
-    });
-  }
-
-  const cancelBtn = document.getElementById('new-tour-cancel-btn');
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
-      hideNewTourCard();
-      clearNewTourForm();
-    });
-  }
-
-  const saveBtn = document.getElementById('new-tour-save-btn');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', handleCreateTour);
-  }
 
   if (tourUI.refreshBtn) {
     tourUI.refreshBtn.addEventListener('click', () => {
