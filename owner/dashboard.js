@@ -1929,7 +1929,7 @@ function renderTable() {
   const tbody = document.getElementById('booking-table-body');
   if (!tbody) return; // Not on dashboard page
   tbody.innerHTML = '';
-  const rows = bookings.filter(b => ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter));
+  const rows = bookings.filter(b => ownerStatusFilter === 'all' ? true : (b.status === ownerStatusFilter));
   rows.forEach(b => {
     const tr = document.createElement('tr');
     const actions = ownerStatusFilter === 'all' 
