@@ -68,25 +68,9 @@ async function uploadImageToStorage({
 
   console.log(`📤 Uploading image to bucket "${bucket}" as ${uniqueFileName} (MIME: ${mimeType})`);
 
-  // Check if bucket exists first
-  const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-  if (listError) {
-    console.error('❌ Error listing buckets:', listError);
-    console.error('Full error details:', JSON.stringify(listError, null, 2));
-  } else {
-    console.log(`📋 Available buckets:`, buckets?.map(b => b.name) || []);
-    const bucketExists = buckets?.some(b => b.name === bucket);
-    if (!bucketExists) {
-      const error = new Error(`Bucket "${bucket}" does not exist. Please create it in Supabase Storage.`);
-      error.statusCode = 404;
-      error.details = { bucket, availableBuckets: buckets?.map(b => b.name) || [] };
-      throw error;
-    } else {
-      console.log(`✅ Bucket "${bucket}" found`);
-    }
-  }
-
-  const { error: uploadError } = await supabase.storage
+  // Try to upload directly - bucket listing may not work with service role key
+  // Since bucket exists and has public policies, we'll attempt upload directly
+  const { data: uploadData, error: uploadError } = await supabase.storage
     .from(bucket)
     .upload(uniqueFileName, buffer, {
       contentType: mimeType,
@@ -119,6 +103,11 @@ async function uploadImageToStorage({
     error.statusCode = 500;
     error.details = uploadError;
     throw error;
+  }
+
+  // If upload succeeded, get the public URL
+  if (uploadData) {
+    console.log(`✅ Upload successful, path: ${uploadData.path}`);
   }
 
   const { data: urlData, error: urlError } = supabase.storage
