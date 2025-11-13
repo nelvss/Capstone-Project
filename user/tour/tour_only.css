@@ -873,6 +873,7 @@ body {
     box-sizing: border-box !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 #placeSelect option {
@@ -880,6 +881,13 @@ body {
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
+}
+
+/* Force the form-select to not exceed container */
+.van-fixed-col .form-select {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Button styles */
