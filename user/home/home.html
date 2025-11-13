@@ -1421,22 +1421,24 @@
               <!-- Image Upload Section -->
               <div class="mb-4">
                 <label for="feedbackImage" class="form-label">
-                  <i class="fas fa-image me-2"></i>Share a Photo (Optional)
+                  <i class="fas fa-image me-2"></i>Share Photos (Optional)
                 </label>
                 <div class="image-upload-wrapper">
                   <input type="file" class="form-control" id="feedbackImage" 
-                         accept="image/*" style="display: none;">
-                  <div class="image-upload-preview" id="imagePreview" style="display: none;">
-                    <img id="previewImage" src="" alt="Preview" class="img-thumbnail">
-                    <button type="button" class="btn btn-sm btn-danger mt-2" id="removeImageBtn">
-                      <i class="fas fa-times me-1"></i>Remove
+                         accept="image/*" multiple style="display: none;">
+                  <div class="image-upload-preview" id="imagePreviewContainer" style="display: none;">
+                    <div class="row g-2" id="imagePreviewGrid">
+                      <!-- Preview images will be dynamically added here -->
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger mt-2" id="removeAllImagesBtn">
+                      <i class="fas fa-times me-1"></i>Remove All
                     </button>
                   </div>
                   <button type="button" class="btn btn-outline-secondary w-100" id="selectImageBtn">
-                    <i class="fas fa-upload me-2"></i>Choose Image
+                    <i class="fas fa-upload me-2"></i>Choose Images
                   </button>
                 </div>
-                <small class="text-muted">Maximum file size: 5MB. Supported formats: JPG, PNG, WebP, GIF</small>
+                <small class="text-muted">Maximum file size: 5MB per image. Supported formats: JPG, PNG, WebP, GIF. You can select multiple images.</small>
               </div>
 
               <button class="btn btn-send-message w-100" id="sendFeedbackBtn">

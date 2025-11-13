@@ -3,7 +3,7 @@ const { uploadImageToStorage } = require('../utils/imageUpload');
 
 const submitFeedback = async (req, res) => {
   try {
-    const { message, rating, imageData, fileName } = req.body;
+    const { message, rating, images } = req.body;
     
     if (!message || message.trim() === '') {
       return res.status(400).json({ 
@@ -26,7 +26,7 @@ const submitFeedback = async (req, res) => {
     console.log('📝 Submitting feedback:', { 
       message: message.trim(), 
       rating: rating || 'not provided',
-      hasImage: !!imageData 
+      imageCount: images ? images.length : 0
     });
     
     // Build feedback object
@@ -41,23 +41,31 @@ const submitFeedback = async (req, res) => {
       feedbackData.rating = parseInt(rating);
     }
     
-    // Handle image upload if provided
-    if (imageData && fileName) {
-      try {
-        const uploadResult = await uploadImageToStorage({
-          imageData,
-          fileName,
-          bucket: 'feedback-images',
-          keyPrefix: 'feedback',
-          identifier: 'feedback'
-        });
-        
-        feedbackData.image_url = uploadResult.publicUrl;
-        console.log('✅ Image uploaded successfully:', uploadResult.publicUrl);
-      } catch (uploadError) {
-        console.error('❌ Image upload error:', uploadError);
-        // Continue without image if upload fails
-        // Or return error if image is required
+    // Handle multiple image uploads if provided
+    if (images && Array.isArray(images) && images.length > 0) {
+      const uploadedUrls = [];
+      
+      for (const imageItem of images) {
+        try {
+          const uploadResult = await uploadImageToStorage({
+            imageData: imageItem.data,
+            fileName: imageItem.fileName,
+            bucket: 'feedback-images',
+            keyPrefix: 'feedback',
+            identifier: 'feedback'
+          });
+          
+          uploadedUrls.push(uploadResult.publicUrl);
+          console.log('✅ Image uploaded successfully:', uploadResult.publicUrl);
+        } catch (uploadError) {
+          console.error('❌ Image upload error:', uploadError);
+          // Continue with other images if one fails
+        }
+      }
+      
+      // Store image URLs as JSON array in image_url field
+      if (uploadedUrls.length > 0) {
+        feedbackData.image_url = JSON.stringify(uploadedUrls);
       }
     }
     

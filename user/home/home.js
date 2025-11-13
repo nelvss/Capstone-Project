@@ -1083,16 +1083,77 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Image upload handling
-  let selectedImageFile = null;
-  let selectedImageData = null;
+  // Image upload handling - support multiple images
+  let selectedImageFiles = [];
+  let selectedImageDataArray = [];
+  let imageIdCounter = 0;
 
   // Image selection button
   const selectImageBtn = document.getElementById('selectImageBtn');
   const feedbackImageInput = document.getElementById('feedbackImage');
-  const imagePreview = document.getElementById('imagePreview');
-  const previewImage = document.getElementById('previewImage');
-  const removeImageBtn = document.getElementById('removeImageBtn');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+  const imagePreviewGrid = document.getElementById('imagePreviewGrid');
+  const removeAllImagesBtn = document.getElementById('removeAllImagesBtn');
+
+  function updateImagePreviews() {
+    if (selectedImageFiles.length === 0) {
+      imagePreviewContainer.style.display = 'none';
+      if (selectImageBtn) selectImageBtn.textContent = 'Choose Images';
+      return;
+    }
+
+    imagePreviewContainer.style.display = 'block';
+    if (selectImageBtn) selectImageBtn.textContent = `Add More Images (${selectedImageFiles.length} selected)`;
+    
+    // Clear existing previews
+    imagePreviewGrid.innerHTML = '';
+    
+    // Add preview for each image
+    selectedImageFiles.forEach((file, index) => {
+      const imageId = file.imageId || `img-${imageIdCounter++}`;
+      file.imageId = imageId;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'col-6 col-md-4 col-lg-3';
+        previewDiv.innerHTML = `
+          <div class="position-relative">
+            <img src="${event.target.result}" alt="Preview ${index + 1}" 
+                 class="img-thumbnail w-100" style="height: 150px; object-fit: cover;">
+            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 remove-single-image" 
+                    data-image-id="${imageId}" style="opacity: 0.9;">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `;
+        imagePreviewGrid.appendChild(previewDiv);
+        
+        // Add remove button handler
+        const removeBtn = previewDiv.querySelector('.remove-single-image');
+        removeBtn.addEventListener('click', () => {
+          removeImage(imageId);
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function removeImage(imageId) {
+    const fileIndex = selectedImageFiles.findIndex(f => f.imageId === imageId);
+    if (fileIndex !== -1) {
+      selectedImageFiles.splice(fileIndex, 1);
+      selectedImageDataArray.splice(fileIndex, 1);
+      updateImagePreviews();
+    }
+  }
+
+  function removeAllImages() {
+    selectedImageFiles = [];
+    selectedImageDataArray = [];
+    if (feedbackImageInput) feedbackImageInput.value = '';
+    updateImagePreviews();
+  }
 
   if (selectImageBtn && feedbackImageInput) {
     selectImageBtn.addEventListener('click', () => {
@@ -1100,42 +1161,70 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     feedbackImageInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
+      const files = Array.from(e.target.files);
+      
+      if (files.length === 0) return;
+      
+      // Validate each file
+      const validFiles = [];
+      const invalidFiles = [];
+      
+      files.forEach((file, index) => {
         // Validate file size (5MB max)
         if (file.size > 5 * 1024 * 1024) {
-          alert('Image size must be less than 5MB');
+          invalidFiles.push(`${file.name} (too large)`);
           return;
         }
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-          alert('Please select a valid image file');
+          invalidFiles.push(`${file.name} (not an image)`);
           return;
         }
 
-        selectedImageFile = file;
-        
-        // Convert to base64 for preview and upload
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          selectedImageData = event.target.result;
-          previewImage.src = selectedImageData;
-          imagePreview.style.display = 'block';
-          selectImageBtn.textContent = 'Change Image';
-        };
-        reader.readAsDataURL(file);
+        validFiles.push(file);
+      });
+      
+      if (invalidFiles.length > 0) {
+        alert('Some files were skipped:\n' + invalidFiles.join('\n') + '\n\nPlease ensure files are images under 5MB each.');
+      }
+      
+      if (validFiles.length > 0) {
+        // Add valid files to arrays
+        const startIndex = selectedImageFiles.length;
+        validFiles.forEach((file, fileIndex) => {
+          // Assign unique ID to file
+          if (!file.imageId) {
+            file.imageId = `img-${imageIdCounter++}`;
+          }
+          const arrayIndex = startIndex + fileIndex;
+          selectedImageFiles.push(file);
+          
+          // Initialize placeholder in data array
+          selectedImageDataArray.push(null);
+          
+          // Convert to base64
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            selectedImageDataArray[arrayIndex] = {
+              data: event.target.result,
+              fileName: file.name
+            };
+            
+            // Update previews when all files are loaded
+            const allLoaded = selectedImageDataArray.every(item => item !== null);
+            if (allLoaded && selectedImageDataArray.length === selectedImageFiles.length) {
+              updateImagePreviews();
+            }
+          };
+          reader.readAsDataURL(file);
+        });
       }
     });
 
-    if (removeImageBtn) {
-      removeImageBtn.addEventListener('click', () => {
-        selectedImageFile = null;
-        selectedImageData = null;
-        feedbackImageInput.value = '';
-        imagePreview.src = '';
-        imagePreview.style.display = 'none';
-        selectImageBtn.textContent = 'Choose Image';
+    if (removeAllImagesBtn) {
+      removeAllImagesBtn.addEventListener('click', () => {
+        removeAllImages();
       });
     }
   }
@@ -1166,10 +1255,10 @@ document.addEventListener('DOMContentLoaded', function () {
           feedbackData.rating = selectedRating;
         }
         
-        // Add image if selected
-        if (selectedImageData && selectedImageFile) {
-          feedbackData.imageData = selectedImageData;
-          feedbackData.fileName = selectedImageFile.name;
+        // Add images if selected (filter out null values)
+        const validImages = selectedImageDataArray.filter(img => img !== null);
+        if (validImages.length > 0) {
+          feedbackData.images = validImages;
         }
         
         const response = await fetch(`${API_BASE_URL}/submit-feedback`, {
@@ -1186,12 +1275,12 @@ document.addEventListener('DOMContentLoaded', function () {
           // Clear the form
           document.getElementById('feedback').value = '';
           
-          // Reset image
-          selectedImageFile = null;
-          selectedImageData = null;
+          // Reset images
+          selectedImageFiles = [];
+          selectedImageDataArray = [];
           if (feedbackImageInput) feedbackImageInput.value = '';
-          if (imagePreview) imagePreview.style.display = 'none';
-          if (selectImageBtn) selectImageBtn.textContent = 'Choose Image';
+          if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+          if (selectImageBtn) selectImageBtn.textContent = 'Choose Images';
           
           // Reset star rating
           selectedRating = 0;
@@ -1275,14 +1364,62 @@ async function loadFeedback() {
           i < fb.rating ? '<i class="fas fa-star text-warning"></i>' : '<i class="far fa-star text-warning"></i>'
         ).join('') : '';
         
+        // Parse image URLs (can be single string or JSON array)
+        let imageUrls = [];
+        if (fb.image_url) {
+          try {
+            // Try to parse as JSON array
+            const parsed = JSON.parse(fb.image_url);
+            imageUrls = Array.isArray(parsed) ? parsed : [fb.image_url];
+          } catch (e) {
+            // If not JSON, treat as single URL string
+            imageUrls = [fb.image_url];
+          }
+        }
+        
+        const imagesHtml = imageUrls.length > 0 ? `
+          <div class="feedback-images-container">
+            ${imageUrls.length === 1 ? `
+              <img src="${imageUrls[0]}" class="card-img-top feedback-image" alt="Feedback image" 
+                   style="height: 200px; object-fit: cover; cursor: pointer;"
+                   onclick="window.open('${imageUrls[0]}', '_blank')">
+            ` : `
+              <div id="carousel-${fb.feedback_id}" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                  ${imageUrls.map((url, idx) => `
+                    <div class="carousel-item ${idx === 0 ? 'active' : ''}">
+                      <img src="${url}" class="d-block w-100 feedback-image" alt="Feedback image ${idx + 1}" 
+                           style="height: 200px; object-fit: cover; cursor: pointer;"
+                           onclick="window.open('${url}', '_blank')">
+                    </div>
+                  `).join('')}
+                </div>
+                ${imageUrls.length > 1 ? `
+                  <button class="carousel-control-prev" type="button" data-bs-target="#carousel-${fb.feedback_id}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#carousel-${fb.feedback_id}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                  </button>
+                  <div class="carousel-indicators">
+                    ${imageUrls.map((_, idx) => `
+                      <button type="button" data-bs-target="#carousel-${fb.feedback_id}" data-bs-slide-to="${idx}" 
+                              class="${idx === 0 ? 'active' : ''}" aria-current="${idx === 0 ? 'true' : 'false'}" 
+                              aria-label="Slide ${idx + 1}"></button>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `}
+          </div>
+        ` : '';
+        
         return `
           <div class="col-md-6 col-lg-4">
             <div class="card feedback-card h-100 shadow-sm">
-              ${fb.image_url ? `
-                <img src="${fb.image_url}" class="card-img-top feedback-image" alt="Feedback image" 
-                     style="height: 200px; object-fit: cover; cursor: pointer;"
-                     onclick="window.open('${fb.image_url}', '_blank')">
-              ` : ''}
+              ${imagesHtml}
               <div class="card-body d-flex flex-column">
                 <div class="mb-2">
                   ${stars}
