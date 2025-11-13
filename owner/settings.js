@@ -4587,7 +4587,8 @@ async function handleUploadVanImage(file) {
   setVanImagesError('');
 
   try {
-    const imageData = await readFileAsBase64(file);
+    // Compress image before uploading to avoid payload size issues
+    const imageData = await compressImage(file, 2); // Compress to max 2MB
 
     const response = await fetch(`${API_BASE_URL}/van-images/upload`, {
       method: 'POST',
