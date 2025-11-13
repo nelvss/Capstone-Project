@@ -1,39 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
-body {
-    font-family: 'Poppins', sans-serif;
-}
-
 /* ===== GLOBAL FORM STYLING ===== */
-#book-form {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 2rem 0;
-}
-
-/* Package Summary Background Image */
-#form-step-3 {
-    background-image: url('/Images/white_beach.jpg');
+body {
+    background-image: url('../../Images/white_beach.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    position: relative;
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
 }
 
-#form-step-3::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.85);
-    z-index: 0;
-}
-
-#form-step-3 > .container-fluid {
-    position: relative;
-    z-index: 1;
+#book-form {
+    background-color: transparent;
+    padding: 2rem 0;
 }
 
 /* Enhanced Header Styling */
@@ -105,6 +85,10 @@ body {
     border-radius: 15px;
     overflow: visible;
     min-height: 500px;
+    background-color: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 #form-step-1 .card {
@@ -124,9 +108,10 @@ body {
 }
 
 .card-body {
-    background-color: #f8f9fa;
+    background-color: rgba(248, 249, 250, 0.9);
     padding: 2.5rem !important;
     min-height: 400px;
+    border-radius: 0 0 15px 15px;
 }
 
 /* ===== FORM CONTROLS STYLING ===== */
@@ -285,7 +270,7 @@ body {
 
 .card-body {
     padding: 1.5rem;
-    background: #ffffff;
+    background-color: rgba(248, 249, 250, 0.9);
 }
 
 /* ===== INFO ITEMS STYLING ===== */
@@ -1000,7 +985,7 @@ body {
 }
 
 #form-step-3 .card-body {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background-color: rgba(248, 249, 250, 0.9);
     padding: 2.5rem !important;
 }
 
@@ -1082,7 +1067,7 @@ body {
 /* Card body styling */
 #form-step-3 .card-body {
     padding: 1.75rem;
-    background: #ffffff;
+    background-color: rgba(248, 249, 250, 0.9);
 }
 
 /* Personal Information specific adjustments */
