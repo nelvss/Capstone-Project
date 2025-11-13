@@ -1963,7 +1963,7 @@ function renderTable() {
       <td>${b.email}</td>
       <td>
         <span class="action-badge cancelled">Cancelled</span>
-      </td>` : ownerStatusFilter === 'rescheduled' ? `
+      </td>` : ownerStatusFilter === 'edited' ? `
       <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
@@ -2098,7 +2098,7 @@ function filterTable(searchTerm) {
       <td>${b.email}</td>
       <td>
         <span class="action-badge cancelled">Cancelled</span>
-      </td>` : ownerStatusFilter === 'rescheduled' ? `
+      </td>` : ownerStatusFilter === 'edited' ? `
       <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
