@@ -17,14 +17,28 @@ console.log('Current working directory:', process.cwd());
 
 // Middleware
 const corsOptions = {
-  origin: [
-    "https://otgpuertogaleratravel.com",
-    "https://www.otgpuertogaleratravel.com",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000"
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      "https://otgpuertogaleratravel.com",
+      "https://www.otgpuertogaleratravel.com",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost",
+      "http://127.0.0.1"
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn('⚠️ CORS: Origin not allowed:', origin);
+      callback(null, true); // Allow anyway for now, but log it
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
     'Content-Type',
     'Authorization',
@@ -33,26 +47,41 @@ const corsOptions = {
     'Cache-Control',
     'cache-control',
     'Pragma',
-    'pragma'
+    'pragma',
+    'Accept',
+    'Origin'
   ],
-  optionsSuccessStatus: 200
+  exposedHeaders: ['Content-Length', 'Content-Type'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 };
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-
-// Add CORS headers manually as a fallback to ensure they're always set
-app.use((req, res, next) => {
+// Handle OPTIONS requests FIRST - before CORS middleware
+app.options('*', (req, res) => {
   const origin = req.headers.origin;
-  // Check if origin is in allowed list, or allow all for development
-  if (origin && corsOptions.origin.includes(origin)) {
+  console.log('🔍 OPTIONS request from origin:', origin);
+  
+  if (origin) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma');
-  } else if (origin) {
-    // Log if origin is not in allowed list for debugging
-    console.warn('⚠️ CORS: Origin not in allowed list:', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Accept, Origin');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  }
+  res.sendStatus(200);
+});
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Add CORS headers manually as a fallback to ensure they're always set on ALL requests
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Accept, Origin');
   }
   next();
 });
