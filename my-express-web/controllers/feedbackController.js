@@ -299,10 +299,14 @@ const deleteFeedback = async (req, res) => {
     }
     
     // Delete feedback from database
-    const { error } = await supabase
+    // Use select() to get the deleted rows back for verification
+    const deleteQuery = supabase
       .from('feedback')
       .delete()
-      .eq('feedback_id', id);
+      .eq('feedback_id', id)
+      .select();
+    
+    const { data: deleteData, error } = await deleteQuery;
     
     if (error) {
       console.error('❌ Error deleting feedback:', error);
@@ -313,11 +317,58 @@ const deleteFeedback = async (req, res) => {
       });
     }
     
-    console.log('✅ Feedback deleted successfully from database');
+    // Check if any rows were actually deleted
+    if (!deleteData || deleteData.length === 0) {
+      console.warn('⚠️ No feedback was deleted. ID might not exist or type mismatch:', id);
+      // Try with number conversion if id is a string
+      const numericId = parseInt(id, 10);
+      if (!isNaN(numericId) && numericId.toString() !== id) {
+        console.log('🔄 Retrying delete with numeric ID:', numericId);
+        const retryQuery = supabase
+          .from('feedback')
+          .delete()
+          .eq('feedback_id', numericId)
+          .select();
+        const { data: retryData, error: retryError } = await retryQuery;
+        
+        if (retryError) {
+          console.error('❌ Error deleting feedback (retry):', retryError);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Failed to delete feedback',
+            error: retryError.message 
+          });
+        }
+        
+        if (!retryData || retryData.length === 0) {
+          console.error('❌ Feedback not found with ID:', id, 'or numeric ID:', numericId);
+          return res.status(404).json({ 
+            success: false, 
+            message: 'Feedback not found or already deleted'
+          });
+        }
+        
+        console.log('✅ Feedback deleted successfully (retry). Deleted:', retryData);
+        return res.json({ 
+          success: true, 
+          message: 'Feedback and associated images deleted successfully',
+          deletedCount: retryData.length
+        });
+      } else {
+        console.error('❌ Feedback not found with ID:', id);
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Feedback not found or already deleted'
+        });
+      }
+    }
+    
+    console.log('✅ Feedback deleted successfully from database. Deleted:', deleteData);
     
     res.json({ 
       success: true, 
-      message: 'Feedback and associated images deleted successfully'
+      message: 'Feedback and associated images deleted successfully',
+      deletedCount: deleteData.length
     });
     
   } catch (error) {
