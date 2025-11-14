@@ -17,28 +17,14 @@ console.log('Current working directory:', process.cwd());
 
 // Middleware
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      "https://otgpuertogaleratravel.com",
-      "https://www.otgpuertogaleratravel.com",
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-      "http://localhost",
-      "http://127.0.0.1"
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn('⚠️ CORS: Origin not allowed:', origin);
-      callback(null, true); // Allow anyway for now, but log it
-    }
-  },
+  origin: [
+    "https://otgpuertogaleratravel.com",
+    "https://www.otgpuertogaleratravel.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',
     'Authorization',
@@ -47,44 +33,13 @@ const corsOptions = {
     'Cache-Control',
     'cache-control',
     'Pragma',
-    'pragma',
-    'Accept',
-    'Origin'
+    'pragma'
   ],
-  exposedHeaders: ['Content-Length', 'Content-Type'],
-  optionsSuccessStatus: 200,
-  preflightContinue: false
+  optionsSuccessStatus: 200
 };
 
-// Handle OPTIONS requests FIRST - before CORS middleware
-app.options('*', (req, res) => {
-  const origin = req.headers.origin;
-  console.log('🔍 OPTIONS request from origin:', origin);
-  
-  if (origin) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Accept, Origin');
-    res.header('Access-Control-Max-Age', '86400'); // 24 hours
-  }
-  res.sendStatus(200);
-});
-
-// Apply CORS middleware
 app.use(cors(corsOptions));
-
-// Add CORS headers manually as a fallback to ensure they're always set on ALL requests
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Cache-Control, Pragma, Accept, Origin');
-  }
-  next();
-});
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 image uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -159,38 +114,6 @@ app.use('/api', require('./routes/settingsRoutes'));
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date().toISOString() });
-});
-
-// Global error handler - ensure CORS headers are always set
-app.use((err, req, res, next) => {
-  console.error('❌ Global error handler:', err);
-  
-  // Set CORS headers even for errors
-  const origin = req.headers.origin;
-  if (origin && corsOptions.origin.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-  }
-  
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
-});
-
-// 404 handler - ensure CORS headers are set
-app.use((req, res) => {
-  const origin = req.headers.origin;
-  if (origin && corsOptions.origin.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', 'true');
-  }
-  
-  res.status(404).json({
-    success: false,
-    message: 'Endpoint not found'
-  });
 });
 
 // Start server
