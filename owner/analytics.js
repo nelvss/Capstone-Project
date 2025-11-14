@@ -240,6 +240,25 @@ async function fetchAnalyticsDataFromApi() {
       console.warn('⚠️ Failed to load booking demand time-series:', error.message);
     }
     
+    // Load seasonal prediction (non-blocking)
+    try {
+      const currentYear = new Date().getFullYear();
+      const seasonalParams = new URLSearchParams({
+        year: currentYear.toString(),
+        lookback_years: '2'
+      });
+      const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction?${seasonalParams.toString()}`);
+      const seasonalResult = await seasonalResponse.json();
+      if (seasonalResponse.ok && seasonalResult.success) {
+        analyticsData.seasonal_prediction = seasonalResult.data;
+        successCount++;
+      } else {
+        console.warn('⚠️ Seasonal prediction not available', seasonalResult?.message);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load seasonal prediction:', error.message);
+    }
+    
     if (successCount > 0) {
       console.log(`✅ Analytics data loaded successfully (${successCount}/4 endpoints)`);
       return true;
@@ -663,6 +682,7 @@ function initializeNavigation() {
 // Initialize all charts
 function initializeCharts() {
     createDemandPredictionChart();
+    createSeasonalPredictionChart();
     // New analytics charts
     createBookingStatusChart();
     createBookingTypeChart();
@@ -1302,6 +1322,159 @@ function createWeatherImpactChart() {
             }
         }
     });
+}
+
+// Seasonal Prediction Chart (Peak vs Low Seasons)
+async function createSeasonalPredictionChart() {
+  const canvas = document.getElementById('seasonalPredictionChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  const statusEl = document.getElementById('seasonalPredictionStatus');
+  if (statusEl) {
+    statusEl.textContent = 'Loading seasonal forecast...';
+    statusEl.className = 'small text-muted mb-2';
+  }
+  
+  try {
+    const seasonalData = analyticsData.seasonal_prediction;
+    
+    if (!seasonalData || !seasonalData.has_sufficient_data) {
+      if (chartInstances['seasonalPredictionChart']) {
+        chartInstances['seasonalPredictionChart'].destroy();
+        chartInstances['seasonalPredictionChart'] = null;
+      }
+      if (statusEl) {
+        statusEl.textContent = seasonalData?.message || 'Not enough historical data to predict seasonal patterns yet.';
+        statusEl.className = 'small text-warning mb-2';
+      }
+      return;
+    }
+    
+    const months = seasonalData.months || [];
+    const labels = months.map(m => m.month_name);
+    const predictedBookings = months.map(m => m.predicted_bookings);
+    const predictedRevenue = months.map(m => m.predicted_revenue / 1000); // Convert to thousands
+    
+    // Color code based on season classification
+    const backgroundColors = months.map(m => {
+      const percentage = (m.predicted_bookings / seasonalData.average_monthly_bookings) * 100;
+      if (percentage >= 125) return 'rgba(220, 53, 69, 0.7)'; // Peak - Red
+      if (percentage <= 75) return 'rgba(13, 110, 253, 0.7)'; // Low - Blue
+      return 'rgba(255, 193, 7, 0.7)'; // Moderate - Yellow
+    });
+    
+    if (chartInstances['seasonalPredictionChart']) {
+      chartInstances['seasonalPredictionChart'].destroy();
+    }
+    
+    chartInstances['seasonalPredictionChart'] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Predicted Bookings',
+            data: predictedBookings,
+            backgroundColor: backgroundColors,
+            borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+            borderWidth: 2,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Predicted Revenue (₱K)',
+            data: predictedRevenue,
+            type: 'line',
+            borderColor: '#20c997',
+            backgroundColor: 'rgba(32, 201, 151, 0.1)',
+            borderWidth: 3,
+            fill: false,
+            tension: 0.4,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Predicted Bookings'
+            },
+            beginAtZero: true
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Revenue (₱K)'
+            },
+            beginAtZero: true,
+            grid: {
+              drawOnChartArea: false
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const value = context.parsed.y;
+                if (label.includes('Revenue')) {
+                  return `${label}: ₱${value.toFixed(1)}K`;
+                }
+                return `${label}: ${Math.round(value)} bookings`;
+              },
+              afterLabel: (context) => {
+                const monthData = months[context.dataIndex];
+                if (context.datasetIndex === 0 && monthData) {
+                  const percentage = monthData.percentage_of_average || 
+                    ((monthData.predicted_bookings / seasonalData.average_monthly_bookings) * 100).toFixed(0);
+                  return `${percentage}% of average\nTrend: ${monthData.trend}`;
+                }
+                return '';
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    // Update status message
+    if (statusEl) {
+      const peakMonthsText = seasonalData.peak_months?.map(m => m.month).join(', ') || 'None';
+      const lowMonthsText = seasonalData.low_months?.map(m => m.month).join(', ') || 'None';
+      statusEl.innerHTML = `<strong>Peak Season:</strong> ${peakMonthsText} • <strong>Low Season:</strong> ${lowMonthsText} • Based on ${seasonalData.lookback_years} years of data`;
+      statusEl.className = 'small text-info mb-2';
+    }
+    
+  } catch (error) {
+    console.error('❌ Failed to create seasonal prediction chart:', error);
+    if (chartInstances['seasonalPredictionChart']) {
+      chartInstances['seasonalPredictionChart'].destroy();
+      chartInstances['seasonalPredictionChart'] = null;
+    }
+    if (statusEl) {
+      statusEl.textContent = 'Unable to generate seasonal forecast. Please try again later.';
+      statusEl.className = 'small text-danger mb-2';
+    }
+  }
 }
 
 // Demand Prediction Chart (TensorFlow.js powered)

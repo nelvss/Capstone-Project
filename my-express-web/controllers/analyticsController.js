@@ -1200,6 +1200,216 @@ const getBookingDemandTimeseries = async (req, res) => {
   }
 };
 
+// Get seasonal prediction (Peak vs Low seasons by month)
+const getSeasonalPrediction = async (req, res) => {
+  try {
+    const { year, lookback_years = 2 } = req.query;
+    const targetYear = year ? parseInt(year) : new Date().getFullYear();
+    const lookbackYears = Math.min(Math.max(parseInt(lookback_years), 1), 5);
+    
+    console.log('📊 Generating seasonal prediction:', { targetYear, lookbackYears });
+    
+    // Fetch historical booking data for the past years
+    const startDate = new Date(targetYear - lookbackYears, 0, 1).toISOString();
+    const endDate = new Date(targetYear - 1, 11, 31, 23, 59, 59).toISOString();
+    
+    let query = supabase
+      .from('bookings')
+      .select('booking_id, arrival_date, created_at, status, number_of_tourist, total_price')
+      .gte('arrival_date', startDate)
+      .lte('arrival_date', endDate)
+      .in('status', ['confirmed', 'completed']);
+    
+    const { data: historicalBookings, error } = await query;
+    
+    if (error) {
+      console.error('❌ Error fetching historical bookings:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch historical booking data', 
+        error: error.message 
+      });
+    }
+    
+    if (!historicalBookings || historicalBookings.length === 0) {
+      console.warn('ℹ️ No historical booking data found for seasonal prediction');
+      return res.json({
+        success: true,
+        data: {
+          generated_at: new Date().toISOString(),
+          target_year: targetYear,
+          lookback_years: lookbackYears,
+          has_sufficient_data: false,
+          message: 'Insufficient historical data for seasonal prediction',
+          months: [],
+          peak_months: [],
+          low_months: []
+        }
+      });
+    }
+    
+    // Group bookings by month across all years
+    const monthlyData = {};
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    // Initialize monthly data structure
+    for (let i = 0; i < 12; i++) {
+      monthlyData[i] = {
+        month_number: i + 1,
+        month_name: monthNames[i],
+        bookings: [],
+        total_bookings: 0,
+        total_tourists: 0,
+        total_revenue: 0,
+        years_data: {}
+      };
+    }
+    
+    // Aggregate historical data by month
+    historicalBookings.forEach(booking => {
+      const date = new Date(booking.arrival_date || booking.created_at);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      
+      if (!monthlyData[month].years_data[year]) {
+        monthlyData[month].years_data[year] = {
+          bookings: 0,
+          tourists: 0,
+          revenue: 0
+        };
+      }
+      
+      monthlyData[month].bookings.push(booking);
+      monthlyData[month].total_bookings++;
+      monthlyData[month].total_tourists += parseInt(booking.number_of_tourist) || 0;
+      monthlyData[month].total_revenue += parseFloat(booking.total_price) || 0;
+      
+      monthlyData[month].years_data[year].bookings++;
+      monthlyData[month].years_data[year].tourists += parseInt(booking.number_of_tourist) || 0;
+      monthlyData[month].years_data[year].revenue += parseFloat(booking.total_price) || 0;
+    });
+    
+    // Calculate averages and predictions for target year
+    const monthlyPredictions = [];
+    
+    for (let i = 0; i < 12; i++) {
+      const monthData = monthlyData[i];
+      const yearsCount = Object.keys(monthData.years_data).length || 1;
+      
+      const avgBookings = monthData.total_bookings / yearsCount;
+      const avgTourists = monthData.total_tourists / yearsCount;
+      const avgRevenue = monthData.total_revenue / yearsCount;
+      
+      // Calculate growth trend
+      const years = Object.keys(monthData.years_data).sort();
+      let trend = 'stable';
+      let growthRate = 0;
+      
+      if (years.length >= 2) {
+        const oldestYear = years[0];
+        const newestYear = years[years.length - 1];
+        const oldBookings = monthData.years_data[oldestYear].bookings;
+        const newBookings = monthData.years_data[newestYear].bookings;
+        
+        if (oldBookings > 0) {
+          growthRate = ((newBookings - oldBookings) / oldBookings) * 100;
+          if (growthRate > 10) trend = 'increasing';
+          else if (growthRate < -10) trend = 'decreasing';
+        }
+      }
+      
+      // Apply trend to prediction
+      const trendMultiplier = trend === 'increasing' ? 1.1 : trend === 'decreasing' ? 0.9 : 1.0;
+      const predictedBookings = Math.round(avgBookings * trendMultiplier);
+      const predictedTourists = Math.round(avgTourists * trendMultiplier);
+      const predictedRevenue = Math.round(avgRevenue * trendMultiplier);
+      
+      monthlyPredictions.push({
+        month_number: i + 1,
+        month_name: monthNames[i],
+        historical_avg_bookings: Math.round(avgBookings),
+        predicted_bookings: predictedBookings,
+        predicted_tourists: predictedTourists,
+        predicted_revenue: predictedRevenue,
+        trend: trend,
+        growth_rate: parseFloat(growthRate.toFixed(2)),
+        confidence: yearsCount >= 2 ? 'high' : 'medium'
+      });
+    }
+    
+    // Calculate overall average
+    const totalPredictedBookings = monthlyPredictions.reduce((sum, m) => sum + m.predicted_bookings, 0);
+    const avgMonthlyBookings = totalPredictedBookings / 12;
+    
+    // Determine peak and low seasons (threshold: +/- 25% of average)
+    const peakThreshold = avgMonthlyBookings * 1.25;
+    const lowThreshold = avgMonthlyBookings * 0.75;
+    
+    const peakMonths = [];
+    const lowMonths = [];
+    const moderateMonths = [];
+    
+    monthlyPredictions.forEach(month => {
+      const classification = {
+        month: month.month_name,
+        month_number: month.month_number,
+        predicted_bookings: month.predicted_bookings,
+        predicted_tourists: month.predicted_tourists,
+        predicted_revenue: month.predicted_revenue,
+        trend: month.trend,
+        percentage_of_average: parseFloat(((month.predicted_bookings / avgMonthlyBookings) * 100).toFixed(1))
+      };
+      
+      if (month.predicted_bookings >= peakThreshold) {
+        peakMonths.push({ ...classification, season: 'peak' });
+      } else if (month.predicted_bookings <= lowThreshold) {
+        lowMonths.push({ ...classification, season: 'low' });
+      } else {
+        moderateMonths.push({ ...classification, season: 'moderate' });
+      }
+    });
+    
+    // Sort by predicted bookings
+    peakMonths.sort((a, b) => b.predicted_bookings - a.predicted_bookings);
+    lowMonths.sort((a, b) => a.predicted_bookings - b.predicted_bookings);
+    
+    console.log('✅ Seasonal prediction generated successfully');
+    
+    res.json({
+      success: true,
+      data: {
+        generated_at: new Date().toISOString(),
+        target_year: targetYear,
+        lookback_years: lookbackYears,
+        historical_data_points: historicalBookings.length,
+        has_sufficient_data: true,
+        average_monthly_bookings: Math.round(avgMonthlyBookings),
+        peak_threshold: Math.round(peakThreshold),
+        low_threshold: Math.round(lowThreshold),
+        months: monthlyPredictions,
+        peak_months: peakMonths,
+        low_months: lowMonths,
+        moderate_months: moderateMonths,
+        summary: {
+          peak_season: peakMonths.map(m => m.month).join(', ') || 'None identified',
+          low_season: lowMonths.map(m => m.month).join(', ') || 'None identified',
+          total_predicted_bookings: totalPredictedBookings,
+          total_predicted_revenue: monthlyPredictions.reduce((sum, m) => sum + m.predicted_revenue, 0)
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Seasonal prediction error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to generate seasonal prediction',
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   getRevenue,
   getBookingsCount,
@@ -1214,6 +1424,7 @@ module.exports = {
   getCancellationRate,
   getPeakBookingDays,
   getVanDestinations,
-  getBookingDemandTimeseries
+  getBookingDemandTimeseries,
+  getSeasonalPrediction
 };
 

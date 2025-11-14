@@ -467,11 +467,59 @@
 
         <!-- Predictive Analytics Section -->
         <section id="predictive" class="analytics-section d-none">
+          <!-- Seasonal Prediction (Peak vs Low Seasons) -->
           <div class="row mb-4">
             <div class="col-md-12">
               <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                  <h5 class="card-title mb-0">Demand Prediction by Service</h5>
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>Seasonal Forecast - Peak & Low Seasons
+                  </h5>
+                  <span class="badge bg-primary">Monthly Predictions</span>
+                </div>
+                <div class="card-body">
+                  <div id="seasonalPredictionStatus" class="small text-muted mb-2"></div>
+                  <canvas id="seasonalPredictionChart" height="280"></canvas>
+                  <div class="row mt-3">
+                    <div class="col-md-4">
+                      <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
+                        <div class="text-danger mb-2">
+                          <i class="fas fa-arrow-up fa-2x"></i>
+                        </div>
+                        <h6 class="text-danger">Peak Season</h6>
+                        <p class="small text-muted mb-0">125%+ of average bookings</p>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
+                        <div class="text-warning mb-2">
+                          <i class="fas fa-minus fa-2x"></i>
+                        </div>
+                        <h6 class="text-warning">Moderate Season</h6>
+                        <p class="small text-muted mb-0">75-125% of average bookings</p>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="text-center p-3 bg-primary bg-opacity-10 rounded">
+                        <div class="text-primary mb-2">
+                          <i class="fas fa-arrow-down fa-2x"></i>
+                        </div>
+                        <h6 class="text-primary">Low Season</h6>
+                        <p class="small text-muted mb-0">Below 75% of average bookings</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Demand Prediction by Service -->
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">Daily Demand Prediction by Service</h5>
                   <div class="d-flex gap-2">
                     <select class="form-select form-select-sm filter-select-year" id="demandPredictionYearFilter" title="Select year for demand prediction">
                       <option value="2025">2025</option>

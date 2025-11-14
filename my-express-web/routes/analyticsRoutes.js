@@ -14,7 +14,8 @@ const {
   getCancellationRate,
   getPeakBookingDays,
   getVanDestinations,
-  getBookingDemandTimeseries
+  getBookingDemandTimeseries,
+  getSeasonalPrediction
 } = require('../controllers/analyticsController');
 
 router.get('/analytics/revenue', getRevenue);
@@ -31,6 +32,7 @@ router.get('/analytics/cancellation-rate', getCancellationRate);
 router.get('/analytics/peak-booking-days', getPeakBookingDays);
 router.get('/analytics/van-destinations', getVanDestinations);
 router.get('/analytics/booking-demand-timeseries', getBookingDemandTimeseries);
+router.get('/analytics/seasonal-prediction', getSeasonalPrediction);
 
 module.exports = router;
 
