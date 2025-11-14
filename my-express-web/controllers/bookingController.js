@@ -295,15 +295,21 @@ const createBooking = async (req, res) => {
 // Get all bookings (for dashboards)
 const getBookings = async (req, res) => {
   try {
-    const { status, limit = 100, offset = 0 } = req.query;
+    const { status, limit, offset } = req.query;
     
     console.log('📊 Fetching bookings with filters:', { status, limit, offset });
     
     let query = supabase
       .from('bookings')
       .select('*')
-      .order('arrival_date', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order('arrival_date', { ascending: false });
+    
+    // Only apply limit and offset if explicitly provided
+    if (limit !== undefined && offset !== undefined) {
+      const limitNum = parseInt(limit);
+      const offsetNum = parseInt(offset);
+      query = query.range(offsetNum, offsetNum + limitNum - 1);
+    }
     
     if (status && status !== 'all') {
       query = query.eq('status', status);
