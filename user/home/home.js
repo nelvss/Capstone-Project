@@ -1433,15 +1433,6 @@ async function loadFeedback() {
           </div>
         ` : '';
         
-        // Only show delete button if feedback_id is available
-        const deleteButtonHtml = feedbackId ? `
-          <button class="btn btn-sm btn-outline-danger delete-feedback-btn" 
-                  data-feedback-id="${feedbackId}"
-                  title="Delete feedback">
-            <i class="fas fa-trash"></i>
-          </button>
-        ` : '';
-        
         return `
           <div class="col-md-6 col-lg-4">
             <div class="card feedback-card h-100 shadow-sm" data-feedback-id="${feedbackId || ''}">
@@ -1452,15 +1443,12 @@ async function loadFeedback() {
                 </div>
                 <p class="card-text flex-grow-1">${escapeHtml(fb.message)}</p>
                 <div class="mt-auto">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">
-                      <i class="fas fa-user me-1"></i>${escapeHtml(fb.anonymous_name || 'Anonymous')}
-                      <span class="ms-3">
-                        <i class="fas fa-calendar me-1"></i>${formattedDate}
-                      </span>
-                    </small>
-                    ${deleteButtonHtml}
-                  </div>
+                  <small class="text-muted">
+                    <i class="fas fa-user me-1"></i>${escapeHtml(fb.anonymous_name || 'Anonymous')}
+                    <span class="ms-3">
+                      <i class="fas fa-calendar me-1"></i>${formattedDate}
+                    </span>
+                  </small>
                 </div>
               </div>
             </div>
@@ -1534,18 +1522,6 @@ async function loadFeedback() {
               }
             }
           }
-        });
-        
-        // Attach delete button event listeners
-        document.querySelectorAll('.delete-feedback-btn').forEach(btn => {
-          btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const feedbackId = this.getAttribute('data-feedback-id');
-            if (feedbackId) {
-              deleteFeedback(feedbackId);
-            }
-          });
         });
       }, 200);
     } else {
