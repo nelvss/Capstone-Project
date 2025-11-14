@@ -1167,8 +1167,7 @@ const createTourBooking = async (req, res) => {
         tourist_count,
         tour_date,
         total_price: total_price || 0,
-        notes,
-        created_at: new Date().toISOString()
+        notes
       }])
       .select();
     
@@ -1414,8 +1413,7 @@ const createPackageBooking = async (req, res) => {
         package_id,
         package_name,
         package_price: package_price || 0,
-        notes,
-        created_at: new Date().toISOString()
+        notes
       }])
       .select();
     
