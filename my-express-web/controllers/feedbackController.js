@@ -208,13 +208,32 @@ const deleteFeedback = async (req, res) => {
   try {
     const { id } = req.params;
     
-    console.log(`📝 Deleting feedback with ID: ${id}`);
+    // Validate that ID exists and is not empty
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Feedback ID is required'
+      });
+    }
+    
+    // Ensure ID is a string (UUIDs must be strings, not numbers)
+    // Convert to string and trim whitespace
+    const feedbackId = String(id).trim();
+    
+    if (feedbackId === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Feedback ID cannot be empty'
+      });
+    }
+    
+    console.log(`📝 Deleting feedback with ID: ${feedbackId} (type: ${typeof feedbackId})`);
     
     // First, fetch the feedback to get image URLs before deleting
     const { data: existingFeedback, error: fetchError } = await supabase
       .from('feedback')
       .select('feedback_id, image_url')
-      .eq('feedback_id', id)
+      .eq('feedback_id', feedbackId)
       .maybeSingle();
     
     if (fetchError) {
@@ -299,11 +318,12 @@ const deleteFeedback = async (req, res) => {
     }
     
     // Delete feedback from database
+    // feedback_id is a UUID, so we must use it as a string
     // Use select() to get the deleted rows back for verification
     const deleteQuery = supabase
       .from('feedback')
       .delete()
-      .eq('feedback_id', id)
+      .eq('feedback_id', feedbackId)  // Use the validated string UUID
       .select();
     
     const { data: deleteData, error } = await deleteQuery;
@@ -319,48 +339,11 @@ const deleteFeedback = async (req, res) => {
     
     // Check if any rows were actually deleted
     if (!deleteData || deleteData.length === 0) {
-      console.warn('⚠️ No feedback was deleted. ID might not exist or type mismatch:', id);
-      // Try with number conversion if id is a string
-      const numericId = parseInt(id, 10);
-      if (!isNaN(numericId) && numericId.toString() !== id) {
-        console.log('🔄 Retrying delete with numeric ID:', numericId);
-        const retryQuery = supabase
-          .from('feedback')
-          .delete()
-          .eq('feedback_id', numericId)
-          .select();
-        const { data: retryData, error: retryError } = await retryQuery;
-        
-        if (retryError) {
-          console.error('❌ Error deleting feedback (retry):', retryError);
-          return res.status(500).json({ 
-            success: false, 
-            message: 'Failed to delete feedback',
-            error: retryError.message 
-          });
-        }
-        
-        if (!retryData || retryData.length === 0) {
-          console.error('❌ Feedback not found with ID:', id, 'or numeric ID:', numericId);
-          return res.status(404).json({ 
-            success: false, 
-            message: 'Feedback not found or already deleted'
-          });
-        }
-        
-        console.log('✅ Feedback deleted successfully (retry). Deleted:', retryData);
-        return res.json({ 
-          success: true, 
-          message: 'Feedback and associated images deleted successfully',
-          deletedCount: retryData.length
-        });
-      } else {
-        console.error('❌ Feedback not found with ID:', id);
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Feedback not found or already deleted'
-        });
-      }
+      console.error('❌ Feedback not found with ID:', feedbackId);
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Feedback not found or already deleted'
+      });
     }
     
     console.log('✅ Feedback deleted successfully from database. Deleted:', deleteData);
