@@ -2114,6 +2114,16 @@ nav.navbar {
     transform: translateX(5px);
 }
 
+.contact-numbers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.contact-numbers .contact-link {
+    display: block;
+}
+
 /* Social Media Card */
 .social-card {
     flex-direction: column;
