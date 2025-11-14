@@ -849,6 +849,34 @@ body {
     box-sizing: border-box !important;
 }
 
+/* Allow dropdown overflow for Vehicle Rental section */
+.border.rounded-3.p-3.mb-3.bg-white.shadow-sm:has(#rentalDropdown) {
+    overflow: visible !important;
+}
+
+/* Ensure Vehicle Rental dropdown container allows overflow */
+.border.rounded-3.p-3.mb-3.bg-white.shadow-sm .dropdown {
+    position: relative;
+}
+
+/* Vehicle Rental dropdown menu specific styling */
+#rentalDropdown + .dropdown-menu,
+.dropdown:has(#rentalDropdown) .dropdown-menu,
+.dropdown-menu[aria-labelledby="rentalDropdown"] {
+    position: absolute !important;
+    z-index: 1050 !important;
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    overflow-x: visible !important;
+    transform: translate3d(0, 0, 0) !important;
+}
+
+/* Ensure dropdown menu shows all options when open */
+.dropdown-menu[aria-labelledby="rentalDropdown"].show {
+    display: block !important;
+    visibility: visible !important;
+}
+
 /* Fix place select dropdown to prevent expansion */
 #placeSelectionContainer,
 #placeSelectionContainer .van-section {
@@ -892,11 +920,21 @@ body {
     box-sizing: border-box !important;
 }
 
+/* Allow dropdown overflow in card-body for Vehicle Rental */
+.card-body:has(#rentalDropdown) {
+    overflow-y: visible !important;
+}
+
 /* Ensure the main card doesn't expand - Matching Tour Only */
 .card {
     max-width: 100% !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
+}
+
+/* Allow dropdown overflow in card for Vehicle Rental */
+.card:has(#rentalDropdown) {
+    overflow-y: visible !important;
 }
 
 /* ===== PACKAGE SELECTION DROPDOWN STYLING ===== */
