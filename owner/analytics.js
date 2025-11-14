@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize Socket.io connection for real-time updates
     initializeSocketConnection();
     
-    // Navigation functionality
+    // Navigation functionality - Initialize FIRST to ensure sections are ready
     initializeNavigation();
     
     // Initialize filters
@@ -513,6 +513,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Load feedback from API/localStorage
     loadFeedback();
+    
+    console.log('✅ Analytics Dashboard fully initialized');
 });
 
 // Sample data for analytics - fallback data
@@ -601,6 +603,13 @@ function initializeNavigation() {
     console.log('🔍 Found nav links:', navLinks.length);
     console.log('🔍 Found sections:', sections.length);
     
+    // Ensure we have the required elements
+    if (navLinks.length === 0 || sections.length === 0) {
+        console.error('❌ Navigation elements not found. Retrying in 100ms...');
+        setTimeout(initializeNavigation, 100);
+        return;
+    }
+    
     // Function to show a specific section
     function showSection(sectionId) {
         console.log('📍 Showing section:', sectionId);
@@ -612,6 +621,9 @@ function initializeNavigation() {
         const activeLink = document.querySelector(`.analytics-sidebar .nav-link[data-section="${sectionId}"]`);
         if (activeLink) {
             activeLink.classList.add('active');
+            console.log('✅ Active link set for:', sectionId);
+        } else {
+            console.warn('⚠️ No link found for section:', sectionId);
         }
         
         // Hide all sections
@@ -628,6 +640,12 @@ function initializeNavigation() {
             // Force reflow for animation
             void targetSection.offsetWidth;
             targetSection.classList.add('fade-in');
+            
+            // Scroll to top of main content
+            const mainContent = document.querySelector('.analytics-main-content');
+            if (mainContent) {
+                mainContent.scrollTop = 0;
+            }
         } else {
             console.error('❌ Section not found:', sectionId);
         }
@@ -637,10 +655,14 @@ function initializeNavigation() {
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const sectionId = link.dataset.section;
-            showSection(sectionId);
-            // Update URL hash
-            window.location.hash = sectionId;
+            e.stopPropagation(); // Prevent event bubbling
+            const sectionId = link.dataset.section || link.getAttribute('data-section');
+            console.log('🖱️ Clicked link, section:', sectionId);
+            if (sectionId) {
+                showSection(sectionId);
+                // Update URL hash
+                window.location.hash = sectionId;
+            }
         });
     });
     
@@ -662,6 +684,8 @@ function initializeNavigation() {
     
     // Listen for hash changes (back/forward buttons)
     window.addEventListener('hashchange', handleHashChange);
+    
+    console.log('✅ Navigation initialized successfully');
 }
 
 // Initialize all charts
