@@ -230,11 +230,10 @@ const deleteFeedback = async (req, res) => {
     console.log(`📝 Deleting feedback with ID: ${feedbackId} (type: ${typeof feedbackId})`);
     
     // First, fetch the feedback to get image URLs before deleting
-    const { data: existingFeedback, error: fetchError } = await supabase
+    const { data: feedbackList, error: fetchError } = await supabase
       .from('feedback')
       .select('feedback_id, image_url')
-      .eq('feedback_id', feedbackId)
-      .maybeSingle();
+      .eq('feedback_id', feedbackId);
     
     if (fetchError) {
       console.error('❌ Error fetching feedback before deletion:', {
@@ -251,15 +250,17 @@ const deleteFeedback = async (req, res) => {
       });
     }
     
-    console.log('📋 Existing feedback lookup result:', existingFeedback);
+    console.log('📋 Existing feedback lookup result:', feedbackList);
     
-    if (!existingFeedback) {
+    if (!feedbackList || feedbackList.length === 0) {
       console.error('❌ Feedback not found with ID:', feedbackId);
       return res.status(404).json({ 
         success: false, 
         message: 'Feedback not found with ID: ' + feedbackId
       });
     }
+    
+    const existingFeedback = feedbackList[0];
     
     // Delete images from storage if they exist
     if (existingFeedback.image_url) {
@@ -327,57 +328,33 @@ const deleteFeedback = async (req, res) => {
     }
     
     // Delete feedback from database
-    // feedback_id is a UUID, so we must use it as a string
-    // Use select() to get the deleted rows back for verification
     console.log('🗑️ Attempting to delete feedback from database with ID:', feedbackId);
     
-    const deleteQuery = supabase
+    const { error: deleteError } = await supabase
       .from('feedback')
       .delete()
-      .eq('feedback_id', feedbackId)  // Use the validated string UUID
-      .select();
+      .eq('feedback_id', feedbackId);
     
-    const { data: deleteData, error } = await deleteQuery;
-    
-    console.log('Delete query result:', { 
-      deleteData, 
-      error, 
-      deletedCount: deleteData?.length,
-      feedbackId
-    });
-    
-    if (error) {
+    if (deleteError) {
       console.error('❌ Error deleting feedback:', {
-        error,
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
+        error: deleteError,
+        message: deleteError.message,
+        code: deleteError.code,
+        details: deleteError.details,
+        hint: deleteError.hint
       });
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to delete feedback',
-        error: error.message 
+        error: deleteError.message 
       });
     }
     
-    // Check if any rows were actually deleted
-    if (!deleteData || deleteData.length === 0) {
-      console.error('❌ Feedback not found with ID:', feedbackId);
-      console.error('❌ This suggests the feedback was deleted between the fetch and delete operations');
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Feedback not found or already deleted',
-        feedbackId: feedbackId
-      });
-    }
-    
-    console.log('✅ Feedback deleted successfully from database. Deleted:', deleteData);
+    console.log('✅ Feedback deleted successfully from database');
     
     res.json({ 
       success: true, 
-      message: 'Feedback and associated images deleted successfully',
-      deletedCount: deleteData.length
+      message: 'Feedback and associated images deleted successfully'
     });
     
   } catch (error) {
