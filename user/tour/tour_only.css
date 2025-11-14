@@ -786,9 +786,11 @@ body {
     }
     
     /* Van Rental: 2 columns per row on mobile */
-    .van-fixed-col {
+    .van-fixed-row .van-fixed-col,
+    .van-fixed-row .col-4.van-fixed-col {
         flex: 0 0 50% !important;
         max-width: 50% !important;
+        width: 50% !important;
     }
 }
 
