@@ -237,7 +237,13 @@ const deleteFeedback = async (req, res) => {
       .maybeSingle();
     
     if (fetchError) {
-      console.error('❌ Error fetching feedback before deletion:', fetchError);
+      console.error('❌ Error fetching feedback before deletion:', {
+        error: fetchError,
+        message: fetchError.message,
+        code: fetchError.code,
+        details: fetchError.details,
+        hint: fetchError.hint
+      });
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch feedback before deletion',
@@ -245,10 +251,13 @@ const deleteFeedback = async (req, res) => {
       });
     }
     
+    console.log('📋 Existing feedback lookup result:', existingFeedback);
+    
     if (!existingFeedback) {
+      console.error('❌ Feedback not found with ID:', feedbackId);
       return res.status(404).json({ 
         success: false, 
-        message: 'Feedback not found'
+        message: 'Feedback not found with ID: ' + feedbackId
       });
     }
     
@@ -320,6 +329,8 @@ const deleteFeedback = async (req, res) => {
     // Delete feedback from database
     // feedback_id is a UUID, so we must use it as a string
     // Use select() to get the deleted rows back for verification
+    console.log('🗑️ Attempting to delete feedback from database with ID:', feedbackId);
+    
     const deleteQuery = supabase
       .from('feedback')
       .delete()
@@ -328,8 +339,21 @@ const deleteFeedback = async (req, res) => {
     
     const { data: deleteData, error } = await deleteQuery;
     
+    console.log('Delete query result:', { 
+      deleteData, 
+      error, 
+      deletedCount: deleteData?.length,
+      feedbackId
+    });
+    
     if (error) {
-      console.error('❌ Error deleting feedback:', error);
+      console.error('❌ Error deleting feedback:', {
+        error,
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to delete feedback',
@@ -340,9 +364,11 @@ const deleteFeedback = async (req, res) => {
     // Check if any rows were actually deleted
     if (!deleteData || deleteData.length === 0) {
       console.error('❌ Feedback not found with ID:', feedbackId);
+      console.error('❌ This suggests the feedback was deleted between the fetch and delete operations');
       return res.status(404).json({ 
         success: false, 
-        message: 'Feedback not found or already deleted'
+        message: 'Feedback not found or already deleted',
+        feedbackId: feedbackId
       });
     }
     
