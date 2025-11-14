@@ -299,23 +299,27 @@ const getBookings = async (req, res) => {
     
     console.log('📊 Fetching bookings with filters:', { status, limit, offset });
     
+    // Fetch all bookings by using a very large limit (Supabase default is 1000)
     let query = supabase
       .from('bookings')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('arrival_date', { ascending: false });
     
-    // Only apply limit and offset if explicitly provided
+    // Only apply limit and offset if explicitly provided (for pagination)
     if (limit !== undefined && offset !== undefined) {
       const limitNum = parseInt(limit);
       const offsetNum = parseInt(offset);
       query = query.range(offsetNum, offsetNum + limitNum - 1);
+    } else {
+      // No limit provided, fetch all records (set a very high limit to bypass Supabase's 1000 default)
+      query = query.limit(100000);
     }
     
     if (status && status !== 'all') {
       query = query.eq('status', status);
     }
 
-    const { data: bookings, error } = await query;
+    const { data: bookings, error, count } = await query;
     
     if (error) {
       console.error('❌ Error fetching bookings:', error);
