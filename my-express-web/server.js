@@ -39,7 +39,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 // Additional CORS middleware to ensure headers are always set
 app.use((req, res, next) => {
