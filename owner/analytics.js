@@ -1944,12 +1944,6 @@ function updateOverviewMetrics() {
     if (avgRatingEl) avgRatingEl.textContent = overview.averageRating.toFixed(1);
 }
 
-
-    URL.revokeObjectURL(url);
-    
-    showNotification('Data exported successfully!', 'success');
-}
-
 // Utility functions
 function formatServiceName(name) {
     const nameMap = {
