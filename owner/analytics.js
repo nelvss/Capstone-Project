@@ -3296,13 +3296,6 @@ async function deleteFeedback(timestamp) {
 // NEW INTERACTIVE METRIC CARD FUNCTIONS
 // ============================================
 
-// Global variables for filters
-let currentDateFilter = {
-    startDate: null,
-    endDate: null,
-    quickRange: 'month'
-};
-
 let metricDataCache = {
     bookings: null,
     revenue: null,
@@ -3310,265 +3303,7 @@ let metricDataCache = {
     rating: null
 };
 
-// Initialize metric cards and filters
-document.addEventListener('DOMContentLoaded', function() {
-    // Set default date range to current month
-    setQuickDateRange('month');
-    
-    // Load initial metrics
-    loadAllMetrics();
-    
-    // Setup event listeners for filters
-    setupFilterListeners();
-});
 
-// Setup filter event listeners
-function setupFilterListeners() {
-    // Quick range selector
-    const quickRangeSelect = document.getElementById('filter-quick-range');
-    if (quickRangeSelect) {
-        quickRangeSelect.addEventListener('change', function() {
-            setQuickDateRange(this.value);
-        });
-    }
-    
-    // Apply filter button
-    const applyFilterBtn = document.getElementById('apply-filter-btn');
-    if (applyFilterBtn) {
-        applyFilterBtn.addEventListener('click', function() {
-            const startDate = document.getElementById('filter-start-date').value;
-            const endDate = document.getElementById('filter-end-date').value;
-            
-            if (startDate && endDate) {
-                currentDateFilter.startDate = startDate;
-                currentDateFilter.endDate = endDate;
-                currentDateFilter.quickRange = 'custom';
-                loadAllMetrics();
-            } else {
-                alert('Please select both start and end dates');
-            }
-        });
-    }
-}
-
-// Set quick date range
-function setQuickDateRange(range) {
-    const today = new Date();
-    let startDate, endDate;
-    
-    endDate = today;
-    
-    switch(range) {
-        case 'today':
-            startDate = new Date(today);
-            break;
-        case 'week':
-            startDate = new Date(today);
-            startDate.setDate(today.getDate() - 7);
-            break;
-        case 'month':
-            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-            break;
-        case 'quarter':
-            const quarter = Math.floor(today.getMonth() / 3);
-            startDate = new Date(today.getFullYear(), quarter * 3, 1);
-            break;
-        case 'year':
-            startDate = new Date(today.getFullYear(), 0, 1);
-            break;
-        case 'all':
-            startDate = new Date(2020, 0, 1); // Start from 2020
-            break;
-        default:
-            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    }
-    
-    currentDateFilter.startDate = formatDate(startDate);
-    currentDateFilter.endDate = formatDate(endDate);
-    currentDateFilter.quickRange = range;
-    
-    // Update date inputs
-    const startDateInput = document.getElementById('filter-start-date');
-    const endDateInput = document.getElementById('filter-end-date');
-    
-    if (startDateInput) startDateInput.value = currentDateFilter.startDate;
-    if (endDateInput) endDateInput.value = currentDateFilter.endDate;
-}
-
-// Format date to YYYY-MM-DD
-function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-// Load all metrics
-async function loadAllMetrics() {
-    await Promise.all([
-        loadBookingsMetric(),
-        loadRevenueMetric(),
-        loadCustomersMetric(),
-        loadRatingMetric()
-    ]);
-}
-
-// Load bookings metric
-async function loadBookingsMetric() {
-    try {
-        const params = new URLSearchParams({
-            start_date: currentDateFilter.startDate,
-            end_date: currentDateFilter.endDate
-        });
-        
-        const response = await fetch(`${window.API_URL}/api/analytics/bookings-count?${params.toString()}`);
-        const result = await response.json();
-        
-        if (result.success) {
-            const counts = result.counts;
-            metricDataCache.bookings = counts;
-            
-            // Update card
-            document.getElementById('total-bookings').textContent = counts.total.toLocaleString();
-            document.getElementById('bookings-period').textContent = getPeriodLabel();
-            document.getElementById('confirmed-count').textContent = counts.confirmed;
-            document.getElementById('pending-count').textContent = counts.pending;
-            
-            // Calculate change (mock for now - would need historical data)
-            const change = calculateMockChange(counts.total);
-            updateMetricChange('bookings-change', change);
-            
-            // Create sparkline
-            createSparkline('bookings-sparkline', generateMockSparklineData(counts.total));
-        }
-    } catch (error) {
-        console.error('Error loading bookings metric:', error);
-        document.getElementById('total-bookings').textContent = 'Error';
-    }
-}
-
-// Load revenue metric
-async function loadRevenueMetric() {
-    try {
-        const params = new URLSearchParams({
-            start_date: currentDateFilter.startDate,
-            end_date: currentDateFilter.endDate
-        });
-        
-        const response = await fetch(`${window.API_URL}/api/analytics/revenue?${params.toString()}`);
-        const result = await response.json();
-        
-        if (result.success) {
-            const analytics = result.analytics;
-            metricDataCache.revenue = analytics;
-            
-            // Format revenue
-            const revenue = analytics.total_revenue;
-            const formattedRevenue = formatRevenue(revenue);
-            
-            // Update card
-            document.getElementById('total-revenue').textContent = formattedRevenue;
-            document.getElementById('revenue-period').textContent = getPeriodLabel();
-            
-            // Calculate average booking value
-            const avgValue = analytics.confirmed_bookings > 0 
-                ? revenue / analytics.confirmed_bookings 
-                : 0;
-            document.getElementById('avg-booking-value').textContent = '₱' + avgValue.toFixed(0);
-            
-            // Calculate change
-            const change = calculateMockChange(revenue);
-            updateMetricChange('revenue-change', change);
-            
-            // Create sparkline
-            createSparkline('revenue-sparkline', generateMockSparklineData(revenue));
-        }
-    } catch (error) {
-        console.error('Error loading revenue metric:', error);
-        document.getElementById('total-revenue').textContent = 'Error';
-    }
-}
-
-// Load customers metric
-async function loadCustomersMetric() {
-    try {
-        const params = new URLSearchParams({
-            start_date: currentDateFilter.startDate,
-            end_date: currentDateFilter.endDate
-        });
-        
-        // Get unique customers from bookings
-        const response = await fetch(`${window.API_URL}/api/bookings`);
-        const result = await response.json();
-        
-        if (result.success) {
-            const bookings = result.bookings || [];
-            
-            // Filter by date range
-            const filteredBookings = bookings.filter(b => {
-                // Validate that created_at exists and is a valid date
-                if (!b.created_at) return false;
-                const dateObj = new Date(b.created_at);
-                if (isNaN(dateObj.getTime())) return false;
-                
-                const bookingDate = dateObj.toISOString().split('T')[0];
-                return bookingDate >= currentDateFilter.startDate && bookingDate <= currentDateFilter.endDate;
-            });
-            
-            // Count unique customers (by email or contact_number)
-            const uniqueCustomers = new Set();
-            filteredBookings.forEach(booking => {
-                const identifier = booking.email || booking.contact_number;
-                if (identifier) uniqueCustomers.add(identifier);
-            });
-            
-            const totalCustomers = uniqueCustomers.size;
-            metricDataCache.customers = { total: totalCustomers, bookings: filteredBookings };
-            
-            // Update card
-            document.getElementById('total-customers').textContent = totalCustomers.toLocaleString();
-            document.getElementById('customers-period').textContent = getPeriodLabel();
-            
-            // Calculate new vs returning (mock for now)
-            const newCustomers = Math.floor(totalCustomers * 0.6);
-            const returningCustomers = totalCustomers - newCustomers;
-            document.getElementById('new-customers').textContent = newCustomers;
-            document.getElementById('returning-customers').textContent = returningCustomers;
-            
-            // Calculate change
-            const change = calculateMockChange(totalCustomers);
-            updateMetricChange('customers-change', change);
-            
-            // Create sparkline
-            createSparkline('customers-sparkline', generateMockSparklineData(totalCustomers));
-        }
-    } catch (error) {
-        console.error('Error loading customers metric:', error);
-        document.getElementById('total-customers').textContent = 'Error';
-    }
-}
-
-// Load rating metric
-async function loadRatingMetric() {
-    try {
-        const params = new URLSearchParams({
-            start_date: currentDateFilter.startDate,
-            end_date: currentDateFilter.endDate
-        });
-        
-        // Get feedback data
-        const response = await fetch(`${window.API_URL}/api/feedback`);
-        const result = await response.json();
-        
-        if (result.success) {
-            const allFeedback = result.feedback || [];
-            
-            // Filter by date range
-            const filteredFeedback = allFeedback.filter(f => {
-                if (!f.date) return false;
-                const feedbackDate = new Date(f.date).toISOString().split('T')[0];
-                return feedbackDate >= currentDateFilter.startDate && feedbackDate <= currentDateFilter.endDate;
-            });
             
             const feedbackCount = filteredFeedback.length;
             
@@ -3660,16 +3395,7 @@ function formatRevenue(amount) {
 
 // Get period label
 function getPeriodLabel() {
-    const labels = {
-        'today': 'Today',
-        'week': 'This Week',
-        'month': 'This Month',
-        'quarter': 'This Quarter',
-        'year': 'This Year',
-        'all': 'All Time',
-        'custom': 'Custom Range'
-    };
-    return labels[currentDateFilter.quickRange] || 'This Month';
+    return 'This Month';
 }
 
 // Calculate mock change percentage
@@ -4035,7 +3761,7 @@ function exportMetricData(event, metricType) {
     let csvContent = `Metric,Value\n`;
     csvContent += `Type,${metricType}\n`;
     csvContent += `Period,${getPeriodLabel()}\n`;
-    csvContent += `Date Range,${currentDateFilter.startDate} to ${currentDateFilter.endDate}\n`;
+    csvContent += `Date Range,All Time\n`;
     csvContent += `\n`;
     
     // Add specific data based on metric type
@@ -4062,7 +3788,7 @@ function exportMetricData(event, metricType) {
     const url = URL.createObjectURL(blob);
     
     link.setAttribute('href', url);
-    link.setAttribute('download', `${metricType}_${currentDateFilter.startDate}_to_${currentDateFilter.endDate}.csv`);
+    link.setAttribute('download', `${metricType}_export.csv`);
     link.style.visibility = 'hidden';
     
     document.body.appendChild(link);
@@ -4076,28 +3802,10 @@ function exportMetricData(event, metricType) {
 async function refreshMetric(event, metricType) {
     event.stopPropagation(); // Prevent card click
     
-    // Show loading state
-    const valueElement = document.getElementById(`total-${metricType === 'rating' ? 'avg-rating' : metricType === 'revenue' ? 'revenue' : metricType === 'customers' ? 'customers' : 'bookings'}`);
-    const originalValue = valueElement.textContent;
-    valueElement.innerHTML = '<span class="loading-placeholder">Loading...</span>';
+    showNotification('Metrics refreshing...', 'info');
     
-    // Load specific metric
-    switch(metricType) {
-        case 'bookings':
-            await loadBookingsMetric();
-            break;
-        case 'revenue':
-            await loadRevenueMetric();
-            break;
-        case 'customers':
-            await loadCustomersMetric();
-            break;
-        case 'rating':
-            await loadRatingMetric();
-            break;
-    }
-    
-    showNotification(`${metricType} data refreshed!`, 'info');
+    // Reload the page to refresh all data
+    location.reload();
 }
 
 // Export detailed report
@@ -4116,7 +3824,7 @@ function exportDetailedReport() {
     reportContent += `Previous Period: ${previousValue}\n`;
     reportContent += `Change: ${change}\n`;
     reportContent += `Period: ${getPeriodLabel()}\n`;
-    reportContent += `Date Range: ${currentDateFilter.startDate} to ${currentDateFilter.endDate}\n`;
+    reportContent += `Date Range: All Time\n`;
     reportContent += `\nGenerated on: ${new Date().toLocaleString()}\n`;
     
     // Download as text file
