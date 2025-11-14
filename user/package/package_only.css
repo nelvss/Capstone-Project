@@ -764,6 +764,12 @@ body {
         font-weight: 600 !important;
         padding: 0.2rem 0.3rem !important;
     }
+    
+    /* Van Rental: 2 columns per row on mobile */
+    .van-fixed-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
 }
 
 @media (max-width: 992px) {
