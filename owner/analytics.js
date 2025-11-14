@@ -3311,7 +3311,12 @@ async function loadCustomersMetric() {
             
             // Filter by date range
             const filteredBookings = bookings.filter(b => {
-                const bookingDate = new Date(b.created_at).toISOString().split('T')[0];
+                // Validate that created_at exists and is a valid date
+                if (!b.created_at) return false;
+                const dateObj = new Date(b.created_at);
+                if (isNaN(dateObj.getTime())) return false;
+                
+                const bookingDate = dateObj.toISOString().split('T')[0];
                 return bookingDate >= currentDateFilter.startDate && bookingDate <= currentDateFilter.endDate;
             });
             

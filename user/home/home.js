@@ -1382,8 +1382,10 @@ async function loadFeedback() {
           console.log(`Feedback ${index + 1} has ${imageUrls.length} image(s)`, imageUrls);
         }
         
-        // Use feedback_id if available, otherwise use index as fallback
+        // Use feedback_id if available, otherwise use index as fallback for carousel ID only
         const uniqueId = fb.feedback_id || fb.id || `feedback-${index}`;
+        // Store actual feedback_id for deletion (required by backend)
+        const feedbackId = fb.feedback_id || fb.id;
         
         // Encode image URLs as base64 to avoid HTML attribute issues
         const encodedImageUrls = btoa(JSON.stringify(imageUrls));
@@ -1431,9 +1433,18 @@ async function loadFeedback() {
           </div>
         ` : '';
         
+        // Only show delete button if feedback_id is available
+        const deleteButtonHtml = feedbackId ? `
+          <button class="btn btn-sm btn-outline-danger delete-feedback-btn" 
+                  data-feedback-id="${feedbackId}"
+                  title="Delete feedback">
+            <i class="fas fa-trash"></i>
+          </button>
+        ` : '';
+        
         return `
           <div class="col-md-6 col-lg-4">
-            <div class="card feedback-card h-100 shadow-sm">
+            <div class="card feedback-card h-100 shadow-sm" data-feedback-id="${feedbackId || ''}">
               ${imagesHtml}
               <div class="card-body d-flex flex-column">
                 <div class="mb-2">
@@ -1441,12 +1452,15 @@ async function loadFeedback() {
                 </div>
                 <p class="card-text flex-grow-1">${escapeHtml(fb.message)}</p>
                 <div class="mt-auto">
-                  <small class="text-muted">
-                    <i class="fas fa-user me-1"></i>${escapeHtml(fb.anonymous_name || 'Anonymous')}
-                    <span class="ms-3">
-                      <i class="fas fa-calendar me-1"></i>${formattedDate}
-                    </span>
-                  </small>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                      <i class="fas fa-user me-1"></i>${escapeHtml(fb.anonymous_name || 'Anonymous')}
+                      <span class="ms-3">
+                        <i class="fas fa-calendar me-1"></i>${formattedDate}
+                      </span>
+                    </small>
+                    ${deleteButtonHtml}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1521,6 +1535,18 @@ async function loadFeedback() {
             }
           }
         });
+        
+        // Attach delete button event listeners
+        document.querySelectorAll('.delete-feedback-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const feedbackId = this.getAttribute('data-feedback-id');
+            if (feedbackId) {
+              deleteFeedback(feedbackId);
+            }
+          });
+        });
       }, 200);
     } else {
       throw new Error(result.message || 'Failed to load feedback');
@@ -1533,6 +1559,40 @@ async function loadFeedback() {
         <p class="text-danger">Failed to load feedback. Please try again later.</p>
       </div>
     `;
+  }
+}
+
+// Delete feedback function
+async function deleteFeedback(feedbackId) {
+  if (!feedbackId) {
+    console.error('No feedback ID provided');
+    return;
+  }
+  
+  // Show confirmation dialog
+  if (!confirm('Are you sure you want to delete this feedback? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/feedback/${feedbackId}`, {
+      method: 'DELETE'
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Show success message
+      alert('Feedback deleted successfully');
+      // Reload feedback to show updated list
+      loadFeedback();
+    } else {
+      console.error('Failed to delete feedback:', result.message);
+      alert(`Failed to delete feedback: ${result.message || 'Please try again.'}`);
+    }
+  } catch (error) {
+    console.error('Error deleting feedback:', error);
+    alert('Failed to delete feedback. Please try again later.');
   }
 }
 
