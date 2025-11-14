@@ -3077,23 +3077,45 @@ function attachFeedbackListeners() {
 
 // Delete feedback
 async function deleteFeedback(timestamp) {
+    if (!timestamp) {
+        console.error('No feedback ID provided for deletion');
+        alert('Error: No feedback ID provided. Please try again.');
+        return;
+    }
+    
     try {
-        const response = await fetch(`${window.API_URL}/api/feedback/${timestamp}`, {
-            method: 'DELETE'
+        const url = `${window.API_URL}/api/feedback/${timestamp}`;
+        console.log('Deleting feedback:', url);
+        
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
+        // Check if response is ok
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Delete request failed:', response.status, errorText);
+            throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        
         const result = await response.json();
+        console.log('Delete response:', result);
         
         if (result.success) {
+            // Show success message
+            alert('Feedback deleted successfully');
             // Reload feedback to show updated list
             loadFeedback();
         } else {
             console.error('Failed to delete feedback:', result.message);
-            alert('Failed to delete feedback. Please try again.');
+            alert(`Failed to delete feedback: ${result.message || 'Please try again.'}`);
         }
     } catch (error) {
         console.error('Error deleting feedback:', error);
-        alert('Failed to delete feedback. Please try again.');
+        alert(`Failed to delete feedback: ${error.message || 'Please try again later.'}`);
     }
 }
 
