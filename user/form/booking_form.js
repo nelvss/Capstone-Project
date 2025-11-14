@@ -70,13 +70,10 @@
             valid = false;
         }
 
-        // Contact: numeric only & exactly 11 digits
+        // Contact: numeric only (no length restriction)
         const digits = contactNo.value.replace(/\D/g, "");
         if (!digits) {
             setError(contactNo, `${FIELD_LABELS.contactNo} is required.`);
-            valid = false;
-        } else if (digits.length !== 11) {
-            setError(contactNo, `Contact number must be exactly 11 digits.`);
             valid = false;
         }
 
@@ -150,12 +147,7 @@
             // Remove all non-numeric characters
             let value = this.value.replace(/\D/g, '');
             
-            // Limit to 11 digits
-            if (value.length > 11) {
-                value = value.substr(0, 11);
-            }
-            
-            // Update input value
+            // Update input value (no length restriction)
             this.value = value;
             
             // Clear error if user has typed something valid
