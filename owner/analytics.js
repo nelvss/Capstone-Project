@@ -126,13 +126,6 @@ function updateConnectionStatus(isConnected) {
 async function refreshAnalyticsData() {
     console.log('🔄 Refreshing analytics data...');
     
-    // Show loading indicator
-    const refreshButton = document.getElementById('refresh-data');
-    if (refreshButton) {
-        refreshButton.classList.add('loading');
-        refreshButton.disabled = true;
-    }
-    
     try {
         // Reload data from API
         await fetchAnalyticsDataFromApi();
@@ -148,11 +141,6 @@ async function refreshAnalyticsData() {
     } catch (error) {
         console.error('❌ Failed to refresh analytics data:', error);
         showNotification('Failed to refresh analytics data', 'error');
-    } finally {
-        if (refreshButton) {
-            refreshButton.classList.remove('loading');
-            refreshButton.disabled = false;
-        }
     }
 }
 
@@ -522,9 +510,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Populate UI metrics and initialize charts
     populateAnalyticsUI();
     initializeCharts();
-    
-    // Setup event listeners
-    setupEventListeners();
     
     // Load feedback from API/localStorage
     loadFeedback();
@@ -1935,54 +1920,7 @@ function updateOverviewMetrics() {
     if (avgRatingEl) avgRatingEl.textContent = overview.averageRating.toFixed(1);
 }
 
-// Setup event listeners
-function setupEventListeners() {
-    // Refresh data button
-    document.getElementById('refresh-data')?.addEventListener('click', () => {
-        refreshData();
-    });
-    
-    // Export data button
-    document.getElementById('export-data')?.addEventListener('click', () => {
-        exportData();
-    });
-}
 
-// Refresh data functionality
-function refreshData() {
-    const button = document.getElementById('refresh-data');
-    button.classList.add('loading');
-    
-    // Simulate data refresh
-    setTimeout(() => {
-        button.classList.remove('loading');
-        // Re-initialize charts with new data
-        // initializeCharts();
-        
-        // Reload feedback messages
-        loadFeedback();
-        
-        showNotification('Data refreshed successfully!', 'success');
-    }, 2000);
-}
-
-// Export data functionality
-function exportData() {
-    const data = {
-        overview: analyticsData.overview || sampleAnalyticsData.overview,
-        services: analyticsData.services || sampleAnalyticsData.services,
-        seasonal: analyticsData.seasonal || sampleAnalyticsData.seasonal,
-        exportDate: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
     showNotification('Data exported successfully!', 'success');
