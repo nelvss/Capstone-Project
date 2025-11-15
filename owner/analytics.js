@@ -696,7 +696,6 @@ function initializeCharts() {
     createBookingTypeChart();
     createTouristVolumeChart();
     createAvgBookingValueChart();
-    createCancellationRateChart();
     createPeakBookingDaysChart();
     createServicePerformanceChart();
     createHotelPerformanceChart();
@@ -712,8 +711,7 @@ function initializeFilters() {
         'demandPredictionYearFilter',
         'bookingTypeYearFilter',
         'touristVolumeYearFilter',
-        'avgBookingValueYearFilter',
-        'cancellationRateYearFilter'
+        'avgBookingValueYearFilter'
     ];
     
     yearFilters.forEach(filterId => {
@@ -744,8 +742,7 @@ function initializeFilters() {
         'demandPredictionMonthFilter',
         'bookingTypeMonthFilter',
         'touristVolumeMonthFilter',
-        'avgBookingValueMonthFilter',
-        'cancellationRateMonthFilter'
+        'avgBookingValueMonthFilter'
     ];
     
     monthFilters.forEach(filterId => {
@@ -802,8 +799,6 @@ function handleYearFilter(event, filterId) {
             loadTouristVolumeData();
         } else if (filterId.includes('avgBookingValue')) {
             loadAvgBookingValueData();
-        } else if (filterId.includes('cancellationRate')) {
-            loadCancellationRateData();
         }
     }
 }
@@ -861,8 +856,6 @@ function updateChart(monthFilterId, month, week, year) {
         loadTouristVolumeData();
     } else if (monthFilterId.includes('avgBookingValue')) {
         loadAvgBookingValueData();
-    } else if (monthFilterId.includes('cancellationRate')) {
-        loadCancellationRateData();
     }
 }
 
@@ -2489,51 +2482,6 @@ function createAvgBookingValueChart() {
     loadAvgBookingValueData();
 }
 
-// Create Cancellation Rate Chart
-function createCancellationRateChart() {
-    const ctx = document.getElementById('cancellationRateChart');
-    if (!ctx) return;
-    
-    chartInstances['cancellationRateChart'] = new Chart(ctx.getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Cancellation Rate (%)',
-                data: [],
-                borderColor: '#dc3545',
-                backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    }
-                }
-            }
-        }
-    });
-    
-    // Load data from API
-    loadCancellationRateData();
-}
-
 // Create Peak Booking Days Chart
 function createPeakBookingDaysChart() {
     const ctx = document.getElementById('peakBookingDaysChart');
@@ -2863,45 +2811,6 @@ async function loadAvgBookingValueData() {
         }
     } catch (error) {
         console.error('Error loading average booking value data:', error);
-    }
-}
-
-async function loadCancellationRateData() {
-    try {
-        const yearSelect = document.getElementById('cancellationRateYearFilter');
-        const monthSelect = document.getElementById('cancellationRateMonthFilter');
-        const year = yearSelect ? yearSelect.value : '2025';
-        const month = monthSelect ? monthSelect.value : 'all';
-        
-        let url = `${window.API_URL}/api/analytics/cancellation-rate?group_by=month`;
-        if (month !== 'all') {
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthNum = monthNames.indexOf(month) + 1;
-            if (monthNum > 0) {
-                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url += `&start_date=${startDate}&end_date=${endDate}`;
-            }
-        } else {
-            // Filter by year - show all months in the selected year
-            const startDate = `${year}-01-01`;
-            const endDate = `${year}-12-31`;
-            url += `&start_date=${startDate}&end_date=${endDate}`;
-        }
-        
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        if (result.success && result.cancellationRates) {
-            const chart = chartInstances['cancellationRateChart'];
-            if (chart) {
-                chart.data.labels = result.cancellationRates.map(r => r.period);
-                chart.data.datasets[0].data = result.cancellationRates.map(r => r.rate || 0);
-                chart.update();
-            }
-        }
-    } catch (error) {
-        console.error('Error loading cancellation rate data:', error);
     }
 }
 
