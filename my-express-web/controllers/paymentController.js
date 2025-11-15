@@ -110,6 +110,7 @@ const getPayments = async (req, res) => {
     
     console.log('💰 Fetching payment history:', { booking_id, payment_method, start_date, end_date });
     
+    // Fetch all payments - using range to override default 1000 row limit
     let query = supabase
       .from('payments')
       .select(`
@@ -121,9 +122,9 @@ const getPayments = async (req, res) => {
           arrival_date,
           departure_date
         )
-      `, { count: 'exact' })
+      `)
       .order('payment_date', { ascending: false })
-      .limit(10000);
+      .range(0, 9999); // Fetch up to 10000 records
     
     if (booking_id) {
       query = query.eq('booking_id', booking_id);
