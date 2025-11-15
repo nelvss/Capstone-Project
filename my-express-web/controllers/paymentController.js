@@ -140,10 +140,35 @@ const getPayments = async (req, res) => {
       query = query.lte('payment_date', end_date);
     }
     
-    // Apply range at the end to override default 1000 row limit
-    query = query.range(0, 9999);
+    // Fetch all data using pagination to bypass 1000 row limit
+    let allData = [];
+    let rangeStart = 0;
+    const rangeSize = 1000;
+    let hasMore = true;
     
-    const { data, error } = await query;
+    while (hasMore) {
+      const { data: chunk, error } = await query.range(rangeStart, rangeStart + rangeSize - 1);
+      
+      if (error) {
+        console.error('❌ Error fetching payments:', error);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to fetch payments', 
+          error: error.message 
+        });
+      }
+      
+      if (chunk && chunk.length > 0) {
+        allData = allData.concat(chunk);
+        rangeStart += rangeSize;
+        hasMore = chunk.length === rangeSize;
+      } else {
+        hasMore = false;
+      }
+    }
+    
+    const data = allData;
+    const error = null;
     
     if (error) {
       console.error('❌ Error fetching payments:', error);
