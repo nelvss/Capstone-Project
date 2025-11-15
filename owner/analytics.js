@@ -698,7 +698,6 @@ function initializeCharts() {
     createAvgBookingValueChart();
     createPeakBookingDaysChart();
     createServicePerformanceChart();
-    createHotelPerformanceChart();
     createVanDestinationsChart();
 }
 
@@ -2564,44 +2563,6 @@ function createServicePerformanceChart() {
     loadServicePerformanceData();
 }
 
-// Create Hotel Performance Chart
-function createHotelPerformanceChart() {
-    const ctx = document.getElementById('hotelPerformanceChart');
-    if (!ctx) return;
-    
-    chartInstances['hotelPerformanceChart'] = new Chart(ctx.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Bookings',
-                data: [],
-                backgroundColor: 'rgba(153, 102, 255, 0.8)',
-                borderColor: 'rgba(153, 102, 255, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                x: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-    
-    // Load data from API
-    loadHotelPerformanceData();
-}
-
 // Create Van Destinations Chart
 function createVanDestinationsChart() {
     const ctx = document.getElementById('vanDestinationsChart');
@@ -2883,26 +2844,6 @@ async function loadServicePerformanceData() {
         }
     } catch (error) {
         console.error('Error loading service performance data:', error);
-    }
-}
-
-async function loadHotelPerformanceData() {
-    try {
-        const response = await fetch(`${window.API_URL}/api/analytics/hotel-performance`);
-        const result = await response.json();
-        
-        if (result.success && result.performance) {
-            const chart = chartInstances['hotelPerformanceChart'];
-            if (chart) {
-                // Limit to top 10 hotels
-                const topHotels = result.performance.slice(0, 10);
-                chart.data.labels = topHotels.map(h => h.hotel);
-                chart.data.datasets[0].data = topHotels.map(h => h.bookings || 0);
-                chart.update();
-            }
-        }
-    } catch (error) {
-        console.error('Error loading hotel performance data:', error);
     }
 }
 
