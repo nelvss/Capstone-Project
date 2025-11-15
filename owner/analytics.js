@@ -693,7 +693,6 @@ function initializeCharts() {
     createDemandPredictionChart();
     createSeasonalPredictionChart();
     // New analytics charts
-    createBookingStatusChart();
     createBookingTypeChart();
     createRevenueByStatusChart();
     createTouristVolumeChart();
@@ -1062,31 +1061,6 @@ function createRevenueTrendChart() {
 }
 
 // Booking Trends Chart - removed duplicate, using amCharts version below
-
-// Booking Status Chart
-function createBookingStatusChart() {
-    const ctx = document.getElementById('bookingStatusChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Confirmed', 'Pending', 'Cancelled', 'Completed'],
-            datasets: [{
-                data: [65, 15, 8, 12],
-                backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#6c757d'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-}
 
 // Daily Booking Pattern Chart
 function createDailyBookingChart() {
