@@ -121,8 +121,9 @@ const getPayments = async (req, res) => {
           arrival_date,
           departure_date
         )
-      `)
-      .order('payment_date', { ascending: false });
+      `, { count: 'exact' })
+      .order('payment_date', { ascending: false })
+      .limit(10000);
     
     if (booking_id) {
       query = query.eq('booking_id', booking_id);
