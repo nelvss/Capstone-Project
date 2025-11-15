@@ -1,24 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 /* Universal scrollbar hiding - must be at top to override any global styles */
-* {
+/* Exception: Keep scrollbars visible for table section */
+*:not(.table-section) {
   scrollbar-width: none !important; /* Firefox */
   -ms-overflow-style: none !important; /* IE and Edge */
 }
 
-*::-webkit-scrollbar {
+*:not(.table-section)::-webkit-scrollbar {
   display: none !important; /* Chrome, Safari, Opera */
   width: 0 !important;
   height: 0 !important;
   background: transparent !important;
 }
 
-*::-webkit-scrollbar-track {
+*:not(.table-section)::-webkit-scrollbar-track {
   display: none !important;
   background: transparent !important;
 }
 
-*::-webkit-scrollbar-thumb {
+*:not(.table-section)::-webkit-scrollbar-thumb {
   display: none !important;
   background: transparent !important;
 }
@@ -687,31 +688,39 @@ header h1 {
   padding: 0;
   margin-bottom: 32px;
   max-height: 650px;
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
   border: 1px solid #e2e8f0;
-  scrollbar-width: thin;
-  scrollbar-color: #ef4444 #f1f5f9;
+  scrollbar-width: thin !important;
+  scrollbar-color: #ef4444 #f1f5f9 !important;
 }
 
 .table-section::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px !important;
+  height: 12px !important;
+  display: block !important;
 }
 
 .table-section::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
+  background: #f1f5f9 !important;
+  border-radius: 10px !important;
+  display: block !important;
 }
 
 .table-section::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
-  border-radius: 10px;
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%) !important;
+  border-radius: 10px !important;
+  border: 2px solid #f1f5f9 !important;
+  display: block !important;
   transition: background 0.3s ease;
 }
 
 .table-section::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+
+.table-section::-webkit-scrollbar-corner {
+  background: #f1f5f9 !important;
 }
 
 table {
