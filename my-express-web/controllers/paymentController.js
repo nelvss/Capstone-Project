@@ -106,9 +106,9 @@ const createPayment = async (req, res) => {
 
 const getPayments = async (req, res) => {
   try {
-    const { booking_id, payment_method, start_date, end_date, limit = 100, offset = 0 } = req.query;
+    const { booking_id, payment_method, start_date, end_date } = req.query;
     
-    console.log('💰 Fetching payment history:', { booking_id, payment_method, start_date, end_date, limit, offset });
+    console.log('💰 Fetching payment history:', { booking_id, payment_method, start_date, end_date });
     
     let query = supabase
       .from('payments')
@@ -122,8 +122,7 @@ const getPayments = async (req, res) => {
           departure_date
         )
       `)
-      .order('payment_date', { ascending: false })
-      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
+      .order('payment_date', { ascending: false });
     
     if (booking_id) {
       query = query.eq('booking_id', booking_id);
