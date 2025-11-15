@@ -390,14 +390,57 @@ const getBookings = async (req, res) => {
     }
     
     const bookingIds = bookings.map(b => b.booking_id);
+    
+    // Helper function to fetch data in batches with pagination
+    const fetchInBatches = async (tableName, selectQuery, bookingIds) => {
+      const batchSize = 1000;
+      let allData = [];
+      
+      // Split bookingIds into chunks to avoid query size limits
+      for (let i = 0; i < bookingIds.length; i += batchSize) {
+        const chunk = bookingIds.slice(i, i + batchSize);
+        
+        // Fetch with pagination for each chunk
+        let offset = 0;
+        let hasMore = true;
+        
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from(tableName)
+            .select(selectQuery)
+            .in('booking_id', chunk)
+            .range(offset, offset + batchSize - 1);
+          
+          if (error) {
+            console.warn(`⚠️ Error fetching ${tableName}:`, error.message);
+            hasMore = false;
+          } else if (data && data.length > 0) {
+            allData = allData.concat(data);
+            offset += batchSize;
+            
+            if (data.length < batchSize) {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
+      }
+      
+      return allData;
+    };
+    
     let vehicleBookingsData = {};
     if (bookingIds.length > 0) {
-      const { data: vehicleBookings } = await supabase
-        .from('booking_vehicles')
-        .select('booking_id, vehicle_id, vehicle_name, rental_days, total_amount')
-        .in('booking_id', bookingIds);
+      const vehicleBookings = await fetchInBatches(
+        'booking_vehicles',
+        'booking_id, vehicle_id, vehicle_name, rental_days, total_amount',
+        bookingIds
+      );
       
-      if (vehicleBookings) {
+      console.log(`📊 Fetched ${vehicleBookings.length} vehicle bookings`);
+      
+      if (vehicleBookings && vehicleBookings.length > 0) {
         const vehicleIds = [...new Set(vehicleBookings.map(vb => vb.vehicle_id).filter(id => id))];
         let vehiclesData = {};
         if (vehicleIds.length > 0) {
@@ -431,12 +474,15 @@ const getBookings = async (req, res) => {
     if (bookingIds.length > 0) {
       const normalizedBookingIds = bookingIds.map(id => String(id).trim()).filter(id => id);
       
-      const { data: vanRentalBookings } = await supabase
-        .from('bookings_van_rental')
-        .select('booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination')
-        .in('booking_id', normalizedBookingIds);
+      const vanRentalBookings = await fetchInBatches(
+        'bookings_van_rental',
+        'booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination',
+        normalizedBookingIds
+      );
       
-      if (vanRentalBookings) {
+      console.log(`📊 Fetched ${vanRentalBookings.length} van rental bookings`);
+      
+      if (vanRentalBookings && vanRentalBookings.length > 0) {
         const vanDestinationIds = [...new Set(vanRentalBookings.map(vrb => vrb.van_destination_id).filter(id => id))];
         let vanDestinationsData = {};
         if (vanDestinationIds.length > 0) {
@@ -470,14 +516,23 @@ const getBookings = async (req, res) => {
     
     let paymentsData = {};
     if (bookingIds.length > 0) {
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('booking_id, total_booking_amount, payment_date')
-        .in('booking_id', bookingIds)
-        .order('payment_date', { ascending: false });
+      const payments = await fetchInBatches(
+        'payments',
+        'booking_id, total_booking_amount, payment_date',
+        bookingIds
+      );
       
-      if (payments) {
-        paymentsData = payments.reduce((acc, payment) => {
+      console.log(`📊 Fetched ${payments.length} payment records`);
+      
+      if (payments && payments.length > 0) {
+        // Sort by payment_date descending and take the first one for each booking
+        const sortedPayments = payments.sort((a, b) => {
+          const dateA = new Date(a.payment_date || 0);
+          const dateB = new Date(b.payment_date || 0);
+          return dateB - dateA;
+        });
+        
+        paymentsData = sortedPayments.reduce((acc, payment) => {
           if (!acc[payment.booking_id]) {
             acc[payment.booking_id] = payment.total_booking_amount;
           }
@@ -488,16 +543,15 @@ const getBookings = async (req, res) => {
     
     let divingBookingsData = {};
     if (bookingIds.length > 0) {
-      let divingBookings = [];
-      let divingListError = null;
-      ({ data: divingBookings = [], error: divingListError } = await supabase
-        .from('bookings_diving')
-        .select('booking_id, number_of_divers, total_amount')
-        .in('booking_id', bookingIds));
+      const divingBookings = await fetchInBatches(
+        'bookings_diving',
+        'booking_id, number_of_divers, total_amount',
+        bookingIds
+      );
+      
+      console.log(`📊 Fetched ${divingBookings.length} diving bookings`);
 
-      if (divingListError) {
-        console.warn('⚠️ Failed to fetch diving bookings list:', divingListError.message);
-      } else if (divingBookings) {
+      if (divingBookings && divingBookings.length > 0) {
         divingBookingsData = divingBookings.reduce((acc, diving) => {
           if (!acc[diving.booking_id]) {
             acc[diving.booking_id] = [];
