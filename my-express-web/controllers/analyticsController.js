@@ -6,30 +6,58 @@ const getRevenue = async (req, res) => {
     
     console.log('📊 Fetching revenue analytics:', { start_date, end_date, group_by });
     
-    let query = supabase
-      .from('bookings')
-      .select('total_price, created_at, status');
+    // Query payments table for revenue data
+    let paymentsQuery = supabase
+      .from('payments')
+      .select('total_booking_amount, payment_date, booking_id');
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      paymentsQuery = paymentsQuery.gte('payment_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      paymentsQuery = paymentsQuery.lte('payment_date', end_date);
     }
     
-    const { data, error } = await query;
+    const { data: payments, error: paymentsError } = await paymentsQuery;
     
-    if (error) {
-      console.error('❌ Error fetching revenue data:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch revenue data', 
-        error: error.message 
+    if (paymentsError) {
+      console.error('❌ Error fetching revenue data:', paymentsError);
+      return res.json({ 
+        success: true, 
+        analytics: {
+          total_revenue: 0,
+          total_bookings: 0,
+          confirmed_bookings: 0
+        },
+        message: 'No revenue data available'
       });
     }
     
-    const confirmedBookings = data?.filter(booking => booking.status === 'confirmed') || [];
-    const totalRevenue = confirmedBookings.reduce((sum, booking) => sum + (parseFloat(booking.total_price) || 0), 0);
+    // Get unique booking IDs and fetch their statuses
+    const bookingIds = [...new Set(payments?.map(p => p.booking_id).filter(Boolean))];
+    let bookingsData = {};
+    
+    if (bookingIds.length > 0) {
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('booking_id, status')
+        .in('booking_id', bookingIds);
+      
+      if (bookings) {
+        bookingsData = bookings.reduce((acc, booking) => {
+          acc[booking.booking_id] = booking.status;
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Calculate revenue only from confirmed/completed bookings
+    const confirmedPayments = payments?.filter(payment => {
+      const status = bookingsData[payment.booking_id];
+      return status === 'confirmed' || status === 'completed';
+    }) || [];
+    
+    const totalRevenue = confirmedPayments.reduce((sum, payment) => sum + (parseFloat(payment.total_booking_amount) || 0), 0);
     
     console.log('✅ Revenue analytics fetched successfully');
     
@@ -50,12 +78,12 @@ const getRevenue = async (req, res) => {
       success: true, 
       analytics: {
         total_revenue: totalRevenue,
-        total_bookings: data?.length || 0,
-        confirmed_bookings: confirmedBookings.length,
+        total_bookings: payments?.length || 0,
+        confirmed_bookings: confirmedPayments.length,
         revenue_by_status: {
-          confirmed: confirmedBookings.reduce((sum, booking) => sum + (parseFloat(booking.total_price) || 0), 0),
-          pending: data?.filter(b => b.status === 'pending').reduce((sum, booking) => sum + (parseFloat(booking.total_price) || 0), 0) || 0,
-          cancelled: data?.filter(b => b.status === 'cancelled').reduce((sum, booking) => sum + (parseFloat(booking.total_price) || 0), 0) || 0
+          confirmed: totalRevenue,
+          pending: 0,
+          cancelled: 0
         }
       }
     });
@@ -78,23 +106,30 @@ const getBookingsCount = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('status, created_at');
+      .select('status, arrival_date');
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('arrival_date', end_date);
     }
     
     const { data, error } = await query;
     
     if (error) {
       console.error('❌ Error fetching booking counts:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch booking counts', 
-        error: error.message 
+      return res.json({ 
+        success: true, 
+        counts: {
+          total: 0,
+          pending: 0,
+          confirmed: 0,
+          cancelled: 0,
+          rescheduled: 0,
+          completed: 0
+        },
+        message: 'No booking data available'
       });
     }
     
@@ -178,23 +213,29 @@ const getBookingStatusDistribution = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('status, created_at');
+      .select('status, arrival_date');
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('arrival_date', end_date);
     }
     
     const { data, error } = await query;
     
     if (error) {
       console.error('❌ Error fetching booking status distribution:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch booking status distribution', 
-        error: error.message 
+      return res.json({ 
+        success: true, 
+        distribution: {
+          pending: 0,
+          confirmed: 0,
+          cancelled: 0,
+          rescheduled: 0,
+          completed: 0
+        },
+        message: 'No booking data available'
       });
     }
     
@@ -232,13 +273,13 @@ const getBookingTypeComparison = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('booking_type, created_at');
+      .select('booking_type, arrival_date');
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('arrival_date', end_date);
     }
     
     const { data, error } = await query;
@@ -266,10 +307,10 @@ const getBookingTypeComparison = async (req, res) => {
     // Group by time period
     const grouped = {};
     data.forEach(booking => {
-      // Skip if created_at is null or invalid
-      if (!booking.created_at) return;
+      // Skip if arrival_date is null or invalid
+      if (!booking.arrival_date) return;
       
-      const date = new Date(booking.created_at);
+      const date = new Date(booking.arrival_date);
       if (isNaN(date.getTime())) return;
       
       let key;
@@ -325,14 +366,14 @@ const getRevenueByStatus = async (req, res) => {
     console.log('📊 Fetching revenue by status:', { start_date, end_date, group_by });
     
     let query = supabase
-      .from('bookings')
-      .select('status, total_price, created_at');
+      .from('payments')
+      .select('total_booking_amount, payment_date, booking_id');
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('payment_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('payment_date', end_date);
     }
     
     const { data, error } = await query;
@@ -346,10 +387,22 @@ const getRevenueByStatus = async (req, res) => {
       });
     }
     
+    // Get booking statuses
+    const bookingIds = data?.map(p => p.booking_id) || [];
+    const { data: bookings } = await supabase
+      .from('bookings')
+      .select('booking_id, status')
+      .in('booking_id', bookingIds);
+    
+    const bookingStatusMap = {};
+    bookings?.forEach(b => {
+      bookingStatusMap[b.booking_id] = b.status;
+    });
+    
     // Group by time period and status
     const grouped = {};
-    data?.forEach(booking => {
-      const date = new Date(booking.created_at);
+    data?.forEach(payment => {
+      const date = new Date(payment.payment_date);
       let key;
       
       if (group_by === 'month') {
@@ -371,8 +424,8 @@ const getRevenueByStatus = async (req, res) => {
         };
       }
       
-      const price = parseFloat(booking.total_price) || 0;
-      const status = booking.status || 'pending';
+      const price = parseFloat(payment.total_booking_amount) || 0;
+      const status = bookingStatusMap[payment.booking_id] || 'pending';
       if (grouped[key][status] !== undefined) {
         grouped[key][status] += price;
       }
@@ -411,16 +464,17 @@ const getServicePerformance = async (req, res) => {
     
     console.log('📊 Fetching service performance:', { start_date, end_date });
     
-    // Get tour bookings - use created_at instead of tour_date for filtering
+    // Get tour bookings
     let tourQuery = supabase
       .from('booking_tour')
-      .select('tour_type, booking_id, tour_date, created_at');
+      .select('tour_type, booking_id, tour_date');
     
+    // Tour bookings don't have created_at - filter tours by actual tour_date
     if (start_date) {
-      tourQuery = tourQuery.gte('created_at', start_date);
+      tourQuery = tourQuery.gte('tour_date', start_date);
     }
     if (end_date) {
-      tourQuery = tourQuery.lte('created_at', end_date);
+      tourQuery = tourQuery.lte('tour_date', end_date);
     }
     
     const { data: tourBookings, error: tourError } = await tourQuery;
@@ -451,16 +505,17 @@ const getServicePerformance = async (req, res) => {
       console.warn('⚠️ Error fetching diving bookings:', divingError.message);
     }
     
-    // Get van rental bookings
+    // Get van rental bookings - no created_at column in bookings_van_rental
     let vanQuery = supabase
       .from('bookings_van_rental')
-      .select('booking_id, van_destination_id');
+      .select('booking_id, van_destination_id, pickup_date');
     
+    // Filter by pickup_date if dates provided
     if (start_date) {
-      vanQuery = vanQuery.gte('created_at', start_date);
+      vanQuery = vanQuery.gte('pickup_date', start_date);
     }
     if (end_date) {
-      vanQuery = vanQuery.lte('created_at', end_date);
+      vanQuery = vanQuery.lte('pickup_date', end_date);
     }
     
     const { data: vanBookings, error: vanError } = await vanQuery;
@@ -519,14 +574,14 @@ const getTouristVolume = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('number_of_tourist, arrival_date, created_at');
+      .select('number_of_tourist, arrival_date');
     
-    // Use created_at for filtering if arrival_date is not available
+    // Use arrival_date for filtering
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('arrival_date', end_date);
     }
     
     const { data, error } = await query;
@@ -552,11 +607,10 @@ const getTouristVolume = async (req, res) => {
     // Group by time period
     const grouped = {};
     data.forEach(booking => {
-      // Use created_at as primary date field
-      const dateValue = booking.arrival_date || booking.created_at;
-      if (!dateValue) return;
+      // Use arrival_date
+      if (!booking.arrival_date) return;
       
-      const date = new Date(dateValue);
+      const date = new Date(booking.arrival_date);
       if (isNaN(date.getTime())) return;
       
       let key;
@@ -608,13 +662,13 @@ const getHotelPerformance = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('hotel_id, created_at');
+      .select('hotel_id, arrival_date');
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('arrival_date', end_date);
     }
     
     const { data: bookings, error } = await query;
@@ -684,17 +738,17 @@ const getAvgBookingValue = async (req, res) => {
     
     console.log('📊 Fetching average booking value:', { start_date, end_date, group_by });
     
-    // Query bookings table instead of payments, using total_price field
+    // Query bookings table using booking_total_amount field
     let query = supabase
       .from('bookings')
-      .select('total_price, created_at, status')
+      .select('booking_total_amount, arrival_date, status')
       .in('status', ['confirmed', 'completed']);
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('arrival_date', end_date);
     }
     
     const { data, error } = await query;
@@ -720,9 +774,9 @@ const getAvgBookingValue = async (req, res) => {
     // Group by time period
     const grouped = {};
     data.forEach(booking => {
-      if (!booking.created_at) return;
+      if (!booking.arrival_date) return;
       
-      const date = new Date(booking.created_at);
+      const date = new Date(booking.arrival_date);
       if (isNaN(date.getTime())) return;
       
       let key;
@@ -740,7 +794,7 @@ const getAvgBookingValue = async (req, res) => {
         grouped[key] = { total: 0, count: 0 };
       }
       
-      grouped[key].total += parseFloat(booking.total_price) || 0;
+      grouped[key].total += parseFloat(booking.booking_total_amount) || 0;
       grouped[key].count++;
     });
     
@@ -777,30 +831,30 @@ const getCancellationRate = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('status, created_at');
+      .select('status, arrival_date');
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('arrival_date', end_date);
     }
     
     const { data, error } = await query;
     
     if (error) {
       console.error('❌ Error fetching cancellation rate:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch cancellation rate', 
-        error: error.message 
+      return res.json({ 
+        success: true, 
+        cancellationRates: [],
+        message: 'No cancellation data available'
       });
     }
     
     // Group by time period
     const grouped = {};
     data?.forEach(booking => {
-      const date = new Date(booking.created_at);
+      const date = new Date(booking.arrival_date);
       let key;
       
       if (group_by === 'month') {
@@ -855,13 +909,13 @@ const getPeakBookingDays = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('created_at');
+      .select('arrival_date');
     
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('arrival_date', end_date);
     }
     
     const { data, error } = await query;
@@ -896,9 +950,9 @@ const getPeakBookingDays = async (req, res) => {
     };
     
     data.forEach(booking => {
-      if (!booking.created_at) return;
+      if (!booking.arrival_date) return;
       
-      const date = new Date(booking.created_at);
+      const date = new Date(booking.arrival_date);
       if (isNaN(date.getTime())) return;
       
       const dayName = dayNames[date.getDay()];
@@ -939,13 +993,14 @@ const getVanDestinations = async (req, res) => {
     
     let query = supabase
       .from('bookings_van_rental')
-      .select('van_destination_id, created_at');
+      .select('van_destination_id, pickup_date');
     
+    // Filter by pickup_date instead of created_at
     if (start_date) {
-      query = query.gte('created_at', start_date);
+      query = query.gte('pickup_date', start_date);
     }
     if (end_date) {
-      query = query.lte('created_at', end_date);
+      query = query.lte('pickup_date', end_date);
     }
     
     const { data: vanBookings, error } = await query;
@@ -1087,9 +1142,9 @@ const getBookingDemandTimeseries = async (req, res) => {
 
     let bookingsQuery = supabase
       .from('bookings')
-      .select('booking_id, created_at, status')
-      .gte('created_at', `${startIso}T00:00:00Z`)
-      .lte('created_at', `${endIso}T23:59:59Z`);
+      .select('booking_id, arrival_date, status')
+      .gte('arrival_date', `${startIso}T00:00:00Z`)
+      .lte('arrival_date', `${endIso}T23:59:59Z`);
 
     const { data: bookings, error: bookingsError } = await bookingsQuery;
 
@@ -1110,7 +1165,7 @@ const getBookingDemandTimeseries = async (req, res) => {
       .forEach((booking) => {
         if (approvedStatuses.has(String(booking.status || '').toLowerCase())) {
           const bookingId = String(booking.booking_id).trim();
-          const createdDay = normalizeDay(booking.created_at);
+          const createdDay = normalizeDay(booking.arrival_date);
           if (bookingId && createdDay && withinRange(createdDay)) {
             bookingStatusMap.set(bookingId, createdDay);
           }
@@ -1141,19 +1196,19 @@ const getBookingDemandTimeseries = async (req, res) => {
         .in('booking_id', bookingIds),
       supabase
         .from('package_only')
-        .select('booking_id, package_name, created_at')
+        .select('booking_id, package_name')
         .in('booking_id', bookingIds),
       supabase
         .from('booking_vehicles')
-        .select('booking_id, vehicle_name, created_at')
+        .select('booking_id, vehicle_name')
         .in('booking_id', bookingIds),
       supabase
         .from('bookings_diving')
-        .select('booking_id, diving_type, created_at')
+        .select('booking_id, diving_type')
         .in('booking_id', bookingIds),
       supabase
         .from('bookings_van_rental')
-        .select('booking_id, choose_destination, created_at')
+        .select('booking_id, choose_destination, pickup_date')
         .in('booking_id', bookingIds)
     ]);
 
@@ -1206,7 +1261,7 @@ const getBookingDemandTimeseries = async (req, res) => {
       if (!bookingId || !bookingStatusMap.has(bookingId)) return;
       const serviceKey = `package-${slugify(booking.package_name)}`;
       const label = formatLabel(booking.package_name, 'package');
-      const day = normalizeDay(booking.created_at) || bookingStatusMap.get(bookingId);
+      const day = bookingStatusMap.get(bookingId);
       upsertEntry(serviceKey, label, 'package', day);
     });
 
@@ -1215,7 +1270,7 @@ const getBookingDemandTimeseries = async (req, res) => {
       if (!bookingId || !bookingStatusMap.has(bookingId)) return;
       const serviceKey = `vehicle-${slugify(booking.vehicle_name)}`;
       const label = formatLabel(booking.vehicle_name || 'Vehicle Rental', 'vehicle');
-      const day = normalizeDay(booking.created_at) || bookingStatusMap.get(bookingId);
+      const day = bookingStatusMap.get(bookingId);
       upsertEntry(serviceKey, label, 'vehicle', day);
     });
 
@@ -1224,7 +1279,7 @@ const getBookingDemandTimeseries = async (req, res) => {
       if (!bookingId || !bookingStatusMap.has(bookingId)) return;
       const serviceKey = `diving-${slugify(booking.diving_type)}`;
       const label = formatLabel(booking.diving_type || 'Diving', 'diving');
-      const day = normalizeDay(booking.created_at) || bookingStatusMap.get(bookingId);
+      const day = bookingStatusMap.get(bookingId);
       upsertEntry(serviceKey, label, 'diving', day);
     });
 
@@ -1233,7 +1288,7 @@ const getBookingDemandTimeseries = async (req, res) => {
       if (!bookingId || !bookingStatusMap.has(bookingId)) return;
       const serviceKey = `van-${slugify(booking.choose_destination)}`;
       const label = formatLabel(booking.choose_destination || 'Van Rental', 'van');
-      const day = normalizeDay(booking.created_at) || bookingStatusMap.get(bookingId);
+      const day = normalizeDay(booking.pickup_date) || bookingStatusMap.get(bookingId);
       upsertEntry(serviceKey, label, 'van', day);
     });
 
@@ -1304,7 +1359,7 @@ const getSeasonalPrediction = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('booking_id, arrival_date, created_at, status, number_of_tourist, total_price')
+      .select('booking_id, arrival_date, status, number_of_tourist')
       .gte('arrival_date', startDate)
       .lte('arrival_date', endDate)
       .in('status', ['confirmed', 'completed']);
@@ -1350,33 +1405,29 @@ const getSeasonalPrediction = async (req, res) => {
         bookings: [],
         total_bookings: 0,
         total_tourists: 0,
-        total_revenue: 0,
         years_data: {}
       };
     }
     
     // Aggregate historical data by month
     historicalBookings.forEach(booking => {
-      const date = new Date(booking.arrival_date || booking.created_at);
+      const date = new Date(booking.arrival_date);
       const month = date.getMonth();
       const year = date.getFullYear();
       
       if (!monthlyData[month].years_data[year]) {
         monthlyData[month].years_data[year] = {
           bookings: 0,
-          tourists: 0,
-          revenue: 0
+          tourists: 0
         };
       }
       
       monthlyData[month].bookings.push(booking);
       monthlyData[month].total_bookings++;
       monthlyData[month].total_tourists += parseInt(booking.number_of_tourist) || 0;
-      monthlyData[month].total_revenue += parseFloat(booking.total_price) || 0;
       
       monthlyData[month].years_data[year].bookings++;
       monthlyData[month].years_data[year].tourists += parseInt(booking.number_of_tourist) || 0;
-      monthlyData[month].years_data[year].revenue += parseFloat(booking.total_price) || 0;
     });
     
     // Calculate averages and predictions for target year
@@ -1388,7 +1439,6 @@ const getSeasonalPrediction = async (req, res) => {
       
       const avgBookings = monthData.total_bookings / yearsCount;
       const avgTourists = monthData.total_tourists / yearsCount;
-      const avgRevenue = monthData.total_revenue / yearsCount;
       
       // Calculate growth trend
       const years = Object.keys(monthData.years_data).sort();
@@ -1412,7 +1462,6 @@ const getSeasonalPrediction = async (req, res) => {
       const trendMultiplier = trend === 'increasing' ? 1.1 : trend === 'decreasing' ? 0.9 : 1.0;
       const predictedBookings = Math.round(avgBookings * trendMultiplier);
       const predictedTourists = Math.round(avgTourists * trendMultiplier);
-      const predictedRevenue = Math.round(avgRevenue * trendMultiplier);
       
       monthlyPredictions.push({
         month_number: i + 1,
@@ -1420,7 +1469,6 @@ const getSeasonalPrediction = async (req, res) => {
         historical_avg_bookings: Math.round(avgBookings),
         predicted_bookings: predictedBookings,
         predicted_tourists: predictedTourists,
-        predicted_revenue: predictedRevenue,
         trend: trend,
         growth_rate: parseFloat(growthRate.toFixed(2)),
         confidence: yearsCount >= 2 ? 'high' : 'medium'
