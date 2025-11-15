@@ -694,7 +694,6 @@ function initializeCharts() {
     createSeasonalPredictionChart();
     // New analytics charts
     createBookingTypeChart();
-    createRevenueByStatusChart();
     createTouristVolumeChart();
     createAvgBookingValueChart();
     createCancellationRateChart();
@@ -712,7 +711,6 @@ function initializeFilters() {
     const yearFilters = [
         'demandPredictionYearFilter',
         'bookingTypeYearFilter',
-        'revenueStatusYearFilter',
         'touristVolumeYearFilter',
         'avgBookingValueYearFilter',
         'cancellationRateYearFilter'
@@ -745,7 +743,6 @@ function initializeFilters() {
     const monthFilters = [
         'demandPredictionMonthFilter',
         'bookingTypeMonthFilter',
-        'revenueStatusMonthFilter',
         'touristVolumeMonthFilter',
         'avgBookingValueMonthFilter',
         'cancellationRateMonthFilter'
@@ -801,8 +798,6 @@ function handleYearFilter(event, filterId) {
         // For charts without month filters, reload data
         if (filterId.includes('bookingType')) {
             loadBookingTypeData();
-        } else if (filterId.includes('revenueStatus')) {
-            loadRevenueByStatusData();
         } else if (filterId.includes('touristVolume')) {
             loadTouristVolumeData();
         } else if (filterId.includes('avgBookingValue')) {
@@ -862,8 +857,6 @@ function updateChart(monthFilterId, month, week, year) {
         updateDemandPredictionChart(month, week, year);
     } else if (monthFilterId.includes('bookingType')) {
         loadBookingTypeData();
-    } else if (monthFilterId.includes('revenueStatus')) {
-        loadRevenueByStatusData();
     } else if (monthFilterId.includes('touristVolume')) {
         loadTouristVolumeData();
     } else if (monthFilterId.includes('avgBookingValue')) {
@@ -2413,73 +2406,6 @@ function createBookingTypeChart() {
     loadBookingTypeData();
 }
 
-// Create Revenue by Status Chart
-function createRevenueByStatusChart() {
-    const ctx = document.getElementById('revenueByStatusChart');
-    if (!ctx) return;
-    
-    chartInstances['revenueByStatusChart'] = new Chart(ctx.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [
-                {
-                    label: 'Pending',
-                    data: [],
-                    backgroundColor: '#ffc107'
-                },
-                {
-                    label: 'Confirmed',
-                    data: [],
-                    backgroundColor: '#28a745'
-                },
-                {
-                    label: 'Cancelled',
-                    data: [],
-                    backgroundColor: '#dc3545'
-                },
-                {
-                    label: 'Rescheduled',
-                    data: [],
-                    backgroundColor: '#17a2b8'
-                },
-                {
-                    label: 'Completed',
-                    data: [],
-                    backgroundColor: '#6c757d'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    stacked: true
-                },
-                y: {
-                    stacked: true,
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '₱' + (value / 1000) + 'K';
-                        }
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
-            }
-        }
-    });
-    
-    // Load data from API
-    loadRevenueByStatusData();
-}
-
 // Create Tourist Volume Chart
 function createTouristVolumeChart() {
     const ctx = document.getElementById('touristVolumeChart');
@@ -2859,49 +2785,6 @@ async function loadBookingTypeData() {
             chart.data.datasets[1].data = [];
             chart.update();
         }
-    }
-}
-
-async function loadRevenueByStatusData() {
-    try {
-        const yearSelect = document.getElementById('revenueStatusYearFilter');
-        const monthSelect = document.getElementById('revenueStatusMonthFilter');
-        const year = yearSelect ? yearSelect.value : '2025';
-        const month = monthSelect ? monthSelect.value : 'all';
-        
-        let url = `${window.API_URL}/api/analytics/revenue-by-status?group_by=month`;
-        if (month !== 'all') {
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthNum = monthNames.indexOf(month) + 1;
-            if (monthNum > 0) {
-                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url += `&start_date=${startDate}&end_date=${endDate}`;
-            }
-        } else {
-            // Filter by year - show all months in the selected year
-            const startDate = `${year}-01-01`;
-            const endDate = `${year}-12-31`;
-            url += `&start_date=${startDate}&end_date=${endDate}`;
-        }
-        
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        if (result.success && result.revenueByStatus) {
-            const chart = chartInstances['revenueByStatusChart'];
-            if (chart) {
-                chart.data.labels = result.revenueByStatus.map(r => r.period);
-                chart.data.datasets[0].data = result.revenueByStatus.map(r => r.pending || 0);
-                chart.data.datasets[1].data = result.revenueByStatus.map(r => r.confirmed || 0);
-                chart.data.datasets[2].data = result.revenueByStatus.map(r => r.cancelled || 0);
-                chart.data.datasets[3].data = result.revenueByStatus.map(r => r.rescheduled || 0);
-                chart.data.datasets[4].data = result.revenueByStatus.map(r => r.completed || 0);
-                chart.update();
-            }
-        }
-    } catch (error) {
-        console.error('Error loading revenue by status data:', error);
     }
 }
 
