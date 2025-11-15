@@ -722,7 +722,7 @@ function initializeFilters() {
         const select = document.getElementById(filterId);
         if (select) {
             // Add more years if needed
-            const years = [2023, 2024, 2025, 2026];
+            const years = [2022, 2023, 2024, 2025, 2026];
             
             // Clear existing options except the default
             const hasDefaultOptions = select.querySelectorAll('option').length > 0;
@@ -2802,6 +2802,8 @@ async function loadBookingTypeData() {
         const month = monthSelect ? monthSelect.value : 'all';
         
         let url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month`;
+        
+        // Set date range based on year and month filters
         if (month !== 'all') {
             // Convert month name to number
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -2811,6 +2813,11 @@ async function loadBookingTypeData() {
                 const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
                 url += `&start_date=${startDate}&end_date=${endDate}`;
             }
+        } else {
+            // Filter by year - show all months in the selected year
+            const startDate = `${year}-01-01`;
+            const endDate = `${year}-12-31`;
+            url += `&start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
@@ -2818,15 +2825,40 @@ async function loadBookingTypeData() {
         
         if (result.success && result.comparison) {
             const chart = chartInstances['bookingTypeChart'];
-            if (chart) {
-                chart.data.labels = result.comparison.map(c => c.period);
+            if (chart && result.comparison.length > 0) {
+                // Format labels to show month names
+                const labels = result.comparison.map(c => {
+                    const parts = c.period.split('-');
+                    if (parts.length >= 2) {
+                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        const monthIdx = parseInt(parts[1]) - 1;
+                        return monthNames[monthIdx] || c.period;
+                    }
+                    return c.period;
+                });
+                
+                chart.data.labels = labels;
                 chart.data.datasets[0].data = result.comparison.map(c => c.package_only || 0);
                 chart.data.datasets[1].data = result.comparison.map(c => c.tour_only || 0);
+                chart.update();
+            } else if (chart) {
+                // No data available
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.data.datasets[1].data = [];
                 chart.update();
             }
         }
     } catch (error) {
         console.error('Error loading booking type data:', error);
+        // Clear chart on error
+        const chart = chartInstances['bookingTypeChart'];
+        if (chart) {
+            chart.data.labels = [];
+            chart.data.datasets[0].data = [];
+            chart.data.datasets[1].data = [];
+            chart.update();
+        }
     }
 }
 
@@ -2846,6 +2878,11 @@ async function loadRevenueByStatusData() {
                 const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
                 url += `&start_date=${startDate}&end_date=${endDate}`;
             }
+        } else {
+            // Filter by year - show all months in the selected year
+            const startDate = `${year}-01-01`;
+            const endDate = `${year}-12-31`;
+            url += `&start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
@@ -2884,6 +2921,11 @@ async function loadTouristVolumeData() {
                 const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
                 url += `&start_date=${startDate}&end_date=${endDate}`;
             }
+        } else {
+            // Filter by year - show all months in the selected year
+            const startDate = `${year}-01-01`;
+            const endDate = `${year}-12-31`;
+            url += `&start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
@@ -2918,6 +2960,11 @@ async function loadAvgBookingValueData() {
                 const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
                 url += `&start_date=${startDate}&end_date=${endDate}`;
             }
+        } else {
+            // Filter by year - show all months in the selected year
+            const startDate = `${year}-01-01`;
+            const endDate = `${year}-12-31`;
+            url += `&start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
@@ -2952,6 +2999,11 @@ async function loadCancellationRateData() {
                 const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
                 url += `&start_date=${startDate}&end_date=${endDate}`;
             }
+        } else {
+            // Filter by year - show all months in the selected year
+            const startDate = `${year}-01-01`;
+            const endDate = `${year}-12-31`;
+            url += `&start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
