@@ -299,36 +299,79 @@ const getBookings = async (req, res) => {
     
     console.log('📊 Fetching bookings with filters:', { status, limit, offset });
     
-    // Fetch all bookings by using a very large limit (Supabase default is 1000)
+    // Build base query
     let query = supabase
       .from('bookings')
       .select('*', { count: 'exact' })
       .order('arrival_date', { ascending: false });
     
-    // Only apply limit and offset if explicitly provided (for pagination)
-    if (limit !== undefined && offset !== undefined) {
-      const limitNum = parseInt(limit);
-      const offsetNum = parseInt(offset);
-      query = query.range(offsetNum, offsetNum + limitNum - 1);
-    } else {
-      // No limit provided, fetch all records (set a very high limit to bypass Supabase's 1000 default)
-      query = query.limit(100000);
-    }
-    
     if (status && status !== 'all') {
       query = query.eq('status', status);
     }
 
-    const { data: bookings, error, count } = await query;
+    // Fetch ALL bookings using pagination to bypass Supabase's 1000 record limit
+    let allBookings = [];
+    let currentOffset = 0;
+    const pageSize = 1000; // Supabase's maximum per request
+    let hasMore = true;
     
-    if (error) {
-      console.error('❌ Error fetching bookings:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch bookings', 
-        error: error.message 
-      });
+    // Only apply pagination if limit and offset are explicitly provided
+    if (limit !== undefined && offset !== undefined) {
+      const limitNum = parseInt(limit);
+      const offsetNum = parseInt(offset);
+      query = query.range(offsetNum, offsetNum + limitNum - 1);
+      const { data: bookings, error, count } = await query;
+      
+      if (error) {
+        console.error('❌ Error fetching bookings:', error);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to fetch bookings', 
+          error: error.message 
+        });
+      }
+      
+      allBookings = bookings || [];
+    } else {
+      // Fetch all records by paginating through all results
+      while (hasMore) {
+        const paginatedQuery = supabase
+          .from('bookings')
+          .select('*', { count: 'exact' })
+          .order('arrival_date', { ascending: false })
+          .range(currentOffset, currentOffset + pageSize - 1);
+        
+        if (status && status !== 'all') {
+          paginatedQuery.eq('status', status);
+        }
+        
+        const { data: bookingsPage, error: pageError } = await paginatedQuery;
+        
+        if (pageError) {
+          console.error('❌ Error fetching bookings page:', pageError);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch bookings', 
+            error: pageError.message 
+          });
+        }
+        
+        if (bookingsPage && bookingsPage.length > 0) {
+          allBookings = allBookings.concat(bookingsPage);
+          currentOffset += pageSize;
+          
+          // If we got less than pageSize results, we've reached the end
+          if (bookingsPage.length < pageSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
     }
+    
+    const bookings = allBookings;
+    console.log(`📊 Total bookings fetched: ${bookings.length}`);
     
     const hotelIds = [...new Set(bookings.map(b => b.hotel_id).filter(id => id))];
     let hotelsData = {};
