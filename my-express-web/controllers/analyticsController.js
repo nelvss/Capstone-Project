@@ -61,18 +61,8 @@ const getRevenue = async (req, res) => {
     
     console.log('✅ Revenue analytics fetched successfully');
     
-    // Emit Socket.IO event for analytics update
-    try {
-      const io = req.app.get('io');
-      if (io) {
-        io.emit('analytics-refresh', {
-          type: 'revenue',
-          timestamp: new Date().toISOString()
-        });
-      }
-    } catch (socketError) {
-      console.error('⚠️ Socket.IO emit error:', socketError);
-    }
+    // Note: Socket.IO events should only be emitted on data changes (POST/PUT/DELETE)
+    // Not on GET requests to avoid infinite loops
     
     res.json({ 
       success: true, 

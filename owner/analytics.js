@@ -123,25 +123,47 @@ function updateConnectionStatus(isConnected) {
     }
 }
 
+// Debounce timer for refresh
+let refreshDebounceTimer = null;
+let isRefreshing = false;
+let isLoadingChartData = false;
+
 async function refreshAnalyticsData() {
-    console.log('🔄 Refreshing analytics data...');
-    
-    try {
-        // Reload data from API
-        await fetchAnalyticsDataFromApi();
-        
-        // Update UI
-        populateAnalyticsUI();
-        
-        // Reinitialize charts
-        initializeCharts();
-        
-        // Show success notification
-        showNotification('Analytics data updated in real-time', 'success');
-    } catch (error) {
-        console.error('❌ Failed to refresh analytics data:', error);
-        showNotification('Failed to refresh analytics data', 'error');
+    // Clear any pending refresh
+    if (refreshDebounceTimer) {
+        clearTimeout(refreshDebounceTimer);
     }
+    
+    // Debounce: wait 2 seconds before actually refreshing
+    refreshDebounceTimer = setTimeout(async () => {
+        // Prevent multiple simultaneous refreshes
+        if (isRefreshing) {
+            console.log('⏸️ Refresh already in progress, skipping...');
+            return;
+        }
+        
+        isRefreshing = true;
+        console.log('🔄 Refreshing analytics data...');
+        
+        try {
+            // Reload data from API
+            await fetchAnalyticsDataFromApi();
+            
+            // Update UI
+            populateAnalyticsUI();
+            
+            // Reinitialize charts
+            initializeCharts();
+            
+            // Show success notification
+            showNotification('Analytics data updated', 'success');
+        } catch (error) {
+            console.error('❌ Failed to refresh analytics data:', error);
+            showNotification('Failed to refresh analytics data', 'error');
+        } finally {
+            isRefreshing = false;
+        }
+    }, 2000); // Wait 2 seconds after last event before refreshing
 }
 
 // Dynamic analytics data - will be populated from API
@@ -2642,6 +2664,12 @@ async function loadBookingStatusData() {
 }
 
 async function loadBookingTypeData() {
+    // Prevent multiple simultaneous loads
+    if (isLoadingChartData) {
+        console.log('⏸️ Chart data already loading, skipping booking type...');
+        return;
+    }
+    
     try {
         const yearSelect = document.getElementById('bookingTypeYearFilter');
         const monthSelect = document.getElementById('bookingTypeMonthFilter');
@@ -2724,6 +2752,12 @@ async function loadBookingTypeData() {
 }
 
 async function loadTouristVolumeData() {
+    // Prevent multiple simultaneous loads
+    if (isLoadingChartData) {
+        console.log('⏸️ Chart data already loading, skipping tourist volume...');
+        return;
+    }
+    
     try {
         const yearSelect = document.getElementById('touristVolumeYearFilter');
         const monthSelect = document.getElementById('touristVolumeMonthFilter');
@@ -2769,6 +2803,12 @@ async function loadTouristVolumeData() {
 }
 
 async function loadAvgBookingValueData() {
+    // Prevent multiple simultaneous loads
+    if (isLoadingChartData) {
+        console.log('⏸️ Chart data already loading, skipping avg booking value...');
+        return;
+    }
+    
     try {
         const yearSelect = document.getElementById('avgBookingValueYearFilter');
         const monthSelect = document.getElementById('avgBookingValueMonthFilter');
