@@ -170,12 +170,16 @@ async function fetchAnalyticsDataFromApi() {
     // Load revenue data (non-blocking)
     try {
       const revenueResponse = await fetch(`${window.API_URL}/api/analytics/revenue`);
-      const revenueResult = await revenueResponse.json();
-      if (revenueResult.success) {
-        analyticsData.revenue = revenueResult.analytics;
-        successCount++;
+      if (revenueResponse.ok) {
+        const revenueResult = await revenueResponse.json();
+        if (revenueResult.success) {
+          analyticsData.revenue = revenueResult.analytics;
+          successCount++;
+        } else {
+          console.warn('⚠️ Revenue data not available');
+        }
       } else {
-        console.warn('⚠️ Revenue data not available');
+        console.warn(`⚠️ Revenue API returned ${revenueResponse.status}`);
       }
     } catch (error) {
       console.warn('⚠️ Failed to load revenue data:', error.message);
@@ -184,12 +188,16 @@ async function fetchAnalyticsDataFromApi() {
     // Load booking counts (non-blocking)
     try {
       const countsResponse = await fetch(`${window.API_URL}/api/analytics/bookings-count`);
-      const countsResult = await countsResponse.json();
-      if (countsResult.success) {
-        analyticsData.counts = countsResult.counts;
-        successCount++;
+      if (countsResponse.ok) {
+        const countsResult = await countsResponse.json();
+        if (countsResult.success) {
+          analyticsData.counts = countsResult.counts;
+          successCount++;
+        } else {
+          console.warn('⚠️ Booking counts not available');
+        }
       } else {
-        console.warn('⚠️ Booking counts not available');
+        console.warn(`⚠️ Booking counts API returned ${countsResponse.status}`);
       }
     } catch (error) {
       console.warn('⚠️ Failed to load booking counts:', error.message);
@@ -198,12 +206,16 @@ async function fetchAnalyticsDataFromApi() {
     // Load popular services (non-blocking)
     try {
       const servicesResponse = await fetch(`${window.API_URL}/api/analytics/popular-services`);
-      const servicesResult = await servicesResponse.json();
-      if (servicesResult.success) {
-        analyticsData.services = servicesResult.services;
-        successCount++;
+      if (servicesResponse.ok) {
+        const servicesResult = await servicesResponse.json();
+        if (servicesResult.success) {
+          analyticsData.services = servicesResult.services;
+          successCount++;
+        } else {
+          console.warn('⚠️ Popular services data not available');
+        }
       } else {
-        console.warn('⚠️ Popular services data not available');
+        console.warn(`⚠️ Popular services API returned ${servicesResponse.status}`);
       }
     } catch (error) {
       console.warn('⚠️ Failed to load popular services:', error.message);
@@ -2656,9 +2668,23 @@ async function loadBookingTypeData() {
         }
         
         const response = await fetch(url);
+        
+        // Handle non-200 responses gracefully
+        if (!response.ok) {
+            console.warn(`⚠️ Booking type API returned ${response.status}`);
+            const chart = chartInstances['bookingTypeChart'];
+            if (chart) {
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.data.datasets[1].data = [];
+                chart.update();
+            }
+            return;
+        }
+        
         const result = await response.json();
         
-        if (result.success && result.comparison) {
+        if (result.success && result.comparison && Array.isArray(result.comparison)) {
             const chart = chartInstances['bookingTypeChart'];
             if (chart && result.comparison.length > 0) {
                 // Format labels to show month names
@@ -2721,9 +2747,15 @@ async function loadTouristVolumeData() {
         }
         
         const response = await fetch(url);
+        
+        if (!response.ok) {
+            console.warn(`⚠️ Tourist volume API returned ${response.status}`);
+            return;
+        }
+        
         const result = await response.json();
         
-        if (result.success && result.volume) {
+        if (result.success && result.volume && Array.isArray(result.volume)) {
             const chart = chartInstances['touristVolumeChart'];
             if (chart) {
                 chart.data.labels = result.volume.map(v => v.period);
@@ -2760,9 +2792,15 @@ async function loadAvgBookingValueData() {
         }
         
         const response = await fetch(url);
+        
+        if (!response.ok) {
+            console.warn(`⚠️ Avg booking value API returned ${response.status}`);
+            return;
+        }
+        
         const result = await response.json();
         
-        if (result.success && result.avgValues) {
+        if (result.success && result.avgValues && Array.isArray(result.avgValues)) {
             const chart = chartInstances['avgBookingValueChart'];
             if (chart) {
                 chart.data.labels = result.avgValues.map(v => v.period);
@@ -2778,9 +2816,15 @@ async function loadAvgBookingValueData() {
 async function loadPeakBookingDaysData() {
     try {
         const response = await fetch(`${window.API_URL}/api/analytics/peak-booking-days`);
+        
+        if (!response.ok) {
+            console.warn(`⚠️ Peak booking days API returned ${response.status}`);
+            return;
+        }
+        
         const result = await response.json();
         
-        if (result.success && result.peakDays) {
+        if (result.success && result.peakDays && Array.isArray(result.peakDays)) {
             const chart = chartInstances['peakBookingDaysChart'];
             if (chart) {
                 const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -2805,6 +2849,12 @@ async function loadPeakBookingDaysData() {
 async function loadServicePerformanceData() {
     try {
         const response = await fetch(`${window.API_URL}/api/analytics/service-performance`);
+        
+        if (!response.ok) {
+            console.warn(`⚠️ Service performance API returned ${response.status}`);
+            return;
+        }
+        
         const result = await response.json();
         
         if (result.success && result.services) {
@@ -2814,10 +2864,12 @@ async function loadServicePerformanceData() {
                 const data = [];
                 
                 // Add tour types
-                Object.keys(result.services.tours || {}).forEach(tourType => {
-                    labels.push(`Tour: ${tourType}`);
-                    data.push(result.services.tours[tourType]);
-                });
+                if (result.services.tours && typeof result.services.tours === 'object') {
+                    Object.keys(result.services.tours).forEach(tourType => {
+                        labels.push(`Tour: ${tourType}`);
+                        data.push(result.services.tours[tourType]);
+                    });
+                }
                 
                 // Add vehicles
                 if (result.services.vehicles > 0) {
@@ -2826,10 +2878,12 @@ async function loadServicePerformanceData() {
                 }
                 
                 // Add diving types
-                Object.keys(result.services.diving || {}).forEach(divingType => {
-                    labels.push(`Diving: ${divingType}`);
-                    data.push(result.services.diving[divingType]);
-                });
+                if (result.services.diving && typeof result.services.diving === 'object') {
+                    Object.keys(result.services.diving).forEach(divingType => {
+                        labels.push(`Diving: ${divingType}`);
+                        data.push(result.services.diving[divingType]);
+                    });
+                }
                 
                 // Add van rentals
                 if (result.services.van_rentals > 0) {
@@ -2850,9 +2904,15 @@ async function loadServicePerformanceData() {
 async function loadVanDestinationsData() {
     try {
         const response = await fetch(`${window.API_URL}/api/analytics/van-destinations`);
+        
+        if (!response.ok) {
+            console.warn(`⚠️ Van destinations API returned ${response.status}`);
+            return;
+        }
+        
         const result = await response.json();
         
-        if (result.success && result.destinations) {
+        if (result.success && result.destinations && Array.isArray(result.destinations)) {
             const chart = chartInstances['vanDestinationsChart'];
             if (chart) {
                 chart.data.labels = result.destinations.map(d => d.destination);
