@@ -816,10 +816,53 @@ function handleCreateAccountClick(event) {
   return true;
 }
 
+function handleUserIconClick(event) {
+  // Check if user is authenticated
+  if (checkAuthentication()) {
+    // User is logged in - could show profile dropdown or redirect to profile
+    // For now, just allow navigation to login (which will redirect if already logged in)
+    return true;
+  } else {
+    // User not logged in - go to login page
+    event.preventDefault();
+    window.location.href = '/owner/login.html';
+    return false;
+  }
+}
+
+// Update user icon based on authentication status
+function updateUserIcon() {
+  const userIconLink = document.getElementById('userIconLink');
+  if (!userIconLink) return;
+  
+  if (checkAuthentication()) {
+    // User is logged in - change icon to user-circle or add logged-in styling
+    const icon = userIconLink.querySelector('i');
+    if (icon) {
+      icon.classList.remove('fa-user');
+      icon.classList.add('fa-user-circle');
+    }
+    userIconLink.title = 'My Account';
+    userIconLink.classList.add('logged-in');
+  } else {
+    // User not logged in
+    const icon = userIconLink.querySelector('i');
+    if (icon) {
+      icon.classList.remove('fa-user-circle');
+      icon.classList.add('fa-user');
+    }
+    userIconLink.title = 'Login / Create Account';
+    userIconLink.classList.remove('logged-in');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Re-evaluate API_BASE_URL to ensure meta tag is available
   API_BASE_URL = getApiBaseUrl();
   console.log('🔗 API_BASE_URL re-evaluated on DOMContentLoaded:', API_BASE_URL);
+  
+  // Update user icon based on authentication status
+  updateUserIcon();
   
   // Load dynamic content first
   loadDynamicContent();

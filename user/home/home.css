@@ -799,6 +799,15 @@ body::-webkit-scrollbar {
     .offcanvas-body .nav-item:last-child {
         margin-top: 1rem;
     }
+    
+    .user-icon-link {
+        width: 100% !important;
+        display: block !important;
+        text-align: center;
+        margin: 15px 0 0 0 !important;
+        padding: 14px 24px !important;
+        border-radius: 12px;
+    }
 }
 
 /* Desktop Navigation */
@@ -814,6 +823,53 @@ body::-webkit-scrollbar {
     .slant-btn {
         margin-left: 15px;
     }
+    
+    .user-icon-link {
+        margin-left: 10px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        color: #ffffff;
+        text-decoration: none;
+    }
+    
+    .user-icon-link:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+        color: #ffffff;
+    }
+    
+    .user-icon-link.logged-in {
+        color: #10b981;
+    }
+    
+    .user-icon-link.logged-in:hover {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.2);
+    }
+    
+    .user-icon-link i {
+        font-size: 1.2rem;
+    }
+}
+
+/* User Icon Link Base Styles */
+.user-icon-link {
+    color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.user-icon-link i {
+    font-size: 1.1rem;
 }
 
 /* Adjust based on your header height */
