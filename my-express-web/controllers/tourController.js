@@ -402,6 +402,26 @@ const updateTourPricing = async (req, res) => {
       updates
     });
 
+    // First, verify the record exists
+    const { data: existingData } = await supabase
+      .from('tour_pricing')
+      .select('*')
+      .eq('tour_pricing_id', normalizedPricingId)
+      .eq('tour_only_id', normalizedTourId)
+      .single();
+
+    if (!existingData) {
+      console.warn('⚠️ Tour pricing not found for update:', {
+        pricingId: normalizedPricingId,
+        tourId: normalizedTourId
+      });
+      return res.status(404).json({
+        success: false,
+        message: 'Tour pricing not found'
+      });
+    }
+
+    // Now perform the update
     const { data, error } = await supabase
       .from('tour_pricing')
       .update(updates)
@@ -418,30 +438,12 @@ const updateTourPricing = async (req, res) => {
       });
     }
 
-    if (!data || data.length === 0) {
-      // Check if the pricing exists at all
-      const { data: checkData } = await supabase
-        .from('tour_pricing')
-        .select('*')
-        .eq('tour_pricing_id', normalizedPricingId);
-      
-      console.warn('⚠️ Tour pricing not found:', {
-        pricingId: normalizedPricingId,
-        tourId: normalizedTourId,
-        existsInDb: checkData && checkData.length > 0,
-        actualData: checkData
-      });
-      
-      return res.status(404).json({
-        success: false,
-        message: 'Tour pricing not found'
-      });
-    }
+    console.log('✅ Tour pricing updated successfully:', data);
 
     res.json({
       success: true,
       message: 'Tour pricing updated successfully',
-      pricing: data[0]
+      pricing: data && data.length > 0 ? data[0] : existingData
     });
   } catch (error) {
     console.error('❌ Tour pricing update error:', error);
