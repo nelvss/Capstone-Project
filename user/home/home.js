@@ -810,12 +810,6 @@ function handleBookNowClick(event) {
   return true;
 }
 
-function handleCreateAccountClick(event) {
-  // Allow default navigation to login page with register mode
-  // No need to prevent default or check authentication
-  return true;
-}
-
 function handleUserIconClick(event) {
   // Check if user is authenticated
   if (checkAuthentication()) {
