@@ -627,6 +627,276 @@ const getBookingById = async (req, res) => {
   }
 };
 
+// Get bookings for a specific user by email
+const getUserBookings = async (req, res) => {
+  try {
+    const { email } = req.query;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email parameter is required'
+      });
+    }
+    
+    console.log('📊 Fetching bookings for user:', email);
+    
+    // Build query to filter by customer_email
+    let query = supabase
+      .from('bookings')
+      .select('*', { count: 'exact' })
+      .eq('customer_email', email.trim().toLowerCase())
+      .order('arrival_date', { ascending: false });
+    
+    // Fetch all bookings for this user using pagination
+    let allBookings = [];
+    let currentOffset = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+    
+    while (hasMore) {
+      const { data: bookingsPage, error: pageError } = await query
+        .range(currentOffset, currentOffset + pageSize - 1);
+      
+      if (pageError) {
+        console.error('❌ Error fetching bookings page:', pageError);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to fetch bookings', 
+          error: pageError.message 
+        });
+      }
+      
+      if (bookingsPage && bookingsPage.length > 0) {
+        allBookings = allBookings.concat(bookingsPage);
+        currentOffset += pageSize;
+        
+        if (bookingsPage.length < pageSize) {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+    
+    const bookings = allBookings;
+    console.log(`📊 Total bookings fetched for user: ${bookings.length}`);
+    
+    // Get related data (hotels, vehicles, van rentals, diving, payments)
+    const hotelIds = [...new Set(bookings.map(b => b.hotel_id).filter(id => id))];
+    let hotelsData = {};
+    if (hotelIds.length > 0) {
+      const { data: hotels } = await supabase
+        .from('hotels')
+        .select('hotel_id, name, description, base_price_per_night')
+        .in('hotel_id', hotelIds);
+      
+      if (hotels) {
+        hotelsData = hotels.reduce((acc, hotel) => {
+          acc[hotel.hotel_id] = hotel;
+          return acc;
+        }, {});
+      }
+    }
+    
+    const bookingIds = bookings.map(b => b.booking_id);
+    
+    // Helper function to fetch data in batches with pagination
+    const fetchInBatches = async (tableName, selectQuery, bookingIds) => {
+      const batchSize = 1000;
+      let allData = [];
+      
+      for (let i = 0; i < bookingIds.length; i += batchSize) {
+        const chunk = bookingIds.slice(i, i + batchSize);
+        let offset = 0;
+        let hasMore = true;
+        
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from(tableName)
+            .select(selectQuery)
+            .in('booking_id', chunk)
+            .range(offset, offset + batchSize - 1);
+          
+          if (error) {
+            console.warn(`⚠️ Error fetching ${tableName}:`, error.message);
+            hasMore = false;
+          } else if (data && data.length > 0) {
+            allData = allData.concat(data);
+            offset += batchSize;
+            
+            if (data.length < batchSize) {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
+      }
+      
+      return allData;
+    };
+    
+    // Fetch vehicle bookings
+    let vehicleBookingsData = {};
+    if (bookingIds.length > 0) {
+      const vehicleBookings = await fetchInBatches(
+        'booking_vehicles',
+        'booking_id, vehicle_id, vehicle_name, rental_days, total_amount',
+        bookingIds
+      );
+      
+      if (vehicleBookings && vehicleBookings.length > 0) {
+        const vehicleIds = [...new Set(vehicleBookings.map(vb => vb.vehicle_id).filter(id => id))];
+        let vehiclesData = {};
+        if (vehicleIds.length > 0) {
+          const { data: vehicles } = await supabase
+            .from('vehicles')
+            .select('vehicle_id, name, price_per_day')
+            .in('vehicle_id', vehicleIds);
+          
+          if (vehicles) {
+            vehiclesData = vehicles.reduce((acc, vehicle) => {
+              acc[vehicle.vehicle_id] = vehicle;
+              return acc;
+            }, {});
+          }
+        }
+        
+        vehicleBookingsData = vehicleBookings.reduce((acc, vb) => {
+          if (!acc[vb.booking_id]) {
+            acc[vb.booking_id] = [];
+          }
+          acc[vb.booking_id].push({
+            ...vb,
+            vehicle: vb.vehicle_id ? vehiclesData[vb.vehicle_id] : null
+          });
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Fetch van rental bookings
+    let vanRentalBookingsData = {};
+    if (bookingIds.length > 0) {
+      const normalizedBookingIds = bookingIds.map(id => String(id).trim()).filter(id => id);
+      
+      const vanRentalBookings = await fetchInBatches(
+        'bookings_van_rental',
+        'booking_id, van_destination_id, number_of_days, total_amount, trip_type, choose_destination',
+        normalizedBookingIds
+      );
+      
+      if (vanRentalBookings && vanRentalBookings.length > 0) {
+        const vanDestinationIds = [...new Set(vanRentalBookings.map(vrb => vrb.van_destination_id).filter(id => id))];
+        let vanDestinationsData = {};
+        if (vanDestinationIds.length > 0) {
+          const { data: vanDestinations } = await supabase
+            .from('van_destinations')
+            .select('van_destination_id, destination_name')
+            .in('van_destination_id', vanDestinationIds);
+          
+          if (vanDestinations) {
+            vanDestinationsData = vanDestinations.reduce((acc, dest) => {
+              acc[dest.van_destination_id] = dest;
+              return acc;
+            }, {});
+          }
+        }
+        
+        vanRentalBookingsData = vanRentalBookings.reduce((acc, vrb) => {
+          const normalizedKey = String(vrb.booking_id).trim();
+          if (!acc[normalizedKey]) {
+            acc[normalizedKey] = [];
+          }
+          acc[normalizedKey].push({
+            ...vrb,
+            location_type: vrb.choose_destination || null,
+            destination: vrb.van_destination_id ? vanDestinationsData[vrb.van_destination_id] : null
+          });
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Fetch payments
+    let paymentsData = {};
+    if (bookingIds.length > 0) {
+      const payments = await fetchInBatches(
+        'payments',
+        'booking_id, total_booking_amount, payment_date',
+        bookingIds
+      );
+      
+      if (payments && payments.length > 0) {
+        const sortedPayments = payments.sort((a, b) => {
+          const dateA = new Date(a.payment_date || 0);
+          const dateB = new Date(b.payment_date || 0);
+          return dateB - dateA;
+        });
+        
+        paymentsData = sortedPayments.reduce((acc, payment) => {
+          if (!acc[payment.booking_id]) {
+            acc[payment.booking_id] = payment.total_booking_amount;
+          }
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Fetch diving bookings
+    let divingBookingsData = {};
+    if (bookingIds.length > 0) {
+      const divingBookings = await fetchInBatches(
+        'bookings_diving',
+        'booking_id, number_of_divers, total_amount',
+        bookingIds
+      );
+
+      if (divingBookings && divingBookings.length > 0) {
+        divingBookingsData = divingBookings.reduce((acc, diving) => {
+          if (!acc[diving.booking_id]) {
+            acc[diving.booking_id] = [];
+          }
+          acc[diving.booking_id].push(diving);
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Combine all data
+    const bookingsWithDetails = bookings.map(booking => {
+      const normalizedBookingId = String(booking.booking_id).trim();
+      const vanRentals = vanRentalBookingsData[normalizedBookingId] || [];
+      const vanRentalsFallback = vanRentals.length === 0 ? (vanRentalBookingsData[booking.booking_id] || []) : vanRentals;
+      
+      return {
+        ...booking,
+        hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
+        vehicle_bookings: vehicleBookingsData[booking.booking_id] || [],
+        van_rental_bookings: vanRentalsFallback,
+        diving_bookings: divingBookingsData[booking.booking_id] || [],
+        total_booking_amount: paymentsData[booking.booking_id] || null
+      };
+    });
+    
+    console.log('✅ User bookings fetched successfully:', bookingsWithDetails?.length || 0, 'bookings');
+    
+    res.json({ 
+      success: true, 
+      bookings: bookingsWithDetails || []
+    });
+    
+  } catch (error) {
+    console.error('❌ User bookings fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+};
+
 const updateBooking = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1722,6 +1992,7 @@ module.exports = {
   createBooking,
   getBookings,
   getBookingById,
+  getUserBookings,
   updateBooking,
   updateBookingStatus,
   deleteBooking,

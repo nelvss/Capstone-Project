@@ -813,9 +813,10 @@ function handleBookNowClick(event) {
 function handleUserIconClick(event) {
   // Check if user is authenticated
   if (checkAuthentication()) {
-    // User is logged in - could show profile dropdown or redirect to profile
-    // For now, just allow navigation to login (which will redirect if already logged in)
-    return true;
+    // User is logged in - redirect to bookings page
+    event.preventDefault();
+    window.location.href = '/user/bookings/my_bookings.html';
+    return false;
   } else {
     // User not logged in - go to login page
     event.preventDefault();

@@ -1,0 +1,268 @@
+/* my_bookings.css */
+/* Styling for user bookings page */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+/* Navigation Bar */
+.navbar {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  padding: 1rem 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+  padding: 0.5rem 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-brand img {
+  height: 50px;
+  width: auto;
+}
+
+.navbar-toggler {
+  border: none;
+  color: #fff;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
+}
+
+.nav-link.slant {
+  color: #fff;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin: 0 5px;
+}
+
+.nav-link.slant:hover {
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.slant-btn {
+  color: #fff;
+  border: 2px solid #fff;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.slant-btn:hover {
+  background-color: #fff;
+  color: #dc3545;
+  transform: translateY(-2px);
+}
+
+/* Main Content */
+.main-content {
+  min-height: 100vh;
+  padding-top: 80px;
+}
+
+.page-header {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #dc3545;
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  color: #6c757d;
+}
+
+/* Booking Card */
+.booking-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.booking-card-header {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: #fff;
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.booking-id {
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.booking-card-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+.booking-info-item {
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.booking-info-item:last-child {
+  margin-bottom: 0;
+}
+
+.booking-info-item i {
+  width: 20px;
+  text-align: center;
+}
+
+.booking-total {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #e9ecef;
+  font-size: 1.1rem;
+}
+
+.booking-card-footer {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Status Badge */
+.badge {
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Modal Styles */
+.modal-content {
+  border-radius: 12px;
+  border: none;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: #fff;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header .btn-close {
+  filter: invert(1);
+}
+
+.booking-details h6 {
+  color: #dc3545;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Empty State */
+.empty-icon {
+  opacity: 0.5;
+}
+
+/* Loading Spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .booking-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .booking-card-body {
+    padding: 1.25rem;
+  }
+  
+  .navbar-nav {
+    text-align: center;
+  }
+  
+  .nav-link.slant,
+  .slant-btn {
+    width: 100%;
+    margin: 5px 0;
+    text-align: center;
+  }
+}
+
+/* Offcanvas Menu Styles */
+.offcanvas {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.offcanvas-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.offcanvas-title {
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-close {
+  filter: invert(1);
+}
+
+/* Mobile Menu Adjustments */
+@media (max-width: 991px) {
+  .nav-link.slant {
+    width: 100%;
+    display: block;
+    text-align: left;
+    margin: 0;
+    padding: 12px 20px;
+    border-radius: 12px;
+  }
+  
+  .nav-link.slant:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  .slant-btn {
+    width: 100%;
+    display: block;
+    text-align: center;
+    margin: 15px 0 0 0;
+    padding: 14px 24px;
+    border-radius: 12px;
+  }
+}
+
