@@ -399,7 +399,7 @@ const updateTourPricing = async (req, res) => {
     const { data, error } = await supabase
       .from('tour_pricing')
       .update(updates)
-      .eq('pricing_id', normalizedPricingId)
+      .eq('tour_pricing_id', normalizedPricingId)
       .eq('tour_only_id', normalizedTourId)
       .select('*');
 
@@ -450,7 +450,7 @@ const deleteTourPricing = async (req, res) => {
     const { error } = await supabase
       .from('tour_pricing')
       .delete()
-      .eq('pricing_id', normalizedPricingId)
+      .eq('tour_pricing_id', normalizedPricingId)
       .eq('tour_only_id', normalizedTourId);
 
     if (error) {
