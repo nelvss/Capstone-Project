@@ -3074,5 +3074,220 @@
         initializePackages();
     }
 
+    // ----------------------------
+    // PACKAGE INFO MODAL FUNCTIONALITY
+    // ----------------------------
+    
+    // Function to show package information modal
+    async function showPackageInfo(packageName) {
+        console.log('📦 Showing info for:', packageName);
+        
+        // Get modal elements
+        const modal = new bootstrap.Modal(document.getElementById('packageInfoModal'));
+        const modalTitle = document.getElementById('packageInfoModalLabel');
+        const modalSubtitle = document.getElementById('packageInfoSubtitle');
+        const modalBody = document.getElementById('packageInfoModalBody');
+        
+        // Show loading state
+        modalTitle.textContent = packageName;
+        modalSubtitle.textContent = 'Loading package details...';
+        modalBody.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-danger" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Fetching package information...</p>
+            </div>
+        `;
+        
+        // Show the modal
+        modal.show();
+        
+        try {
+            // Get selected hotel for pricing context
+            const selectedHotelInput = document.querySelector('input[name="hotel-selection"]:checked');
+            const selectedHotel = selectedHotelInput ? selectedHotelInput.value : null;
+            
+            // Get package details from packagesData
+            let packageInfo = null;
+            
+            if (selectedHotel) {
+                packageInfo = getPackageByCategoryAndHotel(packageName, selectedHotel);
+            } else {
+                // If no hotel selected, get any package with this category
+                packageInfo = packagesData.find(pkg => pkg.category === packageName);
+            }
+            
+            if (!packageInfo) {
+                throw new Error('Package information not found');
+            }
+            
+            // Define package details based on category
+            const packageDetails = getPackageDetailsTemplate(packageName, packageInfo, selectedHotel);
+            
+            // Update modal with package information
+            modalTitle.textContent = packageDetails.title;
+            modalSubtitle.textContent = packageDetails.subtitle;
+            modalBody.innerHTML = packageDetails.content;
+            
+        } catch (error) {
+            console.error('❌ Error loading package info:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Error loading package information</strong>
+                    <p class="mb-0 mt-2">${error.message}</p>
+                </div>
+            `;
+        }
+    }
+    
+    // Function to generate package details template
+    function getPackageDetailsTemplate(packageName, packageInfo, selectedHotel) {
+        const details = {
+            'Package 1': {
+                title: 'Package 1 - 2 Days 1 Night',
+                subtitle: 'Hotel + Island Tour + Land Tour',
+                description: 'Experience the best of Puerto Galera with our 2-day adventure package. Enjoy comfortable accommodation, exciting island hopping, and explore the beautiful inland attractions.',
+                inclusions: [
+                    'Hotel accommodation (1 night)',
+                    'Island hopping tour (full day)',
+                    'Land tour to scenic destinations',
+                    'Tour guide services',
+                    'Boat transportation',
+                    'Environmental fees'
+                ]
+            },
+            'Package 2': {
+                title: 'Package 2 - 3 Days 2 Nights ⭐ BESTSELLER',
+                subtitle: 'Hotel + Island Tour + Land Tour',
+                description: 'Our most popular package! Immerse yourself in 3 days of island paradise with comfortable stays, island adventures, and inland explorations. Perfect for those who want to experience everything Puerto Galera has to offer.',
+                inclusions: [
+                    'Hotel accommodation (2 nights)',
+                    'Island hopping tour (full day)',
+                    'Land tour to scenic destinations',
+                    'Tour guide services',
+                    'Boat transportation',
+                    'Environmental fees',
+                    'Extended leisure time'
+                ]
+            },
+            'Package 3': {
+                title: 'Package 3 - 2 Days 1 Night',
+                subtitle: 'Hotel + Island Tour',
+                description: 'Perfect for beach lovers! Enjoy 2 days of island paradise with comfortable accommodation and an exciting island hopping adventure visiting the most beautiful beaches and snorkeling spots.',
+                inclusions: [
+                    'Hotel accommodation (1 night)',
+                    'Island hopping tour (full day)',
+                    'Tour guide services',
+                    'Boat transportation',
+                    'Snorkeling equipment',
+                    'Environmental fees'
+                ]
+            },
+            'Package 4': {
+                title: 'Package 4 - 3 Days 2 Nights',
+                subtitle: 'Hotel + Island Tour',
+                description: 'Extended island adventure with 3 days of relaxation and exploration. Enjoy comfortable accommodation for 2 nights and a comprehensive island hopping tour to discover the best beaches and marine life.',
+                inclusions: [
+                    'Hotel accommodation (2 nights)',
+                    'Island hopping tour (full day)',
+                    'Tour guide services',
+                    'Boat transportation',
+                    'Snorkeling equipment',
+                    'Environmental fees',
+                    'Beach leisure time'
+                ]
+            }
+        };
+        
+        const detail = details[packageName];
+        if (!detail) {
+            return {
+                title: packageName,
+                subtitle: 'Package Details',
+                content: '<p>Package information not available.</p>'
+            };
+        }
+        
+        // Generate pricing section from package pricing data
+        let pricingHTML = '';
+        if (packageInfo && packageInfo.pricing && packageInfo.pricing.length > 0) {
+            const sortedPricing = [...packageInfo.pricing].sort((a, b) => a.min_tourist - b.min_tourist);
+            
+            pricingHTML = '<div class="pricing-section">';
+            pricingHTML += '<div class="pricing-title"><i class="fas fa-tag"></i>Pricing Per Person</div>';
+            
+            if (selectedHotel) {
+                pricingHTML += `<p class="text-muted small mb-3"><i class="fas fa-hotel me-1"></i>Prices shown for: <strong>${selectedHotel}</strong></p>`;
+            }
+            
+            sortedPricing.forEach(tier => {
+                const paxRange = tier.min_tourist === tier.max_tourist 
+                    ? `${tier.min_tourist} pax`
+                    : `${tier.min_tourist}-${tier.max_tourist} pax`;
+                
+                pricingHTML += `
+                    <div class="pricing-item">
+                        <span class="pricing-pax">
+                            <i class="fas fa-users"></i>${paxRange}
+                        </span>
+                        <span class="pricing-cost">₱${tier.price_per_head.toLocaleString()}</span>
+                    </div>
+                `;
+            });
+            
+            pricingHTML += '</div>';
+        }
+        
+        // Generate inclusions section
+        let inclusionsHTML = '<div class="inclusions-section">';
+        inclusionsHTML += '<div class="inclusions-title"><i class="fas fa-check-circle"></i>Package Inclusions</div>';
+        detail.inclusions.forEach(item => {
+            inclusionsHTML += `
+                <div class="inclusion-item">
+                    <i class="fas fa-check"></i>
+                    <span>${item}</span>
+                </div>
+            `;
+        });
+        inclusionsHTML += '</div>';
+        
+        // Combine all sections
+        const content = `
+            <div class="description-section">
+                <p><strong>${detail.description}</strong></p>
+            </div>
+            ${pricingHTML}
+            ${inclusionsHTML}
+            ${!selectedHotel ? '<div class="alert alert-info mt-3"><i class="fas fa-info-circle me-2"></i>Select a hotel to see specific pricing for your preferred accommodation.</div>' : ''}
+        `;
+        
+        return {
+            title: detail.title,
+            subtitle: detail.subtitle,
+            content: content
+        };
+    }
+    
+    // Attach event listeners to "More Info" buttons
+    function attachPackageInfoListeners() {
+        const packageInfoButtons = document.querySelectorAll('.btn-package-info');
+        console.log('Found package info buttons:', packageInfoButtons.length);
+        
+        packageInfoButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation(); // Prevent dropdown from closing
+                const packageName = button.getAttribute('data-package');
+                showPackageInfo(packageName);
+            });
+        });
+    }
+    
+    // Initialize package info listeners
+    attachPackageInfoListeners();
+    setTimeout(attachPackageInfoListeners, 100); // Backup initialization
+
     console.log("Tour booking form initialized successfully!");
 })();
