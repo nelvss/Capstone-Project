@@ -1753,18 +1753,24 @@ body {
 
 .alert-compact .d-flex {
     align-items: center !important;
+    flex-direction: row !important;
+}
+
+.alert-compact .d-flex i {
+    margin-top: 0 !important;
+    align-self: center !important;
 }
 
 .alert-compact h6 {
-    display: inline !important;
+    display: inline-block !important;
     margin-right: 0.5rem !important;
     margin-bottom: 0 !important;
+    vertical-align: middle !important;
 }
 
 .alert-compact > .d-flex > div {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+    display: inline !important;
+    vertical-align: middle !important;
 }
 
 /* Font size styles */
