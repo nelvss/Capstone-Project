@@ -12,6 +12,23 @@ function getApiBaseUrl() {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// Derive Socket.IO base URL from API base (strip trailing /api if present)
+function getSocketBaseUrl() {
+  try {
+    const url = new URL(API_BASE_URL);
+    // If path ends with /api, remove it so we connect to the root origin
+    if (url.pathname.endsWith('/api')) {
+      url.pathname = url.pathname.replace(/\/api$/, '');
+    }
+    return url.origin + url.pathname;
+  } catch (error) {
+    console.error('Error deriving Socket.IO base URL, falling back to window.location.origin:', error);
+    return window.location.origin;
+  }
+}
+
+let socket = null;
+
 // Check authentication
 function checkAuthentication() {
   const userSession = localStorage.getItem('userSession');
@@ -416,8 +433,50 @@ function handleLogout() {
   }
 }
 
+// Initialize Socket.IO for real-time booking updates
+function initializeSocket() {
+  if (typeof io === 'undefined') {
+    console.warn('Socket.IO client is not loaded.');
+    return;
+  }
+
+  const baseUrl = getSocketBaseUrl();
+
+  try {
+    socket = io(baseUrl, {
+      transports: ['websocket', 'polling']
+    });
+  } catch (error) {
+    console.error('Failed to initialize Socket.IO:', error);
+    return;
+  }
+
+  socket.on('connect', () => {
+    console.log('🔌 Connected to Socket.IO server for bookings. Socket ID:', socket.id);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('🔌 Disconnected from Socket.IO server');
+  });
+
+  // Listen for booking status changes (confirmed / cancelled / etc.)
+  socket.on('payment-status-changed', (payload) => {
+    console.log('📩 Booking status changed event received:', payload);
+    // When any booking status changes, refresh the user's bookings
+    loadUserBookings();
+  });
+
+  // Listen for general booking updates (optional: new bookings, edits)
+  socket.on('booking-update', (payload) => {
+    console.log('📩 Booking update event received:', payload);
+    // Refresh bookings so the user sees the latest details
+    loadUserBookings();
+  });
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
   loadUserBookings();
+  initializeSocket();
 });
 
