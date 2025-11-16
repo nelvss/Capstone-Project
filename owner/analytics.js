@@ -3033,13 +3033,20 @@ async function loadVanDestinationsData() {
         }
         
         if (result.success) {
+            console.log('📊 Response data:', {
+                withinCount: result.within?.length || 0,
+                outsideCount: result.outside?.length || 0,
+                within: result.within,
+                outside: result.outside
+            });
+            
             // Handle Within Puerto Galera chart
             if (result.within && Array.isArray(result.within) && result.within.length > 0) {
                 chartWithin.data.labels = result.within.map(d => d.destination || 'Unknown');
                 chartWithin.data.datasets[0].data = result.within.map(d => d.bookings || 0);
                 console.log('✅ Within Puerto Galera data loaded:', result.within.length, 'destinations');
             } else {
-                console.log('ℹ️ No within Puerto Galera destinations data available');
+                console.log('ℹ️ No within Puerto Galera destinations data available. Result:', result.within);
                 chartWithin.data.labels = ['No Data Available'];
                 chartWithin.data.datasets[0].data = [0];
             }
@@ -3051,13 +3058,16 @@ async function loadVanDestinationsData() {
                 chartOutside.data.datasets[0].data = result.outside.map(d => d.bookings || 0);
                 console.log('✅ Outside Puerto Galera data loaded:', result.outside.length, 'destinations');
             } else {
-                console.log('ℹ️ No outside Puerto Galera destinations data available');
+                console.log('ℹ️ No outside Puerto Galera destinations data available. Result:', result.outside);
                 chartOutside.data.labels = ['No Data Available'];
                 chartOutside.data.datasets[0].data = [0];
             }
             chartOutside.update();
         } else {
             console.warn('⚠️ Invalid response structure:', result);
+            if (result.message) {
+                console.warn('📋 API message:', result.message);
+            }
             chartWithin.data.labels = ['No Data Available'];
             chartWithin.data.datasets[0].data = [0];
             chartWithin.update();
