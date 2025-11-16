@@ -856,17 +856,19 @@ function handleMonthFilter(event, filterId) {
     const yearSelect = document.getElementById(yearFilterId);
     const year = yearSelect ? yearSelect.value : '2025';
     
-    // Clear week filter
-    weekSelect.innerHTML = '<option value="all">All Weeks</option>';
-    
-    if (month !== 'all' && weeklyData[month]) {
-        // Populate week options
-        weeklyData[month].weeks.forEach((week, index) => {
-            const option = document.createElement('option');
-            option.value = index;
-            option.textContent = week;
-            weekSelect.appendChild(option);
-        });
+    // Clear week filter only if it exists
+    if (weekSelect) {
+        weekSelect.innerHTML = '<option value="all">All Weeks</option>';
+        
+        if (month !== 'all' && weeklyData[month]) {
+            // Populate week options
+            weeklyData[month].weeks.forEach((week, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = week;
+                weekSelect.appendChild(option);
+            });
+        }
     }
     
     // Update the corresponding chart
