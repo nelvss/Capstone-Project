@@ -1751,6 +1751,22 @@ body {
     text-align: justify !important;
 }
 
+.alert-compact .d-flex {
+    align-items: center !important;
+}
+
+.alert-compact h6 {
+    display: inline !important;
+    margin-right: 0.5rem !important;
+    margin-bottom: 0 !important;
+}
+
+.alert-compact > .d-flex > div {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 /* Font size styles */
 .font-size-small {
     font-size: 0.8rem;

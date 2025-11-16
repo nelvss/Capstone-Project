@@ -1728,3 +1728,20 @@ body {
 .alert.alert-warning p.lh-12 {
     text-align: justify !important;
 }
+
+/* Important Notice inline with icon */
+.alert.alert-warning .d-flex {
+    align-items: center !important;
+}
+
+.alert.alert-warning h6 {
+    display: inline !important;
+    margin-right: 0.5rem !important;
+    margin-bottom: 0 !important;
+}
+
+.alert.alert-warning .d-flex > div {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
