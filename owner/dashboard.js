@@ -1843,7 +1843,20 @@ async function submitBookingEditForm(event) {
 
     const payloadForApi = { ...payload };
     delete payloadForApi.booking_id;
-    payloadForApi.status = payloadForApi.status || currentEditingBooking.status;
+    
+    // Preserve original status if booking was confirmed or cancelled and form status is pending
+    // Only update status if user explicitly changed it in the form
+    const originalStatus = currentEditingBooking.status || currentEditingBooking.raw?.status;
+    const formStatus = payloadForApi.status;
+    
+    // If the original booking was confirmed or cancelled, and form shows pending,
+    // preserve the original status to prevent accidental status reset
+    if ((originalStatus === 'confirmed' || originalStatus === 'cancelled') && formStatus === 'pending') {
+      payloadForApi.status = originalStatus;
+    } else {
+      // Use form status if it's explicitly set and different from pending, or if original was pending
+      payloadForApi.status = formStatus || originalStatus || 'pending';
+    }
 
     // Ensure we have a clean booking ID without any suffixes
     const bookingId = String(currentEditingBooking.id).split(':')[0];
