@@ -427,3 +427,32 @@ body {
         font-size: 0.95rem;
     }
 }
+
+/* Form Switch Styling */
+.form-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    animation: fadeInUp 0.8s ease-out 0.8s both;
+}
+
+.form-switch p {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.form-switch a {
+    color: #dc2626;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.form-switch a:hover {
+    color: #b91c1c;
+    background: rgba(220, 38, 38, 0.1);
+    transform: translateY(-1px);
+}

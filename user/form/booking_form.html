@@ -99,6 +99,38 @@
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Authentication check - must be loaded before booking_form.js
+        (function() {
+            function checkAuthentication() {
+                const userSession = localStorage.getItem('userSession');
+                if (!userSession) {
+                    return false;
+                }
+                
+                try {
+                    const session = JSON.parse(userSession);
+                    // Check if session is valid (has required fields)
+                    if (session.type && session.email && session.userId) {
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('Error parsing user session:', error);
+                    localStorage.removeItem('userSession');
+                }
+                
+                return false;
+            }
+            
+            // Check authentication on page load
+            if (!checkAuthentication()) {
+                // Store the intended destination
+                sessionStorage.setItem('returnUrl', window.location.pathname);
+                // Redirect to login page
+                window.location.href = '/owner/login.html';
+            }
+        })();
+    </script>
     <script src="/user/form/booking_form.js"></script>
 </body>
 </html>

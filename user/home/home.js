@@ -772,6 +772,50 @@ function updateTourCard(carouselId, tour, displayName) {
   }
 }
 
+// Authentication check functions
+function checkAuthentication() {
+  const userSession = localStorage.getItem('userSession');
+  if (!userSession) {
+    return false;
+  }
+  
+  try {
+    const session = JSON.parse(userSession);
+    // Check if session is valid (has required fields)
+    if (session.type && session.email && session.userId) {
+      return true;
+    }
+  } catch (error) {
+    console.error('Error parsing user session:', error);
+    localStorage.removeItem('userSession');
+  }
+  
+  return false;
+}
+
+function handleBookNowClick(event) {
+  event.preventDefault();
+  
+  // Check if user is authenticated
+  if (!checkAuthentication()) {
+    // Store the intended destination
+    sessionStorage.setItem('returnUrl', '/user/form/booking_form.html');
+    // Redirect to login page
+    window.location.href = '/owner/login.html';
+    return false;
+  }
+  
+  // User is authenticated, proceed to booking form
+  window.location.href = '/user/form/booking_form.html';
+  return true;
+}
+
+function handleCreateAccountClick(event) {
+  // Allow default navigation to login page with register mode
+  // No need to prevent default or check authentication
+  return true;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Re-evaluate API_BASE_URL to ensure meta tag is available
   API_BASE_URL = getApiBaseUrl();

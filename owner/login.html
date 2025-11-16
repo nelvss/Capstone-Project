@@ -18,10 +18,11 @@
                 <div class="card mx-auto login-card">
                 <div class="login-header">
                     <img src="/Images/logo.png" alt="OTG Logo" class="logo">
-                    <p>Sign in to your account</p>
+                    <p id="headerText">Sign in to your account</p>
                 </div>
                 
-                <form class="login-form" onsubmit="handleLogin(event)">
+                <!-- Login Form -->
+                <form class="login-form" id="loginForm" onsubmit="handleLogin(event)" style="display: block;">
                     <div class="form-group">
                         <label for="email" class="form-label">EMAIL</label>
                         <input type="email" id="email" name="email" class="form-control" required placeholder="Enter your email">
@@ -39,6 +40,43 @@
                         <span class="btn-text">LOGIN</span>
                         <span class="btn-loading">Signing in...</span>
                     </button>
+                    
+                    <div class="form-switch">
+                        <p>Don't have an account? <a href="#" onclick="switchToRegister(event)">Create Account</a></p>
+                    </div>
+                </form>
+                
+                <!-- Registration Form -->
+                <form class="register-form" id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
+                    <div class="form-group">
+                        <label for="registerEmail" class="form-label">EMAIL</label>
+                        <input type="email" id="registerEmail" name="registerEmail" class="form-control" required placeholder="Enter your email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword" class="form-label">PASSWORD</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="registerPassword" name="registerPassword" class="form-control" required placeholder="Enter your password (min. 6 characters)" minlength="6">
+                            <i class="fas fa-eye password-toggle-icon" id="registerPasswordToggle" onclick="toggleRegisterPasswordVisibility()"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">CONFIRM PASSWORD</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required placeholder="Confirm your password" minlength="6">
+                            <i class="fas fa-eye password-toggle-icon" id="confirmPasswordToggle" onclick="toggleConfirmPasswordVisibility()"></i>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-login" id="registerButton">
+                        <span class="btn-text">CREATE ACCOUNT</span>
+                        <span class="btn-loading">Creating account...</span>
+                    </button>
+                    
+                    <div class="form-switch">
+                        <p>Already have an account? <a href="#" onclick="switchToLogin(event)">Sign In</a></p>
+                    </div>
                 </form>
             </div>
         </div>

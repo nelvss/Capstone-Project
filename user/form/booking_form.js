@@ -108,6 +108,27 @@
         window.location.href = '../home/home.html';
     };
 
+    // Authentication check function
+    window.checkAuthentication = function() {
+        const userSession = localStorage.getItem('userSession');
+        if (!userSession) {
+            return false;
+        }
+        
+        try {
+            const session = JSON.parse(userSession);
+            // Check if session is valid (has required fields)
+            if (session.type && session.email && session.userId) {
+                return true;
+            }
+        } catch (error) {
+            console.error('Error parsing user session:', error);
+            localStorage.removeItem('userSession');
+        }
+        
+        return false;
+    };
+
     window.nextStep = function() {
         // Validate form before proceeding
         const isValid = validateStep1();
