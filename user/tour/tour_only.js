@@ -28,6 +28,12 @@
     
     let vanDestinationsData = [];
 
+    // ----------------------------
+    // TOUR PRICING DATA MANAGEMENT
+    // ----------------------------
+    
+    let tourPricingData = [];
+
     // API Base URL
     const API_BASE_URL = (window.API_BASE_URL && window.API_BASE_URL.length > 0)
         ? window.API_BASE_URL
@@ -148,6 +154,63 @@
             return;
         }
         divingOptionsContainer.innerHTML = `<div class="text-center text-danger py-3"><small>${errorMessage}</small><br><small class="text-muted">Please refresh the page.</small></div>`;
+    }
+
+    // ----------------------------
+    // TOUR PRICING DATA FETCHING
+    // ----------------------------
+
+    // Fetch tour pricing from database
+    async function fetchTourPricing() {
+        try {
+            console.log('🔄 Fetching tour pricing from API...');
+            const response = await fetch(`${API_BASE_URL}/tour-pricing`, { cache: 'no-cache' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.pricing) {
+                tourPricingData = result.pricing;
+                console.log('✅ Tour pricing loaded:', tourPricingData.length, 'pricing tiers');
+                return tourPricingData;
+            } else {
+                console.error('❌ Failed to fetch tour pricing:', result.message || 'Unknown error');
+                return [];
+            }
+        } catch (error) {
+            console.error('❌ Error fetching tour pricing:', error);
+            return [];
+        }
+    }
+
+    // Get pricing for a specific tour category and tourist count
+    function getTourPricing(category, touristCount) {
+        if (!tourPricingData || tourPricingData.length === 0) {
+            console.warn('⚠️ No tour pricing data available, using fallback pricing');
+            return null;
+        }
+
+        // Find pricing tiers that match the tourist count range
+        const matchingTiers = tourPricingData.filter(tier => {
+            const matchesTouristRange = tier.min_tourist <= touristCount && 
+                   (tier.max_tourist === null || tier.max_tourist >= touristCount);
+            
+            // Match by category (Island Tour, Inland Tour, Snorkeling Tour)
+            const matchesCategory = tier.category && tier.category.toLowerCase().includes(category.toLowerCase());
+            
+            return matchesTouristRange && matchesCategory;
+        });
+
+        if (matchingTiers.length === 0) {
+            console.warn(`⚠️ No pricing found for "${category}" with ${touristCount} tourists`);
+            return null;
+        }
+
+        // Return the first matching tier
+        return matchingTiers[0];
     }
 
     // Attach event listeners to diving options
@@ -713,6 +776,15 @@
     function calculateIslandTourPrice(touristCount) {
         if (!touristCount || touristCount <= 0) return 0;
         
+        // Try to get pricing from database first
+        const dbPricing = getTourPricing('Island Tour', touristCount);
+        if (dbPricing && dbPricing.price_per_head) {
+            console.log(`✅ Using database pricing for Island Tour: ₱${dbPricing.price_per_head} per person`);
+            return dbPricing.price_per_head * touristCount;
+        }
+        
+        // Fallback to hardcoded pricing
+        console.warn('⚠️ Using fallback pricing for Island Tour');
         let pricePerPerson = 0;
         
         if (touristCount === 1) {
@@ -732,6 +804,15 @@
     function calculateInlandTourPrice(touristCount) {
         if (!touristCount || touristCount <= 0) return 0;
 
+        // Try to get pricing from database first
+        const dbPricing = getTourPricing('Inland Tour', touristCount);
+        if (dbPricing && dbPricing.price_per_head) {
+            console.log(`✅ Using database pricing for Inland Tour: ₱${dbPricing.price_per_head} per person`);
+            return dbPricing.price_per_head * touristCount;
+        }
+
+        // Fallback to hardcoded pricing
+        console.warn('⚠️ Using fallback pricing for Inland Tour');
         let pricePerPerson = 0;
 
         if (touristCount === 1) {
@@ -757,6 +838,15 @@
     function calculateSnorkelingTourPrice(touristCount) {
         if (!touristCount || touristCount <= 0) return 0;
 
+        // Try to get pricing from database first
+        const dbPricing = getTourPricing('Snorkeling Tour', touristCount);
+        if (dbPricing && dbPricing.price_per_head) {
+            console.log(`✅ Using database pricing for Snorkeling Tour: ₱${dbPricing.price_per_head} per person`);
+            return dbPricing.price_per_head * touristCount;
+        }
+
+        // Fallback to hardcoded pricing
+        console.warn('⚠️ Using fallback pricing for Snorkeling Tour');
         let pricePerPerson = 0;
 
         if (touristCount === 1) {
@@ -1950,6 +2040,11 @@
             }).catch(error => {
                 console.error("Error loading van destinations:", error);
             });
+            fetchTourPricing().then(() => {
+                console.log("Tour pricing loaded successfully!");
+            }).catch(error => {
+                console.error("Error loading tour pricing:", error);
+            });
         });
     } else {
         // DOM is already loaded
@@ -1967,6 +2062,11 @@
             console.log("Van destinations loaded successfully!");
         }).catch(error => {
             console.error("Error loading van destinations:", error);
+        });
+        fetchTourPricing().then(() => {
+            console.log("Tour pricing loaded successfully!");
+        }).catch(error => {
+            console.error("Error loading tour pricing:", error);
         });
     }
 

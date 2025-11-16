@@ -19,16 +19,38 @@ const getPackagePricing = async (req, res) => {
 
 const getTourPricing = async (req, res) => {
   try {
-    const { data, error } = await supabase
+    // Fetch tour pricing with category from tour_only table
+    const { data: pricingData, error: pricingError } = await supabase
       .from('tour_pricing')
       .select('*')
       .order('min_tourist');
     
-    if (error) {
-      return res.status(500).json({ success: false, message: 'Failed to fetch tour pricing', error: error.message });
+    if (pricingError) {
+      return res.status(500).json({ success: false, message: 'Failed to fetch tour pricing', error: pricingError.message });
     }
+
+    // Fetch tour categories
+    const { data: toursData, error: toursError } = await supabase
+      .from('tour_only')
+      .select('tour_only_id, category');
     
-    res.json({ success: true, pricing: data || [] });
+    if (toursError) {
+      return res.status(500).json({ success: false, message: 'Failed to fetch tour categories', error: toursError.message });
+    }
+
+    // Create a map of tour_only_id to category
+    const tourCategoryMap = {};
+    (toursData || []).forEach(tour => {
+      tourCategoryMap[tour.tour_only_id] = tour.category;
+    });
+
+    // Enrich pricing data with category information
+    const enrichedPricing = (pricingData || []).map(pricing => ({
+      ...pricing,
+      category: tourCategoryMap[pricing.tour_only_id] || null
+    }));
+    
+    res.json({ success: true, pricing: enrichedPricing });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
   }
