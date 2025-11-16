@@ -168,13 +168,22 @@
 
         try {
             const raw = localStorage.getItem('userSession');
-            if (!raw) return;
+            if (!raw) {
+                console.log('autofillEmailFromSession: no userSession found in localStorage');
+                return;
+            }
 
             const session = JSON.parse(raw);
-            if (!session || !session.email) return;
+            if (!session || !session.email) {
+                console.log('autofillEmailFromSession: session has no email', session);
+                return;
+            }
 
             const normalizedEmail = String(session.email).trim().toLowerCase();
-            if (!normalizedEmail) return;
+            if (!normalizedEmail) {
+                console.log('autofillEmailFromSession: normalized email is empty');
+                return;
+            }
 
             // Set the value and make it read-only so it always matches the account
             emailInput.value = normalizedEmail;
@@ -183,6 +192,7 @@
 
             // Clear any previous validation error for this field
             setError(emailInput, "");
+            console.log('autofillEmailFromSession: email field set to', normalizedEmail);
         } catch (err) {
             console.warn('Unable to autofill email from userSession:', err);
         }
@@ -300,5 +310,8 @@
         loadExistingFormData();
         console.log("Booking form initialized successfully!");
     });
+
+    // Expose for debugging in browser console (optional, harmless in production)
+    window.autofillEmailFromSession = autofillEmailFromSession;
 
 })();
