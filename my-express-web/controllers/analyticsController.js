@@ -978,7 +978,8 @@ const getVanDestinations = async (req, res) => {
       console.error('❌ Error fetching van rental destinations:', error);
       return res.json({ 
         success: true, 
-        destinations: [],
+        within: [],
+        outside: [],
         message: 'No van rental destinations data available'
       });
     }
@@ -987,48 +988,69 @@ const getVanDestinations = async (req, res) => {
       console.log('ℹ️ No van rental destinations data found');
       return res.json({ 
         success: true, 
-        destinations: [],
+        within: [],
+        outside: [],
         message: 'No van rental destinations data available'
       });
     }
     
-    // Get destination names
+    // Get destination names and location_type
     const destinationIds = [...new Set(vanBookings?.map(v => v.van_destination_id).filter(id => id))];
     let destinationsData = {};
     
     if (destinationIds.length > 0) {
       const { data: destinations } = await supabase
         .from('van_destinations')
-        .select('id, destination_name')
+        .select('id, destination_name, location_type')
         .in('id', destinationIds);
       
       if (destinations) {
         destinationsData = destinations.reduce((acc, dest) => {
-          acc[dest.id] = dest.destination_name;
+          acc[dest.id] = {
+            name: dest.destination_name,
+            locationType: dest.location_type || ''
+          };
           return acc;
         }, {});
       }
     }
     
-    // Count bookings per destination
-    const destinationCounts = {};
+    // Count bookings per destination, separated by location type
+    const withinCounts = {};
+    const outsideCounts = {};
+    
     vanBookings?.forEach(booking => {
       if (booking.van_destination_id) {
-        const destName = destinationsData[booking.van_destination_id] || `Destination ID: ${booking.van_destination_id}`;
-        destinationCounts[destName] = (destinationCounts[destName] || 0) + 1;
+        const destInfo = destinationsData[booking.van_destination_id];
+        const destName = destInfo?.name || `Destination ID: ${booking.van_destination_id}`;
+        const locationType = (destInfo?.locationType || '').toLowerCase();
+        
+        // Check if location_type contains "within" or "outside"
+        if (locationType.includes('within')) {
+          withinCounts[destName] = (withinCounts[destName] || 0) + 1;
+        } else if (locationType.includes('outside')) {
+          outsideCounts[destName] = (outsideCounts[destName] || 0) + 1;
+        }
       }
     });
     
-    const destinations = Object.keys(destinationCounts).map(destName => ({
+    // Convert to arrays and sort by bookings
+    const within = Object.keys(withinCounts).map(destName => ({
       destination: destName,
-      bookings: destinationCounts[destName]
+      bookings: withinCounts[destName]
+    })).sort((a, b) => b.bookings - a.bookings);
+    
+    const outside = Object.keys(outsideCounts).map(destName => ({
+      destination: destName,
+      bookings: outsideCounts[destName]
     })).sort((a, b) => b.bookings - a.bookings);
     
     console.log('✅ Van rental destinations fetched successfully');
     
     res.json({ 
       success: true, 
-      destinations
+      within,
+      outside
     });
     
   } catch (error) {

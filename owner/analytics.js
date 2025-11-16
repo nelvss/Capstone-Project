@@ -2615,17 +2615,20 @@ function createServicePerformanceChart() {
     loadServicePerformanceData();
 }
 
-// Create Van Destinations Chart
+// Create Van Destinations Charts (Within and Outside Puerto Galera)
 function createVanDestinationsChart() {
-    const ctx = document.getElementById('vanDestinationsChart');
-    if (!ctx) {
+    const ctxWithin = document.getElementById('vanDestinationsWithinChart');
+    const ctxOutside = document.getElementById('vanDestinationsOutsideChart');
+    
+    if (!ctxWithin || !ctxOutside) {
         console.error('❌ Van destinations chart canvas not found');
         return;
     }
     
-    console.log('📊 Creating van destinations chart...');
+    console.log('📊 Creating van destinations charts...');
     
-    chartInstances['vanDestinationsChart'] = new Chart(ctx.getContext('2d'), {
+    // Common chart configuration
+    const chartConfig = {
         type: 'pie',
         data: {
             labels: [],
@@ -2642,7 +2645,17 @@ function createVanDestinationsChart() {
                     '#e83e8c',
                     '#fd7e14',
                     '#20c997',
-                    '#6c757d'
+                    '#6c757d',
+                    '#ff6384',
+                    '#36a2eb',
+                    '#cc65fe',
+                    '#ffce56',
+                    '#4bc0c0',
+                    '#9966ff',
+                    '#ff9f40',
+                    '#ff6384',
+                    '#c9cbcf',
+                    '#ff6384'
                 ],
                 borderWidth: 2,
                 borderColor: '#fff'
@@ -2670,9 +2683,15 @@ function createVanDestinationsChart() {
                 }
             }
         }
-    });
+    };
     
-    // Load data from API after a short delay to ensure chart is fully initialized
+    // Create Within Puerto Galera chart
+    chartInstances['vanDestinationsWithinChart'] = new Chart(ctxWithin.getContext('2d'), JSON.parse(JSON.stringify(chartConfig)));
+    
+    // Create Outside Puerto Galera chart
+    chartInstances['vanDestinationsOutsideChart'] = new Chart(ctxOutside.getContext('2d'), JSON.parse(JSON.stringify(chartConfig)));
+    
+    // Load data from API after a short delay to ensure charts are fully initialized
     setTimeout(() => {
         loadVanDestinationsData();
     }, 100);
@@ -2987,11 +3006,17 @@ async function loadVanDestinationsData() {
         
         if (!response.ok) {
             console.warn(`⚠️ Van destinations API returned ${response.status}`);
-            const chart = chartInstances['vanDestinationsChart'];
-            if (chart) {
-                chart.data.labels = ['No Data Available'];
-                chart.data.datasets[0].data = [0];
-                chart.update();
+            const chartWithin = chartInstances['vanDestinationsWithinChart'];
+            const chartOutside = chartInstances['vanDestinationsOutsideChart'];
+            if (chartWithin) {
+                chartWithin.data.labels = ['No Data Available'];
+                chartWithin.data.datasets[0].data = [0];
+                chartWithin.update();
+            }
+            if (chartOutside) {
+                chartOutside.data.labels = ['No Data Available'];
+                chartOutside.data.datasets[0].data = [0];
+                chartOutside.update();
             }
             return;
         }
@@ -2999,36 +3024,60 @@ async function loadVanDestinationsData() {
         const result = await response.json();
         console.log('📥 Van destinations API response:', result);
         
-        const chart = chartInstances['vanDestinationsChart'];
-        if (!chart) {
-            console.error('❌ Van destinations chart instance not found');
+        const chartWithin = chartInstances['vanDestinationsWithinChart'];
+        const chartOutside = chartInstances['vanDestinationsOutsideChart'];
+        
+        if (!chartWithin || !chartOutside) {
+            console.error('❌ Van destinations chart instances not found');
             return;
         }
         
-        if (result.success && result.destinations && Array.isArray(result.destinations)) {
-            if (result.destinations.length > 0) {
-                chart.data.labels = result.destinations.map(d => d.destination || 'Unknown');
-                chart.data.datasets[0].data = result.destinations.map(d => d.bookings || 0);
-                console.log('✅ Van destinations data loaded:', result.destinations.length, 'destinations');
+        if (result.success) {
+            // Handle Within Puerto Galera chart
+            if (result.within && Array.isArray(result.within) && result.within.length > 0) {
+                chartWithin.data.labels = result.within.map(d => d.destination || 'Unknown');
+                chartWithin.data.datasets[0].data = result.within.map(d => d.bookings || 0);
+                console.log('✅ Within Puerto Galera data loaded:', result.within.length, 'destinations');
             } else {
-                console.log('ℹ️ No van destinations data available');
-                chart.data.labels = ['No Data Available'];
-                chart.data.datasets[0].data = [0];
+                console.log('ℹ️ No within Puerto Galera destinations data available');
+                chartWithin.data.labels = ['No Data Available'];
+                chartWithin.data.datasets[0].data = [0];
             }
-            chart.update();
+            chartWithin.update();
+            
+            // Handle Outside Puerto Galera chart
+            if (result.outside && Array.isArray(result.outside) && result.outside.length > 0) {
+                chartOutside.data.labels = result.outside.map(d => d.destination || 'Unknown');
+                chartOutside.data.datasets[0].data = result.outside.map(d => d.bookings || 0);
+                console.log('✅ Outside Puerto Galera data loaded:', result.outside.length, 'destinations');
+            } else {
+                console.log('ℹ️ No outside Puerto Galera destinations data available');
+                chartOutside.data.labels = ['No Data Available'];
+                chartOutside.data.datasets[0].data = [0];
+            }
+            chartOutside.update();
         } else {
             console.warn('⚠️ Invalid response structure:', result);
-            chart.data.labels = ['No Data Available'];
-            chart.data.datasets[0].data = [0];
-            chart.update();
+            chartWithin.data.labels = ['No Data Available'];
+            chartWithin.data.datasets[0].data = [0];
+            chartWithin.update();
+            chartOutside.data.labels = ['No Data Available'];
+            chartOutside.data.datasets[0].data = [0];
+            chartOutside.update();
         }
     } catch (error) {
         console.error('❌ Error loading van destinations data:', error);
-        const chart = chartInstances['vanDestinationsChart'];
-        if (chart) {
-            chart.data.labels = ['Error Loading Data'];
-            chart.data.datasets[0].data = [0];
-            chart.update();
+        const chartWithin = chartInstances['vanDestinationsWithinChart'];
+        const chartOutside = chartInstances['vanDestinationsOutsideChart'];
+        if (chartWithin) {
+            chartWithin.data.labels = ['Error Loading Data'];
+            chartWithin.data.datasets[0].data = [0];
+            chartWithin.update();
+        }
+        if (chartOutside) {
+            chartOutside.data.labels = ['Error Loading Data'];
+            chartOutside.data.datasets[0].data = [0];
+            chartOutside.update();
         }
     }
 }
