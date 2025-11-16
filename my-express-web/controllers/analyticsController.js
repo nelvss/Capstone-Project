@@ -718,23 +718,22 @@ const getAvgBookingValue = async (req, res) => {
     
     console.log('📊 Fetching average booking value:', { start_date, end_date, group_by });
     
-    // Query bookings table using booking_total_amount field
-    let query = supabase
-      .from('bookings')
-      .select('booking_total_amount, arrival_date, status')
-      .in('status', ['confirmed', 'completed']);
+    // Query payments table for total_booking_amount
+    let paymentsQuery = supabase
+      .from('payments')
+      .select('total_booking_amount, payment_date, booking_id');
     
     if (start_date) {
-      query = query.gte('arrival_date', start_date);
+      paymentsQuery = paymentsQuery.gte('payment_date', start_date);
     }
     if (end_date) {
-      query = query.lte('arrival_date', end_date);
+      paymentsQuery = paymentsQuery.lte('payment_date', end_date);
     }
     
-    const { data, error } = await query;
+    const { data: payments, error: paymentsError } = await paymentsQuery;
     
-    if (error) {
-      console.error('❌ Error fetching average booking value:', error);
+    if (paymentsError) {
+      console.error('❌ Error fetching average booking value:', paymentsError);
       return res.json({ 
         success: true, 
         avgValues: [],
@@ -742,7 +741,7 @@ const getAvgBookingValue = async (req, res) => {
       });
     }
     
-    if (!data || data.length === 0) {
+    if (!payments || payments.length === 0) {
       console.log('ℹ️ No booking value data found');
       return res.json({ 
         success: true, 
@@ -751,12 +750,45 @@ const getAvgBookingValue = async (req, res) => {
       });
     }
     
+    // Get unique booking IDs and fetch their statuses
+    const bookingIds = [...new Set(payments.map(p => p.booking_id).filter(Boolean))];
+    let bookingsData = {};
+    
+    if (bookingIds.length > 0) {
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('booking_id, status')
+        .in('booking_id', bookingIds);
+      
+      if (bookings) {
+        bookingsData = bookings.reduce((acc, booking) => {
+          acc[booking.booking_id] = booking.status;
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Filter payments only from confirmed/completed bookings
+    const confirmedPayments = payments.filter(payment => {
+      const status = bookingsData[payment.booking_id];
+      return status === 'confirmed' || status === 'completed';
+    });
+    
+    if (confirmedPayments.length === 0) {
+      console.log('ℹ️ No confirmed/completed booking payments found');
+      return res.json({ 
+        success: true, 
+        avgValues: [],
+        message: 'No confirmed booking value data available'
+      });
+    }
+    
     // Group by time period
     const grouped = {};
-    data.forEach(booking => {
-      if (!booking.arrival_date) return;
+    confirmedPayments.forEach(payment => {
+      if (!payment.payment_date) return;
       
-      const date = new Date(booking.arrival_date);
+      const date = new Date(payment.payment_date);
       if (isNaN(date.getTime())) return;
       
       let key;
@@ -774,7 +806,7 @@ const getAvgBookingValue = async (req, res) => {
         grouped[key] = { total: 0, count: 0 };
       }
       
-      grouped[key].total += parseFloat(booking.booking_total_amount) || 0;
+      grouped[key].total += parseFloat(payment.total_booking_amount) || 0;
       grouped[key].count++;
     });
     
