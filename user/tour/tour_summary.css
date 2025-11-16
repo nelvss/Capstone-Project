@@ -1719,3 +1719,12 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Important Notice text justification */
+.alert.alert-warning p.fs-075 {
+    text-align: justify !important;
+}
+
+.alert.alert-warning p.lh-12 {
+    text-align: justify !important;
+}

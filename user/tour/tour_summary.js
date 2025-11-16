@@ -431,6 +431,10 @@ function confirmPayment() {
     if (paymentInstructions) {
         paymentInstructions.innerHTML = '<i class="fas fa-check-circle me-1 text-success"></i>Payment confirmed! You can now proceed to the next step.';
     }
+
+    // Directly navigate to Upload Receipt step (step 6)
+    currentStep = 6;
+    showStep(currentStep);
 }
 
 // Fix accessibility issue: Remove focus from modal elements when modal is being hidden
