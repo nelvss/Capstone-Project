@@ -2527,10 +2527,14 @@ function renderTourPricing(container, pricing, tourId) {
   }
 
   pricing.forEach(tier => {
+    console.log('🔍 Tour pricing tier:', tier);
     const tierWrapper = document.createElement('div');
     tierWrapper.className = 'tour-pricing-tier';
     tierWrapper.style.cssText = 'border: 1px solid #e5e7eb; padding: 1rem; margin: 0.5rem 0; border-radius: 8px; background: #f9fafb;';
-    tierWrapper.dataset.pricingId = tier.tour_pricing_id;
+    // Use the correct pricing ID field name
+    const pricingId = tier.tour_pricing_id || tier.pricing_id || tier.id;
+    console.log('📋 Pricing ID for tier:', pricingId);
+    tierWrapper.dataset.pricingId = pricingId;
 
     tierWrapper.innerHTML = `
       <div>
@@ -2900,6 +2904,8 @@ async function handleAddPricingTier({ tourId, pricingList, inlineStatus, statusT
 }
 
 async function handlePricingUpdate({ tourId, pricingId, tierWrapper, inlineStatus, statusTag }) {
+  console.log('🔍 Updating tour pricing:', { tourId, pricingId });
+  
   const minTouristInput = tierWrapper.querySelector('.pricing-min-tourist');
   const maxTouristInput = tierWrapper.querySelector('.pricing-max-tourist');
   const pricePerHeadInput = tierWrapper.querySelector('.pricing-price-per-head');
