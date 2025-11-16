@@ -826,35 +826,27 @@ function handleUserIconClick(event) {
 
 // Update user icon based on authentication status
 function updateUserIcon() {
-  // Update both desktop and mobile user icons
   const userIconLink = document.getElementById('userIconLink');
-  const userIconLinkDesktop = document.getElementById('userIconLinkDesktop');
-  const icons = [userIconLink, userIconLinkDesktop].filter(Boolean);
-  
-  if (icons.length === 0) return;
+  if (!userIconLink) return;
   
   if (checkAuthentication()) {
     // User is logged in - change icon to user-circle or add logged-in styling
-    icons.forEach(link => {
-      const icon = link.querySelector('i');
-      if (icon) {
-        icon.classList.remove('fa-user');
-        icon.classList.add('fa-user-circle');
-      }
-      link.title = 'My Account';
-      link.classList.add('logged-in');
-    });
+    const icon = userIconLink.querySelector('i');
+    if (icon) {
+      icon.classList.remove('fa-user');
+      icon.classList.add('fa-user-circle');
+    }
+    userIconLink.title = 'My Account';
+    userIconLink.classList.add('logged-in');
   } else {
     // User not logged in
-    icons.forEach(link => {
-      const icon = link.querySelector('i');
-      if (icon) {
-        icon.classList.remove('fa-user-circle');
-        icon.classList.add('fa-user');
-      }
-      link.title = 'Login / Create Account';
-      link.classList.remove('logged-in');
-    });
+    const icon = userIconLink.querySelector('i');
+    if (icon) {
+      icon.classList.remove('fa-user-circle');
+      icon.classList.add('fa-user');
+    }
+    userIconLink.title = 'Login / Create Account';
+    userIconLink.classList.remove('logged-in');
   }
 }
 

@@ -812,15 +812,6 @@ body::-webkit-scrollbar {
 
 /* Desktop Navigation */
 @media (min-width: 992px) {
-    .navbar-collapse {
-        display: flex !important;
-    }
-    
-    /* Hide navbar toggler on desktop */
-    .navbar-toggler {
-        display: none !important;
-    }
-    
     .navbar-nav {
         align-items: center;
     }
@@ -838,29 +829,27 @@ body::-webkit-scrollbar {
         padding: 10px 14px;
         border-radius: 12px;
         transition: all 0.3s ease;
-        display: flex !important;
+        display: flex;
         align-items: center;
         justify-content: center;
         width: 44px;
         height: 44px;
-        color: #ffffff !important;
+        color: #ffffff;
         text-decoration: none;
-        visibility: visible !important;
-        opacity: 1 !important;
     }
     
     .user-icon-link:hover {
         background: rgba(255, 255, 255, 0.2);
         transform: translateY(-2px);
-        color: #ffffff !important;
+        color: #ffffff;
     }
     
     .user-icon-link.logged-in {
-        color: #10b981 !important;
+        color: #10b981;
     }
     
     .user-icon-link.logged-in:hover {
-        color: #10b981 !important;
+        color: #10b981;
         background: rgba(16, 185, 129, 0.2);
     }
     
