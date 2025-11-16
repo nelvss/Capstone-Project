@@ -826,22 +826,25 @@ body::-webkit-scrollbar {
     
     .user-icon-link {
         margin-left: 10px;
-        padding: 10px 14px;
-        border-radius: 12px;
+        padding: 0;
+        border: none;
+        border-radius: 0;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 50px;
-        height: 50px;
+        width: auto;
+        height: auto;
         color: #ffffff;
         text-decoration: none;
+        background: transparent;
     }
     
     .user-icon-link:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: transparent;
         transform: translateY(-2px);
         color: #ffffff;
+        opacity: 0.8;
     }
     
     .user-icon-link.logged-in {
@@ -850,11 +853,12 @@ body::-webkit-scrollbar {
     
     .user-icon-link.logged-in:hover {
         color: #10b981;
-        background: rgba(16, 185, 129, 0.2);
+        background: transparent;
+        opacity: 0.8;
     }
     
     .user-icon-link i {
-        font-size: 1.5rem;
+        font-size: 2rem;
     }
 }
 
@@ -866,10 +870,12 @@ body::-webkit-scrollbar {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    border: none;
+    background: transparent;
 }
 
 .user-icon-link i {
-    font-size: 1.4rem;
+    font-size: 1.8rem;
 }
 
 /* Adjust based on your header height */
