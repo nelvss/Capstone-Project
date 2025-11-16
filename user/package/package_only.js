@@ -3082,11 +3082,20 @@
     async function showPackageInfo(packageName) {
         console.log('📦 Showing info for:', packageName);
         
-        // Get modal elements
-        const modal = new bootstrap.Modal(document.getElementById('packageInfoModal'));
+        // Get modal element
+        const modalElement = document.getElementById('packageInfoModal');
         const modalTitle = document.getElementById('packageInfoModalLabel');
         const modalSubtitle = document.getElementById('packageInfoSubtitle');
         const modalBody = document.getElementById('packageInfoModalBody');
+        
+        // Hide any open dropdowns first
+        const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+        openDropdowns.forEach(dropdown => {
+            const bsDropdown = bootstrap.Dropdown.getInstance(dropdown.previousElementSibling);
+            if (bsDropdown) {
+                bsDropdown.hide();
+            }
+        });
         
         // Show loading state
         modalTitle.textContent = packageName;
@@ -3099,6 +3108,16 @@
                 <p class="mt-3 text-muted">Fetching package information...</p>
             </div>
         `;
+        
+        // Create or get modal instance
+        let modal = bootstrap.Modal.getInstance(modalElement);
+        if (!modal) {
+            modal = new bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+        }
         
         // Show the modal
         modal.show();
@@ -3288,6 +3307,23 @@
     // Initialize package info listeners
     attachPackageInfoListeners();
     setTimeout(attachPackageInfoListeners, 100); // Backup initialization
+    
+    // Add event listener to clean up modal on close
+    const packageInfoModal = document.getElementById('packageInfoModal');
+    if (packageInfoModal) {
+        packageInfoModal.addEventListener('hidden.bs.modal', function () {
+            // Ensure all backdrops are removed
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            
+            // Remove modal-open class from body
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            
+            console.log('✅ Modal closed and cleaned up');
+        });
+    }
 
     console.log("Tour booking form initialized successfully!");
 })();
