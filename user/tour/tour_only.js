@@ -1137,70 +1137,7 @@
     // Function to update inland tour availability based on tourist count
     function updateInlandTourAvailability() {
         const touristCountInput = document.getElementById("touristCount");
-        const touristCount = parseInt(touristCountInput?.value) || 0;
-        
-        // Get all inland tour checkboxes including select-all
-        const inlandSelectAll = document.getElementById("inland-select-all");
-        const inlandOptions = document.querySelectorAll(".inland-option");
-        const inlandDropdownButton = document.getElementById("inlandDropdown");
-        const inlandTourAlert = document.getElementById("inlandTourAlert");
-        
-        // If tourist count is less than 2, disable all inland options
-        if (touristCount < 2) {
-            // Disable and uncheck all inland tour options
-            if (inlandSelectAll) {
-                inlandSelectAll.disabled = true;
-                inlandSelectAll.checked = false;
-                inlandSelectAll.indeterminate = false;
-            }
-            
-            inlandOptions.forEach(option => {
-                option.disabled = true;
-                option.checked = false;
-            });
-            
-            // Update the dropdown button to show it's disabled (visual only - still clickable to view)
-            if (inlandDropdownButton) {
-                inlandDropdownButton.classList.add('opacity-75');
-                inlandDropdownButton.style.cursor = 'pointer'; // Keep it clickable
-            }
-            
-            // Update alert message to show it's disabled
-            if (inlandTourAlert) {
-                inlandTourAlert.className = 'alert alert-danger py-2 px-3 mb-2';
-                inlandTourAlert.innerHTML = `
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    <strong>Not Available:</strong> You need at least 2 tourists to book Inland Tour. 
-                    ${touristCount === 0 ? 'Please enter number of tourists.' : `Currently: ${touristCount} tourist${touristCount === 1 ? '' : 's'}.`}
-                `;
-            }
-        } else {
-            // Enable all inland tour options
-            if (inlandSelectAll) {
-                inlandSelectAll.disabled = false;
-            }
-            
-            inlandOptions.forEach(option => {
-                option.disabled = false;
-            });
-            
-            // Remove disabled styling from dropdown button
-            if (inlandDropdownButton) {
-                inlandDropdownButton.classList.remove('opacity-75');
-                inlandDropdownButton.style.cursor = 'pointer';
-            }
-            
-            // Update alert message to show it's available
-            if (inlandTourAlert) {
-                inlandTourAlert.className = 'alert alert-success py-2 px-3 mb-2';
-                inlandTourAlert.innerHTML = `
-                    <i class="fas fa-check-circle me-1"></i>
-                    <strong>Available:</strong> You can now select Inland Tour destinations (${touristCount} tourists).
-                `;
-            }
-        }
-        
-        // Recalculate package price since inland tours may have been unchecked
+        // Recalculate package price
         updatePackagePrice();
     }
 
