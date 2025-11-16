@@ -2270,9 +2270,21 @@ async function loadBookingTypeData() {
         if (result.success && result.comparison && Array.isArray(result.comparison)) {
             const chart = chartInstances['bookingTypeChart'];
             if (chart && result.comparison.length > 0) {
+                // Filter data based on selected month
+                let filteredData = result.comparison;
+                if (month !== 'all') {
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const monthNum = monthNames.indexOf(month) + 1;
+                    if (monthNum > 0) {
+                        const targetYearMonth = `${year}-${String(monthNum).padStart(2, '0')}`;
+                        filteredData = result.comparison.filter(c => c.period.startsWith(targetYearMonth));
+                        console.log(`🔍 Filtered to ${month} ${year}:`, filteredData.length, 'data points from', result.comparison.length);
+                    }
+                }
+                
                 // Format labels based on period format
                 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const labels = result.comparison.map(c => {
+                const labels = filteredData.map(c => {
                     const parts = c.period.split('-');
                     if (parts.length === 2) {
                         // Monthly format: YYYY-MM
@@ -2291,8 +2303,8 @@ async function loadBookingTypeData() {
                 });
                 
                 chart.data.labels = labels;
-                chart.data.datasets[0].data = result.comparison.map(c => c.package_only || 0);
-                chart.data.datasets[1].data = result.comparison.map(c => c.tour_only || 0);
+                chart.data.datasets[0].data = filteredData.map(c => c.package_only || 0);
+                chart.data.datasets[1].data = filteredData.map(c => c.tour_only || 0);
                 chart.update();
                 console.log('✅ Booking Type chart updated:', labels.length, 'data points');
             } else if (chart) {
@@ -2361,9 +2373,21 @@ async function loadTouristVolumeData() {
         if (result.success && result.volume && Array.isArray(result.volume)) {
             const chart = chartInstances['touristVolumeChart'];
             if (chart && result.volume.length > 0) {
+                // Filter data based on selected month
+                let filteredData = result.volume;
+                if (month !== 'all') {
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const monthNum = monthNames.indexOf(month) + 1;
+                    if (monthNum > 0) {
+                        const targetYearMonth = `${year}-${String(monthNum).padStart(2, '0')}`;
+                        filteredData = result.volume.filter(v => v.period.startsWith(targetYearMonth));
+                        console.log(`🔍 Filtered to ${month} ${year}:`, filteredData.length, 'data points from', result.volume.length);
+                    }
+                }
+                
                 // Format labels based on period format
                 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const labels = result.volume.map(v => {
+                const labels = filteredData.map(v => {
                     const parts = v.period.split('-');
                     if (parts.length === 2) {
                         // Monthly format: YYYY-MM
@@ -2382,7 +2406,7 @@ async function loadTouristVolumeData() {
                 });
                 
                 chart.data.labels = labels;
-                chart.data.datasets[0].data = result.volume.map(v => v.tourists || 0);
+                chart.data.datasets[0].data = filteredData.map(v => v.tourists || 0);
                 chart.update();
                 console.log('✅ Tourist Volume chart updated:', labels.length, 'data points');
             } else if (chart) {
@@ -2441,9 +2465,21 @@ async function loadAvgBookingValueData() {
         if (result.success && result.avgValues && Array.isArray(result.avgValues)) {
             const chart = chartInstances['avgBookingValueChart'];
             if (chart && result.avgValues.length > 0) {
+                // Filter data based on selected month
+                let filteredData = result.avgValues;
+                if (month !== 'all') {
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const monthNum = monthNames.indexOf(month) + 1;
+                    if (monthNum > 0) {
+                        const targetYearMonth = `${year}-${String(monthNum).padStart(2, '0')}`;
+                        filteredData = result.avgValues.filter(v => v.period.startsWith(targetYearMonth));
+                        console.log(`🔍 Filtered to ${month} ${year}:`, filteredData.length, 'data points from', result.avgValues.length);
+                    }
+                }
+                
                 // Format labels based on period format
                 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const labels = result.avgValues.map(v => {
+                const labels = filteredData.map(v => {
                     const parts = v.period.split('-');
                     if (parts.length === 2) {
                         // Monthly format: YYYY-MM
@@ -2462,7 +2498,7 @@ async function loadAvgBookingValueData() {
                 });
                 
                 chart.data.labels = labels;
-                chart.data.datasets[0].data = result.avgValues.map(v => v.average || 0);
+                chart.data.datasets[0].data = filteredData.map(v => v.average || 0);
                 chart.update();
                 console.log('✅ Average Booking Value chart updated:', labels.length, 'data points');
             } else if (chart) {
