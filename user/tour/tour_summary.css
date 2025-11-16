@@ -1751,3 +1751,23 @@ body {
     display: inline !important;
     vertical-align: middle !important;
 }
+
+/* Prevent scrolling on upload receipt page (step 6) */
+#form-step-6 {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+
+#form-step-6 .container-fluid {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+
+#form-step-6.form-step.active {
+    overflow: hidden !important;
+}
+
+body:has(#form-step-6.active) {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
