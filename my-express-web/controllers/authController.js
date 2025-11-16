@@ -75,19 +75,38 @@ const login = async (req, res) => {
     
     console.log(`🔍 Attempting login for email: ${normalizedEmail}`);
     
-    const { data: user, error } = await supabase
+    // Use maybeSingle() instead of single() to handle cases more gracefully
+    // First, check if multiple users exist with this email
+    const { data: allUsers, error: checkError } = await supabase
       .from('users')
       .select('id, email, password_hash, role')
-      .eq('email', normalizedEmail)
-      .single();
+      .eq('email', normalizedEmail);
     
-    if (error || !user) {
-      console.log('❌ User not found:', error?.message || 'No user found');
+    if (checkError) {
+      console.log('❌ Database error:', checkError.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Database error occurred' 
+      });
+    }
+    
+    // Check if no user found
+    if (!allUsers || allUsers.length === 0) {
+      console.log('❌ User not found for email:', normalizedEmail);
       return res.status(401).json({ 
         success: false, 
         message: 'Invalid credentials' 
       });
     }
+    
+    // Check if multiple users exist (data integrity issue)
+    if (allUsers.length > 1) {
+      console.error('⚠️ Multiple users found with email:', normalizedEmail, '- Using first match');
+      // Log this as a data integrity issue but continue with first user
+    }
+    
+    // Use the first user (or only user)
+    const user = allUsers[0];
     
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     
