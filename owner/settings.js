@@ -2424,9 +2424,17 @@ function createTourCard(tour) {
     renderTourPricing(pricingList, tour?.pricing || [], id);
   }
 
-  // Hide save button since category is fixed and cannot be changed
+  // Setup save button to save all pricing changes
   if (saveButton) {
-    saveButton.style.display = 'none';
+    saveButton.addEventListener('click', () => {
+      handleTourSaveAllPricing({
+        tourId: id,
+        pricingList,
+        saveButton,
+        inlineStatus,
+        statusTag
+      });
+    });
   }
 
   if (uploadButton && fileInput) {
@@ -2551,34 +2559,20 @@ function renderTourPricing(container, pricing, tourId) {
           <input type="number" min="0" step="0.01" class="pricing-price-per-head" value="${tier.price_per_head || ''}">
         </label>
         <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
-          <button type="button" class="btn-primary pricing-update-btn" style="padding: 0.5rem;">Save</button>
           <button type="button" class="btn-danger pricing-delete-btn" style="padding: 0.5rem;">🗑️</button>
         </div>
       </div>
     `;
 
-    const updateBtn = tierWrapper.querySelector('.pricing-update-btn');
     const deleteBtn = tierWrapper.querySelector('.pricing-delete-btn');
     const inlineStatus = container.closest('.vehicle-card').querySelector('.vehicle-inline-status');
     const statusTag = container.closest('.vehicle-card').querySelector('.vehicle-status-tag');
-
-    if (updateBtn) {
-      updateBtn.addEventListener('click', () => {
-        handlePricingUpdate({
-          tourId,
-          pricingId: tier.tour_pricing_id,
-          tierWrapper,
-          inlineStatus,
-          statusTag
-        });
-      });
-    }
 
     if (deleteBtn) {
       deleteBtn.addEventListener('click', () => {
         handlePricingDelete({
           tourId,
-          pricingId: tier.tour_pricing_id,
+          pricingId: pricingId,
           tierWrapper,
           inlineStatus,
           statusTag
@@ -2899,6 +2893,118 @@ async function handleAddPricingTier({ tourId, pricingList, inlineStatus, statusT
     showInlineStatus(inlineStatus, `Failed: ${error.message}`, 'error');
     setStatusTag(statusTag, 'Failed', 'error');
     
+    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+  }
+}
+
+async function handleTourSaveAllPricing({ tourId, pricingList, saveButton, inlineStatus, statusTag }) {
+  const allTiers = pricingList.querySelectorAll('.tour-pricing-tier');
+  
+  if (allTiers.length === 0) {
+    showInlineStatus(inlineStatus, 'No pricing tiers to save.', 'info');
+    setTimeout(() => clearInlineStatus(inlineStatus), 2500);
+    return;
+  }
+
+  // Validate all tiers first
+  const tiersData = [];
+  for (const tierWrapper of allTiers) {
+    const pricingId = tierWrapper.dataset.pricingId;
+    const minTouristInput = tierWrapper.querySelector('.pricing-min-tourist');
+    const maxTouristInput = tierWrapper.querySelector('.pricing-max-tourist');
+    const pricePerHeadInput = tierWrapper.querySelector('.pricing-price-per-head');
+
+    const minTourist = parseInt(minTouristInput?.value || '0');
+    const maxTourist = parseInt(maxTouristInput?.value || '0');
+    const pricePerHead = parseFloat(pricePerHeadInput?.value || '0');
+
+    if (Number.isNaN(minTourist) || minTourist < 1) {
+      showInlineStatus(inlineStatus, 'Invalid minimum tourists value.', 'error');
+      setTimeout(() => clearInlineStatus(inlineStatus), 3000);
+      return;
+    }
+
+    if (Number.isNaN(maxTourist) || maxTourist < 1) {
+      showInlineStatus(inlineStatus, 'Invalid maximum tourists value.', 'error');
+      setTimeout(() => clearInlineStatus(inlineStatus), 3000);
+      return;
+    }
+
+    if (minTourist > maxTourist) {
+      showInlineStatus(inlineStatus, 'Min tourists must be ≤ max tourists.', 'error');
+      setTimeout(() => clearInlineStatus(inlineStatus), 3000);
+      return;
+    }
+
+    if (Number.isNaN(pricePerHead) || pricePerHead < 0) {
+      showInlineStatus(inlineStatus, 'Invalid price per head value.', 'error');
+      setTimeout(() => clearInlineStatus(inlineStatus), 3000);
+      return;
+    }
+
+    tiersData.push({
+      pricingId,
+      minTourist,
+      maxTourist,
+      pricePerHead
+    });
+  }
+
+  showInlineStatus(inlineStatus, 'Saving all pricing tiers...');
+  setStatusTag(statusTag, 'Saving...', 'default');
+
+  if (saveButton) {
+    saveButton.disabled = true;
+  }
+
+  try {
+    // Update all pricing tiers
+    const updatePromises = tiersData.map(tier =>
+      fetch(`${API_BASE_URL}/tours/${tourId}/pricing/${tier.pricingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          min_tourist: tier.minTourist,
+          max_tourist: tier.maxTourist,
+          price_per_head: tier.pricePerHead
+        }),
+        cache: 'no-cache'
+      })
+    );
+
+    const responses = await Promise.all(updatePromises);
+    
+    // Check if all requests succeeded
+    for (const response of responses) {
+      if (!response.ok) {
+        const result = await parseJsonResponse(response);
+        throw new Error(result.message || 'Failed to update pricing tier');
+      }
+    }
+
+    // Reload all tours to get updated pricing
+    await loadTours();
+    
+    // Find and update the specific tour's pricing list
+    const updatedTour = getTourFromState(tourId);
+    if (updatedTour && pricingList) {
+      renderTourPricing(pricingList, updatedTour.pricing || [], tourId);
+    }
+
+    showInlineStatus(inlineStatus, 'All pricing tiers saved successfully', 'success');
+    setStatusTag(statusTag, 'Saved', 'success');
+    showSuccessMessage('Tour pricing updated!');
+  } catch (error) {
+    console.error('❌ Error saving pricing tiers:', error);
+    showInlineStatus(inlineStatus, `Failed: ${error.message}`, 'error');
+    setStatusTag(statusTag, 'Failed', 'error');
+  } finally {
+    if (saveButton) {
+      saveButton.disabled = false;
+    }
     setTimeout(() => clearInlineStatus(inlineStatus), 4000);
   }
 }
