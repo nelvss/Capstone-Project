@@ -732,7 +732,6 @@ function initializeCharts() {
     createAvgBookingValueChart();
     createPeakBookingDaysChart();
     createServicePerformanceChart();
-    createVanDestinationsChart();
 }
 
 // Initialize filter dropdowns
@@ -2615,87 +2614,6 @@ function createServicePerformanceChart() {
     loadServicePerformanceData();
 }
 
-// Create Van Destinations Charts (Within and Outside Puerto Galera)
-function createVanDestinationsChart() {
-    const ctxWithin = document.getElementById('vanDestinationsWithinChart');
-    const ctxOutside = document.getElementById('vanDestinationsOutsideChart');
-    
-    if (!ctxWithin || !ctxOutside) {
-        console.error('❌ Van destinations chart canvas not found');
-        return;
-    }
-    
-    console.log('📊 Creating van destinations charts...');
-    
-    // Common chart configuration
-    const chartConfig = {
-        type: 'pie',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Bookings',
-                data: [],
-                backgroundColor: [
-                    '#dc3545',
-                    '#007bff',
-                    '#28a745',
-                    '#ffc107',
-                    '#17a2b8',
-                    '#6f42c1',
-                    '#e83e8c',
-                    '#fd7e14',
-                    '#20c997',
-                    '#6c757d',
-                    '#ff6384',
-                    '#36a2eb',
-                    '#cc65fe',
-                    '#ffce56',
-                    '#4bc0c0',
-                    '#9966ff',
-                    '#ff9f40',
-                    '#ff6384',
-                    '#c9cbcf',
-                    '#ff6384'
-                ],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            aspectRatio: 2,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    display: true
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                            return `${label}: ${value} (${percentage}%)`;
-                        }
-                    }
-                }
-            }
-        }
-    };
-    
-    // Create Within Puerto Galera chart
-    chartInstances['vanDestinationsWithinChart'] = new Chart(ctxWithin.getContext('2d'), JSON.parse(JSON.stringify(chartConfig)));
-    
-    // Create Outside Puerto Galera chart
-    chartInstances['vanDestinationsOutsideChart'] = new Chart(ctxOutside.getContext('2d'), JSON.parse(JSON.stringify(chartConfig)));
-    
-    // Load data from API after a short delay to ensure charts are fully initialized
-    setTimeout(() => {
-        loadVanDestinationsData();
-    }, 100);
-}
 
 // Data loading functions for new charts
 async function loadBookingStatusData() {
@@ -2996,99 +2914,6 @@ async function loadServicePerformanceData() {
         }
     } catch (error) {
         console.error('Error loading service performance data:', error);
-    }
-}
-
-async function loadVanDestinationsData() {
-    try {
-        console.log('🔄 Loading van destinations data...');
-        const response = await fetch(`${window.API_URL}/api/analytics/van-destinations`);
-        
-        if (!response.ok) {
-            console.warn(`⚠️ Van destinations API returned ${response.status}`);
-            const chartWithin = chartInstances['vanDestinationsWithinChart'];
-            const chartOutside = chartInstances['vanDestinationsOutsideChart'];
-            if (chartWithin) {
-                chartWithin.data.labels = ['No Data Available'];
-                chartWithin.data.datasets[0].data = [0];
-                chartWithin.update();
-            }
-            if (chartOutside) {
-                chartOutside.data.labels = ['No Data Available'];
-                chartOutside.data.datasets[0].data = [0];
-                chartOutside.update();
-            }
-            return;
-        }
-        
-        const result = await response.json();
-        console.log('📥 Van destinations API response:', result);
-        
-        const chartWithin = chartInstances['vanDestinationsWithinChart'];
-        const chartOutside = chartInstances['vanDestinationsOutsideChart'];
-        
-        if (!chartWithin || !chartOutside) {
-            console.error('❌ Van destinations chart instances not found');
-            return;
-        }
-        
-        if (result.success) {
-            console.log('📊 Response data:', {
-                withinCount: result.within?.length || 0,
-                outsideCount: result.outside?.length || 0,
-                within: result.within,
-                outside: result.outside
-            });
-            
-            // Handle Within Puerto Galera chart
-            if (result.within && Array.isArray(result.within) && result.within.length > 0) {
-                chartWithin.data.labels = result.within.map(d => d.destination || 'Unknown');
-                chartWithin.data.datasets[0].data = result.within.map(d => d.bookings || 0);
-                console.log('✅ Within Puerto Galera data loaded:', result.within.length, 'destinations');
-            } else {
-                console.log('ℹ️ No within Puerto Galera destinations data available. Result:', result.within);
-                chartWithin.data.labels = ['No Data Available'];
-                chartWithin.data.datasets[0].data = [0];
-            }
-            chartWithin.update();
-            
-            // Handle Outside Puerto Galera chart
-            if (result.outside && Array.isArray(result.outside) && result.outside.length > 0) {
-                chartOutside.data.labels = result.outside.map(d => d.destination || 'Unknown');
-                chartOutside.data.datasets[0].data = result.outside.map(d => d.bookings || 0);
-                console.log('✅ Outside Puerto Galera data loaded:', result.outside.length, 'destinations');
-            } else {
-                console.log('ℹ️ No outside Puerto Galera destinations data available. Result:', result.outside);
-                chartOutside.data.labels = ['No Data Available'];
-                chartOutside.data.datasets[0].data = [0];
-            }
-            chartOutside.update();
-        } else {
-            console.warn('⚠️ Invalid response structure:', result);
-            if (result.message) {
-                console.warn('📋 API message:', result.message);
-            }
-            chartWithin.data.labels = ['No Data Available'];
-            chartWithin.data.datasets[0].data = [0];
-            chartWithin.update();
-            chartOutside.data.labels = ['No Data Available'];
-            chartOutside.data.datasets[0].data = [0];
-            chartOutside.update();
-        }
-    } catch (error) {
-        console.error('❌ Error loading van destinations data:', error);
-        const chartWithin = chartInstances['vanDestinationsWithinChart'];
-        const chartOutside = chartInstances['vanDestinationsOutsideChart'];
-        if (chartWithin) {
-            chartWithin.data.labels = ['Error Loading Data'];
-            chartWithin.data.datasets[0].data = [0];
-            chartWithin.update();
-        }
-        if (chartOutside) {
-            chartOutside.data.labels = ['Error Loading Data'];
-            chartOutside.data.datasets[0].data = [0];
-            chartOutside.update();
-        }
     }
 }
 
