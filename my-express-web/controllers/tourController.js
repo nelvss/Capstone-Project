@@ -396,11 +396,16 @@ const updateTourPricing = async (req, res) => {
       });
     }
 
+    console.log('🔍 Updating tour pricing:', {
+      tourId: normalizedTourId,
+      pricingId: normalizedPricingId,
+      updates
+    });
+
     const { data, error } = await supabase
       .from('tour_pricing')
       .update(updates)
       .eq('tour_pricing_id', normalizedPricingId)
-      .eq('tour_only_id', normalizedTourId)
       .select('*');
 
     if (error) {
@@ -413,6 +418,10 @@ const updateTourPricing = async (req, res) => {
     }
 
     if (!data || data.length === 0) {
+      console.warn('⚠️ Tour pricing not found:', {
+        pricingId: normalizedPricingId,
+        tourId: normalizedTourId
+      });
       return res.status(404).json({
         success: false,
         message: 'Tour pricing not found'
@@ -447,11 +456,15 @@ const deleteTourPricing = async (req, res) => {
       });
     }
 
+    console.log('🗑️ Deleting tour pricing:', {
+      tourId: normalizedTourId,
+      pricingId: normalizedPricingId
+    });
+
     const { error } = await supabase
       .from('tour_pricing')
       .delete()
-      .eq('tour_pricing_id', normalizedPricingId)
-      .eq('tour_only_id', normalizedTourId);
+      .eq('tour_pricing_id', normalizedPricingId);
 
     if (error) {
       console.error('❌ Error deleting tour pricing:', error);
