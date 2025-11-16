@@ -1743,6 +1743,10 @@ body {
     padding: 8px 12px;
 }
 
+.alert-compact p {
+    text-align: justify;
+}
+
 /* Font size styles */
 .font-size-small {
     font-size: 0.8rem;
