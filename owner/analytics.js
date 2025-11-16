@@ -2270,12 +2270,14 @@ async function loadBookingTypeData() {
             const chart = chartInstances['bookingTypeChart'];
             if (chart && result.comparison.length > 0) {
                 // Format labels to show month names
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 const labels = result.comparison.map(c => {
                     const parts = c.period.split('-');
                     if (parts.length >= 2) {
-                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                         const monthIdx = parseInt(parts[1]) - 1;
-                        return monthNames[monthIdx] || c.period;
+                        if (monthIdx >= 0 && monthIdx < 12) {
+                            return monthNames[monthIdx];
+                        }
                     }
                     return c.period;
                 });
@@ -2284,13 +2286,17 @@ async function loadBookingTypeData() {
                 chart.data.datasets[0].data = result.comparison.map(c => c.package_only || 0);
                 chart.data.datasets[1].data = result.comparison.map(c => c.tour_only || 0);
                 chart.update();
+                console.log('✅ Booking Type chart updated:', labels.length, 'data points');
             } else if (chart) {
                 // No data available
                 chart.data.labels = [];
                 chart.data.datasets[0].data = [];
                 chart.data.datasets[1].data = [];
                 chart.update();
+                console.log('⚠️ No booking type data available');
             }
+        } else {
+            console.log('⚠️ Invalid booking type response:', result);
         }
     } catch (error) {
         console.error('Error loading booking type data:', error);
@@ -2345,11 +2351,32 @@ async function loadTouristVolumeData() {
         
         if (result.success && result.volume && Array.isArray(result.volume)) {
             const chart = chartInstances['touristVolumeChart'];
-            if (chart) {
-                chart.data.labels = result.volume.map(v => v.period);
+            if (chart && result.volume.length > 0) {
+                // Format labels to show month names
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const labels = result.volume.map(v => {
+                    const parts = v.period.split('-');
+                    if (parts.length >= 2) {
+                        const monthIdx = parseInt(parts[1]) - 1;
+                        if (monthIdx >= 0 && monthIdx < 12) {
+                            return monthNames[monthIdx];
+                        }
+                    }
+                    return v.period;
+                });
+                
+                chart.data.labels = labels;
                 chart.data.datasets[0].data = result.volume.map(v => v.tourists || 0);
                 chart.update();
+                console.log('✅ Tourist Volume chart updated:', labels.length, 'data points');
+            } else if (chart) {
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.update();
+                console.log('⚠️ No tourist volume data available');
             }
+        } else {
+            console.log('⚠️ Invalid tourist volume response:', result);
         }
     } catch (error) {
         console.error('Error loading tourist volume data:', error);
@@ -2396,11 +2423,32 @@ async function loadAvgBookingValueData() {
         
         if (result.success && result.avgValues && Array.isArray(result.avgValues)) {
             const chart = chartInstances['avgBookingValueChart'];
-            if (chart) {
-                chart.data.labels = result.avgValues.map(v => v.period);
+            if (chart && result.avgValues.length > 0) {
+                // Format labels to show month names
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const labels = result.avgValues.map(v => {
+                    const parts = v.period.split('-');
+                    if (parts.length >= 2) {
+                        const monthIdx = parseInt(parts[1]) - 1;
+                        if (monthIdx >= 0 && monthIdx < 12) {
+                            return monthNames[monthIdx];
+                        }
+                    }
+                    return v.period;
+                });
+                
+                chart.data.labels = labels;
                 chart.data.datasets[0].data = result.avgValues.map(v => v.average || 0);
                 chart.update();
+                console.log('✅ Average Booking Value chart updated:', labels.length, 'data points');
+            } else if (chart) {
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.update();
+                console.log('⚠️ No average booking value data available');
             }
+        } else {
+            console.log('⚠️ Invalid average booking value response:', result);
         }
     } catch (error) {
         console.error('Error loading average booking value data:', error);
