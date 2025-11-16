@@ -853,7 +853,8 @@ function populateBookingEditForm(booking) {
   ownerEditModal.form.reset();
 
   setFormValue('booking_id', booking.id || raw.booking_id || '');
-  setSelectValue('status', raw.status || booking.status || 'pending');
+  // Always set status to pending when editing - owner must re-confirm to send email
+  setSelectValue('status', 'pending');
   setSelectValue('booking_type', raw.booking_type || 'package_only');
   setFormValue('number_of_tourist', raw.number_of_tourist ?? '');
   setFormValue('customer_first_name', raw.customer_first_name || '');
@@ -1844,19 +1845,9 @@ async function submitBookingEditForm(event) {
     const payloadForApi = { ...payload };
     delete payloadForApi.booking_id;
     
-    // Preserve original status if booking was confirmed or cancelled and form status is pending
-    // Only update status if user explicitly changed it in the form
-    const originalStatus = currentEditingBooking.status || currentEditingBooking.raw?.status;
-    const formStatus = payloadForApi.status;
-    
-    // If the original booking was confirmed or cancelled, and form shows pending,
-    // preserve the original status to prevent accidental status reset
-    if ((originalStatus === 'confirmed' || originalStatus === 'cancelled') && formStatus === 'pending') {
-      payloadForApi.status = originalStatus;
-    } else {
-      // Use form status if it's explicitly set and different from pending, or if original was pending
-      payloadForApi.status = formStatus || originalStatus || 'pending';
-    }
+    // Always reset status to pending when editing a booking
+    // This allows the owner to review changes and send a new confirmation email
+    payloadForApi.status = 'pending';
 
     // Ensure we have a clean booking ID without any suffixes
     const bookingId = String(currentEditingBooking.id).split(':')[0];
@@ -1917,7 +1908,7 @@ async function submitBookingEditForm(event) {
     renderTable();
     updateOwnerStats();
 
-    showNotification('✏️ Booking updated successfully', 'info');
+    showNotification('✏️ Booking updated and set to pending. Click Confirm to send email.', 'info');
   } catch (error) {
     console.error('Error updating booking:', error);
     alert(error.message || 'Failed to update booking. Please try again.');
