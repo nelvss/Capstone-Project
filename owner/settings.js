@@ -2942,6 +2942,12 @@ async function handleTourSaveAllPricing({ tourId, pricingList, saveButton, inlin
       return;
     }
 
+    if (!pricingId) {
+      showInlineStatus(inlineStatus, 'Pricing tier missing ID. Please refresh.', 'error');
+      setTimeout(() => clearInlineStatus(inlineStatus), 3000);
+      return;
+    }
+
     tiersData.push({
       pricingId,
       minTourist,
@@ -2959,8 +2965,10 @@ async function handleTourSaveAllPricing({ tourId, pricingList, saveButton, inlin
 
   try {
     // Update all pricing tiers
-    const updatePromises = tiersData.map(tier =>
-      fetch(`${API_BASE_URL}/tours/${tourId}/pricing/${tier.pricingId}`, {
+    console.log('📤 Updating pricing tiers:', tiersData);
+    const updatePromises = tiersData.map(tier => {
+      console.log(`🔄 Updating pricing: tourId=${tourId}, pricingId=${tier.pricingId}`);
+      return fetch(`${API_BASE_URL}/tours/${tourId}/pricing/${tier.pricingId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -2972,8 +2980,8 @@ async function handleTourSaveAllPricing({ tourId, pricingList, saveButton, inlin
           price_per_head: tier.pricePerHead
         }),
         cache: 'no-cache'
-      })
-    );
+      });
+    });
 
     const responses = await Promise.all(updatePromises);
     
