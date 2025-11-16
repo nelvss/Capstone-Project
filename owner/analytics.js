@@ -2230,7 +2230,7 @@ async function loadBookingTypeData() {
         const year = yearSelect ? yearSelect.value : '2025';
         const month = monthSelect ? monthSelect.value : 'all';
         
-        let url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month`;
+        let url = '';
         
         // Set date range based on year and month filters
         if (month !== 'all') {
@@ -2238,15 +2238,16 @@ async function loadBookingTypeData() {
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const monthNum = monthNames.indexOf(month) + 1;
             if (monthNum > 0) {
+                // Use day grouping for single month to show weekly breakdown
                 const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
                 const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url += `&start_date=${startDate}&end_date=${endDate}`;
+                url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=week&start_date=${startDate}&end_date=${endDate}`;
             }
         } else {
             // Filter by year - show all months in the selected year
             const startDate = `${year}-01-01`;
             const endDate = `${year}-12-31`;
-            url += `&start_date=${startDate}&end_date=${endDate}`;
+            url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month&start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
@@ -2269,14 +2270,21 @@ async function loadBookingTypeData() {
         if (result.success && result.comparison && Array.isArray(result.comparison)) {
             const chart = chartInstances['bookingTypeChart'];
             if (chart && result.comparison.length > 0) {
-                // Format labels to show month names
+                // Format labels based on period format
                 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 const labels = result.comparison.map(c => {
                     const parts = c.period.split('-');
-                    if (parts.length >= 2) {
+                    if (parts.length === 2) {
+                        // Monthly format: YYYY-MM
                         const monthIdx = parseInt(parts[1]) - 1;
                         if (monthIdx >= 0 && monthIdx < 12) {
                             return monthNames[monthIdx];
+                        }
+                    } else if (parts.length === 3 && c.period.includes('W')) {
+                        // Weekly format: YYYY-Www (e.g., 2025-W20)
+                        const weekMatch = c.period.match(/W(\d+)/);
+                        if (weekMatch) {
+                            return `Week ${weekMatch[1]}`;
                         }
                     }
                     return c.period;
@@ -2324,20 +2332,21 @@ async function loadTouristVolumeData() {
         const year = yearSelect ? yearSelect.value : '2025';
         const month = monthSelect ? monthSelect.value : 'all';
         
-        let url = `${window.API_URL}/api/analytics/tourist-volume?group_by=month`;
+        let url = '';
         if (month !== 'all') {
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const monthNum = monthNames.indexOf(month) + 1;
             if (monthNum > 0) {
+                // Use week grouping for single month to show weekly breakdown
                 const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
                 const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url += `&start_date=${startDate}&end_date=${endDate}`;
+                url = `${window.API_URL}/api/analytics/tourist-volume?group_by=week&start_date=${startDate}&end_date=${endDate}`;
             }
         } else {
             // Filter by year - show all months in the selected year
             const startDate = `${year}-01-01`;
             const endDate = `${year}-12-31`;
-            url += `&start_date=${startDate}&end_date=${endDate}`;
+            url = `${window.API_URL}/api/analytics/tourist-volume?group_by=month&start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
@@ -2352,14 +2361,21 @@ async function loadTouristVolumeData() {
         if (result.success && result.volume && Array.isArray(result.volume)) {
             const chart = chartInstances['touristVolumeChart'];
             if (chart && result.volume.length > 0) {
-                // Format labels to show month names
+                // Format labels based on period format
                 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 const labels = result.volume.map(v => {
                     const parts = v.period.split('-');
-                    if (parts.length >= 2) {
+                    if (parts.length === 2) {
+                        // Monthly format: YYYY-MM
                         const monthIdx = parseInt(parts[1]) - 1;
                         if (monthIdx >= 0 && monthIdx < 12) {
                             return monthNames[monthIdx];
+                        }
+                    } else if (parts.length === 3 && v.period.includes('W')) {
+                        // Weekly format: YYYY-Www (e.g., 2025-W20)
+                        const weekMatch = v.period.match(/W(\d+)/);
+                        if (weekMatch) {
+                            return `Week ${weekMatch[1]}`;
                         }
                     }
                     return v.period;
@@ -2396,20 +2412,21 @@ async function loadAvgBookingValueData() {
         const year = yearSelect ? yearSelect.value : '2025';
         const month = monthSelect ? monthSelect.value : 'all';
         
-        let url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=month`;
+        let url = '';
         if (month !== 'all') {
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const monthNum = monthNames.indexOf(month) + 1;
             if (monthNum > 0) {
+                // Use week grouping for single month to show weekly breakdown
                 const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
                 const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url += `&start_date=${startDate}&end_date=${endDate}`;
+                url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=week&start_date=${startDate}&end_date=${endDate}`;
             }
         } else {
             // Filter by year - show all months in the selected year
             const startDate = `${year}-01-01`;
             const endDate = `${year}-12-31`;
-            url += `&start_date=${startDate}&end_date=${endDate}`;
+            url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=month&start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
@@ -2424,14 +2441,21 @@ async function loadAvgBookingValueData() {
         if (result.success && result.avgValues && Array.isArray(result.avgValues)) {
             const chart = chartInstances['avgBookingValueChart'];
             if (chart && result.avgValues.length > 0) {
-                // Format labels to show month names
+                // Format labels based on period format
                 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 const labels = result.avgValues.map(v => {
                     const parts = v.period.split('-');
-                    if (parts.length >= 2) {
+                    if (parts.length === 2) {
+                        // Monthly format: YYYY-MM
                         const monthIdx = parseInt(parts[1]) - 1;
                         if (monthIdx >= 0 && monthIdx < 12) {
                             return monthNames[monthIdx];
+                        }
+                    } else if (parts.length === 3 && v.period.includes('W')) {
+                        // Weekly format: YYYY-Www (e.g., 2025-W20)
+                        const weekMatch = v.period.match(/W(\d+)/);
+                        if (weekMatch) {
+                            return `Week ${weekMatch[1]}`;
                         }
                     }
                     return v.period;
