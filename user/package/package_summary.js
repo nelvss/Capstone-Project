@@ -503,12 +503,28 @@
             
             const bookingRef = generateBookingReference();
             
+            // Resolve customer email to ALWAYS match the logged-in account (so bookings show in "My Bookings")
+            let accountEmail = null;
+            try {
+                const userSessionRaw = localStorage.getItem('userSession');
+                if (userSessionRaw) {
+                    const session = JSON.parse(userSessionRaw);
+                    if (session && session.email) {
+                        accountEmail = session.email;
+                    }
+                }
+            } catch (e) {
+                console.warn('Unable to read userSession from localStorage:', e);
+            }
+            const customerEmail = (accountEmail || bookingData.emailAddress || '').trim().toLowerCase();
+
             // Prepare booking data for API (matching actual database schema)
             const bookingPayload = {
                 booking_id: bookingRef,
                 customer_first_name: bookingData.firstName,
                 customer_last_name: bookingData.lastName,
-                customer_email: bookingData.emailAddress,
+                // Use normalized email so backend lookups by email work reliably
+                customer_email: customerEmail,
                 customer_contact: bookingData.contactNo,
                 booking_type: 'package_only',
                 booking_preferences: `Package Only: ${bookingData.selectedPackage || 'N/A'}`, // Store in the specified format

@@ -160,6 +160,33 @@
     // ----------------------------
     // FORM ENHANCEMENTS
     // ----------------------------
+
+    // Auto-fill email from logged-in user account (and lock it so it stays in sync)
+    function autofillEmailFromSession() {
+        const emailInput = document.getElementById('emailAddress');
+        if (!emailInput) return;
+
+        try {
+            const raw = localStorage.getItem('userSession');
+            if (!raw) return;
+
+            const session = JSON.parse(raw);
+            if (!session || !session.email) return;
+
+            const normalizedEmail = String(session.email).trim().toLowerCase();
+            if (!normalizedEmail) return;
+
+            // Set the value and make it read-only so it always matches the account
+            emailInput.value = normalizedEmail;
+            emailInput.readOnly = true;
+            emailInput.classList.add('readonly-email');
+
+            // Clear any previous validation error for this field
+            setError(emailInput, "");
+        } catch (err) {
+            console.warn('Unable to autofill email from userSession:', err);
+        }
+    }
     
     // Auto-format contact number as user types
     const contactNoInput = document.getElementById('contactNo');
@@ -176,7 +203,7 @@
                 setError(this, "");
             }
         });
-
+    
         // Prevent non-numeric input
         contactNoInput.addEventListener('keypress', function(e) {
             const char = String.fromCharCode(e.which);
@@ -267,6 +294,9 @@
 
     // Initialize the form
     document.addEventListener('DOMContentLoaded', function() {
+        // Ensure email reflects the logged-in account
+        autofillEmailFromSession();
+
         loadExistingFormData();
         console.log("Booking form initialized successfully!");
     });
