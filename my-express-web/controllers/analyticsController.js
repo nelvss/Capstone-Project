@@ -495,20 +495,10 @@ const getServicePerformance = async (req, res) => {
       console.warn('⚠️ Error fetching diving bookings:', divingError.message);
     }
     
-    // Get van rental bookings - no created_at column in bookings_van_rental
-    let vanQuery = supabase
+    // Get van rental bookings (removed pickup_date as it doesn't exist in the table)
+    const { data: vanBookings, error: vanError } = await supabase
       .from('bookings_van_rental')
-      .select('booking_id, van_destination_id, pickup_date');
-    
-    // Filter by pickup_date if dates provided
-    if (start_date) {
-      vanQuery = vanQuery.gte('pickup_date', start_date);
-    }
-    if (end_date) {
-      vanQuery = vanQuery.lte('pickup_date', end_date);
-    }
-    
-    const { data: vanBookings, error: vanError } = await vanQuery;
+      .select('booking_id, van_destination_id');
     
     if (vanError) {
       console.warn('⚠️ Error fetching van bookings:', vanError.message);
@@ -977,23 +967,12 @@ const getPeakBookingDays = async (req, res) => {
 // Get van rental destinations
 const getVanDestinations = async (req, res) => {
   try {
-    const { start_date, end_date } = req.query;
+    console.log('📊 Fetching van rental destinations...');
     
-    console.log('📊 Fetching van rental destinations:', { start_date, end_date });
-    
-    let query = supabase
+    // Get all van rental bookings (removed pickup_date as it doesn't exist in the table)
+    const { data: vanBookings, error } = await supabase
       .from('bookings_van_rental')
-      .select('van_destination_id, pickup_date');
-    
-    // Filter by pickup_date instead of created_at
-    if (start_date) {
-      query = query.gte('pickup_date', start_date);
-    }
-    if (end_date) {
-      query = query.lte('pickup_date', end_date);
-    }
-    
-    const { data: vanBookings, error } = await query;
+      .select('van_destination_id');
     
     if (error) {
       console.error('❌ Error fetching van rental destinations:', error);
@@ -1198,7 +1177,7 @@ const getBookingDemandTimeseries = async (req, res) => {
         .in('booking_id', bookingIds),
       supabase
         .from('bookings_van_rental')
-        .select('booking_id, choose_destination, pickup_date')
+        .select('booking_id, choose_destination')
         .in('booking_id', bookingIds)
     ]);
 
@@ -1278,7 +1257,8 @@ const getBookingDemandTimeseries = async (req, res) => {
       if (!bookingId || !bookingStatusMap.has(bookingId)) return;
       const serviceKey = `van-${slugify(booking.choose_destination)}`;
       const label = formatLabel(booking.choose_destination || 'Van Rental', 'van');
-      const day = normalizeDay(booking.pickup_date) || bookingStatusMap.get(bookingId);
+      // Use booking date from bookingStatusMap since pickup_date doesn't exist
+      const day = bookingStatusMap.get(bookingId);
       upsertEntry(serviceKey, label, 'van', day);
     });
 
