@@ -170,8 +170,7 @@ const register = async (req, res) => {
       .insert([{
         email: email.trim().toLowerCase(),
         password_hash: password_hash,
-        role: 'customer',
-        created_at: new Date().toISOString()
+        role: 'customer'
       }])
       .select('id, email, role')
       .single();
