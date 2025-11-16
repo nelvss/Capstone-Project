@@ -406,6 +406,7 @@ const updateTourPricing = async (req, res) => {
       .from('tour_pricing')
       .update(updates)
       .eq('tour_pricing_id', normalizedPricingId)
+      .eq('tour_only_id', normalizedTourId)
       .select('*');
 
     if (error) {
@@ -418,10 +419,19 @@ const updateTourPricing = async (req, res) => {
     }
 
     if (!data || data.length === 0) {
+      // Check if the pricing exists at all
+      const { data: checkData } = await supabase
+        .from('tour_pricing')
+        .select('*')
+        .eq('tour_pricing_id', normalizedPricingId);
+      
       console.warn('⚠️ Tour pricing not found:', {
         pricingId: normalizedPricingId,
-        tourId: normalizedTourId
+        tourId: normalizedTourId,
+        existsInDb: checkData && checkData.length > 0,
+        actualData: checkData
       });
+      
       return res.status(404).json({
         success: false,
         message: 'Tour pricing not found'
