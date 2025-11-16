@@ -969,10 +969,10 @@ const getVanDestinations = async (req, res) => {
   try {
     console.log('📊 Fetching van rental destinations...');
     
-    // Get all van rental bookings (removed pickup_date as it doesn't exist in the table)
+    // Get all van rental bookings with choose_destination and van_destination_id
     const { data: vanBookings, error } = await supabase
       .from('bookings_van_rental')
-      .select('van_destination_id');
+      .select('van_destination_id, choose_destination');
     
     if (error) {
       console.error('❌ Error fetching van rental destinations:', error);
@@ -994,7 +994,9 @@ const getVanDestinations = async (req, res) => {
       });
     }
     
-    // Get destination names and location_type
+    console.log(`📋 Found ${vanBookings.length} van rental bookings`);
+    
+    // Get destination names from van_destinations table
     const destinationIds = [...new Set(vanBookings?.map(v => v.van_destination_id).filter(id => id))];
     console.log(`📋 Found ${destinationIds.length} unique destination IDs from bookings`);
     
@@ -1003,7 +1005,7 @@ const getVanDestinations = async (req, res) => {
     if (destinationIds.length > 0) {
       const { data: destinations, error: destError } = await supabase
         .from('van_destinations')
-        .select('id, destination_name, location_type')
+        .select('id, destination_name')
         .in('id', destinationIds);
       
       if (destError) {
@@ -1013,43 +1015,35 @@ const getVanDestinations = async (req, res) => {
       if (destinations) {
         console.log(`📋 Found ${destinations.length} destinations in van_destinations table`);
         destinationsData = destinations.reduce((acc, dest) => {
-          acc[dest.id] = {
-            name: dest.destination_name || `Destination ID: ${dest.id}`,
-            locationType: dest.location_type || ''
-          };
+          acc[dest.id] = dest.destination_name || `Destination ID: ${dest.id}`;
           return acc;
         }, {});
         
         // Log destination data for debugging
-        console.log('📋 Destination details:', Object.values(destinationsData).map(d => ({
-          name: d.name,
-          locationType: d.locationType
-        })));
+        console.log('📋 Destination names:', Object.values(destinationsData));
       } else {
         console.warn('⚠️ No destinations found in van_destinations table');
       }
     }
     
-    // Count bookings per destination, separated by location type
+    // Count bookings per destination, separated by choose_destination (within/outside)
     const withinCounts = {};
     const outsideCounts = {};
     let unmatchedCount = 0;
     
     vanBookings?.forEach(booking => {
       if (booking.van_destination_id) {
-        const destInfo = destinationsData[booking.van_destination_id];
-        const destName = destInfo?.name || `Destination ID: ${booking.van_destination_id}`;
-        const locationType = (destInfo?.locationType || '').toLowerCase().trim();
+        const destName = destinationsData[booking.van_destination_id] || `Destination ID: ${booking.van_destination_id}`;
+        const chooseDestination = (booking.choose_destination || '').toLowerCase().trim();
         
-        // Check if location_type contains "within" or "outside"
-        // Handle various formats: "within", "Within Puerto Galera", "within puerto galera", etc.
-        if (locationType.includes('within')) {
+        // Use choose_destination from bookings_van_rental to determine category
+        if (chooseDestination === 'within') {
           withinCounts[destName] = (withinCounts[destName] || 0) + 1;
-        } else if (locationType.includes('outside')) {
+        } else if (chooseDestination === 'outside') {
           outsideCounts[destName] = (outsideCounts[destName] || 0) + 1;
         } else {
           unmatchedCount++;
-          console.warn(`⚠️ Unmatched location_type for ${destName}: "${destInfo?.locationType || 'null'}"`);
+          console.warn(`⚠️ Unmatched choose_destination for ${destName}: "${booking.choose_destination || 'null'}"`);
         }
       }
     });
