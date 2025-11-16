@@ -3,7 +3,7 @@
 async function handleLogin(event) {
     event.preventDefault();
 
-    const email = document.getElementById('email').value.trim();
+    const email = document.getElementById('email').value.trim().toLowerCase();
     const password = document.getElementById('password').value.trim();
     const loginButton = document.getElementById('loginButton');
 
@@ -86,7 +86,7 @@ async function handleLogin(event) {
 async function handleRegister(event) {
     event.preventDefault();
 
-    const email = document.getElementById('registerEmail').value.trim();
+    const email = document.getElementById('registerEmail').value.trim().toLowerCase();
     const password = document.getElementById('registerPassword').value.trim();
     const confirmPassword = document.getElementById('confirmPassword').value.trim();
     const registerButton = document.getElementById('registerButton');
@@ -257,7 +257,7 @@ function switchToForgotPassword(event) {
 async function handleForgotPassword(event) {
     event.preventDefault();
 
-    const email = document.getElementById('forgotEmail').value.trim();
+    const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
     const forgotPasswordButton = document.getElementById('forgotPasswordButton');
 
     if (!email) {

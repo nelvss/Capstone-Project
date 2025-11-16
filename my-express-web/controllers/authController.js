@@ -70,12 +70,15 @@ const login = async (req, res) => {
       });
     }
     
-    console.log(`🔍 Attempting login for email: ${email}`);
+    // Normalize email to lowercase for consistent matching
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    console.log(`🔍 Attempting login for email: ${normalizedEmail}`);
     
     const { data: user, error } = await supabase
       .from('users')
       .select('id, email, password_hash, role')
-      .eq('email', email)
+      .eq('email', normalizedEmail)
       .single();
     
     if (error || !user) {
@@ -89,14 +92,14 @@ const login = async (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     
     if (!isValidPassword) {
-      console.log('❌ Invalid password for user:', email);
+      console.log('❌ Invalid password for user:', normalizedEmail);
       return res.status(401).json({ 
         success: false, 
         message: 'Invalid credentials' 
       });
     }
     
-    console.log('✅ Password verified successfully for user:', email);
+    console.log('✅ Password verified successfully for user:', normalizedEmail);
     
     await supabase
       .from('users')
@@ -143,17 +146,20 @@ const register = async (req, res) => {
       });
     }
     
-    console.log(`🔍 Attempting registration for email: ${email}`);
+    // Normalize email to lowercase for consistent matching
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    console.log(`🔍 Attempting registration for email: ${normalizedEmail}`);
     
     // Check if user already exists
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
       .select('id, email')
-      .eq('email', email)
+      .eq('email', normalizedEmail)
       .single();
     
     if (existingUser) {
-      console.log('❌ User already exists:', email);
+      console.log('❌ User already exists:', normalizedEmail);
       return res.status(409).json({ 
         success: false, 
         message: 'Email already registered' 
@@ -168,7 +174,7 @@ const register = async (req, res) => {
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert([{
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password_hash: password_hash,
         role: 'customer'
       }])
@@ -184,7 +190,7 @@ const register = async (req, res) => {
       });
     }
     
-    console.log('✅ User registered successfully:', email);
+    console.log('✅ User registered successfully:', normalizedEmail);
     
     res.json({ 
       success: true, 
