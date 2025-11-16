@@ -2618,13 +2618,19 @@ function createServicePerformanceChart() {
 // Create Van Destinations Chart
 function createVanDestinationsChart() {
     const ctx = document.getElementById('vanDestinationsChart');
-    if (!ctx) return;
+    if (!ctx) {
+        console.error('❌ Van destinations chart canvas not found');
+        return;
+    }
+    
+    console.log('📊 Creating van destinations chart...');
     
     chartInstances['vanDestinationsChart'] = new Chart(ctx.getContext('2d'), {
         type: 'pie',
         data: {
             labels: [],
             datasets: [{
+                label: 'Bookings',
                 data: [],
                 backgroundColor: [
                     '#dc3545',
@@ -2644,17 +2650,32 @@ function createVanDestinationsChart() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    display: true
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
                 }
             }
         }
     });
     
-    // Load data from API
-    loadVanDestinationsData();
+    // Load data from API after a short delay to ensure chart is fully initialized
+    setTimeout(() => {
+        loadVanDestinationsData();
+    }, 100);
 }
 
 // Data loading functions for new charts
@@ -2961,25 +2982,54 @@ async function loadServicePerformanceData() {
 
 async function loadVanDestinationsData() {
     try {
+        console.log('🔄 Loading van destinations data...');
         const response = await fetch(`${window.API_URL}/api/analytics/van-destinations`);
         
         if (!response.ok) {
             console.warn(`⚠️ Van destinations API returned ${response.status}`);
+            const chart = chartInstances['vanDestinationsChart'];
+            if (chart) {
+                chart.data.labels = ['No Data Available'];
+                chart.data.datasets[0].data = [0];
+                chart.update();
+            }
             return;
         }
         
         const result = await response.json();
+        console.log('📥 Van destinations API response:', result);
+        
+        const chart = chartInstances['vanDestinationsChart'];
+        if (!chart) {
+            console.error('❌ Van destinations chart instance not found');
+            return;
+        }
         
         if (result.success && result.destinations && Array.isArray(result.destinations)) {
-            const chart = chartInstances['vanDestinationsChart'];
-            if (chart) {
-                chart.data.labels = result.destinations.map(d => d.destination);
+            if (result.destinations.length > 0) {
+                chart.data.labels = result.destinations.map(d => d.destination || 'Unknown');
                 chart.data.datasets[0].data = result.destinations.map(d => d.bookings || 0);
-                chart.update();
+                console.log('✅ Van destinations data loaded:', result.destinations.length, 'destinations');
+            } else {
+                console.log('ℹ️ No van destinations data available');
+                chart.data.labels = ['No Data Available'];
+                chart.data.datasets[0].data = [0];
             }
+            chart.update();
+        } else {
+            console.warn('⚠️ Invalid response structure:', result);
+            chart.data.labels = ['No Data Available'];
+            chart.data.datasets[0].data = [0];
+            chart.update();
         }
     } catch (error) {
-        console.error('Error loading van destinations data:', error);
+        console.error('❌ Error loading van destinations data:', error);
+        const chart = chartInstances['vanDestinationsChart'];
+        if (chart) {
+            chart.data.labels = ['Error Loading Data'];
+            chart.data.datasets[0].data = [0];
+            chart.update();
+        }
     }
 }
 
