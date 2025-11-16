@@ -734,7 +734,9 @@
 
         let pricePerPerson = 0;
 
-        if (touristCount === 2) {
+        if (touristCount === 1) {
+            pricePerPerson = 3000;
+        } else if (touristCount === 2) {
             pricePerPerson = 1500;
         } else if (touristCount === 3) {
             pricePerPerson = 1100;
