@@ -12,6 +12,9 @@ function getApiBaseUrl() {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// In-memory cache of the user's current bookings
+let currentBookings = [];
+
 // Derive Socket.IO base URL from API base (strip trailing /api if present)
 function getSocketBaseUrl() {
   try {
@@ -147,6 +150,8 @@ async function loadUserBookings() {
     }
     
     const bookings = result.bookings || [];
+    // Cache the current list of bookings in memory for quick updates
+    currentBookings = bookings;
     
     // Hide loading state
     document.getElementById('loadingState').style.display = 'none';
@@ -184,6 +189,9 @@ function displayBookings(bookings) {
 function createBookingCard(booking) {
   const col = document.createElement('div');
   col.className = 'col-12 col-md-6 col-lg-4';
+  if (booking.booking_id) {
+    col.setAttribute('data-booking-id', booking.booking_id);
+  }
   
   // Get booking services summary
   const services = [];
@@ -462,16 +470,79 @@ function initializeSocket() {
   // Listen for booking status changes (confirmed / cancelled / etc.)
   socket.on('payment-status-changed', (payload) => {
     console.log('📩 Booking status changed event received:', payload);
-    // When any booking status changes, refresh the user's bookings
-    loadUserBookings();
+    if (!payload || !payload.bookingId || !payload.status) {
+      // Fallback to full reload if payload is incomplete
+      loadUserBookings();
+      return;
+    }
+
+    // Update status locally without refetching everything
+    updateBookingStatusLocally(payload.bookingId, payload.status);
   });
 
   // Listen for general booking updates (optional: new bookings, edits)
   socket.on('booking-update', (payload) => {
     console.log('📩 Booking update event received:', payload);
-    // Refresh bookings so the user sees the latest details
-    loadUserBookings();
+    if (payload && payload.booking) {
+      // Update / insert this booking into the local list and re-render cards
+      upsertBookingLocally(payload.booking);
+    } else {
+      // Unknown payload shape – safest to reload
+      loadUserBookings();
+    }
   });
+}
+
+// Replace or insert a booking in the in-memory list and re-render cards
+function upsertBookingLocally(updatedBooking) {
+  if (!updatedBooking || !updatedBooking.booking_id) {
+    return;
+  }
+
+  const bookingId = String(updatedBooking.booking_id).trim();
+  let found = false;
+
+  currentBookings = (currentBookings || []).map((b) => {
+    if (String(b.booking_id).trim() === bookingId) {
+      found = true;
+      return { ...b, ...updatedBooking };
+    }
+    return b;
+  });
+
+  if (!found) {
+    currentBookings.push(updatedBooking);
+  }
+
+  displayBookings(currentBookings);
+}
+
+// Update only the status of a booking in memory and in the DOM
+function updateBookingStatusLocally(bookingId, status) {
+  if (!bookingId) return;
+
+  const normalizedId = String(bookingId).trim();
+
+  // Update in-memory cache
+  currentBookings = (currentBookings || []).map((b) => {
+    if (String(b.booking_id).trim() === normalizedId) {
+      return { ...b, status };
+    }
+    return b;
+  });
+
+  // Update the DOM badge for this booking, if present
+  const cardCol = document.querySelector(`[data-booking-id="${normalizedId}"]`);
+  if (!cardCol) {
+    // If card is not on screen (e.g. filtered out), skip DOM update
+    return;
+  }
+
+  const badgeEl = cardCol.querySelector('.booking-card-header .badge');
+  if (badgeEl) {
+    // Replace the entire badge HTML with the new status badge
+    badgeEl.outerHTML = getStatusBadge(status);
+  }
 }
 
 // Initialize on page load
