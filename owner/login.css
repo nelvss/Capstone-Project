@@ -456,3 +456,36 @@ body {
     background: rgba(220, 38, 38, 0.1);
     transform: translateY(-1px);
 }
+
+/* Forgot Password Link Styling */
+.forgot-password-link {
+    text-align: right;
+    margin-bottom: 1rem;
+    margin-top: -0.5rem;
+}
+
+.forgot-password-link a {
+    color: #dc2626;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.forgot-password-link a:hover {
+    color: #b91c1c;
+    background: rgba(220, 38, 38, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Form Text Helper */
+.form-text {
+    display: block;
+    margin-top: 0.5rem;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 400;
+}

@@ -410,9 +410,93 @@ async function sendEmail(action, booking) {
   return true;
 }
 
+// Password Reset Email Template
+async function sendPasswordResetEmail(email, resetUrl) {
+  const mailOptions = {
+    from: `"OTG Puerto Galera Travel and Tours" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: '🔐 Reset Your Password - OTG Travel and Tours',
+    html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="color-scheme" content="light">
+        <meta name="supported-color-schemes" content="light">
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f5f7fa !important; font-family: 'Poppins', sans-serif; color: #1f2937 !important;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f7fa; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07); overflow: hidden;">
+                <!-- Header with Logo -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 30px; text-align: center;">
+                    <img src="${LOGO_URL}" alt="OTG Travel and Tours Logo" style="max-width: 180px; height: auto; margin-bottom: 20px; background-color: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Reset Your Password</h1>
+                    <p style="color: rgba(255, 255, 255, 0.95); margin: 10px 0 0 0; font-size: 16px; font-weight: 400;">Follow the link below to reset</p>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px 30px; color: #1f2937 !important; background-color: #ffffff !important;">
+                    <p style="font-size: 18px; color: #1f2937 !important; margin: 0 0 10px 0; font-weight: 600;">Hello,</p>
+                    <p style="font-size: 16px; color: #374151 !important; margin: 0 0 30px 0; line-height: 1.6;">
+                      We received a request to reset your password for your OTG Travel and Tours account. Click the button below to create a new password.
+                    </p>
+                    
+                    <!-- Reset Button -->
+                    <table role="presentation" style="width: 100%; margin: 30px 0;">
+                      <tr>
+                        <td align="center">
+                          <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                            Reset Password
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <p style="font-size: 14px; color: #6b7280 !important; margin: 30px 0 0 0; line-height: 1.6;">
+                      Or copy and paste this link into your browser:<br>
+                      <a href="${resetUrl}" style="color: #dc2626; word-break: break-all;">${resetUrl}</a>
+                    </p>
+                    
+                    <p style="font-size: 14px; color: #6b7280 !important; margin: 30px 0 0 0; line-height: 1.6;">
+                      <strong>This link will expire in 1 hour.</strong> If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+                    </p>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+                    <p style="font-size: 14px; color: #6b7280 !important; margin: 0 0 10px 0;">
+                      © ${new Date().getFullYear()} OTG Puerto Galera Travel and Tours. All rights reserved.
+                    </p>
+                    <p style="font-size: 12px; color: #9ca3af !important; margin: 0;">
+                      This is an automated email. Please do not reply.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+  return true;
+}
+
 module.exports = {
   transporter,
   emailTemplates,
-  sendEmail
+  sendEmail,
+  sendPasswordResetEmail
 };
 

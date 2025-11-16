@@ -186,6 +186,7 @@ function switchToRegister(event) {
 function switchToLogin(event) {
     event.preventDefault();
     document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('forgotPasswordForm').style.display = 'none';
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('headerText').textContent = 'Sign in to your account';
 }
@@ -243,10 +244,74 @@ function togglePasswordVisibility() {
     }
 }
 
-// Forgot Password Function
-function handleForgotPassword(event) {
+// Switch to Forgot Password Form
+function switchToForgotPassword(event) {
     event.preventDefault();
-    alert('Please contact the administrator to reset your password.\n\nOwner credentials: email: owner@example.com, password: owner123\nStaff credentials: email: staff@example.com, password: staff123');
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('forgotPasswordForm').style.display = 'block';
+    document.getElementById('headerText').textContent = 'Reset your password';
+}
+
+// Forgot Password Function
+async function handleForgotPassword(event) {
+    event.preventDefault();
+
+    const email = document.getElementById('forgotEmail').value.trim();
+    const forgotPasswordButton = document.getElementById('forgotPasswordButton');
+
+    if (!email) {
+        alert('Please enter your email address.');
+        return;
+    }
+
+    // Show loading state
+    forgotPasswordButton.classList.add('loading');
+    forgotPasswordButton.disabled = true;
+
+    try {
+        // Call Express API for forgot password
+        const base = (window.API_URL && window.API_URL.length > 0) ? window.API_URL : 'https://api.otgpuertogaleratravel.com';
+        const response = await fetch(`${base}/api/forgot-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to send reset link');
+        }
+
+        // Show success message
+        alert('Password reset link has been sent to your email. Please check your inbox and follow the instructions to reset your password.');
+        
+        // Switch back to login form
+        switchToLogin({ preventDefault: () => {} });
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        
+        // Remove loading state
+        forgotPasswordButton.classList.remove('loading');
+        forgotPasswordButton.disabled = false;
+        
+        // Add visual feedback for error
+        const emailField = document.getElementById('forgotEmail');
+        emailField.classList.add('error');
+        
+        // Show error message
+        alert(error.message || 'Failed to send reset link. Please try again.');
+        
+        // Remove error styling after 3 seconds
+        setTimeout(() => {
+            emailField.classList.remove('error');
+        }, 3000);
+    }
 }
 
 // Check URL parameters on page load

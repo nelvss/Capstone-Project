@@ -36,6 +36,10 @@
                         </div>
                     </div>
                     
+                    <div class="forgot-password-link">
+                        <a href="#" onclick="switchToForgotPassword(event)">Forgot Password?</a>
+                    </div>
+                    
                     <button type="submit" class="btn-login" id="loginButton">
                         <span class="btn-text">LOGIN</span>
                         <span class="btn-loading">Signing in...</span>
@@ -43,6 +47,24 @@
                     
                     <div class="form-switch">
                         <p>Don't have an account? <a href="#" onclick="switchToRegister(event)">Create Account</a></p>
+                    </div>
+                </form>
+                
+                <!-- Forgot Password Form -->
+                <form class="forgot-password-form" id="forgotPasswordForm" onsubmit="handleForgotPassword(event)" style="display: none;">
+                    <div class="form-group">
+                        <label for="forgotEmail" class="form-label">EMAIL</label>
+                        <input type="email" id="forgotEmail" name="forgotEmail" class="form-control" required placeholder="Enter your email">
+                        <small class="form-text">We'll send you a password reset link</small>
+                    </div>
+                    
+                    <button type="submit" class="btn-login" id="forgotPasswordButton">
+                        <span class="btn-text">SEND RESET LINK</span>
+                        <span class="btn-loading">Sending...</span>
+                    </button>
+                    
+                    <div class="form-switch">
+                        <p>Remember your password? <a href="#" onclick="switchToLogin(event)">Sign In</a></p>
                     </div>
                 </form>
                 
