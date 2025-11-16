@@ -778,18 +778,36 @@ function initializeFilters() {
         'avgBookingValueMonthFilter'
     ];
     
+    // Define all 12 months
+    const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
     monthFilters.forEach(filterId => {
         const select = document.getElementById(filterId);
         if (select) {
-            months.forEach(month => {
+            // Clear existing options
+            select.innerHTML = '';
+            
+            // Add "All Months" option first
+            const defaultOption = document.createElement('option');
+            defaultOption.value = 'all';
+            defaultOption.textContent = 'All Months';
+            defaultOption.selected = true;
+            select.appendChild(defaultOption);
+            
+            // Add all 12 months
+            allMonths.forEach(month => {
                 const option = document.createElement('option');
                 option.value = month;
                 option.textContent = month;
                 select.appendChild(option);
             });
             
-            // Add change event listener
-            select.addEventListener('change', (e) => handleMonthFilter(e, filterId));
+            // Remove any existing event listeners by cloning (this removes all listeners)
+            const newSelect = select.cloneNode(true);
+            select.parentNode.replaceChild(newSelect, select);
+            
+            // Add change event listener to the new select element
+            newSelect.addEventListener('change', (e) => handleMonthFilter(e, filterId));
         }
     });
     
