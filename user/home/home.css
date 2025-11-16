@@ -858,7 +858,7 @@ body::-webkit-scrollbar {
     }
     
     .user-icon-link i {
-        font-size: 2rem;
+        font-size: 2.5rem;
     }
 }
 
@@ -875,7 +875,7 @@ body::-webkit-scrollbar {
 }
 
 .user-icon-link i {
-    font-size: 1.8rem;
+    font-size: 2.2rem;
 }
 
 /* Adjust based on your header height */
