@@ -135,7 +135,7 @@ async function fetchBookingWithDetails(bookingId) {
 
     const { data: paymentData, error: paymentError } = await supabase
       .from('payments')
-      .select('total_booking_amount, payment_date')
+      .select('total_booking_amount, payment_date, receipt_image_url')
       .eq('booking_id', bookingId)
       .order('payment_date', { ascending: false })
       .limit(1);
@@ -153,7 +153,8 @@ async function fetchBookingWithDetails(bookingId) {
       van_rental_bookings: vanRentalsWithDetails,
       diving_bookings: divingBookings || [],
       total_booking_amount: payment ? payment.total_booking_amount : null,
-      payment_date: payment ? payment.payment_date : null
+      payment_date: payment ? payment.payment_date : null,
+      receipt_image_url: payment ? payment.receipt_image_url : null
     };
   } catch (error) {
     console.error('❌ fetchBookingWithDetails error:', error);
@@ -934,6 +935,7 @@ const updateBooking = async (req, res) => {
       diving,
       total_booking_amount,
       payment_date,
+      receipt_image_url,
       reschedule_requested,
       reschedule_requested_at
     } = req.body;
@@ -1356,19 +1358,11 @@ const updateBooking = async (req, res) => {
     const finalTotal = isProvidedTotalValid ? providedTotal : (fallbackTotal > 0 ? fallbackTotal : null);
     const normalizedPaymentDate = payment_date ? String(payment_date) : null;
 
-    if (finalTotal !== null || normalizedPaymentDate) {
-      const paymentPayload = {
-        booking_id: bookingIdNormalized,
-        total_booking_amount: finalTotal
-      };
-
-      if (normalizedPaymentDate) {
-        paymentPayload.payment_date = normalizedPaymentDate;
-      }
-
+    if (finalTotal !== null || normalizedPaymentDate || receipt_image_url !== undefined) {
+      // Fetch existing payment to preserve receipt_image_url if not provided
       const { data: existingPayment, error: fetchPaymentError } = await supabase
         .from('payments')
-        .select('payment_id')
+        .select('payment_id, receipt_image_url')
         .eq('booking_id', bookingIdNormalized)
         .maybeSingle();
 
@@ -1379,6 +1373,23 @@ const updateBooking = async (req, res) => {
           message: 'Failed to fetch payment information',
           error: fetchPaymentError.message
         });
+      }
+
+      // Build payment payload
+      const paymentPayload = {
+        booking_id: bookingIdNormalized,
+        total_booking_amount: finalTotal
+      };
+
+      if (normalizedPaymentDate) {
+        paymentPayload.payment_date = normalizedPaymentDate;
+      }
+
+      // Preserve receipt_image_url: use provided value, or keep existing one
+      if (receipt_image_url !== undefined) {
+        paymentPayload.receipt_image_url = receipt_image_url || null;
+      } else if (existingPayment && existingPayment.receipt_image_url) {
+        paymentPayload.receipt_image_url = existingPayment.receipt_image_url;
       }
 
       if (existingPayment) {

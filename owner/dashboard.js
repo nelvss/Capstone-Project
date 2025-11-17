@@ -527,6 +527,29 @@ async function handleConfirmReschedule(booking, button) {
     
     const currentBooking = getResult.booking;
     
+    // Transform vehicle_bookings to vehicles format
+    const vehicles = (currentBooking.vehicle_bookings || []).map(vb => ({
+      vehicle_id: vb.vehicle_id,
+      vehicle_name: vb.vehicle_name || '',
+      rental_days: vb.rental_days || 0,
+      total_amount: vb.total_amount || 0
+    }));
+    
+    // Transform van_rental_bookings to van_rentals format
+    const van_rentals = (currentBooking.van_rental_bookings || []).map(vrb => ({
+      van_destination_id: vrb.van_destination_id || '',
+      choose_destination: vrb.choose_destination || vrb.location_type || '',
+      trip_type: vrb.trip_type || 'oneway',
+      number_of_days: vrb.number_of_days || 0,
+      total_amount: vrb.total_amount || 0
+    }));
+    
+    // Transform diving_bookings to diving format
+    const diving = (currentBooking.diving_bookings || []).map(db => ({
+      number_of_divers: db.number_of_divers || 0,
+      total_amount: db.total_amount || 0
+    }));
+    
     // Prepare update payload - clear reschedule flags and keep new dates
     const updatePayload = {
       customer_first_name: currentBooking.customer_first_name,
@@ -546,6 +569,17 @@ async function handleConfirmReschedule(booking, button) {
     // Add optional fields if they exist
     if (currentBooking.hotel_id) updatePayload.hotel_id = currentBooking.hotel_id;
     if (currentBooking.package_only_id) updatePayload.package_only_id = currentBooking.package_only_id;
+    
+    // Preserve vehicles, van_rentals, diving, total_booking_amount, and receipt_image_url
+    if (vehicles.length > 0) updatePayload.vehicles = vehicles;
+    if (van_rentals.length > 0) updatePayload.van_rentals = van_rentals;
+    if (diving.length > 0) updatePayload.diving = diving;
+    if (currentBooking.total_booking_amount !== null && currentBooking.total_booking_amount !== undefined) {
+      updatePayload.total_booking_amount = currentBooking.total_booking_amount;
+    }
+    if (currentBooking.receipt_image_url !== null && currentBooking.receipt_image_url !== undefined && currentBooking.receipt_image_url !== '') {
+      updatePayload.receipt_image_url = currentBooking.receipt_image_url;
+    }
     
     // Update booking to clear reschedule flags
     const updateResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
