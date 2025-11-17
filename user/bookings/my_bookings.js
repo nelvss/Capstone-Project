@@ -682,6 +682,11 @@ async function submitRescheduleRequest() {
     }));
     
     // Prepare update payload
+    // If status is "confirmed", change it to "pending" when reschedule is submitted
+    const newStatus = (booking.status && booking.status.toLowerCase() === 'confirmed') 
+      ? 'pending' 
+      : booking.status;
+    
     const updatePayload = {
       customer_first_name: booking.customer_first_name,
       customer_last_name: booking.customer_last_name,
@@ -692,7 +697,7 @@ async function submitRescheduleRequest() {
       booking_type: booking.booking_type,
       booking_preferences: booking.booking_preferences || '',
       number_of_tourist: booking.number_of_tourist,
-      status: booking.status, // Keep original status
+      status: newStatus,
       reschedule_requested: true,
       reschedule_requested_at: new Date().toISOString()
     };
