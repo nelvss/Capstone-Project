@@ -561,7 +561,7 @@ async function handleConfirmReschedule(booking, button) {
       booking_type: currentBooking.booking_type,
       booking_preferences: currentBooking.booking_preferences || '',
       number_of_tourist: currentBooking.number_of_tourist,
-      status: currentBooking.status, // Keep original status
+      status: 'confirmed', // Update status to confirmed
       reschedule_requested: false, // Clear reschedule flag
       reschedule_requested_at: null // Clear reschedule timestamp
     };
@@ -619,9 +619,11 @@ async function handleConfirmReschedule(booking, button) {
       button.textContent = '✓ Confirmed';
       button.style.backgroundColor = '#10b981';
       booking.reschedule_requested = false;
+      booking.status = 'confirmed';
       if (booking.raw) {
         booking.raw.reschedule_requested = false;
         booking.raw.reschedule_requested_at = null;
+        booking.raw.status = 'confirmed';
       }
       showNotification('✅ Reschedule confirmed and email sent successfully', 'success');
       renderTable();
@@ -629,9 +631,11 @@ async function handleConfirmReschedule(booking, button) {
       console.warn(`Failed to send reschedule confirmation email: ${emailResult.message}`);
       // Still update the UI since the reschedule was confirmed in the database
       booking.reschedule_requested = false;
+      booking.status = 'confirmed';
       if (booking.raw) {
         booking.raw.reschedule_requested = false;
         booking.raw.reschedule_requested_at = null;
+        booking.raw.status = 'confirmed';
       }
       showNotification('⚠️ Reschedule confirmed but email failed to send', 'warning');
       renderTable();
