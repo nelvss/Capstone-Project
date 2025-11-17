@@ -929,7 +929,9 @@ const updateBooking = async (req, res) => {
       van_rentals,
       diving,
       total_booking_amount,
-      payment_date
+      payment_date,
+      reschedule_requested,
+      reschedule_requested_at
     } = req.body;
 
     const vehicleEntries = Array.isArray(vehicles) ? vehicles : [];
@@ -983,6 +985,14 @@ const updateBooking = async (req, res) => {
       hotel_id: hotel_id ? String(hotel_id).trim() : null,
       hotel_nights: parseInteger(hotel_nights)
     };
+
+    // Handle reschedule fields if provided
+    if (reschedule_requested !== undefined) {
+      bookingUpdate.reschedule_requested = Boolean(reschedule_requested);
+    }
+    if (reschedule_requested_at !== undefined) {
+      bookingUpdate.reschedule_requested_at = reschedule_requested_at || null;
+    }
 
     // Add package_only_id or tour_only_id based on booking type
     if (supportsPackageOnlyIdColumn && normalizedBookingType === 'package_only') {

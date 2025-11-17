@@ -265,6 +265,11 @@ function createBookingCard(booking) {
         <button class="btn btn-outline-danger btn-sm" onclick="showBookingDetails('${booking.booking_id}')">
           <i class="fas fa-eye me-1"></i>View Details
         </button>
+        ${booking.status !== 'cancelled' && booking.status !== 'completed' ? `
+        <button class="btn btn-outline-primary btn-sm ms-2" onclick="openRescheduleModal('${booking.booking_id}')">
+          <i class="fas fa-calendar-alt me-1"></i>Reschedule
+        </button>
+        ` : ''}
       </div>
     </div>
   `;
@@ -553,6 +558,176 @@ function updateBookingStatusLocally(bookingId, status) {
   if (badgeEl) {
     // Replace the entire badge HTML with the new status badge
     badgeEl.outerHTML = getStatusBadge(status);
+  }
+}
+
+// Open reschedule modal
+async function openRescheduleModal(bookingId) {
+  try {
+    // Fetch current booking details
+    const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success || !result.booking) {
+      throw new Error(result.message || 'Booking not found');
+    }
+    
+    const booking = result.booking;
+    
+    // Set booking ID
+    document.getElementById('rescheduleBookingId').value = bookingId;
+    
+    // Pre-fill current dates
+    const arrivalDate = booking.arrival_date ? new Date(booking.arrival_date).toISOString().split('T')[0] : '';
+    const departureDate = booking.departure_date ? new Date(booking.departure_date).toISOString().split('T')[0] : '';
+    
+    document.getElementById('rescheduleArrivalDate').value = arrivalDate;
+    document.getElementById('rescheduleDepartureDate').value = departureDate;
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('rescheduleArrivalDate').setAttribute('min', today);
+    document.getElementById('rescheduleDepartureDate').setAttribute('min', today);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+    modal.show();
+    
+  } catch (error) {
+    console.error('Error opening reschedule modal:', error);
+    alert(`Failed to load booking details: ${error.message}`);
+  }
+}
+
+// Submit reschedule request
+async function submitRescheduleRequest() {
+  const bookingId = document.getElementById('rescheduleBookingId').value;
+  const newArrivalDate = document.getElementById('rescheduleArrivalDate').value;
+  const newDepartureDate = document.getElementById('rescheduleDepartureDate').value;
+  
+  // Validation
+  if (!bookingId || !newArrivalDate || !newDepartureDate) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  // Validate dates
+  const arrival = new Date(newArrivalDate);
+  const departure = new Date(newDepartureDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  if (arrival < today) {
+    alert('Arrival date cannot be in the past');
+    return;
+  }
+  
+  if (departure <= arrival) {
+    alert('Departure date must be after arrival date');
+    return;
+  }
+  
+  // Get current booking to preserve other fields
+  try {
+    const getResponse = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors'
+    });
+    
+    if (!getResponse.ok) {
+      throw new Error('Failed to fetch booking details');
+    }
+    
+    const getResult = await getResponse.json();
+    if (!getResult.success || !getResult.booking) {
+      throw new Error('Booking not found');
+    }
+    
+    const booking = getResult.booking;
+    
+    // Prepare update payload
+    const updatePayload = {
+      customer_first_name: booking.customer_first_name,
+      customer_last_name: booking.customer_last_name,
+      customer_email: booking.customer_email,
+      customer_contact: booking.customer_contact,
+      arrival_date: newArrivalDate,
+      departure_date: newDepartureDate,
+      booking_type: booking.booking_type,
+      booking_preferences: booking.booking_preferences || '',
+      number_of_tourist: booking.number_of_tourist,
+      status: booking.status, // Keep original status
+      reschedule_requested: true,
+      reschedule_requested_at: new Date().toISOString()
+    };
+    
+    // Add optional fields if they exist
+    if (booking.hotel_id) updatePayload.hotel_id = booking.hotel_id;
+    if (booking.hotel_nights) updatePayload.hotel_nights = booking.hotel_nights;
+    if (booking.package_only_id) updatePayload.package_only_id = booking.package_only_id;
+    
+    // Disable submit button
+    const submitBtn = document.querySelector('#rescheduleModal .btn-primary');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Submitting...';
+    
+    // Send update request
+    const updateResponse = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatePayload),
+      mode: 'cors'
+    });
+    
+    if (!updateResponse.ok) {
+      const errorResult = await updateResponse.json();
+      throw new Error(errorResult.message || 'Failed to submit reschedule request');
+    }
+    
+    const updateResult = await updateResponse.json();
+    
+    if (!updateResult.success) {
+      throw new Error(updateResult.message || 'Failed to submit reschedule request');
+    }
+    
+    // Success - close modal and reload bookings
+    const modal = bootstrap.Modal.getInstance(document.getElementById('rescheduleModal'));
+    modal.hide();
+    
+    // Reset form
+    document.getElementById('rescheduleForm').reset();
+    
+    // Show success message
+    alert('Reschedule request submitted successfully! The admin will review your request and notify you once it\'s confirmed.');
+    
+    // Reload bookings to show updated status
+    await loadUserBookings();
+    
+  } catch (error) {
+    console.error('Error submitting reschedule request:', error);
+    alert(`Failed to submit reschedule request: ${error.message}`);
+    
+    // Re-enable submit button
+    const submitBtn = document.querySelector('#rescheduleModal .btn-primary');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Submit Request';
   }
 }
 

@@ -203,6 +203,8 @@ function mapBookingRecord(apiBooking) {
     email: apiBooking.customer_email,
     receipt_image_url: apiBooking.receipt_image_url || null,
     status: apiBooking.status,
+    reschedule_requested: apiBooking.reschedule_requested || false,
+    reschedule_requested_at: apiBooking.reschedule_requested_at || null,
     raw: rawBooking
   };
 }
@@ -492,6 +494,116 @@ async function handleCancel(booking, button) {
   }
 }
 
+// Handle confirm reschedule button click
+async function handleConfirmReschedule(booking, button) {
+  // Disable button and show loading state
+  button.disabled = true;
+  button.textContent = 'Processing...';
+  
+  try {
+    // Get current booking details to preserve all fields
+    const getResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!getResponse.ok) {
+      throw new Error('Failed to fetch booking details');
+    }
+    
+    const getResult = await getResponse.json();
+    if (!getResult.success || !getResult.booking) {
+      throw new Error('Booking not found');
+    }
+    
+    const currentBooking = getResult.booking;
+    
+    // Prepare update payload - clear reschedule flags and keep new dates
+    const updatePayload = {
+      customer_first_name: currentBooking.customer_first_name,
+      customer_last_name: currentBooking.customer_last_name,
+      customer_email: currentBooking.customer_email,
+      customer_contact: currentBooking.customer_contact,
+      arrival_date: currentBooking.arrival_date, // Keep the new dates
+      departure_date: currentBooking.departure_date, // Keep the new dates
+      booking_type: currentBooking.booking_type,
+      booking_preferences: currentBooking.booking_preferences || '',
+      number_of_tourist: currentBooking.number_of_tourist,
+      status: currentBooking.status, // Keep original status
+      reschedule_requested: false, // Clear reschedule flag
+      reschedule_requested_at: null // Clear reschedule timestamp
+    };
+    
+    // Add optional fields if they exist
+    if (currentBooking.hotel_id) updatePayload.hotel_id = currentBooking.hotel_id;
+    if (currentBooking.hotel_nights) updatePayload.hotel_nights = currentBooking.hotel_nights;
+    if (currentBooking.package_only_id) updatePayload.package_only_id = currentBooking.package_only_id;
+    
+    // Update booking to clear reschedule flags
+    const updateResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatePayload)
+    });
+    
+    const updateResult = await updateResponse.json();
+    
+    if (!updateResult.success) {
+      throw new Error(updateResult.message || 'Failed to confirm reschedule');
+    }
+    
+    // Prepare booking data for email (with new dates)
+    const emailBooking = {
+      booking_id: booking.id,
+      customer_first_name: currentBooking.customer_first_name,
+      customer_last_name: currentBooking.customer_last_name,
+      email: booking.email,
+      customer_email: booking.email,
+      arrival_date: currentBooking.arrival_date,
+      departure_date: currentBooking.departure_date,
+      number_of_tourist: currentBooking.number_of_tourist,
+      booking_type: currentBooking.booking_type,
+      booking_preferences: currentBooking.booking_preferences || '',
+      total_booking_amount: currentBooking.total_booking_amount || 0
+    };
+    
+    // Automatically send reschedule confirmation email
+    const emailResult = await sendEmail('reschedule', emailBooking);
+    
+    if (emailResult.success) {
+      console.log(`Reschedule confirmation email sent successfully to ${booking.email}`);
+      button.textContent = '✓ Confirmed';
+      button.style.backgroundColor = '#10b981';
+      booking.reschedule_requested = false;
+      if (booking.raw) {
+        booking.raw.reschedule_requested = false;
+        booking.raw.reschedule_requested_at = null;
+      }
+      showNotification('✅ Reschedule confirmed and email sent successfully', 'success');
+      renderTable();
+    } else {
+      console.warn(`Failed to send reschedule confirmation email: ${emailResult.message}`);
+      // Still update the UI since the reschedule was confirmed in the database
+      booking.reschedule_requested = false;
+      if (booking.raw) {
+        booking.raw.reschedule_requested = false;
+        booking.raw.reschedule_requested_at = null;
+      }
+      showNotification('⚠️ Reschedule confirmed but email failed to send', 'warning');
+      renderTable();
+    }
+  } catch (error) {
+    console.error('Error confirming reschedule:', error);
+    button.disabled = false;
+    button.textContent = 'Confirm Reschedule';
+    alert('Failed to confirm reschedule: ' + error.message);
+  }
+}
+
 // Booking edit modal functions removed
 
 // Helper function to generate receipt cell HTML
@@ -545,9 +657,20 @@ function renderTable() {
   rows.forEach(b => {
     const tr = document.createElement('tr');
     const receiptCell = getReceiptCell(b.receipt_image_url);
+    
+    // Add reschedule indicator class if reschedule is requested
+    if (b.reschedule_requested) {
+      tr.classList.add('reschedule-request-row');
+    }
+    
+    // Build reschedule badge if needed
+    const rescheduleBadge = b.reschedule_requested 
+      ? `<span class="reschedule-badge" title="Reschedule Requested"><i class="fas fa-calendar-alt"></i> Reschedule</span>` 
+      : '';
+    
     const actions = ownerStatusFilter === 'all' 
       ? `
-      <td>${b.id}</td>
+      <td>${b.id} ${rescheduleBadge}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
@@ -562,8 +685,12 @@ function renderTable() {
       ${receiptCell}
       <td>
         <div class="action-buttons">
+          ${b.reschedule_requested ? `
+          <button class="action-btn btn-reschedule-confirm" data-action="confirm-reschedule">Confirm Reschedule</button>
+          ` : `
           <button class="action-btn btn-confirm" data-action="confirm">Confirm</button>
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          `}
         </div>
       </td>`
       : ownerStatusFilter === 'cancelled' ? `
@@ -583,7 +710,7 @@ function renderTable() {
       <td>
         <span class="action-badge cancelled">Cancelled</span>
       </td>` : `
-      <td>${b.id}</td>
+      <td>${b.id} ${rescheduleBadge}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
@@ -598,7 +725,11 @@ function renderTable() {
       ${receiptCell}
       <td>
         <div class="action-buttons">
+          ${b.reschedule_requested ? `
+          <button class="action-btn btn-reschedule-confirm" data-action="confirm-reschedule">Confirm Reschedule</button>
+          ` : `
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          `}
         </div>
       </td>`;
     tr.innerHTML = actions;
@@ -606,10 +737,12 @@ function renderTable() {
     // Add event listeners to buttons
     const confirmBtn = tr.querySelector('.btn-confirm');
     const cancelBtn = tr.querySelector('.btn-cancel');
+    const rescheduleConfirmBtn = tr.querySelector('.btn-reschedule-confirm');
     const receiptThumbnail = tr.querySelector('.receipt-thumbnail');
     
     if (confirmBtn) confirmBtn.addEventListener('click', () => handleConfirm(b, confirmBtn));
     if (cancelBtn) cancelBtn.addEventListener('click', () => handleCancel(b, cancelBtn));
+    if (rescheduleConfirmBtn) rescheduleConfirmBtn.addEventListener('click', () => handleConfirmReschedule(b, rescheduleConfirmBtn));
     if (receiptThumbnail) {
       receiptThumbnail.addEventListener('click', function() {
         const imageUrl = this.getAttribute('data-receipt-url');
@@ -670,9 +803,21 @@ function filterTable(searchTerm) {
   
   filteredBookings.forEach(b => {
     const tr = document.createElement('tr');
+    const receiptCell = getReceiptCell(b.receipt_image_url);
+    
+    // Add reschedule indicator class if reschedule is requested
+    if (b.reschedule_requested) {
+      tr.classList.add('reschedule-request-row');
+    }
+    
+    // Build reschedule badge if needed
+    const rescheduleBadge = b.reschedule_requested 
+      ? `<span class="reschedule-badge" title="Reschedule Requested"><i class="fas fa-calendar-alt"></i> Reschedule</span>` 
+      : '';
+    
     const actions = ownerStatusFilter === 'all'
       ? `
-      <td>${b.id}</td>
+      <td>${b.id} ${rescheduleBadge}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
@@ -684,10 +829,15 @@ function filterTable(searchTerm) {
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <div class="action-buttons">
+          ${b.reschedule_requested ? `
+          <button class="action-btn btn-reschedule-confirm" data-action="confirm-reschedule">Confirm Reschedule</button>
+          ` : `
           <button class="action-btn btn-confirm" data-action="confirm">Confirm</button>
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          `}
         </div>
       </td>`
       : ownerStatusFilter === 'cancelled' ? `
@@ -703,10 +853,11 @@ function filterTable(searchTerm) {
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <span class="action-badge cancelled">Cancelled</span>
       </td>` : `
-      <td>${b.id}</td>
+      <td>${b.id} ${rescheduleBadge}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
@@ -718,9 +869,14 @@ function filterTable(searchTerm) {
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <div class="action-buttons">
+          ${b.reschedule_requested ? `
+          <button class="action-btn btn-reschedule-confirm" data-action="confirm-reschedule">Confirm Reschedule</button>
+          ` : `
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          `}
         </div>
       </td>`;
     tr.innerHTML = actions;
@@ -728,9 +884,20 @@ function filterTable(searchTerm) {
     // Add event listeners to buttons
     const confirmBtn = tr.querySelector('.btn-confirm');
     const cancelBtn = tr.querySelector('.btn-cancel');
+    const rescheduleConfirmBtn = tr.querySelector('.btn-reschedule-confirm');
+    const receiptThumbnail = tr.querySelector('.receipt-thumbnail');
     
     if (confirmBtn) confirmBtn.addEventListener('click', () => handleConfirm(b, confirmBtn));
     if (cancelBtn) cancelBtn.addEventListener('click', () => handleCancel(b, cancelBtn));
+    if (rescheduleConfirmBtn) rescheduleConfirmBtn.addEventListener('click', () => handleConfirmReschedule(b, rescheduleConfirmBtn));
+    if (receiptThumbnail) {
+      receiptThumbnail.addEventListener('click', function() {
+        const imageUrl = this.getAttribute('data-receipt-url');
+        if (imageUrl) {
+          openReceiptModal(imageUrl);
+        }
+      });
+    }
     
     tbody.appendChild(tr);
   });

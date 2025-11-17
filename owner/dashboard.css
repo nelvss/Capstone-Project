@@ -881,6 +881,53 @@ tbody tr:last-child {
   transform: translateY(-1px);
 }
 
+/* Reschedule button styles */
+.btn-reschedule-confirm {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #2563eb;
+  border: 2px solid #93c5fd;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+}
+
+.btn-reschedule-confirm:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+  border-color: #2563eb;
+}
+
+/* Reschedule badge styles */
+.reschedule-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  margin-left: 8px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #2563eb;
+  border: 1px solid #93c5fd;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.reschedule-badge i {
+  font-size: 0.7rem;
+}
+
+/* Reschedule request row highlighting */
+tbody tr.reschedule-request-row {
+  background: linear-gradient(90deg, #eff6ff 0%, #ffffff 100%);
+  border-left: 4px solid #3b82f6;
+}
+
+tbody tr.reschedule-request-row:hover {
+  background: linear-gradient(90deg, #dbeafe 0%, #eff6ff 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
 /* Payment Gallery Styles */
 .payment-gallery {
   display: flex;

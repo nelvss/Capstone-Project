@@ -277,7 +277,7 @@ const emailTemplates = {
   }),
   
   reschedule: (booking) => ({
-    subject: '📅 Booking Reschedule Request Received',
+    subject: '✅ Booking Reschedule Confirmed - Your New Dates',
     html: `
       <!DOCTYPE html>
       <html lang="en">
@@ -306,7 +306,7 @@ const emailTemplates = {
                   <td style="padding: 40px 30px; color: #1f2937 !important; background-color: #ffffff !important;">
                     <p style="font-size: 18px; color: #1f2937 !important; margin: 0 0 10px 0; font-weight: 600;">Dear ${booking.name || `${booking.customer_first_name || ''} ${booking.customer_last_name || ''}`.trim()},</p>
                     <p style="font-size: 16px; color: #374151 !important; margin: 0 0 30px 0; line-height: 1.6;">
-                      We've received your request to reschedule your booking. Our team is reviewing your request and will contact you shortly with available options.
+                      Your booking reschedule request has been confirmed! Your booking dates have been updated as shown below.
                     </p>
                     
                     <!-- Current Booking Details Card -->
@@ -338,14 +338,14 @@ const emailTemplates = {
                         ` : ''}
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
-                            <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Current Arrival</strong>
-                            <span style="color: #1f2937 !important;">${booking.arrival || 'N/A'}</span>
+                            <strong style="color: #1e40af; display: block; margin-bottom: 4px;">New Arrival Date</strong>
+                            <span style="color: #1f2937 !important;">${booking.arrival_date ? new Date(booking.arrival_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (booking.arrival || 'N/A')}</span>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding: 12px 0; border-bottom: 1px solid rgba(59, 130, 246, 0.2);">
-                            <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Current Departure</strong>
-                            <span style="color: #1f2937 !important;">${booking.departure || 'N/A'}</span>
+                            <strong style="color: #1e40af; display: block; margin-bottom: 4px;">New Departure Date</strong>
+                            <span style="color: #1f2937 !important;">${booking.departure_date ? new Date(booking.departure_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (booking.departure || 'N/A')}</span>
                           </td>
                         </tr>
                         <tr>
@@ -363,19 +363,11 @@ const emailTemplates = {
                       </table>
                     </div>
                     
-                    <!-- Next Steps -->
-                    <div style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                      <p style="margin: 0; color: #92400e; font-size: 15px; line-height: 1.6;">
-                        <strong style="font-size: 16px;">⏰ Next Steps</strong><br>
-                        Our team will reach out to you within 24 hours at <strong>${booking.contact || 'your contact number'}</strong> or via email to discuss new dates and finalize your rescheduling.
-                      </p>
-                    </div>
-                    
-                    <!-- Additional Info -->
-                    <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                      <p style="margin: 0; color: #065f46; font-size: 14px; line-height: 1.6;">
-                        <strong>💡 Have Specific Dates in Mind?</strong><br>
-                        If you have preferred dates, please feel free to reply to this email with your preferences. This will help us process your reschedule request faster!
+                    <!-- Confirmation Message -->
+                    <div style="background: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                      <p style="margin: 0; color: #065f46; font-size: 15px; line-height: 1.6;">
+                        <strong style="font-size: 16px;">✅ Reschedule Confirmed</strong><br>
+                        Your booking has been successfully rescheduled. Please note the new dates above. If you have any questions or need further assistance, please don't hesitate to contact us.
                       </p>
                     </div>
                     
@@ -386,7 +378,7 @@ const emailTemplates = {
                         <strong style="color: #1f2937;">OTG Travel and Tours Team</strong>
                       </p>
                       <p style="font-size: 12px; color: #9ca3af; margin: 15px 0 0 0;">
-                        This is an automated reschedule acknowledgment email. Our team will contact you soon to finalize your new dates.
+                        This is a confirmation email for your rescheduled booking. Your new dates are now active.
                       </p>
                     </div>
                   </td>
