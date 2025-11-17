@@ -1,19 +1,25 @@
 const nodemailer = require('nodemailer');
 
 // Create email transporter with timeout settings
+// Optimized for better performance under load:
+// - maxConnections: 5 allows parallel email sending (prevents queuing delays)
+// - maxMessages: 100 reduces connection overhead (connection stays open longer)
+// - Increased timeouts to handle slower network conditions
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
   },
-  // Add connection timeout to prevent hanging
-  connectionTimeout: 10000, // 10 seconds
-  socketTimeout: 10000, // 10 seconds
-  // Enable keep-alive for better performance
+  // Connection timeout settings
+  connectionTimeout: 15000, // 15 seconds (increased from 10)
+  socketTimeout: 15000, // 15 seconds (increased from 10)
+  // Enable connection pooling for better performance
   pool: true,
-  maxConnections: 1,
-  maxMessages: 3
+  maxConnections: 5, // Allow 5 parallel connections (increased from 1)
+  maxMessages: 100, // Keep connection open for up to 100 messages (increased from 3)
+  rateDelta: 1000, // Time to wait before sending next email in same connection (1 second)
+  rateLimit: 5 // Maximum number of messages per rateDelta (5 emails per second per connection)
 });
 
 // Logo URL - Configured for Hostinger deployment
@@ -420,13 +426,43 @@ async function sendEmail(action, booking) {
 // Password Reset Email Template - Sends verification code
 async function sendPasswordResetEmail(email, code) {
   // Create a promise with timeout to prevent hanging
-  const sendEmailWithTimeout = (mailOptions, timeoutMs = 15000) => {
+  const sendEmailWithTimeout = (mailOptions, timeoutMs = 20000) => {
     return Promise.race([
       transporter.sendMail(mailOptions),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Email sending timeout')), timeoutMs)
       )
     ]);
+  };
+
+  // Retry logic for email sending (handles temporary network issues and rate limits)
+  const sendWithRetry = async (mailOptions, maxRetries = 3, retryDelay = 2000) => {
+    let lastError;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await sendEmailWithTimeout(mailOptions, 20000);
+        if (attempt > 1) {
+          console.log(`✅ Email sent successfully on attempt ${attempt} for: ${email}`);
+        }
+        return true;
+      } catch (error) {
+        lastError = error;
+        const isRetryable = error.message.includes('timeout') || 
+                           error.message.includes('ECONNRESET') ||
+                           error.message.includes('ETIMEDOUT') ||
+                           error.code === 'EAUTH' ||
+                           error.responseCode >= 500;
+        
+        if (attempt < maxRetries && isRetryable) {
+          const delay = retryDelay * attempt; // Exponential backoff
+          console.log(`⚠️ Email send attempt ${attempt} failed for ${email}, retrying in ${delay}ms... Error: ${error.message}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          throw error;
+        }
+      }
+    }
+    throw lastError;
   };
 
   const mailOptions = {
@@ -511,12 +547,20 @@ async function sendPasswordResetEmail(email, code) {
   };
 
   try {
-    // Send email with 15 second timeout
-    await sendEmailWithTimeout(mailOptions, 15000);
+    // Send email with retry logic (handles temporary failures and rate limits)
+    await sendWithRetry(mailOptions, 3, 2000);
     return true;
   } catch (error) {
-    // Log error but don't throw - email sending is non-blocking
-    console.error('❌ Email sending error:', error.message);
+    // Enhanced error logging with more context
+    const errorDetails = {
+      message: error.message,
+      code: error.code,
+      responseCode: error.responseCode,
+      command: error.command,
+      email: email,
+      timestamp: new Date().toISOString()
+    };
+    console.error('❌ Email sending failed after retries:', JSON.stringify(errorDetails, null, 2));
     throw error;
   }
 }
