@@ -44,7 +44,14 @@ function initializeSocketIO() {
     // Listen for booking updates
     socket.on('booking-update', async (data) => {
       console.log('📋 New booking update received:', data);
-      showNotification('🎉 New booking received!', 'success');
+      
+      // Check if this is a reschedule request
+      const isRescheduleRequest = data.booking?.reschedule_requested || false;
+      const notificationMessage = isRescheduleRequest 
+        ? '📅 Reschedule request received!' 
+        : '🎉 New booking received!';
+      
+      showNotification(notificationMessage, isRescheduleRequest ? 'info' : 'success');
       
       // Play notification sound (optional)
       playNotificationSound();
@@ -169,6 +176,20 @@ function mapBookingRecord(apiBooking) {
     ? `₱${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     : '₱0';
 
+  let divingInfo = 'N/A';
+  if (apiBooking.diving_bookings && apiBooking.diving_bookings.length > 0) {
+    console.log(`🤿 Booking ${apiBooking.booking_id} has diving data:`, apiBooking.diving_bookings);
+    const totalDivers = apiBooking.diving_bookings.reduce((sum, diving) => {
+      const divers = parseInt(diving.number_of_divers) || 0;
+      console.log(`   - Diving entry: ${divers} divers`);
+      return sum + divers;
+    }, 0);
+    divingInfo = totalDivers > 0 ? String(totalDivers) : 'N/A';
+    console.log(`   Total divers for booking ${apiBooking.booking_id}: ${divingInfo}`);
+  } else {
+    console.log(`⚠️ Booking ${apiBooking.booking_id} has no diving data. diving_bookings:`, apiBooking.diving_bookings);
+  }
+
   let hotelDisplay = 'No Hotel Selected';
   if (apiBooking.booking_type === 'tour_only') {
     hotelDisplay = 'N/A';
@@ -180,6 +201,7 @@ function mapBookingRecord(apiBooking) {
   rawBooking.payment_date = apiBooking.payment_date || null;
   if (!rawBooking.vehicle_bookings) rawBooking.vehicle_bookings = [];
   if (!rawBooking.van_rental_bookings) rawBooking.van_rental_bookings = [];
+  if (!rawBooking.diving_bookings) rawBooking.diving_bookings = [];
   if (!rawBooking.booking_preferences) rawBooking.booking_preferences = '';
 
   return {
@@ -188,13 +210,17 @@ function mapBookingRecord(apiBooking) {
     services: apiBooking.booking_preferences || 'N/A',
     rental: vehicleInfo,
     vanRental: vanRentalInfo,
+    diving: divingInfo,
     arrival: apiBooking.arrival_date,
     departure: apiBooking.departure_date,
     hotel: hotelDisplay,
     price: formattedPrice,
     contact: apiBooking.customer_contact,
     email: apiBooking.customer_email,
+    receipt_image_url: apiBooking.receipt_image_url || null,
     status: apiBooking.status,
+    reschedule_requested: apiBooking.reschedule_requested || false,
+    reschedule_requested_at: apiBooking.reschedule_requested_at || null,
     raw: rawBooking
   };
 }
@@ -329,6 +355,7 @@ async function handleCancel(booking, button) {
       button.style.backgroundColor = '#ef4444';
       booking.status = 'cancelled';
       if (booking.raw) booking.raw.status = 'cancelled';
+      showNotification('❌ Booking cancelled successfully', 'warning');
       renderTable();
     } else {
       console.warn(`Failed to send cancellation email: ${result.message}`);
@@ -342,6 +369,196 @@ async function handleCancel(booking, button) {
     alert('Failed to cancel booking: ' + error.message);
   }
 }
+
+// Handle confirm reschedule button click
+async function handleConfirmReschedule(booking, button) {
+  // Disable button and show loading state
+  button.disabled = true;
+  button.textContent = 'Processing...';
+  
+  try {
+    // Get current booking details to preserve all fields
+    const getResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!getResponse.ok) {
+      throw new Error('Failed to fetch booking details');
+    }
+    
+    const getResult = await getResponse.json();
+    if (!getResult.success || !getResult.booking) {
+      throw new Error('Booking not found');
+    }
+    
+    const currentBooking = getResult.booking;
+    
+    // Transform vehicle_bookings to vehicles format
+    const vehicles = (currentBooking.vehicle_bookings || []).map(vb => ({
+      vehicle_id: vb.vehicle_id,
+      vehicle_name: vb.vehicle_name || '',
+      rental_days: vb.rental_days || 0,
+      total_amount: vb.total_amount || 0
+    }));
+    
+    // Transform van_rental_bookings to van_rentals format
+    const van_rentals = (currentBooking.van_rental_bookings || []).map(vrb => ({
+      van_destination_id: vrb.van_destination_id || '',
+      choose_destination: vrb.choose_destination || vrb.location_type || '',
+      trip_type: vrb.trip_type || 'oneway',
+      number_of_days: vrb.number_of_days || 0,
+      total_amount: vrb.total_amount || 0
+    }));
+    
+    // Transform diving_bookings to diving format
+    const diving = (currentBooking.diving_bookings || []).map(db => ({
+      number_of_divers: db.number_of_divers || 0,
+      total_amount: db.total_amount || 0
+    }));
+    
+    // Prepare update payload - clear reschedule flags and keep new dates
+    const updatePayload = {
+      customer_first_name: currentBooking.customer_first_name,
+      customer_last_name: currentBooking.customer_last_name,
+      customer_email: currentBooking.customer_email,
+      customer_contact: currentBooking.customer_contact,
+      arrival_date: currentBooking.arrival_date, // Keep the new dates
+      departure_date: currentBooking.departure_date, // Keep the new dates
+      booking_type: currentBooking.booking_type,
+      booking_preferences: currentBooking.booking_preferences || '',
+      number_of_tourist: currentBooking.number_of_tourist,
+      status: 'confirmed', // Update status to confirmed
+      reschedule_requested: false, // Clear reschedule flag
+      reschedule_requested_at: null // Clear reschedule timestamp
+    };
+    
+    // Add optional fields if they exist
+    if (currentBooking.hotel_id) updatePayload.hotel_id = currentBooking.hotel_id;
+    if (currentBooking.package_only_id) updatePayload.package_only_id = currentBooking.package_only_id;
+    
+    // Preserve vehicles, van_rentals, diving, total_booking_amount, and receipt_image_url
+    if (vehicles.length > 0) updatePayload.vehicles = vehicles;
+    if (van_rentals.length > 0) updatePayload.van_rentals = van_rentals;
+    if (diving.length > 0) updatePayload.diving = diving;
+    if (currentBooking.total_booking_amount !== null && currentBooking.total_booking_amount !== undefined) {
+      updatePayload.total_booking_amount = currentBooking.total_booking_amount;
+    }
+    if (currentBooking.receipt_image_url !== null && currentBooking.receipt_image_url !== undefined && currentBooking.receipt_image_url !== '') {
+      updatePayload.receipt_image_url = currentBooking.receipt_image_url;
+    }
+    
+    // Update booking to clear reschedule flags
+    const updateResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatePayload)
+    });
+    
+    const updateResult = await updateResponse.json();
+    
+    if (!updateResult.success) {
+      throw new Error(updateResult.message || 'Failed to confirm reschedule');
+    }
+    
+    // Prepare booking data for email (with new dates)
+    const emailBooking = {
+      booking_id: booking.id,
+      customer_first_name: currentBooking.customer_first_name,
+      customer_last_name: currentBooking.customer_last_name,
+      email: booking.email,
+      customer_email: booking.email,
+      arrival_date: currentBooking.arrival_date,
+      departure_date: currentBooking.departure_date,
+      number_of_tourist: currentBooking.number_of_tourist,
+      booking_type: currentBooking.booking_type,
+      booking_preferences: currentBooking.booking_preferences || '',
+      total_booking_amount: currentBooking.total_booking_amount || 0
+    };
+    
+    // Automatically send reschedule confirmation email
+    const emailResult = await sendEmail('reschedule', emailBooking);
+    
+    if (emailResult.success) {
+      console.log(`Reschedule confirmation email sent successfully to ${booking.email}`);
+      button.textContent = '✓ Confirmed';
+      button.style.backgroundColor = '#10b981';
+      booking.reschedule_requested = false;
+      booking.status = 'confirmed';
+      if (booking.raw) {
+        booking.raw.reschedule_requested = false;
+        booking.raw.reschedule_requested_at = null;
+        booking.raw.status = 'confirmed';
+      }
+      showNotification('✅ Reschedule confirmed and email sent successfully', 'success');
+      renderTable();
+    } else {
+      console.warn(`Failed to send reschedule confirmation email: ${emailResult.message}`);
+      // Still update the UI since the reschedule was confirmed in the database
+      booking.reschedule_requested = false;
+      booking.status = 'confirmed';
+      if (booking.raw) {
+        booking.raw.reschedule_requested = false;
+        booking.raw.reschedule_requested_at = null;
+        booking.raw.status = 'confirmed';
+      }
+      showNotification('⚠️ Reschedule confirmed but email failed to send', 'warning');
+      renderTable();
+    }
+  } catch (error) {
+    console.error('Error confirming reschedule:', error);
+    button.disabled = false;
+    button.textContent = 'Confirm Reschedule';
+    alert('Failed to confirm reschedule: ' + error.message);
+  }
+}
+
+// Helper function to generate receipt cell HTML
+function getReceiptCell(receiptImageUrl) {
+  if (receiptImageUrl) {
+    // Escape the URL for safe HTML insertion
+    const escapedUrl = receiptImageUrl.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+    return `<td>
+      <img src="${escapedUrl}" alt="Receipt" class="receipt-thumbnail" data-receipt-url="${escapedUrl}" style="width: 50px; height: 50px; object-fit: cover; cursor: pointer; border-radius: 4px; border: 1px solid #ddd;">
+    </td>`;
+  } else {
+    return `<td style="text-align: center; color: #999;">No Receipt</td>`;
+  }
+}
+
+// Receipt modal functions
+function openReceiptModal(imageUrl) {
+  const modal = document.getElementById('receiptModal');
+  const modalImage = document.getElementById('modalReceiptImage');
+  
+  if (modal && modalImage && imageUrl) {
+    modalImage.src = imageUrl;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  }
+}
+
+function closeReceiptModal() {
+  const modal = document.getElementById('receiptModal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+  const receiptModal = document.getElementById('receiptModal');
+  if (receiptModal && receiptModal.classList.contains('open') && event.target === receiptModal) {
+    closeReceiptModal();
+  }
+});
 
 function extractDateOnly(value) {
   if (!value) return '';
@@ -838,28 +1055,50 @@ async function submitBookingEditForm(event) {
 
 function renderTable() {
   const tbody = document.getElementById('booking-table-body');
+  if (!tbody) return; // Not on dashboard page
   tbody.innerHTML = '';
-  const rows = bookings.filter(b => staffStatusFilter === 'all' ? (b.status === 'pending') : (b.status === staffStatusFilter));
+  // Always show bookings with reschedule requests, plus bookings matching the status filter
+  const rows = bookings.filter(b => {
+    // Always include bookings with reschedule requests regardless of status
+    if (b.reschedule_requested) {
+      return true;
+    }
+    // For other bookings, apply the status filter
+    return staffStatusFilter === 'all' ? (b.status === 'pending') : (b.status === staffStatusFilter);
+  });
   rows.forEach(b => {
     const tr = document.createElement('tr');
-    const actions = staffStatusFilter === 'all'
+    const receiptCell = getReceiptCell(b.receipt_image_url);
+    
+    // Add reschedule indicator class if reschedule is requested
+    if (b.reschedule_requested) {
+      tr.classList.add('reschedule-request-row');
+    }
+    
+    const actions = staffStatusFilter === 'all' 
       ? `
       <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <div class="action-buttons">
+          ${b.reschedule_requested ? `
+          <button class="action-btn btn-reschedule-confirm" data-action="confirm-reschedule">Confirm Reschedule</button>
+          ` : `
           <button class="action-btn btn-confirm" data-action="confirm">Confirm</button>
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
           <button class="action-btn btn-edit" data-action="edit">Edit</button>
+          `}
         </div>
       </td>`
       : staffStatusFilter === 'cancelled' ? `
@@ -868,56 +1107,62 @@ function renderTable() {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <span class="action-badge cancelled">Cancelled</span>
-      </td>` : staffStatusFilter === 'rescheduled' ? `
-      <td>${b.id}</td>
-      <td>${b.name}</td>
-      <td>${b.services}</td>
-      <td>${b.rental}</td>
-      <td>${b.vanRental}</td>
-      <td>${b.arrival}</td>
-      <td>${b.departure}</td>
-      <td>${b.hotel}</td>
-      <td>${b.price}</td>
-      <td>${b.contact}</td>
-      <td>${b.email}</td>
-      <td>
-        <div class="action-buttons">
-          <button class="action-btn btn-edit" data-action="edit">Edit</button>
-          <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
-        </div>
       </td>` : `
       <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <div class="action-buttons">
+          ${b.reschedule_requested ? `
+          <button class="action-btn btn-reschedule-confirm" data-action="confirm-reschedule">Confirm Reschedule</button>
+          ` : `
           <button class="action-btn btn-edit" data-action="edit">Edit</button>
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          `}
         </div>
       </td>`;
     tr.innerHTML = actions;
+    
+    // Add event listeners to buttons
     const confirmBtn = tr.querySelector('.btn-confirm');
     const cancelBtn = tr.querySelector('.btn-cancel');
     const editBtn = tr.querySelector('.btn-edit');
+    const rescheduleConfirmBtn = tr.querySelector('.btn-reschedule-confirm');
+    const receiptThumbnail = tr.querySelector('.receipt-thumbnail');
+    
     if (confirmBtn) confirmBtn.addEventListener('click', () => handleConfirm(b, confirmBtn));
     if (cancelBtn) cancelBtn.addEventListener('click', () => handleCancel(b, cancelBtn));
     if (editBtn) editBtn.addEventListener('click', () => openBookingEditModal(b));
+    if (rescheduleConfirmBtn) rescheduleConfirmBtn.addEventListener('click', () => handleConfirmReschedule(b, rescheduleConfirmBtn));
+    if (receiptThumbnail) {
+      receiptThumbnail.addEventListener('click', function() {
+        const imageUrl = this.getAttribute('data-receipt-url');
+        if (imageUrl) {
+          openReceiptModal(imageUrl);
+        }
+      });
+    }
+    
     tbody.appendChild(tr);
   });
   updateStaffStats();
@@ -944,8 +1189,21 @@ function updateStaffStats() {
 
 function filterTable(searchTerm) {
   const tbody = document.getElementById('booking-table-body');
+  if (!tbody) return; // Not on dashboard page
   tbody.innerHTML = '';
+  
   const filteredBookings = bookings.filter(b => {
+    // Always include bookings with reschedule requests regardless of status filter
+    const matchesReschedule = b.reschedule_requested;
+    // Apply status filter for non-reschedule bookings
+    const matchesStatus = staffStatusFilter === 'all' ? (b.status === 'pending') : (b.status === staffStatusFilter);
+    
+    // Include if it matches reschedule OR status filter
+    if (!matchesReschedule && !matchesStatus) {
+      return false;
+    }
+    
+    // Then apply search filter
     const searchLower = searchTerm.toLowerCase();
     return (
       b.id.toLowerCase().includes(searchLower) ||
@@ -953,6 +1211,7 @@ function filterTable(searchTerm) {
       b.services.toLowerCase().includes(searchLower) ||
       b.rental.toLowerCase().includes(searchLower) ||
       b.vanRental.toLowerCase().includes(searchLower) ||
+      b.diving.toLowerCase().includes(searchLower) ||
       b.arrival.toLowerCase().includes(searchLower) ||
       b.departure.toLowerCase().includes(searchLower) ||
       b.hotel.toLowerCase().includes(searchLower) ||
@@ -961,8 +1220,16 @@ function filterTable(searchTerm) {
       b.email.toLowerCase().includes(searchLower)
     );
   });
+  
   filteredBookings.forEach(b => {
     const tr = document.createElement('tr');
+    const receiptCell = getReceiptCell(b.receipt_image_url);
+    
+    // Add reschedule indicator class if reschedule is requested
+    if (b.reschedule_requested) {
+      tr.classList.add('reschedule-request-row');
+    }
+    
     const actions = staffStatusFilter === 'all'
       ? `
       <td>${b.id}</td>
@@ -970,17 +1237,23 @@ function filterTable(searchTerm) {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <div class="action-buttons">
+          ${b.reschedule_requested ? `
+          <button class="action-btn btn-reschedule-confirm" data-action="confirm-reschedule">Confirm Reschedule</button>
+          ` : `
           <button class="action-btn btn-confirm" data-action="confirm">Confirm</button>
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
           <button class="action-btn btn-edit" data-action="edit">Edit</button>
+          `}
         </div>
       </td>`
       : staffStatusFilter === 'cancelled' ? `
@@ -989,60 +1262,69 @@ function filterTable(searchTerm) {
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <span class="action-badge cancelled">Cancelled</span>
-      </td>` : staffStatusFilter === 'rescheduled' ? `
-      <td>${b.id}</td>
-      <td>${b.name}</td>
-      <td>${b.services}</td>
-      <td>${b.rental}</td>
-      <td>${b.vanRental}</td>
-      <td>${b.arrival}</td>
-      <td>${b.departure}</td>
-      <td>${b.hotel}</td>
-      <td>${b.price}</td>
-      <td>${b.contact}</td>
-      <td>${b.email}</td>
-      <td>
-        <div class="action-buttons">
-          <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
-        </div>
       </td>` : `
       <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
       <td>${b.vanRental}</td>
+      <td>${b.diving}</td>
       <td>${b.arrival}</td>
       <td>${b.departure}</td>
       <td>${b.hotel}</td>
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <div class="action-buttons">
+          ${b.reschedule_requested ? `
+          <button class="action-btn btn-reschedule-confirm" data-action="confirm-reschedule">Confirm Reschedule</button>
+          ` : `
           <button class="action-btn btn-edit" data-action="edit">Edit</button>
           <button class="action-btn btn-cancel" data-action="cancel">Cancel</button>
+          `}
         </div>
       </td>`;
     tr.innerHTML = actions;
+    
+    // Add event listeners to buttons
     const confirmBtn = tr.querySelector('.btn-confirm');
     const cancelBtn = tr.querySelector('.btn-cancel');
     const editBtn = tr.querySelector('.btn-edit');
+    const rescheduleConfirmBtn = tr.querySelector('.btn-reschedule-confirm');
+    const receiptThumbnail = tr.querySelector('.receipt-thumbnail');
+    
     if (confirmBtn) confirmBtn.addEventListener('click', () => handleConfirm(b, confirmBtn));
     if (cancelBtn) cancelBtn.addEventListener('click', () => handleCancel(b, cancelBtn));
     if (editBtn) editBtn.addEventListener('click', () => openBookingEditModal(b));
+    if (rescheduleConfirmBtn) rescheduleConfirmBtn.addEventListener('click', () => handleConfirmReschedule(b, rescheduleConfirmBtn));
+    if (receiptThumbnail) {
+      receiptThumbnail.addEventListener('click', function() {
+        const imageUrl = this.getAttribute('data-receipt-url');
+        if (imageUrl) {
+          openReceiptModal(imageUrl);
+        }
+      });
+    }
+    
     tbody.appendChild(tr);
   });
+  
+  // Show message if no results found
   if (filteredBookings.length === 0) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="12" style="text-align: center; padding: 20px; color: #64748b;">No bookings found matching "${searchTerm}"</td>`;
+    tr.innerHTML = `<td colspan="14" style="text-align: center; padding: 20px; color: #64748b;">No bookings found matching "${searchTerm}"</td>`;
     tbody.appendChild(tr);
   }
 }
@@ -1080,12 +1362,42 @@ function checkSession() {
   }
 }
 
+// Loading screen functionality
+function showLoadingScreen() {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.style.display = 'flex';
+    loadingScreen.classList.remove('fade-out');
+  }
+}
+
+function hideLoadingScreen() {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.classList.add('fade-out');
+    // Remove the loading screen from DOM after animation completes
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
+    }, 800);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
+  // Only initialize on dashboard where table exists
+  const dashboardTable = document.getElementById('booking-table-body');
+  if (!dashboardTable) {
+    return; // Skip initialization on non-dashboard pages
+  }
+
+  // Show loading screen immediately
+  showLoadingScreen();
+  
+  // Initialize Socket.IO connection
+  initializeSocketIO();
+  
+  // Check session before loading dashboard
   if (checkSession()) {
     setupBookingEditModal();
-    
-    // Initialize Socket.IO connection
-    initializeSocketIO();
     
     try {
       // Load bookings from API
@@ -1093,17 +1405,34 @@ document.addEventListener('DOMContentLoaded', async function() {
       
       if (bookingsLoaded) {
         renderTable();
+        updateStaffStats();
         
+        // Add search functionality
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
           searchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.trim();
-            if (searchTerm === '') { renderTable(); } else { filterTable(searchTerm); }
+            if (searchTerm === '') {
+              renderTable(); // Show all bookings if search is empty
+            } else {
+              filterTable(searchTerm);
+            }
           });
         }
       }
+      
+      // Hide loading screen after everything is loaded
+      setTimeout(() => {
+        hideLoadingScreen();
+      }, 500);
     } catch (error) {
-      console.error('Error initializing staff dashboard:', error);
+      console.error('Error initializing dashboard:', error);
+      hideLoadingScreen();
     }
+  } else {
+    // If no session, hide loading screen immediately
+    setTimeout(() => {
+      hideLoadingScreen();
+    }, 1000);
   }
 });

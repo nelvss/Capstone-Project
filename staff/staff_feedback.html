@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="../Images/logo.png">
-  <title>Payment - Staff Portal</title>
-  <link rel="stylesheet" href="/staff/staff_dashboard.css">
-  <link rel="stylesheet" href="/staff/staff_payment.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
     integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/staff/staff_dashboard.css">
+  <link rel="stylesheet" href="/staff/staff_feedback.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script defer src="/staff/staff_payment.js"></script>
+  <!-- Optional: set this to your production API base, e.g. https://api.yourdomain.com/api -->
+  <meta name="api-base" content="https://api.otgpuertogaleratravel.com/api">
+  <title>Feedback & Messages - OTG Travel and Tours</title>
 </head>
+
 <body>
   <div class="sidebar">
     <div class="sidebar-header">
@@ -24,11 +28,11 @@
           <i class="fas fa-chart-line icon"></i>
           <span>Dashboard</span>
         </li>
-        <li class="active">
+        <li onclick="navigateWithTransition('/staff/staff_payment.html')">
           <i class="fas fa-credit-card icon"></i>
           <span>Payment</span>
         </li>
-        <li onclick="navigateWithTransition('/staff/staff_feedback.html')">
+        <li class="active" onclick="navigateWithTransition('/staff/staff_feedback.html')">
           <i class="fas fa-comments icon"></i>
           <span>Feedback/Messages</span>
         </li>
@@ -50,39 +54,33 @@
       <button class="sidebar-toggle" onclick="toggleSidebar()">
         <span class="hamburger-icon">☰</span>
       </button>
-      <h1>Payment Information</h1>
-      <div class="staff-info">
-        <span class="staff-role">Staff Member</span>
-      </div>
+      <h1>Feedback & Messages</h1>
     </header>
-    <section class="payment-content">
-      <div class="receipt-controls">
-        <div class="controls-header">
-          <h2>Payment E-Receipts</h2>
-          <div class="filter-buttons">
-            <button class="filter-btn active" data-filter="all" onclick="filterReceipts('all', this)">All Receipts</button>
-            <button class="filter-btn" data-filter="today" onclick="filterReceipts('today', this)">Today</button>
-            <button class="filter-btn" data-filter="week" onclick="filterReceipts('week', this)">This Week</button>
-            <button class="filter-btn" data-filter="month" onclick="filterReceipts('month', this)">This Month</button>
+
+    <!-- Feedback/Messages Content -->
+    <div class="feedback-page-container">
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-comments me-2"></i>Customer Feedback & Messages
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="feedback-container" id="feedback-container"></div>
+            </div>
           </div>
         </div>
-        <div class="search-bar">
-          <input type="text" id="receipt-search" placeholder="Search by customer name or receipt ID..." onkeyup="searchReceipts()">
-          <button class="search-btn">🔍</button>
-        </div>
       </div>
-
-      <div class="receipts-gallery" id="receipts-gallery">
-        <!-- Payment cards will be dynamically loaded here -->
-      </div>
-
-      <!-- Receipt Modal -->
-      <div id="receiptModal" class="modal">
-        <span class="close" onclick="closeReceiptModal()">&times;</span>
-        <img id="modalReceiptImage" src="" alt="Receipt" class="modal-receipt-fullscreen">
-      </div>
-
-    </section>
+    </div>
   </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/staff/staff_dashboard.js"></script>
+  <script src="/staff/staff_feedback.js"></script>
 </body>
+
 </html>
+

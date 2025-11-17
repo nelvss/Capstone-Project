@@ -14,6 +14,22 @@
   <script defer src="/staff/staff_dashboard.js"></script>
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-container">
+      <div class="loading-logo">
+        <img src="/Images/logo.png" alt="Logo" class="loading-logo-img">
+      </div>
+      <div class="loading-text">Welcome to Dashboard</div>
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+      </div>
+      <div class="loading-progress">
+        <div class="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="sidebar">
     <div class="sidebar-header">
       <img src="/Images/logo.png" alt="Logo" class="sidebar-logo-img">
@@ -27,6 +43,14 @@
         <li onclick="navigateWithTransition('/staff/staff_payment.html')">
           <i class="fas fa-credit-card icon"></i>
           <span>Payment</span>
+        </li>
+        <li onclick="navigateWithTransition('/staff/staff_feedback.html')">
+          <i class="fas fa-comments icon"></i>
+          <span>Feedback/Messages</span>
+        </li>
+        <li onclick="navigateWithTransition('/staff/staff_settings.html')">
+          <i class="fas fa-cog icon"></i>
+          <span>Settings</span>
         </li>
       </ul>
     </nav>
@@ -42,7 +66,7 @@
       <button class="sidebar-toggle" onclick="toggleSidebar()">
         <span class="hamburger-icon">☰</span>
       </button>
-      <h1>Dashboard</h1>
+      <h1>OTG Dashboard</h1>
     </header>
     <section class="stats">
       <div class="stat-card stat-blue">
@@ -87,7 +111,7 @@
         <i class="fas fa-search search-icon"></i>
         <input type="text" id="searchInput" class="search-input" placeholder="Search bookings, customers...">
       </div>
-      <div class="filter-container">
+      <div class="filter-container filter-container-spacing">
         <i class="fas fa-filter filter-icon"></i>
         <label for="staff-status-filter" class="filter-label">Status:</label>
         <select id="staff-status-filter" onchange="staffFilterChange()">
@@ -108,12 +132,14 @@
             <th>Services</th>
             <th>Rental</th>
             <th>Van Rental</th>
+            <th>Diving</th>
             <th>Arrival Date</th>
             <th>Departure Date</th>
             <th>Hotel</th>
             <th>Total Price</th>
             <th>Contact Number</th>
             <th>EMAIL</th>
+            <th>Receipt</th>
             <th>ACTION</th>
           </tr>
         </thead>
@@ -251,6 +277,14 @@
           <button type="submit" class="modal-primary-btn">Save Changes</button>
         </footer>
       </form>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div id="receiptModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-content" style="max-width: 90vw; max-height: 90vh; padding: 20px; position: relative;">
+      <button type="button" class="modal-close-btn" onclick="closeReceiptModal()" aria-label="Close receipt dialog" style="position: absolute; top: 10px; right: 10px; z-index: 1001;">&times;</button>
+      <img id="modalReceiptImage" src="" alt="Receipt" style="max-width: 100%; max-height: calc(90vh - 60px); margin: auto; display: block; border-radius: 8px;">
     </div>
   </div>
 </body>
