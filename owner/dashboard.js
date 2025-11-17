@@ -41,7 +41,14 @@ function initializeSocketIO() {
     // Listen for booking updates
     window.socket.on('booking-update', async (data) => {
       console.log('📋 New booking update received:', data);
-      showNotification('🎉 New booking received!', 'success');
+      
+      // Check if this is a reschedule request
+      const isRescheduleRequest = data.booking?.reschedule_requested || false;
+      const notificationMessage = isRescheduleRequest 
+        ? '📅 Reschedule request received!' 
+        : '🎉 New booking received!';
+      
+      showNotification(notificationMessage, isRescheduleRequest ? 'info' : 'success');
       
       // Reload bookings to get the latest data
       await loadBookings();
@@ -652,7 +659,15 @@ function renderTable() {
   const tbody = document.getElementById('booking-table-body');
   if (!tbody) return; // Not on dashboard page
   tbody.innerHTML = '';
-  const rows = bookings.filter(b => ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter));
+  // Always show bookings with reschedule requests, plus bookings matching the status filter
+  const rows = bookings.filter(b => {
+    // Always include bookings with reschedule requests regardless of status
+    if (b.reschedule_requested) {
+      return true;
+    }
+    // For other bookings, apply the status filter
+    return ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter);
+  });
   rows.forEach(b => {
     const tr = document.createElement('tr');
     const receiptCell = getReceiptCell(b.receipt_image_url);
@@ -783,6 +798,17 @@ function filterTable(searchTerm) {
   tbody.innerHTML = '';
   
   const filteredBookings = bookings.filter(b => {
+    // Always include bookings with reschedule requests regardless of status filter
+    const matchesReschedule = b.reschedule_requested;
+    // Apply status filter for non-reschedule bookings
+    const matchesStatus = ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter);
+    
+    // Include if it matches reschedule OR status filter
+    if (!matchesReschedule && !matchesStatus) {
+      return false;
+    }
+    
+    // Then apply search filter
     const searchLower = searchTerm.toLowerCase();
     return (
       b.id.toLowerCase().includes(searchLower) ||
