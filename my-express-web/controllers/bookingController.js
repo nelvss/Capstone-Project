@@ -518,7 +518,7 @@ const getBookings = async (req, res) => {
     if (bookingIds.length > 0) {
       const payments = await fetchInBatches(
         'payments',
-        'booking_id, total_booking_amount, payment_date',
+        'booking_id, total_booking_amount, payment_date, receipt_image_url',
         bookingIds
       );
       
@@ -534,7 +534,10 @@ const getBookings = async (req, res) => {
         
         paymentsData = sortedPayments.reduce((acc, payment) => {
           if (!acc[payment.booking_id]) {
-            acc[payment.booking_id] = payment.total_booking_amount;
+            acc[payment.booking_id] = {
+              total_booking_amount: payment.total_booking_amount,
+              receipt_image_url: payment.receipt_image_url || null
+            };
           }
           return acc;
         }, {});
@@ -567,13 +570,15 @@ const getBookings = async (req, res) => {
       const vanRentals = vanRentalBookingsData[normalizedBookingId] || [];
       const vanRentalsFallback = vanRentals.length === 0 ? (vanRentalBookingsData[booking.booking_id] || []) : vanRentals;
       
+      const paymentInfo = paymentsData[booking.booking_id] || null;
       return {
         ...booking,
         hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
         vehicle_bookings: vehicleBookingsData[booking.booking_id] || [],
         van_rental_bookings: vanRentalsFallback,
         diving_bookings: divingBookingsData[booking.booking_id] || [],
-        total_booking_amount: paymentsData[booking.booking_id] || null
+        total_booking_amount: paymentInfo ? paymentInfo.total_booking_amount : null,
+        receipt_image_url: paymentInfo ? paymentInfo.receipt_image_url : null
       };
     });
     
@@ -824,7 +829,7 @@ const getUserBookings = async (req, res) => {
     if (bookingIds.length > 0) {
       const payments = await fetchInBatches(
         'payments',
-        'booking_id, total_booking_amount, payment_date',
+        'booking_id, total_booking_amount, payment_date, receipt_image_url',
         bookingIds
       );
       
@@ -837,7 +842,10 @@ const getUserBookings = async (req, res) => {
         
         paymentsData = sortedPayments.reduce((acc, payment) => {
           if (!acc[payment.booking_id]) {
-            acc[payment.booking_id] = payment.total_booking_amount;
+            acc[payment.booking_id] = {
+              total_booking_amount: payment.total_booking_amount,
+              receipt_image_url: payment.receipt_image_url || null
+            };
           }
           return acc;
         }, {});
@@ -870,13 +878,15 @@ const getUserBookings = async (req, res) => {
       const vanRentals = vanRentalBookingsData[normalizedBookingId] || [];
       const vanRentalsFallback = vanRentals.length === 0 ? (vanRentalBookingsData[booking.booking_id] || []) : vanRentals;
       
+      const paymentInfo = paymentsData[booking.booking_id] || null;
       return {
         ...booking,
         hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
         vehicle_bookings: vehicleBookingsData[booking.booking_id] || [],
         van_rental_bookings: vanRentalsFallback,
         diving_bookings: divingBookingsData[booking.booking_id] || [],
-        total_booking_amount: paymentsData[booking.booking_id] || null
+        total_booking_amount: paymentInfo ? paymentInfo.total_booking_amount : null,
+        receipt_image_url: paymentInfo ? paymentInfo.receipt_image_url : null
       };
     });
     

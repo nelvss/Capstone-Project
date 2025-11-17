@@ -207,6 +207,7 @@ function mapBookingRecord(apiBooking) {
     price: formattedPrice,
     contact: apiBooking.customer_contact,
     email: apiBooking.customer_email,
+    receipt_image_url: apiBooking.receipt_image_url || null,
     status: apiBooking.status,
     raw: rawBooking
   };
@@ -1924,6 +1925,49 @@ async function submitBookingEditForm(event) {
   }
 }
 
+// Helper function to generate receipt cell HTML
+function getReceiptCell(receiptImageUrl) {
+  if (receiptImageUrl) {
+    // Escape the URL for safe HTML insertion
+    const escapedUrl = receiptImageUrl.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+    return `<td>
+      <img src="${escapedUrl}" alt="Receipt" class="receipt-thumbnail" data-receipt-url="${escapedUrl}" style="width: 50px; height: 50px; object-fit: cover; cursor: pointer; border-radius: 4px; border: 1px solid #ddd;">
+    </td>`;
+  } else {
+    return `<td style="text-align: center; color: #999;">No Receipt</td>`;
+  }
+}
+
+// Receipt modal functions
+function openReceiptModal(imageUrl) {
+  const modal = document.getElementById('receiptModal');
+  const modalImage = document.getElementById('modalReceiptImage');
+  
+  if (modal && modalImage && imageUrl) {
+    modalImage.src = imageUrl;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  }
+}
+
+function closeReceiptModal() {
+  const modal = document.getElementById('receiptModal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+  const receiptModal = document.getElementById('receiptModal');
+  if (receiptModal && receiptModal.classList.contains('open') && event.target === receiptModal) {
+    closeReceiptModal();
+  }
+});
+
 function renderTable() {
   const tbody = document.getElementById('booking-table-body');
   if (!tbody) return; // Not on dashboard page
@@ -1931,6 +1975,7 @@ function renderTable() {
   const rows = bookings.filter(b => ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter));
   rows.forEach(b => {
     const tr = document.createElement('tr');
+    const receiptCell = getReceiptCell(b.receipt_image_url);
     const actions = ownerStatusFilter === 'all' 
       ? `
       <td>${b.id}</td>
@@ -1945,6 +1990,7 @@ function renderTable() {
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <div class="action-buttons">
           <button class="action-btn btn-confirm" data-action="confirm">Confirm</button>
@@ -1965,6 +2011,7 @@ function renderTable() {
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <span class="action-badge cancelled">Cancelled</span>
       </td>` : `
@@ -1980,6 +2027,7 @@ function renderTable() {
       <td>${b.price}</td>
       <td>${b.contact}</td>
       <td>${b.email}</td>
+      ${receiptCell}
       <td>
         <div class="action-buttons">
           <button class="action-btn btn-edit" data-action="edit">Edit</button>
@@ -1992,10 +2040,19 @@ function renderTable() {
     const confirmBtn = tr.querySelector('.btn-confirm');
     const cancelBtn = tr.querySelector('.btn-cancel');
     const editBtn = tr.querySelector('.btn-edit');
+    const receiptThumbnail = tr.querySelector('.receipt-thumbnail');
     
     if (confirmBtn) confirmBtn.addEventListener('click', () => handleConfirm(b, confirmBtn));
     if (cancelBtn) cancelBtn.addEventListener('click', () => handleCancel(b, cancelBtn));
     if (editBtn) editBtn.addEventListener('click', () => openBookingEditModal(b));
+    if (receiptThumbnail) {
+      receiptThumbnail.addEventListener('click', function() {
+        const imageUrl = this.getAttribute('data-receipt-url');
+        if (imageUrl) {
+          openReceiptModal(imageUrl);
+        }
+      });
+    }
     
     tbody.appendChild(tr);
   });
