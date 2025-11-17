@@ -677,14 +677,9 @@ function renderTable() {
       tr.classList.add('reschedule-request-row');
     }
     
-    // Build reschedule badge if needed
-    const rescheduleBadge = b.reschedule_requested 
-      ? `<span class="reschedule-badge" title="Reschedule Requested"><i class="fas fa-calendar-alt"></i> Reschedule</span>` 
-      : '';
-    
     const actions = ownerStatusFilter === 'all' 
       ? `
-      <td>${b.id} ${rescheduleBadge}</td>
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
@@ -724,7 +719,7 @@ function renderTable() {
       <td>
         <span class="action-badge cancelled">Cancelled</span>
       </td>` : `
-      <td>${b.id} ${rescheduleBadge}</td>
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
@@ -835,14 +830,9 @@ function filterTable(searchTerm) {
       tr.classList.add('reschedule-request-row');
     }
     
-    // Build reschedule badge if needed
-    const rescheduleBadge = b.reschedule_requested 
-      ? `<span class="reschedule-badge" title="Reschedule Requested"><i class="fas fa-calendar-alt"></i> Reschedule</span>` 
-      : '';
-    
     const actions = ownerStatusFilter === 'all'
       ? `
-      <td>${b.id} ${rescheduleBadge}</td>
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
@@ -882,7 +872,7 @@ function filterTable(searchTerm) {
       <td>
         <span class="action-badge cancelled">Cancelled</span>
       </td>` : `
-      <td>${b.id} ${rescheduleBadge}</td>
+      <td>${b.id}</td>
       <td>${b.name}</td>
       <td>${b.services}</td>
       <td>${b.rental}</td>
