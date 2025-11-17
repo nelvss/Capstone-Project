@@ -908,6 +908,13 @@ const getUserBookings = async (req, res) => {
 const updateBooking = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Remove hotel_nights from request body if present (this column doesn't exist in bookings table)
+    if (req.body.hotel_nights !== undefined) {
+      delete req.body.hotel_nights;
+      console.warn('⚠️ Removed hotel_nights from request body (column does not exist in bookings table)');
+    }
+    
     const {
       status = 'pending',
       booking_type,
@@ -1003,6 +1010,12 @@ const updateBooking = async (req, res) => {
     if (!supportsPackageOnlyIdColumn) {
       delete updatePayload.package_only_id;
     }
+    
+    // Remove hotel_nights if it exists (this column doesn't exist in the bookings table)
+    if (updatePayload.hotel_nights !== undefined) {
+      delete updatePayload.hotel_nights;
+      console.warn('⚠️ Removed hotel_nights from update payload (column does not exist in bookings table)');
+    }
 
     let updatedBooking;
     let bookingError;
@@ -1018,6 +1031,18 @@ const updateBooking = async (req, res) => {
       console.warn('⚠️ package_only_id column missing in bookings table. Retrying update without it.');
       supportsPackageOnlyIdColumn = false;
       delete updatePayload.package_only_id;
+      ({ data: updatedBooking, error: bookingError } = await supabase
+        .from('bookings')
+        .update(updatePayload)
+        .eq('booking_id', id)
+        .select()
+        .single());
+    }
+    
+    // Handle hotel_nights column error if it occurs
+    if (bookingError && bookingError.message && bookingError.message.includes('hotel_nights')) {
+      console.warn('⚠️ hotel_nights column error detected. Retrying update without it.');
+      delete updatePayload.hotel_nights;
       ({ data: updatedBooking, error: bookingError } = await supabase
         .from('bookings')
         .update(updatePayload)
