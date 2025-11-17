@@ -778,7 +778,7 @@ body::-webkit-scrollbar {
     .nav-link.slant {
         width: 100% !important;
         display: block !important;
-        text-align: left;
+        text-align: center;
         margin: 0 !important;
         padding: 12px 20px !important;
         border-radius: 12px;
@@ -808,6 +808,18 @@ body::-webkit-scrollbar {
         margin: 15px 0 0 0 !important;
         padding: 14px 24px !important;
         border-radius: 12px;
+    }
+    
+    /* Hide icon and show text in mobile view */
+    .user-icon-link i {
+        display: none !important;
+    }
+    
+    .user-icon-link .user-link-text {
+        display: inline;
+        color: #ffffff !important;
+        font-size: 1rem;
+        font-weight: 500;
     }
 }
 
@@ -861,6 +873,12 @@ body::-webkit-scrollbar {
     .user-icon-link i {
         font-size: 2.5rem;
         color: #ffffff !important;
+        display: inline-block !important;
+    }
+    
+    /* Hide text and show icon in desktop view */
+    .user-icon-link .user-link-text {
+        display: none !important;
     }
 }
 

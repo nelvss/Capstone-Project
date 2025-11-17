@@ -830,12 +830,18 @@ function updateUserIcon() {
   const userIconLink = document.getElementById('userIconLink');
   if (!userIconLink) return;
   
+  const textSpan = userIconLink.querySelector('.user-link-text');
+  
   if (checkAuthentication()) {
     // User is logged in - change icon to user-circle or add logged-in styling
     const icon = userIconLink.querySelector('i');
     if (icon) {
       icon.classList.remove('fa-user');
       icon.classList.add('fa-user-circle');
+    }
+    // Update text for mobile view
+    if (textSpan) {
+      textSpan.textContent = 'My Account';
     }
     userIconLink.title = 'My Account';
     userIconLink.classList.add('logged-in');
@@ -845,6 +851,10 @@ function updateUserIcon() {
     if (icon) {
       icon.classList.remove('fa-user-circle');
       icon.classList.add('fa-user');
+    }
+    // Update text for mobile view
+    if (textSpan) {
+      textSpan.textContent = 'Login/Signup';
     }
     userIconLink.title = 'Login / Create Account';
     userIconLink.classList.remove('logged-in');
