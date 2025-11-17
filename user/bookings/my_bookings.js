@@ -322,7 +322,7 @@ async function showBookingDetails(bookingId) {
             <strong>Name:</strong><br>
             ${booking.customer_first_name || ''} ${booking.customer_last_name || ''}
           </div>
-          <div class="col-6">
+          <div class="col-12 col-md-6">
             <strong>Email:</strong><br>
             ${booking.customer_email || 'N/A'}
           </div>
