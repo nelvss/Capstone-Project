@@ -1,12 +1,19 @@
 const nodemailer = require('nodemailer');
 
-// Create email transporter
+// Create email transporter with timeout settings
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
-  }
+  },
+  // Add connection timeout to prevent hanging
+  connectionTimeout: 10000, // 10 seconds
+  socketTimeout: 10000, // 10 seconds
+  // Enable keep-alive for better performance
+  pool: true,
+  maxConnections: 1,
+  maxMessages: 3
 });
 
 // Logo URL - Configured for Hostinger deployment
@@ -412,6 +419,16 @@ async function sendEmail(action, booking) {
 
 // Password Reset Email Template - Sends verification code
 async function sendPasswordResetEmail(email, code) {
+  // Create a promise with timeout to prevent hanging
+  const sendEmailWithTimeout = (mailOptions, timeoutMs = 15000) => {
+    return Promise.race([
+      transporter.sendMail(mailOptions),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email sending timeout')), timeoutMs)
+      )
+    ]);
+  };
+
   const mailOptions = {
     from: `"OTG Puerto Galera Travel and Tours" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -493,8 +510,15 @@ async function sendPasswordResetEmail(email, code) {
     `
   };
 
-  await transporter.sendMail(mailOptions);
-  return true;
+  try {
+    // Send email with 15 second timeout
+    await sendEmailWithTimeout(mailOptions, 15000);
+    return true;
+  } catch (error) {
+    // Log error but don't throw - email sending is non-blocking
+    console.error('❌ Email sending error:', error.message);
+    throw error;
+  }
 }
 
 module.exports = {

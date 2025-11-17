@@ -370,15 +370,19 @@ const forgotPassword = async (req, res) => {
       });
     }
     
-    // Send verification code email
-    try {
-      await sendPasswordResetEmail(user.email, code);
-      console.log('✅ Verification code sent to:', user.email);
-    } catch (emailError) {
-      console.error('❌ Error sending verification code email:', emailError);
-      // Still return success for security
-    }
+    // Send verification code email asynchronously (non-blocking)
+    // This allows the API to respond immediately while email sends in background
+    sendPasswordResetEmail(user.email, code)
+      .then(() => {
+        console.log('✅ Verification code sent to:', user.email);
+      })
+      .catch((emailError) => {
+        console.error('❌ Error sending verification code email:', emailError);
+        // Log the code for manual recovery if email fails
+        console.log('📧 Verification code (email failed):', code);
+      });
     
+    // Return response immediately without waiting for email
     res.json({ 
       success: true, 
       message: 'If an account exists with this email, a verification code has been sent.' 
