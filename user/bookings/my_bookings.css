@@ -122,11 +122,78 @@ body {
 }
 
 .booking-card-body {
-  padding: 1.5rem;
-  flex-grow: 1;
+    padding: 1.5rem;
+    flex-grow: 1;
 }
 
-.booking-info-item {
+/* User Profile Section */
+.booking-user-profile {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(185, 28, 28, 0.05) 100%);
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+    border-left: 4px solid #dc3545;
+}
+
+.user-avatar-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}
+
+.user-avatar-icon i {
+    font-size: 2.5rem;
+    color: white;
+}
+
+.user-info-section {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.user-info-text {
+    font-size: 0.95rem;
+    color: #374151;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-info-text.user-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.user-info-text.user-email,
+.user-info-text.user-contact {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.user-info-text i {
+    font-size: 0.875rem;
+    color: #dc3545;
+    width: 16px;
+}
+
+/* Booking Details Section */
+.booking-details-section {
+    padding-top: 0.5rem;
+}.booking-info-item {
   margin-bottom: 0.75rem;
   display: flex;
   align-items: center;
@@ -220,6 +287,36 @@ body {
     width: 100%;
     margin: 5px 0;
     text-align: center;
+  }
+  
+  .booking-user-profile {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .user-avatar-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .user-avatar-icon i {
+    font-size: 2rem;
+  }
+  
+  .user-info-section {
+    align-items: center;
+    width: 100%;
+  }
+  
+  .user-info-text {
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+  
+  .user-info-text.user-name {
+    font-size: 1rem;
   }
 }
 

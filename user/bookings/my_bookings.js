@@ -223,32 +223,43 @@ function createBookingCard(booking) {
         ${getStatusBadge(booking.status)}
       </div>
       <div class="booking-card-body">
-        <div class="booking-info-item">
-          <i class="fas fa-user me-2 text-danger"></i>
-          <span>${booking.customer_first_name || ''} ${booking.customer_last_name || ''}</span>
-        </div>
-        <div class="booking-info-item">
-          <i class="fas fa-calendar-check me-2 text-danger"></i>
-          <span>${formatDate(booking.arrival_date)}</span>
-        </div>
-        <div class="booking-info-item">
-          <i class="fas fa-calendar-times me-2 text-danger"></i>
-          <span>${formatDate(booking.departure_date)}</span>
-        </div>
-        <div class="booking-info-item">
-          <i class="fas fa-users me-2 text-danger"></i>
-          <span>${booking.number_of_tourist || 0} Tourist(s)</span>
-        </div>
-        <div class="booking-info-item">
-          <i class="fas fa-tag me-2 text-danger"></i>
-          <span>${servicesText}</span>
-        </div>
-        ${booking.total_booking_amount ? `
-          <div class="booking-info-item booking-total">
-            <i class="fas fa-peso-sign me-2 text-danger"></i>
-            <strong>Total: ${formatCurrency(booking.total_booking_amount)}</strong>
+        <!-- User Profile Section -->
+        <div class="booking-user-profile">
+          <div class="user-avatar-icon">
+            <i class="fas fa-user-circle"></i>
           </div>
-        ` : ''}
+          <div class="user-info-section">
+            <div class="user-info-text user-name">${booking.customer_first_name || ''} ${booking.customer_last_name || ''}</div>
+            <div class="user-info-text user-email"><i class="fas fa-envelope"></i> ${booking.customer_email || 'N/A'}</div>
+            <div class="user-info-text user-contact"><i class="fas fa-phone"></i> ${booking.customer_contact || 'N/A'}</div>
+          </div>
+        </div>
+        
+        <!-- Booking Details Section -->
+        <div class="booking-details-section">
+          <div class="booking-info-item">
+            <i class="fas fa-calendar-check me-2 text-danger"></i>
+            <span>${formatDate(booking.arrival_date)}</span>
+          </div>
+          <div class="booking-info-item">
+            <i class="fas fa-calendar-times me-2 text-danger"></i>
+            <span>${formatDate(booking.departure_date)}</span>
+          </div>
+          <div class="booking-info-item">
+            <i class="fas fa-users me-2 text-danger"></i>
+            <span>${booking.number_of_tourist || 0} Tourist(s)</span>
+          </div>
+          <div class="booking-info-item">
+            <i class="fas fa-tag me-2 text-danger"></i>
+            <span>${servicesText}</span>
+          </div>
+          ${booking.total_booking_amount ? `
+            <div class="booking-info-item booking-total">
+              <i class="fas fa-peso-sign me-2 text-danger"></i>
+              <strong>Total: ${formatCurrency(booking.total_booking_amount)}</strong>
+            </div>
+          ` : ''}
+        </div>
       </div>
       <div class="booking-card-footer">
         <button class="btn btn-outline-danger btn-sm" onclick="showBookingDetails('${booking.booking_id}')">
