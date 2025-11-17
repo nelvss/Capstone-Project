@@ -26,7 +26,7 @@ async function handleResetPassword(event) {
     const token = urlParams.get('token');
 
     if (!token) {
-        alert('Invalid reset link. Please request a new password reset.');
+        alert('Invalid reset token. Please verify your code again.');
         window.location.href = 'login.html';
         return;
     }
@@ -74,7 +74,7 @@ async function handleResetPassword(event) {
         confirmNewPasswordField.classList.add('error');
         
         // Show error message
-        alert(error.message || 'Failed to reset password. The link may have expired. Please request a new one.');
+        alert(error.message || 'Failed to reset password. The token may have expired. Please verify your code again.');
         
         // Remove error styling after 3 seconds
         setTimeout(() => {
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const token = urlParams.get('token');
     
     if (!token) {
-        alert('Invalid reset link. Please request a new password reset.');
+        alert('Invalid reset token. Please verify your code again.');
         window.location.href = 'login.html';
     }
 });

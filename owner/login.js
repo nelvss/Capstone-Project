@@ -288,10 +288,10 @@ async function handleForgotPassword(event) {
         }
 
         // Show success message
-        alert('Password reset link has been sent to your email. Please check your inbox and follow the instructions to reset your password.');
+        alert('Verification code has been sent to your email. Please check your inbox.');
         
-        // Switch back to login form
-        switchToLogin({ preventDefault: () => {} });
+        // Redirect to verify code page with email
+        window.location.href = `verify-code.html?email=${encodeURIComponent(email)}`;
 
     } catch (error) {
         console.error('Forgot password error:', error);

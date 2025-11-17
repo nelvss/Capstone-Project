@@ -410,12 +410,12 @@ async function sendEmail(action, booking) {
   return true;
 }
 
-// Password Reset Email Template
-async function sendPasswordResetEmail(email, resetUrl) {
+// Password Reset Email Template - Sends verification code
+async function sendPasswordResetEmail(email, code) {
   const mailOptions = {
     from: `"OTG Puerto Galera Travel and Tours" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: '🔐 Reset Your Password - OTG Travel and Tours',
+    subject: '🔐 Password Reset Verification Code - OTG Travel and Tours',
     html: `
       <!DOCTYPE html>
       <html lang="en">
@@ -434,8 +434,8 @@ async function sendPasswordResetEmail(email, resetUrl) {
                 <tr>
                   <td style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 30px; text-align: center;">
                     <img src="${LOGO_URL}" alt="OTG Travel and Tours Logo" style="max-width: 180px; height: auto; margin-bottom: 20px; background-color: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px;">
-                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Reset Your Password</h1>
-                    <p style="color: rgba(255, 255, 255, 0.95); margin: 10px 0 0 0; font-size: 16px; font-weight: 400;">Follow the link below to reset</p>
+                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Password Reset Code</h1>
+                    <p style="color: rgba(255, 255, 255, 0.95); margin: 10px 0 0 0; font-size: 16px; font-weight: 400;">Enter this code to verify your identity</p>
                   </td>
                 </tr>
                 
@@ -444,27 +444,31 @@ async function sendPasswordResetEmail(email, resetUrl) {
                   <td style="padding: 40px 30px; color: #1f2937 !important; background-color: #ffffff !important;">
                     <p style="font-size: 18px; color: #1f2937 !important; margin: 0 0 10px 0; font-weight: 600;">Hello,</p>
                     <p style="font-size: 16px; color: #374151 !important; margin: 0 0 30px 0; line-height: 1.6;">
-                      We received a request to reset your password for your OTG Travel and Tours account. Click the button below to create a new password.
+                      We received a request to reset your password for your OTG Travel and Tours account. Use the verification code below to proceed with resetting your password.
                     </p>
                     
-                    <!-- Reset Button -->
-                    <table role="presentation" style="width: 100%; margin: 30px 0;">
-                      <tr>
-                        <td align="center">
-                          <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
-                            Reset Password
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
+                    <!-- Verification Code Display -->
+                    <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 2px solid #dc2626; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center;">
+                      <p style="font-size: 14px; color: #991b1b; margin: 0 0 15px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Your Verification Code</p>
+                      <div style="font-size: 48px; font-weight: 700; color: #dc2626; letter-spacing: 8px; font-family: 'Courier New', monospace; margin: 20px 0;">
+                        ${code}
+                      </div>
+                      <p style="font-size: 12px; color: #991b1b; margin: 15px 0 0 0;">This code will expire in 10 minutes</p>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                      <p style="margin: 0; color: #1e40af; font-size: 14px; line-height: 1.6;">
+                        <strong>📝 Next Steps:</strong><br>
+                        1. Go to the password reset page<br>
+                        2. Enter your email address<br>
+                        3. Enter the verification code shown above<br>
+                        4. Create your new password
+                      </p>
+                    </div>
                     
                     <p style="font-size: 14px; color: #6b7280 !important; margin: 30px 0 0 0; line-height: 1.6;">
-                      Or copy and paste this link into your browser:<br>
-                      <a href="${resetUrl}" style="color: #dc2626; word-break: break-all;">${resetUrl}</a>
-                    </p>
-                    
-                    <p style="font-size: 14px; color: #6b7280 !important; margin: 30px 0 0 0; line-height: 1.6;">
-                      <strong>This link will expire in 1 hour.</strong> If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+                      <strong>⚠️ Security Notice:</strong> If you didn't request a password reset, please ignore this email. Your account remains secure and no changes have been made.
                     </p>
                   </td>
                 </tr>

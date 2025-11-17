@@ -232,6 +232,70 @@ const register = async (req, res) => {
   }
 };
 
+// Generate random 6-digit verification code
+function generateVerificationCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Generate session token for password reset (after code verification)
+function generateSessionToken(email) {
+  const payload = {
+    email: email,
+    exp: Math.floor(Date.now() / 1000) + 1800, // 30 minutes expiration
+    iat: Math.floor(Date.now() / 1000),
+    type: 'password_reset'
+  };
+  
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payloadEncoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const signature = crypto
+    .createHmac('sha256', RESET_TOKEN_SECRET)
+    .update(`${header}.${payloadEncoded}`)
+    .digest('base64url');
+  
+  return `${header}.${payloadEncoded}.${signature}`;
+}
+
+// Verify session token for password reset
+function verifySessionToken(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+    
+    const [header, payloadEncoded, signature] = parts;
+    
+    // Verify signature
+    const expectedSignature = crypto
+      .createHmac('sha256', RESET_TOKEN_SECRET)
+      .update(`${header}.${payloadEncoded}`)
+      .digest('base64url');
+    
+    if (signature !== expectedSignature) {
+      return null;
+    }
+    
+    // Decode payload
+    const payload = JSON.parse(Buffer.from(payloadEncoded, 'base64url').toString());
+    
+    // Check expiration
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+    
+    // Check token type
+    if (payload.type !== 'password_reset') {
+      return null;
+    }
+    
+    return payload;
+  } catch (error) {
+    console.error('Error verifying session token:', error);
+    return null;
+  }
+}
+
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -243,41 +307,81 @@ const forgotPassword = async (req, res) => {
       });
     }
     
-    console.log(`🔍 Password reset requested for email: ${email}`);
+    const normalizedEmail = email.trim().toLowerCase();
+    console.log(`🔍 Password reset requested for email: ${normalizedEmail}`);
     
     // Check if user exists
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, email')
-      .eq('email', email.trim().toLowerCase())
+      .eq('email', normalizedEmail)
       .single();
     
     // Always return success message for security (don't reveal if email exists)
     if (userError || !user) {
-      console.log('⚠️ Password reset requested for non-existent email:', email);
+      console.log('⚠️ Password reset requested for non-existent email:', normalizedEmail);
       // Still return success to prevent email enumeration
       return res.json({ 
         success: true, 
-        message: 'If an account exists with this email, a password reset link has been sent.' 
+        message: 'If an account exists with this email, a verification code has been sent.' 
       });
     }
     
-    // Generate reset token (JWT-like, self-contained, no database storage needed)
-    const resetToken = generateResetToken(user.email);
+    // Rate limiting: Check if there's an active code (not expired yet)
+    // This prevents requesting new codes too frequently
+    const { data: existingUser, error: rateLimitError } = await supabase
+      .from('users')
+      .select('reset_code_expires_at')
+      .eq('email', normalizedEmail)
+      .single();
     
-    // Send password reset email
+    if (existingUser && existingUser.reset_code_expires_at) {
+      const expiresAt = new Date(existingUser.reset_code_expires_at);
+      const now = new Date();
+      // If code is still valid (not expired), allow replacement but log it
+      if (now < expiresAt) {
+        const timeRemaining = Math.floor((expiresAt - now) / 1000 / 60); // minutes
+        console.log(`⚠️ Code already exists for ${normalizedEmail}, expires in ${timeRemaining} minutes. Replacing with new code.`);
+      }
+    }
+    
+    // Generate 6-digit verification code
+    const code = generateVerificationCode();
+    const codeHash = await bcrypt.hash(code, 10);
+    
+    // Set expiration to 10 minutes from now
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    
+    // Update user with reset code hash and expiration
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        reset_code_hash: codeHash,
+        reset_code_expires_at: expiresAt
+      })
+      .eq('id', user.id);
+    
+    if (updateError) {
+      console.error('❌ Error storing reset code:', updateError);
+      // Still return success for security
+      return res.json({ 
+        success: true, 
+        message: 'If an account exists with this email, a verification code has been sent.' 
+      });
+    }
+    
+    // Send verification code email
     try {
-      const resetUrl = `${process.env.FRONTEND_URL || 'https://otgpuertogaleratravel.com'}/owner/reset-password.html?token=${resetToken}`;
-      await sendPasswordResetEmail(user.email, resetUrl);
-      console.log('✅ Password reset email sent to:', user.email);
+      await sendPasswordResetEmail(user.email, code);
+      console.log('✅ Verification code sent to:', user.email);
     } catch (emailError) {
-      console.error('❌ Error sending password reset email:', emailError);
+      console.error('❌ Error sending verification code email:', emailError);
       // Still return success for security
     }
     
     res.json({ 
       success: true, 
-      message: 'If an account exists with this email, a password reset link has been sent.' 
+      message: 'If an account exists with this email, a verification code has been sent.' 
     });
     
   } catch (error) {
@@ -285,7 +389,94 @@ const forgotPassword = async (req, res) => {
     // Always return success for security
     res.json({ 
       success: true, 
-      message: 'If an account exists with this email, a password reset link has been sent.' 
+      message: 'If an account exists with this email, a verification code has been sent.' 
+    });
+  }
+};
+
+const verifyResetCode = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    
+    if (!email || !code) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email and code are required' 
+      });
+    }
+    
+    const normalizedEmail = email.trim().toLowerCase();
+    console.log(`🔍 Verifying reset code for email: ${normalizedEmail}`);
+    
+    // Find user with reset code
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, email, reset_code_hash, reset_code_expires_at')
+      .eq('email', normalizedEmail)
+      .single();
+    
+    if (userError || !user || !user.reset_code_hash) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid or expired verification code' 
+      });
+    }
+    
+    // Check if code has expired
+    const now = new Date();
+    const expiresAt = new Date(user.reset_code_expires_at);
+    if (now > expiresAt) {
+      // Clear expired code
+      await supabase
+        .from('users')
+        .update({
+          reset_code_hash: null,
+          reset_code_expires_at: null
+        })
+        .eq('id', user.id);
+      
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Verification code has expired. Please request a new one.' 
+      });
+    }
+    
+    // Verify the code
+    const isValidCode = await bcrypt.compare(code, user.reset_code_hash);
+    
+    if (!isValidCode) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid verification code' 
+      });
+    }
+    
+    // Clear reset code fields after successful verification
+    await supabase
+      .from('users')
+      .update({
+        reset_code_hash: null,
+        reset_code_expires_at: null
+      })
+      .eq('id', user.id);
+    
+    // Generate session token for password reset
+    const sessionToken = generateSessionToken(normalizedEmail);
+    
+    console.log('✅ Verification code verified successfully for:', normalizedEmail);
+    
+    res.json({ 
+      success: true, 
+      message: 'Verification code verified successfully',
+      token: sessionToken
+    });
+    
+  } catch (error) {
+    console.error('❌ Verify reset code error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
     });
   }
 };
@@ -308,10 +499,10 @@ const resetPassword = async (req, res) => {
       });
     }
     
-    console.log(`🔍 Password reset attempt with token`);
+    console.log(`🔍 Password reset attempt with session token`);
     
-    // Verify reset token (JWT-like, self-contained, no database lookup needed)
-    const tokenPayload = verifyResetToken(token);
+    // Verify session token
+    const tokenPayload = verifySessionToken(token);
     
     if (!tokenPayload || !tokenPayload.email) {
       return res.status(400).json({ 
@@ -338,7 +529,7 @@ const resetPassword = async (req, res) => {
     const saltRounds = 10;
     const password_hash = await bcrypt.hash(password, saltRounds);
     
-    // Update password (no need to clear token since it's not stored)
+    // Update password
     const { error: updateError } = await supabase
       .from('users')
       .update({
@@ -371,5 +562,5 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { login, register, forgotPassword, resetPassword };
+module.exports = { login, register, forgotPassword, verifyResetCode, resetPassword };
 
