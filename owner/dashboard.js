@@ -538,7 +538,6 @@ async function handleConfirmReschedule(booking, button) {
     
     // Add optional fields if they exist
     if (currentBooking.hotel_id) updatePayload.hotel_id = currentBooking.hotel_id;
-    if (currentBooking.hotel_nights) updatePayload.hotel_nights = currentBooking.hotel_nights;
     if (currentBooking.package_only_id) updatePayload.package_only_id = currentBooking.package_only_id;
     
     // Update booking to clear reschedule flags

@@ -533,7 +533,6 @@
                 number_of_tourist: parseInt(bookingData.touristCount || 1),
                 package_only_id: bookingData.packageOnlyId || getPackageIdByName(bookingData.selectedPackage),
                 hotel_id: bookingData.selectedHotel ? getHotelIdByName(bookingData.selectedHotel) : null,
-                hotel_nights: bookingData.selectedHotel ? calculateHotelNights(bookingData.arrivalDate, bookingData.departureDate) : null,
                 status: 'pending'
             };
             

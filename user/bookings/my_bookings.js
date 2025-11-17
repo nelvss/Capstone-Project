@@ -367,8 +367,7 @@ async function showBookingDetails(bookingId) {
         <hr>
         <h6 class="mb-3"><i class="fas fa-hotel me-2"></i>Hotel</h6>
         <div class="mb-3">
-          <strong>Name:</strong> ${booking.hotels.name || 'N/A'}<br>
-          <strong>Nights:</strong> ${booking.hotel_nights || 0}
+          <strong>Name:</strong> ${booking.hotels.name || 'N/A'}
         </div>
       `;
     }
@@ -677,7 +676,6 @@ async function submitRescheduleRequest() {
     
     // Add optional fields if they exist
     if (booking.hotel_id) updatePayload.hotel_id = booking.hotel_id;
-    if (booking.hotel_nights) updatePayload.hotel_nights = booking.hotel_nights;
     if (booking.package_only_id) updatePayload.package_only_id = booking.package_only_id;
     
     // Disable submit button

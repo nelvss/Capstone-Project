@@ -505,7 +505,6 @@ function populateBookingEditForm(booking) {
   setFormValue('arrival_date', extractDateOnly(raw.arrival_date));
   setFormValue('departure_date', extractDateOnly(raw.departure_date));
   setFormValue('hotel_id', raw.hotel_id || '');
-  setFormValue('hotel_nights', raw.hotel_nights ?? '');
   setFormValue('package_only_id', raw.package_only_id || '');
   setFormValue('booking_preferences', raw.booking_preferences || '');
   setFormValue('notes', raw.notes || '');
@@ -686,7 +685,6 @@ function collectBookingFormData() {
     arrival_date: emptyToNull(trim(formData.get('arrival_date'))),
     departure_date: emptyToNull(trim(formData.get('departure_date'))),
     hotel_id: emptyToNull(trim(formData.get('hotel_id'))),
-    hotel_nights: parseIntegerField(formData.get('hotel_nights')),
     package_only_id: emptyToNull(trim(formData.get('package_only_id'))),
     booking_preferences: trim(formData.get('booking_preferences')),
     notes: trim(formData.get('notes')),

@@ -176,7 +176,6 @@ const createBooking = async (req, res) => {
       number_of_tourist,
       package_only_id,
       hotel_id, 
-      hotel_nights,
       booking_id,
       status = 'pending'
     } = req.body;
@@ -215,7 +214,6 @@ const createBooking = async (req, res) => {
     const optionalFields = {};
     if (supportsPackageOnlyIdColumn && package_only_id) optionalFields.package_only_id = package_only_id;
     if (hotel_id) optionalFields.hotel_id = hotel_id;
-    if (hotel_nights) optionalFields.hotel_nights = hotel_nights;
 
     let attempt = 0;
     const maxAttempts = 5;
@@ -921,7 +919,6 @@ const updateBooking = async (req, res) => {
       arrival_date,
       departure_date,
       hotel_id,
-      hotel_nights,
       package_only_id,
       tour_only_id,
       booking_preferences,
@@ -982,8 +979,7 @@ const updateBooking = async (req, res) => {
       booking_type: normalizedBookingType,
       status: normalizedStatus,
       number_of_tourist: parseInteger(number_of_tourist),
-      hotel_id: hotel_id ? String(hotel_id).trim() : null,
-      hotel_nights: parseInteger(hotel_nights)
+      hotel_id: hotel_id ? String(hotel_id).trim() : null
     };
 
     // Handle reschedule fields if provided
