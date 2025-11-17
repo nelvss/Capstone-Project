@@ -2,10 +2,19 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📧 Feedback page initializing...');
     
-    // Set API URL if not already set
+    // Set API URL if not already set (consistent with analytics.js)
     if (!window.API_URL) {
         const metaTag = document.querySelector('meta[name="api-base"]');
-        window.API_URL = metaTag ? metaTag.content : 'https://api.otgpuertogaleratravel.com/api';
+        if (metaTag && metaTag.content) {
+            // Remove trailing /api if present, we'll add it in requests
+            let apiBase = metaTag.content.trim();
+            if (apiBase.endsWith('/api')) {
+                apiBase = apiBase.slice(0, -4);
+            }
+            window.API_URL = apiBase;
+        } else {
+            window.API_URL = 'https://api.otgpuertogaleratravel.com';
+        }
     }
     
     // Load feedback from API
