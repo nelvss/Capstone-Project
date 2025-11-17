@@ -836,7 +836,7 @@ body::-webkit-scrollbar {
         justify-content: center;
         width: auto;
         height: auto;
-        color: #ffffff;
+        color: #ffffff !important;
         text-decoration: none;
         background: transparent;
     }
@@ -844,28 +844,29 @@ body::-webkit-scrollbar {
     .user-icon-link:hover {
         background: transparent;
         transform: translateY(-2px);
-        color: #ffffff;
+        color: #ffffff !important;
         opacity: 0.8;
     }
     
     .user-icon-link.logged-in {
-        color: #10b981;
+        color: #10b981 !important;
     }
     
     .user-icon-link.logged-in:hover {
-        color: #10b981;
+        color: #10b981 !important;
         background: transparent;
         opacity: 0.8;
     }
     
     .user-icon-link i {
         font-size: 2.5rem;
+        color: #ffffff !important;
     }
 }
 
 /* User Icon Link Base Styles */
 .user-icon-link {
-    color: #ffffff;
+    color: #ffffff !important;
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -877,6 +878,7 @@ body::-webkit-scrollbar {
 
 .user-icon-link i {
     font-size: 2.2rem;
+    color: #ffffff !important;
 }
 
 /* Adjust based on your header height */
