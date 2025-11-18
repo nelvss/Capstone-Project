@@ -398,6 +398,10 @@ const getPackageDistribution = async (req, res) => {
       });
     }
     
+    // Debug: Log sample booking preferences
+    console.log('📦 Sample booking preferences (first 5):', 
+      data.slice(0, 5).map(b => b.booking_preferences));
+    
     // Count packages from booking_preferences
     const distribution = {
       package1: 0,
@@ -412,16 +416,23 @@ const getPackageDistribution = async (req, res) => {
       const preferences = String(booking.booking_preferences).trim();
       
       // Parse "Package Only: Package X" format
-      if (preferences.includes('Package 1')) {
-        distribution.package1++;
-      } else if (preferences.includes('Package 2')) {
-        distribution.package2++;
-      } else if (preferences.includes('Package 3')) {
-        distribution.package3++;
-      } else if (preferences.includes('Package 4')) {
+      // Handle case-insensitive matching and extract package number
+      const prefLower = preferences.toLowerCase();
+      
+      // Check for exact package matches (more specific first to avoid false matches)
+      if (prefLower.includes('package 4') || preferences.match(/package\s*4/i)) {
         distribution.package4++;
+      } else if (prefLower.includes('package 3') || preferences.match(/package\s*3/i)) {
+        distribution.package3++;
+      } else if (prefLower.includes('package 2') || preferences.match(/package\s*2/i)) {
+        distribution.package2++;
+      } else if (prefLower.includes('package 1') || preferences.match(/package\s*1/i)) {
+        distribution.package1++;
       }
     });
+    
+    console.log('📦 Package distribution counts:', distribution);
+    console.log('📦 Total bookings processed:', data.length);
     
     console.log('✅ Package distribution fetched successfully');
     
@@ -488,6 +499,10 @@ const getTourDistribution = async (req, res) => {
       });
     }
     
+    // Debug: Log sample booking preferences
+    console.log('🏝️ Sample booking preferences (first 5):', 
+      data.slice(0, 5).map(b => b.booking_preferences));
+    
     // Count tour types from booking_preferences
     const distribution = {
       islandHopping: 0,
@@ -498,18 +513,27 @@ const getTourDistribution = async (req, res) => {
     data.forEach(booking => {
       if (!booking.booking_preferences) return;
       
-      const preferences = String(booking.booking_preferences).trim().toLowerCase();
+      const preferences = String(booking.booking_preferences).trim();
+      const prefLower = preferences.toLowerCase();
       
       // Parse "Tour Only: [Tour Type]" format
-      // Handle variations: "Island Tour", "Island Hopping", etc.
-      if (preferences.includes('island hopping') || preferences.includes('island tour')) {
-        distribution.islandHopping++;
-      } else if (preferences.includes('inland tour')) {
+      // Handle variations: "Island Tour" maps to "Island Hopping", "Inland Tour", "Snorkeling Tour"
+      // Check for Inland Tour first (more specific)
+      if (prefLower.includes('inland tour')) {
         distribution.inlandTour++;
-      } else if (preferences.includes('snorkeling tour') || preferences.includes('snorkel')) {
+      } 
+      // Check for Snorkeling Tour (more specific than just "snorkel")
+      else if (prefLower.includes('snorkeling tour') || (prefLower.includes('snorkel') && !prefLower.includes('snorkeling tour'))) {
         distribution.snorkelingTour++;
+      } 
+      // Check for Island Tour or Island Hopping (both map to Island Hopping)
+      else if (prefLower.includes('island tour') || prefLower.includes('island hopping')) {
+        distribution.islandHopping++;
       }
     });
+    
+    console.log('🏝️ Tour distribution counts:', distribution);
+    console.log('🏝️ Total bookings processed:', data.length);
     
     console.log('✅ Tour distribution fetched successfully');
     
