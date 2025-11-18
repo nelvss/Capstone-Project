@@ -470,6 +470,24 @@ header {
   margin-bottom: 1rem;
 }
 
+.tour-pricing-content {
+  overflow: hidden;
+  transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+  max-height: 0;
+  opacity: 0;
+}
+
+.tour-pricing-content.show {
+  max-height: 2000px;
+  opacity: 1;
+  display: block !important;
+}
+
+.tour-pricing-content h4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
 .tour-pricing-list {
   width: 100%;
   max-width: 100%;

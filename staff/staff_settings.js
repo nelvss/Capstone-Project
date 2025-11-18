@@ -2393,6 +2393,8 @@ function createTourCard(tour) {
   const fileInput = fragment.querySelector('.tour-file-input');
   const pricingList = fragment.querySelector('.tour-pricing-list');
   const addPricingButton = fragment.querySelector('.tour-add-pricing-btn');
+  const toggleBtn = fragment.querySelector('.tour-toggle-pricing-btn');
+  const pricingContent = fragment.querySelector('.tour-pricing-content');
 
   if (card) {
     card.dataset.tourId = id;
@@ -2422,6 +2424,25 @@ function createTourCard(tour) {
   // Render pricing tiers
   if (pricingList) {
     renderTourPricing(pricingList, tour?.pricing || [], id);
+  }
+
+  // Toggle pricing tiers visibility
+  if (toggleBtn && pricingContent) {
+    toggleBtn.addEventListener('click', () => {
+      const isExpanded = pricingContent.classList.contains('show');
+      const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+      if (isExpanded) {
+        pricingContent.classList.remove('show');
+        toggleBtn.classList.remove('expanded');
+        if (toggleIcon) toggleIcon.textContent = '▼';
+        toggleBtn.innerHTML = '<span class="toggle-icon">▼</span> Show Pricing Tiers';
+      } else {
+        pricingContent.classList.add('show');
+        toggleBtn.classList.add('expanded');
+        if (toggleIcon) toggleIcon.textContent = '▲';
+        toggleBtn.innerHTML = '<span class="toggle-icon">▲</span> Hide Pricing Tiers';
+      }
+    });
   }
 
   // Setup save button to save all pricing changes
