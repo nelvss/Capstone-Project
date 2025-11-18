@@ -517,7 +517,7 @@ const getBookings = async (req, res) => {
     if (bookingIds.length > 0) {
       const payments = await fetchInBatches(
         'payments',
-        'booking_id, total_booking_amount, payment_date, receipt_image_url',
+        'booking_id, total_booking_amount, payment_date, receipt_image_url, payment_method, payment_option, paid_amount, remaining_balance',
         bookingIds
       );
       
@@ -535,7 +535,11 @@ const getBookings = async (req, res) => {
           if (!acc[payment.booking_id]) {
             acc[payment.booking_id] = {
               total_booking_amount: payment.total_booking_amount,
-              receipt_image_url: payment.receipt_image_url || null
+              receipt_image_url: payment.receipt_image_url || null,
+              payment_method: payment.payment_method || null,
+              payment_option: payment.payment_option || null,
+              paid_amount: payment.paid_amount || null,
+              remaining_balance: payment.remaining_balance || null
             };
           }
           return acc;
@@ -577,7 +581,11 @@ const getBookings = async (req, res) => {
         van_rental_bookings: vanRentalsFallback,
         diving_bookings: divingBookingsData[booking.booking_id] || [],
         total_booking_amount: paymentInfo ? paymentInfo.total_booking_amount : null,
-        receipt_image_url: paymentInfo ? paymentInfo.receipt_image_url : null
+        receipt_image_url: paymentInfo ? paymentInfo.receipt_image_url : null,
+        payment_method: paymentInfo ? paymentInfo.payment_method : null,
+        payment_option: paymentInfo ? paymentInfo.payment_option : null,
+        paid_amount: paymentInfo ? paymentInfo.paid_amount : null,
+        remaining_balance: paymentInfo ? paymentInfo.remaining_balance : null
       };
     });
     
@@ -828,7 +836,7 @@ const getUserBookings = async (req, res) => {
     if (bookingIds.length > 0) {
       const payments = await fetchInBatches(
         'payments',
-        'booking_id, total_booking_amount, payment_date, receipt_image_url',
+        'booking_id, total_booking_amount, payment_date, receipt_image_url, payment_method, payment_option, paid_amount, remaining_balance',
         bookingIds
       );
       
@@ -843,7 +851,11 @@ const getUserBookings = async (req, res) => {
           if (!acc[payment.booking_id]) {
             acc[payment.booking_id] = {
               total_booking_amount: payment.total_booking_amount,
-              receipt_image_url: payment.receipt_image_url || null
+              receipt_image_url: payment.receipt_image_url || null,
+              payment_method: payment.payment_method || null,
+              payment_option: payment.payment_option || null,
+              paid_amount: payment.paid_amount || null,
+              remaining_balance: payment.remaining_balance || null
             };
           }
           return acc;
@@ -885,7 +897,11 @@ const getUserBookings = async (req, res) => {
         van_rental_bookings: vanRentalsFallback,
         diving_bookings: divingBookingsData[booking.booking_id] || [],
         total_booking_amount: paymentInfo ? paymentInfo.total_booking_amount : null,
-        receipt_image_url: paymentInfo ? paymentInfo.receipt_image_url : null
+        receipt_image_url: paymentInfo ? paymentInfo.receipt_image_url : null,
+        payment_method: paymentInfo ? paymentInfo.payment_method : null,
+        payment_option: paymentInfo ? paymentInfo.payment_option : null,
+        paid_amount: paymentInfo ? paymentInfo.paid_amount : null,
+        remaining_balance: paymentInfo ? paymentInfo.remaining_balance : null
       };
     });
     

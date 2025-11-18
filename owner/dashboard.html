@@ -152,9 +152,50 @@
 
   <!-- Receipt Modal -->
   <div id="receiptModal" class="modal-backdrop" aria-hidden="true">
-    <div class="modal-content" style="max-width: 90vw; max-height: 90vh; padding: 20px; position: relative;">
+    <div class="modal-content receipt-modal-content" style="max-width: 90vw; max-height: 90vh; padding: 0; position: relative; overflow-y: auto;">
       <button type="button" class="modal-close-btn" onclick="closeReceiptModal()" aria-label="Close receipt dialog" style="position: absolute; top: 10px; right: 10px; z-index: 1001;">&times;</button>
-      <img id="modalReceiptImage" src="" alt="Receipt" style="max-width: 100%; max-height: calc(90vh - 60px); margin: auto; display: block; border-radius: 8px;">
+      
+      <!-- Payment Information Section -->
+      <div id="receiptPaymentInfo" class="receipt-payment-info" style="padding: 24px; background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); color: white; border-radius: 18px 18px 0 0;">
+        <h3 style="margin: 0 0 20px 0; font-size: 1.2rem; font-weight: 600;">Payment Details</h3>
+        
+        <div class="receipt-payment-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <!-- Payment Option -->
+          <div class="receipt-payment-item">
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px;">Payment Option</div>
+            <div id="receiptPaymentOption" style="font-size: 1rem; font-weight: 600;">-</div>
+          </div>
+          
+          <!-- Payment Method -->
+          <div class="receipt-payment-item">
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px;">Payment Method</div>
+            <div id="receiptPaymentMethod" style="font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+              <span id="receiptPaymentMethodIcon"></span>
+              <span id="receiptPaymentMethodText">-</span>
+            </div>
+          </div>
+          
+          <!-- Amount Paid -->
+          <div class="receipt-payment-item">
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px;">Amount Paid</div>
+            <div id="receiptPaidAmount" style="font-size: 1rem; font-weight: 600;">-</div>
+          </div>
+          
+          <!-- Remaining Balance (conditional) -->
+          <div id="receiptRemainingBalanceContainer" class="receipt-payment-item" style="display: none;">
+            <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px;">Remaining Balance</div>
+            <div id="receiptRemainingBalance" style="font-size: 1.1rem; font-weight: 700; color: #fbbf24;">-</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Receipt Image Section -->
+      <div style="padding: 20px; text-align: center;">
+        <img id="modalReceiptImage" src="" alt="Receipt" style="max-width: 100%; max-height: calc(90vh - 250px); margin: auto; display: block; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div id="receiptNoImage" style="display: none; padding: 40px; color: #64748b; font-size: 0.95rem;">
+          No receipt image available
+        </div>
+      </div>
     </div>
   </div>
 

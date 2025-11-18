@@ -212,6 +212,10 @@ function mapBookingRecord(apiBooking) {
     status: apiBooking.status,
     reschedule_requested: apiBooking.reschedule_requested || false,
     reschedule_requested_at: apiBooking.reschedule_requested_at || null,
+    payment_method: apiBooking.payment_method || null,
+    payment_option: apiBooking.payment_option || null,
+    paid_amount: apiBooking.paid_amount || null,
+    remaining_balance: apiBooking.remaining_balance || null,
     raw: rawBooking
   };
 }
@@ -853,16 +857,96 @@ function getReceiptCell(receiptImageUrl) {
 }
 
 // Receipt modal functions
-function openReceiptModal(imageUrl) {
+function openReceiptModal(booking) {
   const modal = document.getElementById('receiptModal');
   const modalImage = document.getElementById('modalReceiptImage');
+  const receiptNoImage = document.getElementById('receiptNoImage');
   
-  if (modal && modalImage && imageUrl) {
-    modalImage.src = imageUrl;
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
+  if (!modal) return;
+  
+  // Get payment information
+  const paymentOption = booking.payment_option || 'N/A';
+  const paymentMethod = booking.payment_method || 'N/A';
+  const paidAmount = booking.paid_amount || 0;
+  const remainingBalance = booking.remaining_balance || 0;
+  const imageUrl = booking.receipt_image_url;
+  
+  // Set payment option
+  const paymentOptionEl = document.getElementById('receiptPaymentOption');
+  if (paymentOptionEl) {
+    if (paymentOption === 'Full Payment' || paymentOption === 'full') {
+      paymentOptionEl.textContent = 'Full Payment';
+      paymentOptionEl.style.color = '#10b981';
+    } else if (paymentOption === 'Down Payment' || paymentOption === 'Partial Payment' || paymentOption === 'down') {
+      paymentOptionEl.textContent = 'Down Payment';
+      paymentOptionEl.style.color = '#f59e0b';
+    } else {
+      paymentOptionEl.textContent = paymentOption;
+    }
   }
+  
+  // Set payment method with icon
+  const paymentMethodIconEl = document.getElementById('receiptPaymentMethodIcon');
+  const paymentMethodTextEl = document.getElementById('receiptPaymentMethodText');
+  
+  if (paymentMethodIconEl && paymentMethodTextEl) {
+    // Clear previous icon
+    paymentMethodIconEl.innerHTML = '';
+    
+    // Set icon based on payment method
+    const methodLower = (paymentMethod || '').toLowerCase();
+    if (methodLower.includes('gcash')) {
+      paymentMethodIconEl.innerHTML = '<i class="fas fa-mobile-alt"></i>';
+      paymentMethodTextEl.textContent = 'GCash';
+    } else if (methodLower.includes('paymaya')) {
+      paymentMethodIconEl.innerHTML = '<i class="fas fa-credit-card"></i>';
+      paymentMethodTextEl.textContent = 'PayMaya';
+    } else if (methodLower.includes('banking') || methodLower.includes('bank')) {
+      paymentMethodIconEl.innerHTML = '<i class="fas fa-university"></i>';
+      paymentMethodTextEl.textContent = 'Online Banking';
+    } else {
+      paymentMethodIconEl.innerHTML = '<i class="fas fa-money-bill"></i>';
+      paymentMethodTextEl.textContent = paymentMethod;
+    }
+  }
+  
+  // Set paid amount
+  const paidAmountEl = document.getElementById('receiptPaidAmount');
+  if (paidAmountEl) {
+    paidAmountEl.textContent = paidAmount > 0 
+      ? `₱${parseFloat(paidAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : 'N/A';
+  }
+  
+  // Handle remaining balance (show only for Down Payment)
+  const remainingBalanceContainer = document.getElementById('receiptRemainingBalanceContainer');
+  const remainingBalanceEl = document.getElementById('receiptRemainingBalance');
+  
+  const isDownPayment = paymentOption === 'Down Payment' || paymentOption === 'Partial Payment' || paymentOption === 'down';
+  
+  if (remainingBalanceContainer && remainingBalanceEl) {
+    if (isDownPayment && remainingBalance > 0) {
+      remainingBalanceContainer.style.display = 'block';
+      remainingBalanceEl.textContent = `₱${parseFloat(remainingBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    } else {
+      remainingBalanceContainer.style.display = 'none';
+    }
+  }
+  
+  // Set receipt image
+  if (imageUrl && modalImage) {
+    modalImage.src = imageUrl;
+    modalImage.style.display = 'block';
+    if (receiptNoImage) receiptNoImage.style.display = 'none';
+  } else {
+    if (modalImage) modalImage.style.display = 'none';
+    if (receiptNoImage) receiptNoImage.style.display = 'block';
+  }
+  
+  // Open modal
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
 }
 
 function closeReceiptModal() {
@@ -981,10 +1065,7 @@ function renderTable() {
     if (rescheduleConfirmBtn) rescheduleConfirmBtn.addEventListener('click', () => handleConfirmReschedule(b, rescheduleConfirmBtn));
     if (receiptThumbnail) {
       receiptThumbnail.addEventListener('click', function() {
-        const imageUrl = this.getAttribute('data-receipt-url');
-        if (imageUrl) {
-          openReceiptModal(imageUrl);
-        }
+        openReceiptModal(b);
       });
     }
     
@@ -1134,10 +1215,7 @@ function filterTable(searchTerm) {
     if (rescheduleConfirmBtn) rescheduleConfirmBtn.addEventListener('click', () => handleConfirmReschedule(b, rescheduleConfirmBtn));
     if (receiptThumbnail) {
       receiptThumbnail.addEventListener('click', function() {
-        const imageUrl = this.getAttribute('data-receipt-url');
-        if (imageUrl) {
-          openReceiptModal(imageUrl);
-        }
+        openReceiptModal(b);
       });
     }
     

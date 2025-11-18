@@ -1643,6 +1643,60 @@ button.modal-secondary-btn[data-add-van-rental] {
   }
 }
 
+/* Receipt Modal Styles */
+.receipt-modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.receipt-payment-info {
+  flex-shrink: 0;
+}
+
+.receipt-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.receipt-payment-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.receipt-payment-item:last-child {
+  grid-column: 1 / -1;
+}
+
+#receiptPaymentMethodIcon {
+  font-size: 1.1rem;
+}
+
+#receiptRemainingBalanceContainer {
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+@media (max-width: 768px) {
+  .receipt-payment-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .receipt-payment-item:last-child {
+    grid-column: 1;
+  }
+  
+  .receipt-payment-info {
+    padding: 16px;
+  }
+  
+  #receiptPaymentInfo h3 {
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 900px) {
   .main-content {
     margin-left: 0;
