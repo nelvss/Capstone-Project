@@ -79,6 +79,30 @@
 
         <div id="package-error" class="vehicle-error" role="alert" hidden></div>
 
+        <div class="package-filters">
+          <div class="filter-group">
+            <label for="package-hotel-filter" class="filter-label">Filter by Hotel:</label>
+            <select id="package-hotel-filter" class="filter-select">
+              <option value="">All Hotels</option>
+              <option value="Ilaya">Ilaya</option>
+              <option value="Casa de Honcho">Casa de Honcho</option>
+              <option value="Bliss">Bliss</option>
+              <option value="SouthView">SouthView</option>
+              <option value="The Mangyan Grand Hotel">The Mangyan Grand Hotel</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="package-category-filter" class="filter-label">Filter by Category:</label>
+            <select id="package-category-filter" class="filter-select">
+              <option value="">All Categories</option>
+              <option value="Package 1">Package 1</option>
+              <option value="Package 2">Package 2</option>
+              <option value="Package 3">Package 3</option>
+              <option value="Package 4">Package 4</option>
+            </select>
+          </div>
+        </div>
+
         <div id="package-list" class="vehicle-list" role="list"></div>
 
         <template id="package-card-template">

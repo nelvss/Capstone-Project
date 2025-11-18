@@ -4101,6 +4101,34 @@ function renderPackages() {
   packageUI.list.hidden = !has;
   if (!has) return;
   items.forEach(pkg => packageUI.list.appendChild(createPackageCard(pkg)));
+  applyPackageFilters();
+}
+
+function applyPackageFilters() {
+  if (!packageUI.list) return;
+  const hotelFilter = document.getElementById('package-hotel-filter');
+  const categoryFilter = document.getElementById('package-category-filter');
+  
+  const selectedHotel = hotelFilter?.value || '';
+  const selectedCategory = categoryFilter?.value || '';
+  
+  const cards = packageUI.list.querySelectorAll('.vehicle-card');
+  let visibleCount = 0;
+  
+  cards.forEach(card => {
+    const cardHotel = card.dataset.hotel || '';
+    const cardCategory = card.dataset.category || '';
+    
+    const hotelMatch = !selectedHotel || cardHotel === selectedHotel;
+    const categoryMatch = !selectedCategory || cardCategory === selectedCategory;
+    
+    const shouldShow = hotelMatch && categoryMatch;
+    card.dataset.filtered = shouldShow ? 'true' : 'false';
+    if (shouldShow) visibleCount++;
+  });
+  
+  // Hide the list if no packages match the filters
+  packageUI.list.hidden = visibleCount === 0;
 }
 
 function createPackageCard(pkg) {
@@ -4121,7 +4149,13 @@ function createPackageCard(pkg) {
   const deleteBtn = frag.querySelector('.package-delete-btn');
   const inlineStatus = frag.querySelector('.vehicle-inline-status');
 
-  if (card) card.dataset.packageId = id;
+  if (card) {
+    card.dataset.packageId = id;
+    // Add data attributes for filtering
+    card.dataset.hotel = HOTEL_ID_TO_NAME[pkg?.hotel_id] || '';
+    card.dataset.category = pkg?.category || '';
+    card.dataset.filtered = 'true';
+  }
   if (title) title.textContent = pkg?.description || 'Package';
   if (idEl) idEl.textContent = `ID: ${id}`;
   if (statusTag) setStatusTag(statusTag, 'Synced');
@@ -4352,6 +4386,18 @@ function initializePackageManager() {
   if (saveBtn) saveBtn.addEventListener('click', handleCreatePackage);
 
   if (packageUI.refreshBtn) packageUI.refreshBtn.addEventListener('click', () => loadPackages());
+
+  // Add filter event listeners
+  const hotelFilter = document.getElementById('package-hotel-filter');
+  const categoryFilter = document.getElementById('package-category-filter');
+  
+  if (hotelFilter) {
+    hotelFilter.addEventListener('change', applyPackageFilters);
+  }
+  
+  if (categoryFilter) {
+    categoryFilter.addEventListener('change', applyPackageFilters);
+  }
 
   loadPackages();
 }
