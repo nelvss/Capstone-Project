@@ -776,28 +776,29 @@ function updateTourCard(carouselId, tour, displayName) {
 function checkAuthentication() {
   const userSession = localStorage.getItem('userSession');
   if (!userSession) {
-    return false;
+    return null;
   }
   
   try {
     const session = JSON.parse(userSession);
     // Check if session is valid (has required fields)
     if (session.type && session.email && session.userId) {
-      return true;
+      return session;
     }
   } catch (error) {
     console.error('Error parsing user session:', error);
     localStorage.removeItem('userSession');
   }
   
-  return false;
+  return null;
 }
 
 function handleBookNowClick(event) {
   event.preventDefault();
   
   // Check if user is authenticated
-  if (!checkAuthentication()) {
+  const session = checkAuthentication();
+  if (!session) {
     // Store the intended destination
     sessionStorage.setItem('returnUrl', '/user/form/booking_form.html');
     // Redirect to login page
@@ -811,15 +812,24 @@ function handleBookNowClick(event) {
 }
 
 function handleUserIconClick(event) {
+  event.preventDefault();
+  
   // Check if user is authenticated
-  if (checkAuthentication()) {
-    // User is logged in - redirect to bookings page
-    event.preventDefault();
-    window.location.href = '/user/bookings/my_bookings.html';
+  const session = checkAuthentication();
+  if (session) {
+    // User is logged in - redirect based on role
+    const userRole = session.type;
+    if (userRole === 'owner') {
+      window.location.href = '/owner/dashboard.html';
+    } else if (userRole === 'staff') {
+      window.location.href = '/staff/staff_dashboard.html';
+    } else {
+      // Customer - redirect to bookings page
+      window.location.href = '/user/bookings/my_bookings.html';
+    }
     return false;
   } else {
     // User not logged in - go to login page
-    event.preventDefault();
     window.location.href = '/owner/login.html';
     return false;
   }
@@ -831,19 +841,32 @@ function updateUserIcon() {
   if (!userIconLink) return;
   
   const textSpan = userIconLink.querySelector('.user-link-text');
+  const session = checkAuthentication();
   
-  if (checkAuthentication()) {
+  if (session) {
     // User is logged in - change icon to user-circle or add logged-in styling
     const icon = userIconLink.querySelector('i');
     if (icon) {
       icon.classList.remove('fa-user');
       icon.classList.add('fa-user-circle');
     }
-    // Update text for mobile view
-    if (textSpan) {
-      textSpan.textContent = 'My Account';
+    
+    // Update text and title based on role
+    const userRole = session.type;
+    if (userRole === 'owner' || userRole === 'staff') {
+      // Owner/Staff - show Dashboard
+      if (textSpan) {
+        textSpan.textContent = 'Dashboard';
+      }
+      userIconLink.title = 'Dashboard';
+    } else {
+      // Customer - show My Bookings
+      if (textSpan) {
+        textSpan.textContent = 'My Bookings';
+      }
+      userIconLink.title = 'My Bookings';
     }
-    userIconLink.title = 'My Account';
+    
     userIconLink.classList.add('logged-in');
   } else {
     // User not logged in
@@ -861,10 +884,31 @@ function updateUserIcon() {
   }
 }
 
+// Check authentication and redirect based on role
+function checkAndRedirectByRole() {
+  const session = checkAuthentication();
+  if (!session) {
+    return; // Not authenticated, stay on home page
+  }
+  
+  const userRole = session.type;
+  if (userRole === 'owner') {
+    // Redirect owner to dashboard
+    window.location.href = '/owner/dashboard.html';
+  } else if (userRole === 'staff') {
+    // Redirect staff to staff dashboard
+    window.location.href = '/staff/staff_dashboard.html';
+  }
+  // Customer users stay on home page
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Re-evaluate API_BASE_URL to ensure meta tag is available
   API_BASE_URL = getApiBaseUrl();
   console.log('🔗 API_BASE_URL re-evaluated on DOMContentLoaded:', API_BASE_URL);
+  
+  // Check and redirect owner/staff users to their dashboards
+  checkAndRedirectByRole();
   
   // Update user icon based on authentication status
   updateUserIcon();
