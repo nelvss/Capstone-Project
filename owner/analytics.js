@@ -723,6 +723,8 @@ function initializeCharts() {
     createSeasonalPredictionChart();
     // New analytics charts
     createBookingTypeChart();
+    createPackageDistributionChart();
+    createTourDistributionChart();
     createTouristVolumeChart();
     createAvgBookingValueChart();
     createPeakBookingDaysChart();
@@ -736,6 +738,8 @@ function initializeFilters() {
     // Populate all year filters
     const yearFilters = [
         'bookingTypeYearFilter',
+        'packageDistributionYearFilter',
+        'tourDistributionYearFilter',
         'touristVolumeYearFilter',
         'avgBookingValueYearFilter'
     ];
@@ -766,6 +770,8 @@ function initializeFilters() {
     // Populate all month filters
     const monthFilters = [
         'bookingTypeMonthFilter',
+        'packageDistributionMonthFilter',
+        'tourDistributionMonthFilter',
         'touristVolumeMonthFilter',
         'avgBookingValueMonthFilter'
     ];
@@ -836,6 +842,10 @@ function handleYearFilter(event, filterId) {
         // For charts without month filters, reload data
         if (filterId.includes('bookingType')) {
             loadBookingTypeData();
+        } else if (filterId.includes('packageDistribution')) {
+            loadPackageDistributionData();
+        } else if (filterId.includes('tourDistribution')) {
+            loadTourDistributionData();
         } else if (filterId.includes('touristVolume')) {
             loadTouristVolumeData();
         } else if (filterId.includes('avgBookingValue')) {
@@ -892,6 +902,10 @@ function updateChart(monthFilterId, month, week, year) {
     
     if (monthFilterId.includes('bookingType')) {
         loadBookingTypeData();
+    } else if (monthFilterId.includes('packageDistribution')) {
+        loadPackageDistributionData();
+    } else if (monthFilterId.includes('tourDistribution')) {
+        loadTourDistributionData();
     } else if (monthFilterId.includes('touristVolume')) {
         loadTouristVolumeData();
     } else if (monthFilterId.includes('avgBookingValue')) {
@@ -2026,6 +2040,110 @@ function createBookingTypeChart() {
     loadBookingTypeData();
 }
 
+// Create Package Distribution Chart
+function createPackageDistributionChart() {
+    const ctx = document.getElementById('packageDistributionChart');
+    if (!ctx) return;
+    
+    chartInstances['packageDistributionChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Package 1', 'Package 2', 'Package 3', 'Package 4'],
+            datasets: [{
+                data: [0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadPackageDistributionData();
+}
+
+// Create Tour Distribution Chart
+function createTourDistributionChart() {
+    const ctx = document.getElementById('tourDistributionChart');
+    if (!ctx) return;
+    
+    chartInstances['tourDistributionChart'] = new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Island Hopping', 'Inland Tour', 'Snorkeling Tour'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: [
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)',
+                    'rgba(23, 162, 184, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(23, 162, 184, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Load data from API
+    loadTourDistributionData();
+}
+
 // Create Tourist Volume Chart
 function createTouristVolumeChart() {
     const ctx = document.getElementById('touristVolumeChart');
@@ -2325,6 +2443,163 @@ async function loadBookingTypeData() {
             chart.data.labels = [];
             chart.data.datasets[0].data = [];
             chart.data.datasets[1].data = [];
+            chart.update();
+        }
+    }
+}
+
+async function loadPackageDistributionData() {
+    // Prevent multiple simultaneous loads
+    if (isLoadingChartData) {
+        console.log('⏸️ Chart data already loading, skipping package distribution...');
+        return;
+    }
+    
+    try {
+        const yearSelect = document.getElementById('packageDistributionYearFilter');
+        const monthSelect = document.getElementById('packageDistributionMonthFilter');
+        const year = yearSelect ? yearSelect.value : '2025';
+        const month = monthSelect ? monthSelect.value : 'all';
+        
+        let url = '';
+        
+        // Set date range based on year and month filters
+        if (month !== 'all') {
+            // Convert month name to number
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNum = monthNames.indexOf(month) + 1;
+            if (monthNum > 0) {
+                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
+                url = `${window.API_URL}/api/analytics/package-distribution?start_date=${startDate}&end_date=${endDate}`;
+            }
+        } else {
+            // Filter by year - show all months in the selected year
+            const startDate = `${year}-01-01`;
+            const endDate = `${year}-12-31`;
+            url = `${window.API_URL}/api/analytics/package-distribution?start_date=${startDate}&end_date=${endDate}`;
+        }
+        
+        const response = await fetch(url);
+        
+        // Handle non-200 responses gracefully
+        if (!response.ok) {
+            console.warn(`⚠️ Package distribution API returned ${response.status}`);
+            const chart = chartInstances['packageDistributionChart'];
+            if (chart) {
+                chart.data.datasets[0].data = [0, 0, 0, 0];
+                chart.update();
+            }
+            return;
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.distribution) {
+            const chart = chartInstances['packageDistributionChart'];
+            if (chart) {
+                const dist = result.distribution;
+                chart.data.datasets[0].data = [
+                    dist.package1 || 0,
+                    dist.package2 || 0,
+                    dist.package3 || 0,
+                    dist.package4 || 0
+                ];
+                chart.update();
+                console.log('✅ Package Distribution chart updated');
+            }
+        } else {
+            console.log('⚠️ Invalid package distribution response:', result);
+            const chart = chartInstances['packageDistributionChart'];
+            if (chart) {
+                chart.data.datasets[0].data = [0, 0, 0, 0];
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading package distribution data:', error);
+        // Clear chart on error
+        const chart = chartInstances['packageDistributionChart'];
+        if (chart) {
+            chart.data.datasets[0].data = [0, 0, 0, 0];
+            chart.update();
+        }
+    }
+}
+
+async function loadTourDistributionData() {
+    // Prevent multiple simultaneous loads
+    if (isLoadingChartData) {
+        console.log('⏸️ Chart data already loading, skipping tour distribution...');
+        return;
+    }
+    
+    try {
+        const yearSelect = document.getElementById('tourDistributionYearFilter');
+        const monthSelect = document.getElementById('tourDistributionMonthFilter');
+        const year = yearSelect ? yearSelect.value : '2025';
+        const month = monthSelect ? monthSelect.value : 'all';
+        
+        let url = '';
+        
+        // Set date range based on year and month filters
+        if (month !== 'all') {
+            // Convert month name to number
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNum = monthNames.indexOf(month) + 1;
+            if (monthNum > 0) {
+                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
+                url = `${window.API_URL}/api/analytics/tour-distribution?start_date=${startDate}&end_date=${endDate}`;
+            }
+        } else {
+            // Filter by year - show all months in the selected year
+            const startDate = `${year}-01-01`;
+            const endDate = `${year}-12-31`;
+            url = `${window.API_URL}/api/analytics/tour-distribution?start_date=${startDate}&end_date=${endDate}`;
+        }
+        
+        const response = await fetch(url);
+        
+        // Handle non-200 responses gracefully
+        if (!response.ok) {
+            console.warn(`⚠️ Tour distribution API returned ${response.status}`);
+            const chart = chartInstances['tourDistributionChart'];
+            if (chart) {
+                chart.data.datasets[0].data = [0, 0, 0];
+                chart.update();
+            }
+            return;
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.distribution) {
+            const chart = chartInstances['tourDistributionChart'];
+            if (chart) {
+                const dist = result.distribution;
+                chart.data.datasets[0].data = [
+                    dist.islandHopping || 0,
+                    dist.inlandTour || 0,
+                    dist.snorkelingTour || 0
+                ];
+                chart.update();
+                console.log('✅ Tour Distribution chart updated');
+            }
+        } else {
+            console.log('⚠️ Invalid tour distribution response:', result);
+            const chart = chartInstances['tourDistributionChart'];
+            if (chart) {
+                chart.data.datasets[0].data = [0, 0, 0];
+                chart.update();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading tour distribution data:', error);
+        // Clear chart on error
+        const chart = chartInstances['tourDistributionChart'];
+        if (chart) {
+            chart.data.datasets[0].data = [0, 0, 0];
             chart.update();
         }
     }

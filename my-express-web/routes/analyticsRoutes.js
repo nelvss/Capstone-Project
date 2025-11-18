@@ -6,6 +6,8 @@ const {
   getPopularServices,
   getBookingStatusDistribution,
   getBookingTypeComparison,
+  getPackageDistribution,
+  getTourDistribution,
   getRevenueByStatus,
   getServicePerformance,
   getTouristVolume,
@@ -23,6 +25,8 @@ router.get('/analytics/bookings-count', getBookingsCount);
 router.get('/analytics/popular-services', getPopularServices);
 router.get('/analytics/booking-status-distribution', getBookingStatusDistribution);
 router.get('/analytics/booking-type-comparison', getBookingTypeComparison);
+router.get('/analytics/package-distribution', getPackageDistribution);
+router.get('/analytics/tour-distribution', getTourDistribution);
 router.get('/analytics/revenue-by-status', getRevenueByStatus);
 router.get('/analytics/service-performance', getServicePerformance);
 router.get('/analytics/tourist-volume', getTouristVolume);

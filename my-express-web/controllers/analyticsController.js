@@ -348,6 +348,186 @@ const getBookingTypeComparison = async (req, res) => {
   }
 };
 
+// Get package distribution (Package 1-4)
+const getPackageDistribution = async (req, res) => {
+  try {
+    const { start_date, end_date } = req.query;
+    
+    console.log('📊 Fetching package distribution:', { start_date, end_date });
+    
+    let query = supabase
+      .from('bookings')
+      .select('booking_preferences, arrival_date')
+      .eq('booking_type', 'package_only');
+    
+    if (start_date) {
+      query = query.gte('arrival_date', start_date);
+    }
+    if (end_date) {
+      query = query.lte('arrival_date', end_date);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('❌ Error fetching package distribution:', error);
+      return res.json({ 
+        success: true, 
+        distribution: {
+          package1: 0,
+          package2: 0,
+          package3: 0,
+          package4: 0
+        },
+        message: 'No booking data available'
+      });
+    }
+    
+    // Handle null or empty data
+    if (!data || data.length === 0) {
+      console.log('ℹ️ No package distribution data found');
+      return res.json({ 
+        success: true, 
+        distribution: {
+          package1: 0,
+          package2: 0,
+          package3: 0,
+          package4: 0
+        },
+        message: 'No booking data available'
+      });
+    }
+    
+    // Count packages from booking_preferences
+    const distribution = {
+      package1: 0,
+      package2: 0,
+      package3: 0,
+      package4: 0
+    };
+    
+    data.forEach(booking => {
+      if (!booking.booking_preferences) return;
+      
+      const preferences = String(booking.booking_preferences).trim();
+      
+      // Parse "Package Only: Package X" format
+      if (preferences.includes('Package 1')) {
+        distribution.package1++;
+      } else if (preferences.includes('Package 2')) {
+        distribution.package2++;
+      } else if (preferences.includes('Package 3')) {
+        distribution.package3++;
+      } else if (preferences.includes('Package 4')) {
+        distribution.package4++;
+      }
+    });
+    
+    console.log('✅ Package distribution fetched successfully');
+    
+    res.json({ 
+      success: true, 
+      distribution
+    });
+    
+  } catch (error) {
+    console.error('❌ Package distribution error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+};
+
+// Get tour distribution (Island Hopping, Inland Tour, Snorkeling Tour)
+const getTourDistribution = async (req, res) => {
+  try {
+    const { start_date, end_date } = req.query;
+    
+    console.log('📊 Fetching tour distribution:', { start_date, end_date });
+    
+    let query = supabase
+      .from('bookings')
+      .select('booking_preferences, arrival_date')
+      .eq('booking_type', 'tour_only');
+    
+    if (start_date) {
+      query = query.gte('arrival_date', start_date);
+    }
+    if (end_date) {
+      query = query.lte('arrival_date', end_date);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('❌ Error fetching tour distribution:', error);
+      return res.json({ 
+        success: true, 
+        distribution: {
+          islandHopping: 0,
+          inlandTour: 0,
+          snorkelingTour: 0
+        },
+        message: 'No booking data available'
+      });
+    }
+    
+    // Handle null or empty data
+    if (!data || data.length === 0) {
+      console.log('ℹ️ No tour distribution data found');
+      return res.json({ 
+        success: true, 
+        distribution: {
+          islandHopping: 0,
+          inlandTour: 0,
+          snorkelingTour: 0
+        },
+        message: 'No booking data available'
+      });
+    }
+    
+    // Count tour types from booking_preferences
+    const distribution = {
+      islandHopping: 0,
+      inlandTour: 0,
+      snorkelingTour: 0
+    };
+    
+    data.forEach(booking => {
+      if (!booking.booking_preferences) return;
+      
+      const preferences = String(booking.booking_preferences).trim().toLowerCase();
+      
+      // Parse "Tour Only: [Tour Type]" format
+      // Handle variations: "Island Tour", "Island Hopping", etc.
+      if (preferences.includes('island hopping') || preferences.includes('island tour')) {
+        distribution.islandHopping++;
+      } else if (preferences.includes('inland tour')) {
+        distribution.inlandTour++;
+      } else if (preferences.includes('snorkeling tour') || preferences.includes('snorkel')) {
+        distribution.snorkelingTour++;
+      }
+    });
+    
+    console.log('✅ Tour distribution fetched successfully');
+    
+    res.json({ 
+      success: true, 
+      distribution
+    });
+    
+  } catch (error) {
+    console.error('❌ Tour distribution error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
+  }
+};
+
 // Get revenue by booking status
 const getRevenueByStatus = async (req, res) => {
   try {
@@ -1593,6 +1773,8 @@ module.exports = {
   getPopularServices,
   getBookingStatusDistribution,
   getBookingTypeComparison,
+  getPackageDistribution,
+  getTourDistribution,
   getRevenueByStatus,
   getServicePerformance,
   getTouristVolume,
