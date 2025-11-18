@@ -376,6 +376,48 @@ let currentRescheduleButton = null;
 
 // Handle confirm reschedule button click - show popup first
 async function handleConfirmReschedule(booking, button) {
+  // Add immediate visual feedback
+  let originalButtonHTML = '';
+  if (button) {
+    originalButtonHTML = button.innerHTML;
+    button.classList.add('loading');
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+  }
+  
+  // Store booking and button for later use
+  currentRescheduleBooking = booking;
+  currentRescheduleButton = button;
+  
+  // Show modal immediately with loading state
+  const modal = document.getElementById('rescheduleConfirmationModal');
+  const content = document.getElementById('rescheduleModalContent');
+  
+  if (!modal || !content) {
+    // Restore button if modal elements don't exist
+    if (button) {
+      button.classList.remove('loading');
+      button.disabled = false;
+      button.innerHTML = originalButtonHTML;
+    }
+    return;
+  }
+  
+  // Show loading state in modal
+  content.innerHTML = `
+    <div class="reschedule-modal-loading">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p>Loading booking details...</p>
+    </div>
+  `;
+  
+  // Show modal immediately
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  
   try {
     // Get current booking details to preserve all fields
     const getResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
@@ -396,15 +438,26 @@ async function handleConfirmReschedule(booking, button) {
     
     const currentBooking = getResult.booking;
     
-    // Store booking and button for later use
-    currentRescheduleBooking = booking;
-    currentRescheduleButton = button;
-    
-    // Show reschedule confirmation modal
+    // Populate modal with booking data
     showRescheduleConfirmationModal(currentBooking);
+    
   } catch (error) {
     console.error('Error fetching booking details:', error);
-    alert('Failed to load booking details: ' + error.message);
+    
+    // Show error in modal
+    content.innerHTML = `
+      <div class="alert alert-danger" style="margin: 20px;">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Error:</strong> ${error.message}
+      </div>
+    `;
+  } finally {
+    // Restore button state
+    if (button) {
+      button.classList.remove('loading');
+      button.disabled = false;
+      button.innerHTML = originalButtonHTML;
+    }
   }
 }
 
