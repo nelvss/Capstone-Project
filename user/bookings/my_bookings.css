@@ -347,6 +347,49 @@ body {
   border-top: 1px solid #e9ecef;
 }
 
+/* Button Touch Optimizations */
+.booking-card-footer .btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+  min-width: 44px;
+  position: relative;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+/* Active/Pressed State for Better Feedback */
+.booking-card-footer .btn:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+/* Loading State for Buttons */
+.booking-card-footer .btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.booking-card-footer .btn.loading i.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Disabled State */
+.booking-card-footer .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Status Badge */
 .badge {
   font-size: 0.85rem;
@@ -385,6 +428,21 @@ body {
 .spinner-border {
   width: 3rem;
   height: 3rem;
+}
+
+/* Modal Loading State */
+.modal-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.modal-loading .spinner-border {
+  margin-bottom: 1rem;
+}
+
+.modal-loading p {
+  color: #6c757d;
+  margin: 0;
 }
 
 /* Responsive Design */

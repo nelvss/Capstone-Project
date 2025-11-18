@@ -262,11 +262,11 @@ function createBookingCard(booking) {
         </div>
       </div>
       <div class="booking-card-footer">
-        <button class="btn btn-outline-danger btn-sm" onclick="showBookingDetails('${booking.booking_id}')">
+        <button class="btn btn-outline-danger btn-sm" onclick="showBookingDetails('${booking.booking_id}', this)">
           <i class="fas fa-eye me-1"></i>View Details
         </button>
         ${booking.status !== 'cancelled' && booking.status !== 'completed' ? `
-        <button class="btn btn-outline-primary btn-sm ms-2" onclick="openRescheduleModal('${booking.booking_id}')">
+        <button class="btn btn-outline-primary btn-sm ms-2" onclick="openRescheduleModal('${booking.booking_id}', this)">
           <i class="fas fa-calendar-alt me-1"></i>Reschedule
         </button>
         ` : ''}
@@ -278,7 +278,39 @@ function createBookingCard(booking) {
 }
 
 // Show booking details
-async function showBookingDetails(bookingId) {
+async function showBookingDetails(bookingId, buttonElement = null) {
+  // Get button element if not provided
+  if (!buttonElement) {
+    const cardCol = document.querySelector(`[data-booking-id="${bookingId}"]`);
+    if (cardCol) {
+      buttonElement = cardCol.querySelector('.btn-outline-danger');
+    }
+  }
+  
+  // Add immediate visual feedback
+  let originalButtonHTML = '';
+  if (buttonElement) {
+    originalButtonHTML = buttonElement.innerHTML;
+    buttonElement.classList.add('loading');
+    buttonElement.disabled = true;
+    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+  }
+  
+  // Show modal immediately with loading state
+  const modalBody = document.getElementById('bookingDetailsBody');
+  const modal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
+  
+  modalBody.innerHTML = `
+    <div class="modal-loading">
+      <div class="spinner-border text-danger" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p>Loading booking details...</p>
+    </div>
+  `;
+  
+  modal.show();
+  
   try {
     const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
       method: 'GET',
@@ -299,7 +331,6 @@ async function showBookingDetails(bookingId) {
     }
     
     const booking = result.booking;
-    const modalBody = document.getElementById('bookingDetailsBody');
     
     let detailsHTML = `
       <div class="booking-details">
@@ -437,14 +468,26 @@ async function showBookingDetails(bookingId) {
     
     detailsHTML += `</div>`;
     
+    // Populate modal with data
     modalBody.innerHTML = detailsHTML;
-    
-    const modal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
-    modal.show();
     
   } catch (error) {
     console.error('Error loading booking details:', error);
-    alert(`Failed to load booking details: ${error.message}`);
+    
+    // Show error in modal
+    modalBody.innerHTML = `
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Error:</strong> ${error.message}
+      </div>
+    `;
+  } finally {
+    // Restore button state
+    if (buttonElement) {
+      buttonElement.classList.remove('loading');
+      buttonElement.disabled = false;
+      buttonElement.innerHTML = originalButtonHTML;
+    }
   }
 }
 
@@ -561,7 +604,41 @@ function updateBookingStatusLocally(bookingId, status) {
 }
 
 // Open reschedule modal
-async function openRescheduleModal(bookingId) {
+async function openRescheduleModal(bookingId, buttonElement = null) {
+  // Get button element if not provided
+  if (!buttonElement) {
+    const cardCol = document.querySelector(`[data-booking-id="${bookingId}"]`);
+    if (cardCol) {
+      buttonElement = cardCol.querySelector('.btn-outline-primary');
+    }
+  }
+  
+  // Add immediate visual feedback
+  let originalButtonHTML = '';
+  if (buttonElement) {
+    originalButtonHTML = buttonElement.innerHTML;
+    buttonElement.classList.add('loading');
+    buttonElement.disabled = true;
+    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+  }
+  
+  // Show modal immediately
+  const modal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+  
+  // Set booking ID immediately
+  document.getElementById('rescheduleBookingId').value = bookingId;
+  
+  // Show loading state in form fields
+  const arrivalInput = document.getElementById('rescheduleArrivalDate');
+  const departureInput = document.getElementById('rescheduleDepartureDate');
+  arrivalInput.value = '';
+  arrivalInput.disabled = true;
+  departureInput.value = '';
+  departureInput.disabled = true;
+  
+  // Show modal
+  modal.show();
+  
   try {
     // Fetch current booking details
     const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
@@ -584,28 +661,35 @@ async function openRescheduleModal(bookingId) {
     
     const booking = result.booking;
     
-    // Set booking ID
-    document.getElementById('rescheduleBookingId').value = bookingId;
-    
     // Pre-fill current dates
     const arrivalDate = booking.arrival_date ? new Date(booking.arrival_date).toISOString().split('T')[0] : '';
     const departureDate = booking.departure_date ? new Date(booking.departure_date).toISOString().split('T')[0] : '';
     
-    document.getElementById('rescheduleArrivalDate').value = arrivalDate;
-    document.getElementById('rescheduleDepartureDate').value = departureDate;
+    arrivalInput.value = arrivalDate;
+    departureInput.value = departureDate;
     
     // Set minimum date to today
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('rescheduleArrivalDate').setAttribute('min', today);
-    document.getElementById('rescheduleDepartureDate').setAttribute('min', today);
+    arrivalInput.setAttribute('min', today);
+    departureInput.setAttribute('min', today);
     
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
-    modal.show();
+    // Enable inputs
+    arrivalInput.disabled = false;
+    departureInput.disabled = false;
     
   } catch (error) {
     console.error('Error opening reschedule modal:', error);
+    
+    // Hide modal and show error
+    modal.hide();
     alert(`Failed to load booking details: ${error.message}`);
+  } finally {
+    // Restore button state
+    if (buttonElement) {
+      buttonElement.classList.remove('loading');
+      buttonElement.disabled = false;
+      buttonElement.innerHTML = originalButtonHTML;
+    }
   }
 }
 
