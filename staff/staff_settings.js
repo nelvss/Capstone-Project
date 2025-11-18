@@ -4115,6 +4115,8 @@ function createPackageCard(pkg) {
   const hotelReadonly = frag.querySelector('.package-hotel-readonly');
   const pricingList = frag.querySelector('.package-pricing-list');
   const addTierBtn = frag.querySelector('.package-add-pricing-btn');
+  const toggleBtn = frag.querySelector('.package-toggle-pricing-btn');
+  const pricingContent = frag.querySelector('.package-pricing-content');
   const saveBtn = frag.querySelector('.package-save-btn');
   const deleteBtn = frag.querySelector('.package-delete-btn');
   const inlineStatus = frag.querySelector('.vehicle-inline-status');
@@ -4134,6 +4136,25 @@ function createPackageCard(pkg) {
   }
   if (addTierBtn && pricingList) {
     addTierBtn.addEventListener('click', () => pricingList.appendChild(createPricingRow()));
+  }
+
+  // Toggle pricing tiers visibility
+  if (toggleBtn && pricingContent) {
+    toggleBtn.addEventListener('click', () => {
+      const isExpanded = pricingContent.classList.contains('show');
+      const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+      if (isExpanded) {
+        pricingContent.classList.remove('show');
+        toggleBtn.classList.remove('expanded');
+        if (toggleIcon) toggleIcon.textContent = '▼';
+        toggleBtn.innerHTML = '<span class="toggle-icon">▼</span> Show Pricing Tiers';
+      } else {
+        pricingContent.classList.add('show');
+        toggleBtn.classList.add('expanded');
+        if (toggleIcon) toggleIcon.textContent = '▲';
+        toggleBtn.innerHTML = '<span class="toggle-icon">▲</span> Hide Pricing Tiers';
+      }
+    });
   }
 
   if (saveBtn) {

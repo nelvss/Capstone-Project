@@ -433,6 +433,43 @@ header {
   box-sizing: border-box;
 }
 
+.package-toggle-pricing-btn {
+  width: 100%;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.package-toggle-pricing-btn .toggle-icon {
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.package-toggle-pricing-btn.expanded .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.package-pricing-content {
+  overflow: hidden;
+  transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+  max-height: 0;
+  opacity: 0;
+}
+
+.package-pricing-content.show {
+  max-height: 2000px;
+  opacity: 1;
+  display: block !important;
+}
+
+.package-pricing-content h4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
 .tour-pricing-list {
   width: 100%;
   max-width: 100%;
