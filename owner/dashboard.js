@@ -559,25 +559,6 @@ function showRescheduleConfirmationModal(booking) {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
   
-  // Calculate date differences
-  const calculateDaysDifference = (date1, date2) => {
-    if (!date1 || !date2) return 0;
-    const d1 = new Date(date1);
-    const d2 = new Date(date2);
-    const diffTime = d2 - d1;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-  
-  const arrivalDiff = calculateDaysDifference(originalArrival, newArrival);
-  const departureDiff = calculateDaysDifference(originalDeparture, newDeparture);
-  
-  // Format difference text
-  const formatDifference = (diff) => {
-    if (diff === 0) return '<span style="color: #6b7280;">No change</span>';
-    if (diff > 0) return `<span style="color: #10b981;">+${diff} day${diff !== 1 ? 's' : ''} later</span>`;
-    return `<span style="color: #ef4444;">${diff} day${diff !== -1 ? 's' : ''} earlier</span>`;
-  };
-  
   // Build modal content
   content.innerHTML = `
     <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -609,20 +590,6 @@ function showRescheduleConfirmationModal(booking) {
               <strong style="color: #6b7280; font-size: 12px;">Departure:</strong>
               <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDate(newDeparture)}</div>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      <div style="background-color: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
-        <h4 style="margin: 0 0 10px 0; color: #4b5563; font-size: 14px; font-weight: 600;">Date Difference</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-          <div>
-            <strong style="color: #6b7280; font-size: 12px;">Arrival:</strong>
-            <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDifference(arrivalDiff)}</div>
-          </div>
-          <div>
-            <strong style="color: #6b7280; font-size: 12px;">Departure:</strong>
-            <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDifference(departureDiff)}</div>
           </div>
         </div>
       </div>
