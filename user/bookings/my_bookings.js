@@ -658,6 +658,10 @@ async function submitRescheduleRequest() {
     
     const booking = getResult.booking;
     
+    // Store original dates before updating to new dates
+    const originalArrivalDate = booking.arrival_date;
+    const originalDepartureDate = booking.departure_date;
+    
     // Transform vehicle_bookings to vehicles format
     const vehicles = (booking.vehicle_bookings || []).map(vb => ({
       vehicle_id: vb.vehicle_id,
@@ -699,7 +703,9 @@ async function submitRescheduleRequest() {
       number_of_tourist: booking.number_of_tourist,
       status: newStatus,
       reschedule_requested: true,
-      reschedule_requested_at: new Date().toISOString()
+      reschedule_requested_at: new Date().toISOString(),
+      original_arrival_date: originalArrivalDate,
+      original_departure_date: originalDepartureDate
     };
     
     // Add optional fields if they exist

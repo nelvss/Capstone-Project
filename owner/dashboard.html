@@ -157,5 +157,20 @@
       <img id="modalReceiptImage" src="" alt="Receipt" style="max-width: 100%; max-height: calc(90vh - 60px); margin: auto; display: block; border-radius: 8px;">
     </div>
   </div>
+
+  <!-- Reschedule Confirmation Modal -->
+  <div id="rescheduleConfirmationModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-content" style="max-width: 600px; padding: 30px; position: relative;">
+      <button type="button" class="modal-close-btn" onclick="closeRescheduleConfirmationModal()" aria-label="Close reschedule confirmation dialog" style="position: absolute; top: 10px; right: 10px; z-index: 1001;">&times;</button>
+      <h2 style="margin-top: 0; margin-bottom: 20px; color: #333;">Confirm Reschedule Request</h2>
+      <div id="rescheduleModalContent" style="margin-bottom: 20px;">
+        <!-- Content will be dynamically populated -->
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button type="button" class="action-btn" onclick="closeRescheduleConfirmationModal()" style="background-color: #6b7280;">Cancel</button>
+        <button type="button" id="finalConfirmRescheduleBtn" class="action-btn btn-reschedule-confirm" onclick="processRescheduleConfirmation()">Confirm Reschedule</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

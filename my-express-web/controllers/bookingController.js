@@ -937,7 +937,9 @@ const updateBooking = async (req, res) => {
       payment_date,
       receipt_image_url,
       reschedule_requested,
-      reschedule_requested_at
+      reschedule_requested_at,
+      original_arrival_date,
+      original_departure_date
     } = req.body;
 
     const vehicleEntries = Array.isArray(vehicles) ? vehicles : [];
@@ -997,6 +999,13 @@ const updateBooking = async (req, res) => {
     }
     if (reschedule_requested_at !== undefined) {
       bookingUpdate.reschedule_requested_at = reschedule_requested_at || null;
+    }
+    // Store original dates when reschedule is requested
+    if (reschedule_requested === true && original_arrival_date) {
+      bookingUpdate.original_arrival_date = original_arrival_date;
+    }
+    if (reschedule_requested === true && original_departure_date) {
+      bookingUpdate.original_departure_date = original_departure_date;
     }
 
     // Add package_only_id or tour_only_id based on booking type

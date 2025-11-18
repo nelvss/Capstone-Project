@@ -501,11 +501,168 @@ async function handleCancel(booking, button) {
   }
 }
 
-// Handle confirm reschedule button click
+// Store current booking and button for reschedule confirmation
+let currentRescheduleBooking = null;
+let currentRescheduleButton = null;
+
+// Handle confirm reschedule button click - show popup first
 async function handleConfirmReschedule(booking, button) {
+  try {
+    // Get current booking details to preserve all fields
+    const getResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!getResponse.ok) {
+      throw new Error('Failed to fetch booking details');
+    }
+    
+    const getResult = await getResponse.json();
+    if (!getResult.success || !getResult.booking) {
+      throw new Error('Booking not found');
+    }
+    
+    const currentBooking = getResult.booking;
+    
+    // Store booking and button for later use
+    currentRescheduleBooking = booking;
+    currentRescheduleButton = button;
+    
+    // Show reschedule confirmation modal
+    showRescheduleConfirmationModal(currentBooking);
+  } catch (error) {
+    console.error('Error fetching booking details:', error);
+    alert('Failed to load booking details: ' + error.message);
+  }
+}
+
+// Show reschedule confirmation modal with date comparison
+function showRescheduleConfirmationModal(booking) {
+  const modal = document.getElementById('rescheduleConfirmationModal');
+  const content = document.getElementById('rescheduleModalContent');
+  
+  if (!modal || !content) return;
+  
+  // Get original and new dates
+  const originalArrival = booking.original_arrival_date || booking.arrival_date;
+  const originalDeparture = booking.original_departure_date || booking.departure_date;
+  const newArrival = booking.arrival_date;
+  const newDeparture = booking.departure_date;
+  
+  // Format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+  
+  // Calculate date differences
+  const calculateDaysDifference = (date1, date2) => {
+    if (!date1 || !date2) return 0;
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    const diffTime = d2 - d1;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+  
+  const arrivalDiff = calculateDaysDifference(originalArrival, newArrival);
+  const departureDiff = calculateDaysDifference(originalDeparture, newDeparture);
+  
+  // Format difference text
+  const formatDifference = (diff) => {
+    if (diff === 0) return '<span style="color: #6b7280;">No change</span>';
+    if (diff > 0) return `<span style="color: #10b981;">+${diff} day${diff !== 1 ? 's' : ''} later</span>`;
+    return `<span style="color: #ef4444;">${diff} day${diff !== -1 ? 's' : ''} earlier</span>`;
+  };
+  
+  // Build modal content
+  content.innerHTML = `
+    <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+      <h3 style="margin-top: 0; margin-bottom: 15px; color: #1f2937;">Date Comparison</h3>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div>
+          <h4 style="margin: 0 0 10px 0; color: #4b5563; font-size: 14px; font-weight: 600;">Original Dates</h4>
+          <div style="background-color: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+            <div style="margin-bottom: 10px;">
+              <strong style="color: #6b7280; font-size: 12px;">Arrival:</strong>
+              <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDate(originalArrival)}</div>
+            </div>
+            <div>
+              <strong style="color: #6b7280; font-size: 12px;">Departure:</strong>
+              <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDate(originalDeparture)}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h4 style="margin: 0 0 10px 0; color: #4b5563; font-size: 14px; font-weight: 600;">New Requested Dates</h4>
+          <div style="background-color: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+            <div style="margin-bottom: 10px;">
+              <strong style="color: #6b7280; font-size: 12px;">Arrival:</strong>
+              <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDate(newArrival)}</div>
+            </div>
+            <div>
+              <strong style="color: #6b7280; font-size: 12px;">Departure:</strong>
+              <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDate(newDeparture)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background-color: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+        <h4 style="margin: 0 0 10px 0; color: #4b5563; font-size: 14px; font-weight: 600;">Date Difference</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div>
+            <strong style="color: #6b7280; font-size: 12px;">Arrival:</strong>
+            <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDifference(arrivalDiff)}</div>
+          </div>
+          <div>
+            <strong style="color: #6b7280; font-size: 12px;">Departure:</strong>
+            <div style="color: #1f2937; font-size: 16px; margin-top: 4px;">${formatDifference(departureDiff)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Show modal
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+// Close reschedule confirmation modal
+function closeRescheduleConfirmationModal() {
+  const modal = document.getElementById('rescheduleConfirmationModal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  }
+  currentRescheduleBooking = null;
+  currentRescheduleButton = null;
+}
+
+// Process final reschedule confirmation
+async function processRescheduleConfirmation() {
+  if (!currentRescheduleBooking || !currentRescheduleButton) {
+    console.error('No booking or button stored for reschedule confirmation');
+    return;
+  }
+  
+  const booking = currentRescheduleBooking;
+  const button = currentRescheduleButton;
+  
   // Disable button and show loading state
-  button.disabled = true;
-  button.textContent = 'Processing...';
+  const confirmBtn = document.getElementById('finalConfirmRescheduleBtn');
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Processing...';
+  }
   
   try {
     // Get current booking details to preserve all fields
@@ -627,6 +784,7 @@ async function handleConfirmReschedule(booking, button) {
       }
       showNotification('✅ Reschedule confirmed and email sent successfully', 'success');
       renderTable();
+      closeRescheduleConfirmationModal();
     } else {
       console.warn(`Failed to send reschedule confirmation email: ${emailResult.message}`);
       // Still update the UI since the reschedule was confirmed in the database
@@ -639,14 +797,25 @@ async function handleConfirmReschedule(booking, button) {
       }
       showNotification('⚠️ Reschedule confirmed but email failed to send', 'warning');
       renderTable();
+      closeRescheduleConfirmationModal();
     }
   } catch (error) {
     console.error('Error confirming reschedule:', error);
-    button.disabled = false;
-    button.textContent = 'Confirm Reschedule';
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm Reschedule';
+    }
     alert('Failed to confirm reschedule: ' + error.message);
   }
 }
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+  const rescheduleModal = document.getElementById('rescheduleConfirmationModal');
+  if (rescheduleModal && rescheduleModal.classList.contains('open') && event.target === rescheduleModal) {
+    closeRescheduleConfirmationModal();
+  }
+});
 
 // Booking edit modal functions removed
 
