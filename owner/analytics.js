@@ -1653,7 +1653,7 @@ function navigateWithTransition(url) {
 function handleLogout() {
   if (confirm('Are you sure you want to logout?')) {
     localStorage.removeItem('userSession');
-    window.location.href = 'login.html';
+    window.location.href = '../user/home/home.html';
   }
 }
 

@@ -1236,6 +1236,6 @@ function navigateWithTransition(url) {
 function handleLogout() {
   // Clear stored session data
   localStorage.removeItem('userSession');
-  // Redirect to login page
-  window.location.href = 'login.html';
+  // Redirect to landing page
+  window.location.href = '../user/home/home.html';
 }

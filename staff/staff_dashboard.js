@@ -1479,7 +1479,7 @@ function navigateWithTransition(url) {
 
 function handleLogout() {
   localStorage.removeItem('userSession');
-  window.location.href = '../owner/login.html';
+  window.location.href = '../user/home/home.html';
 }
 
 function checkSession() {

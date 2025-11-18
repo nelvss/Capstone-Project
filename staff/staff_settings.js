@@ -96,7 +96,7 @@ function navigateWithTransition(url) {
 function handleLogout() {
   if (confirm('Are you sure you want to logout? Any unsaved changes will be lost.')) {
     localStorage.removeItem('userSession');
-    window.location.href = '../owner/login.html';
+    window.location.href = '../user/home/home.html';
   }
 }
 
