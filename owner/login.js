@@ -181,6 +181,7 @@ function switchToRegister(event) {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'block';
     document.getElementById('headerText').textContent = 'Create your account';
+    updateBackArrowBehavior();
 }
 
 function switchToLogin(event) {
@@ -189,6 +190,7 @@ function switchToLogin(event) {
     document.getElementById('forgotPasswordForm').style.display = 'none';
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('headerText').textContent = 'Sign in to your account';
+    updateBackArrowBehavior();
 }
 
 // Password toggle functions for registration form
@@ -251,6 +253,50 @@ function switchToForgotPassword(event) {
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('forgotPasswordForm').style.display = 'block';
     document.getElementById('headerText').textContent = 'Reset your password';
+    updateBackArrowBehavior();
+}
+
+// Handle back arrow button click
+function handleBackArrow(event) {
+    event.preventDefault();
+    
+    const registerForm = document.getElementById('registerForm');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    
+    // Check which form is currently visible
+    const isRegisterVisible = registerForm.style.display === 'block';
+    const isForgotPasswordVisible = forgotPasswordForm.style.display === 'block';
+    const isLoginVisible = !isRegisterVisible && !isForgotPasswordVisible;
+    
+    // If login form is visible, go to home page
+    if (isLoginVisible) {
+        window.location.href = '../user/home/home.html';
+    }
+    // If register or forgot password form is visible, go back to login form
+    else if (isRegisterVisible || isForgotPasswordVisible) {
+        switchToLogin(event);
+    }
+}
+
+// Update back arrow behavior based on current form
+function updateBackArrowBehavior() {
+    const backArrowBtn = document.getElementById('backArrowBtn');
+    const registerForm = document.getElementById('registerForm');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    
+    // Check which form is currently visible
+    const isRegisterVisible = registerForm.style.display === 'block';
+    const isForgotPasswordVisible = forgotPasswordForm.style.display === 'block';
+    const isLoginVisible = !isRegisterVisible && !isForgotPasswordVisible;
+    
+    // If login form is visible, set title to "Back to Home"
+    if (isLoginVisible) {
+        backArrowBtn.title = 'Back to Home';
+    }
+    // If register or forgot password form is visible, set title to "Back to Login"
+    else if (isRegisterVisible || isForgotPasswordVisible) {
+        backArrowBtn.title = 'Back to Login';
+    }
 }
 
 // Forgot Password Function
@@ -318,6 +364,9 @@ async function handleForgotPassword(event) {
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const mode = urlParams.get('mode');
+    
+    // Initialize back arrow behavior
+    updateBackArrowBehavior();
     
     if (mode === 'register') {
         switchToRegister({ preventDefault: () => {} });
