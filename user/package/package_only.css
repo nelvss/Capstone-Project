@@ -496,13 +496,16 @@ body {
     position: absolute !important;
     top: -2rem !important;
     left: 3.5rem !important;
-    font-size: 0.7rem !important;
+    font-size: 0.875rem !important;
     font-weight: 600 !important;
-    color: #dc2626 !important;
+    color: #000000 !important;
     background: transparent !important;
     padding: 0 !important;
+    margin: 0 !important;
+    opacity: 1 !important;
     transform: none !important;
     pointer-events: none !important;
+    z-index: 2 !important;
 }
 
 /* ===== ERROR MESSAGE STYLING ===== */
