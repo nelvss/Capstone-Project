@@ -54,11 +54,17 @@ async function handleResetPassword(event) {
             throw new Error(data.message || 'Failed to reset password');
         }
 
-        // Show success message
-        showSuccessModal('Success', 'Password has been reset successfully! You can now login with your new password.').then(() => {
-          // Redirect to login page
-          window.location.href = 'login.html';
-        });
+        // Show success message using custom modal
+        if (typeof showSuccessModal === 'function') {
+            showSuccessModal('Success', 'Password has been reset successfully! You can now login with your new password.').then(() => {
+                // Redirect to login page
+                window.location.href = 'login.html';
+            });
+        } else {
+            // Fallback: redirect directly if modal function is not available
+            console.error('showSuccessModal is not available');
+            window.location.href = 'login.html';
+        }
 
     } catch (error) {
         console.error('Reset password error:', error);
