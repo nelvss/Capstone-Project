@@ -531,6 +531,18 @@ const getBookings = async (req, res) => {
           payment_option: p.payment_option,
           paid_amount: p.paid_amount
         })));
+        
+        // Debug: Check if specific booking is in the fetched payments
+        const hasTargetBooking = payments.some(p => 
+          String(p.booking_id).trim() === '25-615315' || p.booking_id === '25-615315'
+        );
+        console.log('🔍 Payment for 25-615315 in fetched data:', hasTargetBooking);
+        if (hasTargetBooking) {
+          const targetPayment = payments.find(p => 
+            String(p.booking_id).trim() === '25-615315' || p.booking_id === '25-615315'
+          );
+          console.log('✅ Found payment for 25-615315:', targetPayment);
+        }
         // Sort by payment_date descending and take the first one for each booking
         const sortedPayments = payments.sort((a, b) => {
           const dateA = new Date(a.payment_date || 0);
@@ -541,6 +553,19 @@ const getBookings = async (req, res) => {
         paymentsData = sortedPayments.reduce((acc, payment) => {
           // Normalize booking_id to handle string/number and whitespace issues
           const normalizedPaymentId = String(payment.booking_id).trim();
+          
+          // Debug: Log when processing the target booking
+          if (normalizedPaymentId === '25-615315' || payment.booking_id === '25-615315') {
+            console.log('🔍 Processing payment for 25-615315:', {
+              original_booking_id: payment.booking_id,
+              normalized: normalizedPaymentId,
+              payment_method: payment.payment_method,
+              payment_option: payment.payment_option,
+              paid_amount: payment.paid_amount,
+              allKeys: Object.keys(payment)
+            });
+          }
+          
           if (!acc[normalizedPaymentId] && !acc[payment.booking_id]) {
             const paymentData = {
               total_booking_amount: payment.total_booking_amount,
@@ -555,6 +580,12 @@ const getBookings = async (req, res) => {
             if (normalizedPaymentId !== String(payment.booking_id)) {
               acc[payment.booking_id] = paymentData;
             }
+            
+            // Debug: Confirm storage for target booking
+            if (normalizedPaymentId === '25-615315' || payment.booking_id === '25-615315') {
+              console.log('✅ Stored payment data for 25-615315:', paymentData);
+              console.log('✅ Available keys in paymentsData:', Object.keys(acc).filter(k => k.includes('615315')));
+            }
           }
           return acc;
         }, {});
@@ -562,6 +593,18 @@ const getBookings = async (req, res) => {
         // Debug: Log which bookings have payment data
         console.log('💰 Bookings with payment data:', Object.keys(paymentsData).slice(0, 10));
         console.log('💰 Total bookings with payments:', Object.keys(paymentsData).length);
+        
+        // Debug: Check if specific booking has payment data
+        if (paymentsData['25-615315']) {
+          console.log('✅ Found payment data for 25-615315:', paymentsData['25-615315']);
+        } else {
+          console.log('❌ No payment data found for 25-615315');
+          // Check all keys to see if there's a similar one
+          const similarKeys = Object.keys(paymentsData).filter(k => k.includes('615315') || k.includes('25-615315'));
+          if (similarKeys.length > 0) {
+            console.log('🔍 Found similar keys:', similarKeys);
+          }
+        }
       }
     }
     
@@ -591,9 +634,22 @@ const getBookings = async (req, res) => {
       const vanRentals = vanRentalBookingsData[normalizedBookingId] || [];
       const vanRentalsFallback = vanRentals.length === 0 ? (vanRentalBookingsData[booking.booking_id] || []) : vanRentals;
       
-      // Try both normalized and original booking_id for payment lookup
-      const normalizedBookingId = String(booking.booking_id).trim();
-      const paymentInfo = paymentsData[normalizedBookingId] || paymentsData[booking.booking_id] || null;
+      // Try multiple variations of booking_id for payment lookup
+      const paymentInfo = paymentsData[normalizedBookingId] 
+        || paymentsData[booking.booking_id] 
+        || paymentsData[String(booking.booking_id)]
+        || null;
+      
+      // Debug: Log payment lookup for bookings with receipt images but no payment data
+      if (booking.receipt_image_url && !paymentInfo && (booking.booking_id === '25-615315' || normalizedBookingId === '25-615315')) {
+        console.log('⚠️ Booking has receipt image but no payment data:', {
+          booking_id: booking.booking_id,
+          normalizedBookingId: normalizedBookingId,
+          receipt_image_url: booking.receipt_image_url,
+          availablePaymentKeys: Object.keys(paymentsData).slice(0, 20),
+          totalPayments: Object.keys(paymentsData).length
+        });
+      }
       
       return {
         ...booking,
@@ -602,7 +658,7 @@ const getBookings = async (req, res) => {
         van_rental_bookings: vanRentalsFallback,
         diving_bookings: divingBookingsData[booking.booking_id] || [],
         total_booking_amount: paymentInfo ? paymentInfo.total_booking_amount : null,
-        receipt_image_url: paymentInfo ? paymentInfo.receipt_image_url : null,
+        receipt_image_url: paymentInfo ? paymentInfo.receipt_image_url : booking.receipt_image_url || null,
         payment_method: paymentInfo ? paymentInfo.payment_method : null,
         payment_option: paymentInfo ? paymentInfo.payment_option : null,
         paid_amount: paymentInfo ? paymentInfo.paid_amount : null,
