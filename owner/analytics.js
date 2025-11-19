@@ -264,12 +264,7 @@ async function fetchAnalyticsDataFromApi() {
     
     // Load seasonal prediction (non-blocking)
     try {
-      const yearFilter = document.getElementById('seasonalPredictionYearFilter');
-      const selectedYear = yearFilter ? yearFilter.value : new Date().getFullYear();
-      const seasonalParams = new URLSearchParams({
-        year: selectedYear.toString()
-      });
-      const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction?${seasonalParams.toString()}`);
+      const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction`);
       const seasonalResult = await seasonalResponse.json();
       if (seasonalResponse.ok && seasonalResult.success) {
         analyticsData.seasonal_prediction = seasonalResult.data;
@@ -736,39 +731,6 @@ function initializeCharts() {
 function initializeFilters() {
     const months = Object.keys(weeklyData);
     
-    // Populate all year filters
-    const yearFilters = [
-        'bookingTypeYearFilter',
-        'packageDistributionYearFilter',
-        'tourDistributionYearFilter',
-        'touristVolumeYearFilter',
-        'avgBookingValueYearFilter',
-        'seasonalPredictionYearFilter'
-    ];
-    
-    yearFilters.forEach(filterId => {
-        const select = document.getElementById(filterId);
-        if (select) {
-            // Add more years if needed
-            const years = [2019, 2020, 2021, 2022, 2023, 2024];
-            
-            // Clear existing options except the default
-            const hasDefaultOptions = select.querySelectorAll('option').length > 0;
-            if (!hasDefaultOptions) {
-                years.forEach(year => {
-                    const option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = year;
-                    if (year === 2024) option.selected = true;
-                    select.appendChild(option);
-                });
-            }
-            
-            // Add change event listener
-            select.addEventListener('change', (e) => handleYearFilter(e, filterId));
-        }
-    });
-    
     // Populate all month filters
     const monthFilters = [
         'bookingTypeMonthFilter',
@@ -822,50 +784,11 @@ function initializeFilters() {
     });
 }
 
-// Handle year filter change
-function handleYearFilter(event, filterId) {
-    const year = event.target.value;
-    const monthFilterId = filterId.replace('YearFilter', 'MonthFilter');
-    const weekFilterId = filterId.replace('YearFilter', 'WeekFilter');
-    
-    // Reset month and week filters
-    const monthSelect = document.getElementById(monthFilterId);
-    const weekSelect = document.getElementById(weekFilterId);
-    
-    if (monthSelect) monthSelect.value = 'all';
-    if (weekSelect) {
-        weekSelect.innerHTML = '<option value="all">All Weeks</option>';
-    }
-    
-    // Update the corresponding chart
-    if (monthFilterId) {
-        updateChart(monthFilterId, 'all', 'all', year);
-    } else {
-        // For charts without month filters, reload data
-        if (filterId.includes('bookingType')) {
-            loadBookingTypeData();
-        } else if (filterId.includes('packageDistribution')) {
-            loadPackageDistributionData();
-        } else if (filterId.includes('tourDistribution')) {
-            loadTourDistributionData();
-        } else if (filterId.includes('touristVolume')) {
-            loadTouristVolumeData();
-        } else if (filterId.includes('avgBookingValue')) {
-            loadAvgBookingValueData();
-        } else if (filterId.includes('seasonalPrediction')) {
-            loadSeasonalPredictionData(year);
-        }
-    }
-}
-
 // Handle month filter change
 function handleMonthFilter(event, filterId) {
     const month = event.target.value;
     const weekFilterId = filterId.replace('MonthFilter', 'WeekFilter');
-    const yearFilterId = filterId.replace('MonthFilter', 'YearFilter');
     const weekSelect = document.getElementById(weekFilterId);
-    const yearSelect = document.getElementById(yearFilterId);
-    const year = yearSelect ? yearSelect.value : '2025';
     
     // Clear week filter only if it exists
     if (weekSelect) {
@@ -883,25 +806,22 @@ function handleMonthFilter(event, filterId) {
     }
     
     // Update the corresponding chart
-    updateChart(filterId, month, 'all', year);
+    updateChart(filterId, month, 'all');
 }
 
 // Handle week filter change
 function handleWeekFilter(event, filterId) {
     const week = event.target.value;
     const monthFilterId = filterId.replace('WeekFilter', 'MonthFilter');
-    const yearFilterId = filterId.replace('WeekFilter', 'YearFilter');
     const monthSelect = document.getElementById(monthFilterId);
-    const yearSelect = document.getElementById(yearFilterId);
     const month = monthSelect.value;
-    const year = yearSelect ? yearSelect.value : '2025';
     
     // Update the corresponding chart
-    updateChart(monthFilterId, month, week, year);
+    updateChart(monthFilterId, month, week);
 }
 
 // Update chart based on filters
-function updateChart(monthFilterId, month, week, year) {
+function updateChart(monthFilterId, month, week) {
     let chartKey = '';
     
     if (monthFilterId.includes('bookingType')) {
@@ -1500,13 +1420,10 @@ async function createSeasonalPredictionChart() {
   }
 }
 
-// Load seasonal prediction data for a specific year
-async function loadSeasonalPredictionData(year) {
+// Load seasonal prediction data for all historical data
+async function loadSeasonalPredictionData() {
   try {
-    const seasonalParams = new URLSearchParams({
-      year: year.toString()
-    });
-    const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction?${seasonalParams.toString()}`);
+    const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction`);
     const seasonalResult = await seasonalResponse.json();
     if (seasonalResponse.ok && seasonalResult.success) {
       analyticsData.seasonal_prediction = seasonalResult.data;
@@ -2361,31 +2278,8 @@ async function loadBookingTypeData() {
     }
     
     try {
-        const yearSelect = document.getElementById('bookingTypeYearFilter');
-        const monthSelect = document.getElementById('bookingTypeMonthFilter');
-        const year = yearSelect ? yearSelect.value : '2025';
-        const month = monthSelect ? monthSelect.value : 'all';
-        
-        let url = '';
-        
-        // Set date range based on year and month filters
-        if (month !== 'all') {
-            // Convert month name to number
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthNum = monthNames.indexOf(month) + 1;
-            if (monthNum > 0) {
-                // Use day grouping for single month to show weekly breakdown
-                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=week&start_date=${startDate}&end_date=${endDate}`;
-            }
-        } else {
-            // Filter by year - show all months in the selected year
-            const startDate = `${year}-01-01`;
-            const endDate = `${year}-12-31`;
-            url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month&start_date=${startDate}&end_date=${endDate}`;
-        }
-        
+        // Fetch all historical data without date filters
+        const url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month`;
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2406,41 +2300,25 @@ async function loadBookingTypeData() {
         if (result.success && result.comparison && Array.isArray(result.comparison)) {
             const chart = chartInstances['bookingTypeChart'];
             if (chart && result.comparison.length > 0) {
-                // Filter data based on selected month
-                let filteredData = result.comparison;
-                if (month !== 'all') {
-                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    const monthNum = monthNames.indexOf(month) + 1;
-                    if (monthNum > 0) {
-                        const targetYearMonth = `${year}-${String(monthNum).padStart(2, '0')}`;
-                        filteredData = result.comparison.filter(c => c.period.startsWith(targetYearMonth));
-                        console.log(`🔍 Filtered to ${month} ${year}:`, filteredData.length, 'data points from', result.comparison.length);
-                    }
-                }
-                
-                // Format labels based on period format
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const labels = filteredData.map(c => {
+                // Format labels to show full date (YYYY-MM format) for multi-year data
+                const labels = result.comparison.map(c => {
                     const parts = c.period.split('-');
                     if (parts.length === 2) {
-                        // Monthly format: YYYY-MM
-                        const monthIdx = parseInt(parts[1]) - 1;
-                        if (monthIdx >= 0 && monthIdx < 12) {
-                            return monthNames[monthIdx];
-                        }
+                        // Monthly format: YYYY-MM - show full date
+                        return c.period;
                     } else if (parts.length === 3 && c.period.includes('W')) {
                         // Weekly format: YYYY-Www (e.g., 2025-W20)
                         const weekMatch = c.period.match(/W(\d+)/);
                         if (weekMatch) {
-                            return `Week ${weekMatch[1]}`;
+                            return c.period;
                         }
                     }
                     return c.period;
                 });
                 
                 chart.data.labels = labels;
-                chart.data.datasets[0].data = filteredData.map(c => c.package_only || 0);
-                chart.data.datasets[1].data = filteredData.map(c => c.tour_only || 0);
+                chart.data.datasets[0].data = result.comparison.map(c => c.package_only || 0);
+                chart.data.datasets[1].data = result.comparison.map(c => c.tour_only || 0);
                 chart.update();
                 console.log('✅ Booking Type chart updated:', labels.length, 'data points');
             } else if (chart) {
@@ -2475,30 +2353,8 @@ async function loadPackageDistributionData() {
     }
     
     try {
-        const yearSelect = document.getElementById('packageDistributionYearFilter');
-        const monthSelect = document.getElementById('packageDistributionMonthFilter');
-        const year = yearSelect ? yearSelect.value : '2025';
-        const month = monthSelect ? monthSelect.value : 'all';
-        
-        let url = '';
-        
-        // Set date range based on year and month filters
-        if (month !== 'all') {
-            // Convert month name to number
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthNum = monthNames.indexOf(month) + 1;
-            if (monthNum > 0) {
-                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url = `${window.API_URL}/api/analytics/package-distribution?start_date=${startDate}&end_date=${endDate}`;
-            }
-        } else {
-            // Filter by year - show all months in the selected year
-            const startDate = `${year}-01-01`;
-            const endDate = `${year}-12-31`;
-            url = `${window.API_URL}/api/analytics/package-distribution?start_date=${startDate}&end_date=${endDate}`;
-        }
-        
+        // Fetch all historical data without date filters
+        const url = `${window.API_URL}/api/analytics/package-distribution`;
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2554,30 +2410,8 @@ async function loadTourDistributionData() {
     }
     
     try {
-        const yearSelect = document.getElementById('tourDistributionYearFilter');
-        const monthSelect = document.getElementById('tourDistributionMonthFilter');
-        const year = yearSelect ? yearSelect.value : '2025';
-        const month = monthSelect ? monthSelect.value : 'all';
-        
-        let url = '';
-        
-        // Set date range based on year and month filters
-        if (month !== 'all') {
-            // Convert month name to number
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthNum = monthNames.indexOf(month) + 1;
-            if (monthNum > 0) {
-                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url = `${window.API_URL}/api/analytics/tour-distribution?start_date=${startDate}&end_date=${endDate}`;
-            }
-        } else {
-            // Filter by year - show all months in the selected year
-            const startDate = `${year}-01-01`;
-            const endDate = `${year}-12-31`;
-            url = `${window.API_URL}/api/analytics/tour-distribution?start_date=${startDate}&end_date=${endDate}`;
-        }
-        
+        // Fetch all historical data without date filters
+        const url = `${window.API_URL}/api/analytics/tour-distribution`;
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2632,28 +2466,8 @@ async function loadTouristVolumeData() {
     }
     
     try {
-        const yearSelect = document.getElementById('touristVolumeYearFilter');
-        const monthSelect = document.getElementById('touristVolumeMonthFilter');
-        const year = yearSelect ? yearSelect.value : '2025';
-        const month = monthSelect ? monthSelect.value : 'all';
-        
-        let url = '';
-        if (month !== 'all') {
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthNum = monthNames.indexOf(month) + 1;
-            if (monthNum > 0) {
-                // Use week grouping for single month to show weekly breakdown
-                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url = `${window.API_URL}/api/analytics/tourist-volume?group_by=week&start_date=${startDate}&end_date=${endDate}`;
-            }
-        } else {
-            // Filter by year - show all months in the selected year
-            const startDate = `${year}-01-01`;
-            const endDate = `${year}-12-31`;
-            url = `${window.API_URL}/api/analytics/tourist-volume?group_by=month&start_date=${startDate}&end_date=${endDate}`;
-        }
-        
+        // Fetch all historical data without date filters
+        const url = `${window.API_URL}/api/analytics/tourist-volume?group_by=month`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -2666,40 +2480,21 @@ async function loadTouristVolumeData() {
         if (result.success && result.volume && Array.isArray(result.volume)) {
             const chart = chartInstances['touristVolumeChart'];
             if (chart && result.volume.length > 0) {
-                // Filter data based on selected month
-                let filteredData = result.volume;
-                if (month !== 'all') {
-                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    const monthNum = monthNames.indexOf(month) + 1;
-                    if (monthNum > 0) {
-                        const targetYearMonth = `${year}-${String(monthNum).padStart(2, '0')}`;
-                        filteredData = result.volume.filter(v => v.period.startsWith(targetYearMonth));
-                        console.log(`🔍 Filtered to ${month} ${year}:`, filteredData.length, 'data points from', result.volume.length);
-                    }
-                }
-                
-                // Format labels based on period format
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const labels = filteredData.map(v => {
+                // Format labels to show full date (YYYY-MM format) for multi-year data
+                const labels = result.volume.map(v => {
                     const parts = v.period.split('-');
                     if (parts.length === 2) {
-                        // Monthly format: YYYY-MM
-                        const monthIdx = parseInt(parts[1]) - 1;
-                        if (monthIdx >= 0 && monthIdx < 12) {
-                            return monthNames[monthIdx];
-                        }
+                        // Monthly format: YYYY-MM - show full date
+                        return v.period;
                     } else if (parts.length === 3 && v.period.includes('W')) {
                         // Weekly format: YYYY-Www (e.g., 2025-W20)
-                        const weekMatch = v.period.match(/W(\d+)/);
-                        if (weekMatch) {
-                            return `Week ${weekMatch[1]}`;
-                        }
+                        return v.period;
                     }
                     return v.period;
                 });
                 
                 chart.data.labels = labels;
-                chart.data.datasets[0].data = filteredData.map(v => v.tourists || 0);
+                chart.data.datasets[0].data = result.volume.map(v => v.tourists || 0);
                 chart.update();
                 console.log('✅ Tourist Volume chart updated:', labels.length, 'data points');
             } else if (chart) {
@@ -2724,28 +2519,8 @@ async function loadAvgBookingValueData() {
     }
     
     try {
-        const yearSelect = document.getElementById('avgBookingValueYearFilter');
-        const monthSelect = document.getElementById('avgBookingValueMonthFilter');
-        const year = yearSelect ? yearSelect.value : '2025';
-        const month = monthSelect ? monthSelect.value : 'all';
-        
-        let url = '';
-        if (month !== 'all') {
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthNum = monthNames.indexOf(month) + 1;
-            if (monthNum > 0) {
-                // Use week grouping for single month to show weekly breakdown
-                const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-                const endDate = `${year}-${String(monthNum).padStart(2, '0')}-31`;
-                url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=week&start_date=${startDate}&end_date=${endDate}`;
-            }
-        } else {
-            // Filter by year - show all months in the selected year
-            const startDate = `${year}-01-01`;
-            const endDate = `${year}-12-31`;
-            url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=month&start_date=${startDate}&end_date=${endDate}`;
-        }
-        
+        // Fetch all historical data without date filters
+        const url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=month`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -2758,40 +2533,21 @@ async function loadAvgBookingValueData() {
         if (result.success && result.avgValues && Array.isArray(result.avgValues)) {
             const chart = chartInstances['avgBookingValueChart'];
             if (chart && result.avgValues.length > 0) {
-                // Filter data based on selected month
-                let filteredData = result.avgValues;
-                if (month !== 'all') {
-                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    const monthNum = monthNames.indexOf(month) + 1;
-                    if (monthNum > 0) {
-                        const targetYearMonth = `${year}-${String(monthNum).padStart(2, '0')}`;
-                        filteredData = result.avgValues.filter(v => v.period.startsWith(targetYearMonth));
-                        console.log(`🔍 Filtered to ${month} ${year}:`, filteredData.length, 'data points from', result.avgValues.length);
-                    }
-                }
-                
-                // Format labels based on period format
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const labels = filteredData.map(v => {
+                // Format labels to show full date (YYYY-MM format) for multi-year data
+                const labels = result.avgValues.map(v => {
                     const parts = v.period.split('-');
                     if (parts.length === 2) {
-                        // Monthly format: YYYY-MM
-                        const monthIdx = parseInt(parts[1]) - 1;
-                        if (monthIdx >= 0 && monthIdx < 12) {
-                            return monthNames[monthIdx];
-                        }
+                        // Monthly format: YYYY-MM - show full date
+                        return v.period;
                     } else if (parts.length === 3 && v.period.includes('W')) {
                         // Weekly format: YYYY-Www (e.g., 2025-W20)
-                        const weekMatch = v.period.match(/W(\d+)/);
-                        if (weekMatch) {
-                            return `Week ${weekMatch[1]}`;
-                        }
+                        return v.period;
                     }
                     return v.period;
                 });
                 
                 chart.data.labels = labels;
-                chart.data.datasets[0].data = filteredData.map(v => v.average || 0);
+                chart.data.datasets[0].data = result.avgValues.map(v => v.average || 0);
                 chart.update();
                 console.log('✅ Average Booking Value chart updated:', labels.length, 'data points');
             } else if (chart) {
