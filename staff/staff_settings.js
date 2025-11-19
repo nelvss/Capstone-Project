@@ -4264,6 +4264,7 @@ function createPackageCard(pkg) {
           setTimeout(() => clearInlineStatus(inlineStatus), 3000);
         }
       });
+    });
   }
 
   return frag;
