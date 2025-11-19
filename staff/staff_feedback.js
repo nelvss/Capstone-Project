@@ -117,11 +117,11 @@ function attachFeedbackListeners() {
     // Delete feedback
     document.querySelectorAll('.delete-feedback').forEach(btn => {
         btn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to delete this feedback?')) {
+            showConfirmModal('Confirm Delete', 'Are you sure you want to delete this feedback?', async () => {
                 const feedbackItem = this.closest('.feedback-item');
                 const timestamp = feedbackItem.dataset.timestamp;
                 deleteFeedback(timestamp);
-            }
+            });
         });
     });
 }
@@ -130,7 +130,7 @@ function attachFeedbackListeners() {
 async function deleteFeedback(timestamp) {
     if (!timestamp) {
         console.error('No feedback ID provided for deletion');
-        alert('Error: No feedback ID provided. Please try again.');
+        showErrorModal('Error', 'No feedback ID provided. Please try again.');
         return;
     }
     
@@ -157,16 +157,16 @@ async function deleteFeedback(timestamp) {
         
         if (result.success) {
             // Show success message
-            alert('Feedback deleted successfully');
+            showSuccessModal('Success', 'Feedback deleted successfully');
             // Reload feedback to show updated list
             loadFeedback();
         } else {
             console.error('Failed to delete feedback:', result.message);
-            alert(`Failed to delete feedback: ${result.message || 'Please try again.'}`);
+            showErrorModal('Error', `Failed to delete feedback: ${result.message || 'Please try again.'}`);
         }
     } catch (error) {
         console.error('Error deleting feedback:', error);
-        alert(`Failed to delete feedback: ${error.message || 'Please try again later.'}`);
+        showErrorModal('Error', `Failed to delete feedback: ${error.message || 'Please try again later.'}`);
     }
 }
 

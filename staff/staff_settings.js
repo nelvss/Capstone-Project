@@ -94,10 +94,10 @@ function navigateWithTransition(url) {
 
 // Logout functionality (same as dashboard)
 function handleLogout() {
-  if (confirm('Are you sure you want to logout? Any unsaved changes will be lost.')) {
+  showConfirmModal('Confirm Logout', 'Are you sure you want to logout? Any unsaved changes will be lost.', () => {
     localStorage.removeItem('userSession');
     window.location.href = '../user/home/home.html';
-  }
+  });
 }
 
 // Session checking
@@ -113,8 +113,9 @@ function checkSession() {
     const session = JSON.parse(userSession);
     
     if (session.type !== 'staff') {
-      alert('Access denied. Staff access required.');
-      window.location.href = '../owner/login.html';
+      showErrorModal('Access Denied', 'Staff access required.').then(() => {
+        window.location.href = 'login.html';
+      });
       return false;
     }
     
@@ -571,64 +572,60 @@ async function handleVehicleImageUpload({ vehicleId, file, uploadButton, inlineS
 }
 
 async function handleVehicleDelete({ vehicleId, vehicleName, deleteButton, card, inlineStatus, statusTag }) {
-  const confirmed = confirm(`Are you sure you want to delete "${vehicleName}"?\n\nThis action cannot be undone. The vehicle will be removed from Supabase and will no longer appear on the home page.`);
-  
-  if (!confirmed) {
-    return;
-  }
+  showConfirmModal('Confirm Delete', `Are you sure you want to delete "${vehicleName}"?\n\nThis action cannot be undone. The vehicle will be removed from Supabase and will no longer appear on the home page.`, async () => {
+    showInlineStatus(inlineStatus, 'Deleting vehicle...');
+    setStatusTag(statusTag, 'Deleting...', 'default');
 
-  showInlineStatus(inlineStatus, 'Deleting vehicle...');
-  setStatusTag(statusTag, 'Deleting...', 'default');
-
-  if (deleteButton) {
-    deleteButton.disabled = true;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-cache'
-    });
-
-    const result = await parseJsonResponse(response);
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to delete vehicle');
-    }
-
-    // Remove from state
-    const filtered = vehicleState.data.filter(v => resolveVehicleId(v) !== vehicleId);
-    setVehicleData(filtered);
-
-    // Remove card from DOM
-    if (card && card.parentElement) {
-      card.style.opacity = '0';
-      card.style.transform = 'scale(0.95)';
-      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      
-      setTimeout(() => {
-        card.remove();
-      }, 300);
-    }
-
-    showSuccessMessage(`${vehicleName} deleted successfully!`);
-    
-    // Re-render to ensure UI is in sync
-    renderVehicles();
-  } catch (error) {
-    console.error('❌ Error deleting vehicle:', error);
-    showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
-    setStatusTag(statusTag, 'Delete failed', 'error');
-    
     if (deleteButton) {
-      deleteButton.disabled = false;
+      deleteButton.disabled = true;
     }
-    
-    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
-  }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-cache'
+      });
+
+      const result = await parseJsonResponse(response);
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete vehicle');
+      }
+
+      // Remove from state
+      const filtered = vehicleState.data.filter(v => resolveVehicleId(v) !== vehicleId);
+      setVehicleData(filtered);
+
+      // Remove card from DOM
+      if (card && card.parentElement) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+          card.remove();
+        }, 300);
+      }
+
+      showSuccessMessage(`${vehicleName} deleted successfully!`);
+      
+      // Re-render to ensure UI is in sync
+      renderVehicles();
+    } catch (error) {
+      console.error('❌ Error deleting vehicle:', error);
+      showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
+      setStatusTag(statusTag, 'Delete failed', 'error');
+      
+      if (deleteButton) {
+        deleteButton.disabled = false;
+      }
+      
+      setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+    }
+  });
 }
 
 function compressImage(file, maxSizeMB = 2) {
@@ -1121,79 +1118,75 @@ function renderDivingImages(container, images, divingId) {
 }
 
 async function handleDivingImageDelete({ divingId, imageId, imageWrapper, inlineStatus, statusTag }) {
-  const confirmed = confirm('Are you sure you want to delete this image?');
-  
-  if (!confirmed) {
-    return;
-  }
-
-  if (inlineStatus) {
-    inlineStatus.textContent = 'Deleting...';
-    inlineStatus.style.display = 'block';
-  }
-
-  if (statusTag) {
-    setStatusTag(statusTag, 'Deleting image...', 'default');
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/diving/${divingId}/images/${imageId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-cache'
-    });
-
-    const result = await parseJsonResponse(response);
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to delete diving image');
+  showConfirmModal('Confirm Delete', 'Are you sure you want to delete this image?', async () => {
+    if (inlineStatus) {
+      inlineStatus.textContent = 'Deleting...';
+      inlineStatus.style.display = 'block';
     }
 
-    const updatedDiving = result.diving;
-    updateDivingInState(updatedDiving);
+    if (statusTag) {
+      setStatusTag(statusTag, 'Deleting image...', 'default');
+    }
 
-    if (imageWrapper && imageWrapper.parentElement) {
-      imageWrapper.style.opacity = '0';
-      imageWrapper.style.transform = 'scale(0.8)';
-      imageWrapper.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    try {
+      const response = await fetch(`${API_BASE_URL}/diving/${divingId}/images/${imageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-cache'
+      });
+
+      const result = await parseJsonResponse(response);
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete diving image');
+      }
+
+      const updatedDiving = result.diving;
+      updateDivingInState(updatedDiving);
+
+      if (imageWrapper && imageWrapper.parentElement) {
+        imageWrapper.style.opacity = '0';
+        imageWrapper.style.transform = 'scale(0.8)';
+        imageWrapper.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+          imageWrapper.remove();
+
+          const gallery = imageWrapper.parentElement;
+          if (gallery && (!updatedDiving?.images || updatedDiving.images.length === 0)) {
+            gallery.innerHTML = '<p class="text-muted small mb-0">No images uploaded yet</p>';
+          }
+        }, 300);
+      }
+
+      if (statusTag) {
+        setStatusTag(statusTag, 'Image deleted', 'success');
+      }
+
+      showSuccessMessage('Image deleted successfully!');
+    } catch (error) {
+      console.error('❌ Error deleting diving image:', error);
       
-      setTimeout(() => {
-        imageWrapper.remove();
+      if (inlineStatus) {
+        inlineStatus.textContent = 'Delete failed';
+        inlineStatus.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
+      }
 
-        const gallery = imageWrapper.parentElement;
-        if (gallery && (!updatedDiving?.images || updatedDiving.images.length === 0)) {
-          gallery.innerHTML = '<p class="text-muted small mb-0">No images uploaded yet</p>';
-        }
-      }, 300);
-    }
+      if (statusTag) {
+        setStatusTag(statusTag, 'Delete failed', 'error');
+      }
 
-    if (statusTag) {
-      setStatusTag(statusTag, 'Image deleted', 'success');
+      showErrorModal('Error', `Failed to delete image: ${error.message}`);
+    } finally {
+      if (inlineStatus) {
+        setTimeout(() => {
+          inlineStatus.style.display = 'none';
+        }, 3000);
+      }
     }
-
-    showSuccessMessage('Image deleted successfully!');
-  } catch (error) {
-    console.error('❌ Error deleting diving image:', error);
-    
-    if (inlineStatus) {
-      inlineStatus.textContent = 'Delete failed';
-      inlineStatus.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
-    }
-
-    if (statusTag) {
-      setStatusTag(statusTag, 'Delete failed', 'error');
-    }
-
-    alert(`Failed to delete image: ${error.message}`);
-  } finally {
-    if (inlineStatus) {
-      setTimeout(() => {
-        inlineStatus.style.display = 'none';
-      }, 3000);
-    }
-  }
+  });
 }
 
 function setDivingLoading(isLoading) {
@@ -1519,64 +1512,60 @@ async function handleDivingImageUpload({ divingId, file, uploadButton, inlineSta
 }
 
 async function handleDivingDelete({ divingId, divingName, deleteButton, card, inlineStatus, statusTag }) {
-  const confirmed = confirm(`Are you sure you want to delete "${divingName}"?\n\nThis action cannot be undone. The diving record will be removed from Supabase and will no longer appear on the home page.`);
-  
-  if (!confirmed) {
-    return;
-  }
+  showConfirmModal('Confirm Delete', `Are you sure you want to delete "${divingName}"?\n\nThis action cannot be undone. The diving record will be removed from Supabase and will no longer appear on the home page.`, async () => {
+    showInlineStatus(inlineStatus, 'Deleting diving record...');
+    setStatusTag(statusTag, 'Deleting...', 'default');
 
-  showInlineStatus(inlineStatus, 'Deleting diving record...');
-  setStatusTag(statusTag, 'Deleting...', 'default');
-
-  if (deleteButton) {
-    deleteButton.disabled = true;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/diving/${divingId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-cache'
-    });
-
-    const result = await parseJsonResponse(response);
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to delete diving record');
-    }
-
-    // Remove from state
-    const filtered = divingState.data.filter(d => resolveDivingId(d) !== divingId);
-    setDivingData(filtered);
-
-    // Remove card from DOM
-    if (card && card.parentElement) {
-      card.style.opacity = '0';
-      card.style.transform = 'scale(0.95)';
-      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      
-      setTimeout(() => {
-        card.remove();
-      }, 300);
-    }
-
-    showSuccessMessage(`${divingName} deleted successfully!`);
-    
-    // Re-render to ensure UI is in sync
-    renderDiving();
-  } catch (error) {
-    console.error('❌ Error deleting diving record:', error);
-    showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
-    setStatusTag(statusTag, 'Delete failed', 'error');
-    
     if (deleteButton) {
-      deleteButton.disabled = false;
+      deleteButton.disabled = true;
     }
-    
-    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
-  }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/diving/${divingId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-cache'
+      });
+
+      const result = await parseJsonResponse(response);
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete diving record');
+      }
+
+      // Remove from state
+      const filtered = divingState.data.filter(d => resolveDivingId(d) !== divingId);
+      setDivingData(filtered);
+
+      // Remove card from DOM
+      if (card && card.parentElement) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+          card.remove();
+        }, 300);
+      }
+
+      showSuccessMessage(`${divingName} deleted successfully!`);
+      
+      // Re-render to ensure UI is in sync
+      renderDiving();
+    } catch (error) {
+      console.error('❌ Error deleting diving record:', error);
+      showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
+      setStatusTag(statusTag, 'Delete failed', 'error');
+      
+      if (deleteButton) {
+        deleteButton.disabled = false;
+      }
+      
+      setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+    }
+  });
 }
 
 
@@ -1970,67 +1959,63 @@ async function handleVanDestinationDelete({ destinationId, destinationName, dele
     return;
   }
 
-  const confirmed = confirm(`Are you sure you want to delete "${destinationName}"?\n\nThis action cannot be undone. The destination will be removed from Supabase and will no longer appear in van rental bookings.`);
-  
-  if (!confirmed) {
-    return;
-  }
+  showConfirmModal('Confirm Delete', `Are you sure you want to delete "${destinationName}"?\n\nThis action cannot be undone. The destination will be removed from Supabase and will no longer appear in van rental bookings.`, async () => {
+    showInlineStatus(inlineStatus, 'Deleting destination...');
+    setStatusTag(statusTag, 'Deleting...', 'default');
 
-  showInlineStatus(inlineStatus, 'Deleting destination...');
-  setStatusTag(statusTag, 'Deleting...', 'default');
-
-  if (deleteButton) {
-    deleteButton.disabled = true;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/van-destinations/${actualId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-cache'
-    });
-
-    const result = await parseJsonResponse(response);
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to delete van destination');
-    }
-
-    // Remove from state
-    const filtered = vanDestinationState.data.filter(d => {
-      const dId = resolveVanDestinationId(d);
-      return String(dId) !== String(actualId);
-    });
-    setVanDestinationData(filtered);
-
-    // Remove card from DOM
-    if (card && card.parentElement) {
-      card.style.opacity = '0';
-      card.style.transform = 'scale(0.95)';
-      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      
-      setTimeout(() => {
-        card.remove();
-      }, 300);
-    }
-
-    showSuccessMessage(`${destinationName} deleted successfully!`);
-    
-    // Re-render to ensure UI is in sync
-    renderVanDestinations();
-  } catch (error) {
-    console.error('❌ Error deleting van destination:', error);
-    showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
-    setStatusTag(statusTag, 'Delete failed', 'error');
-    
     if (deleteButton) {
-      deleteButton.disabled = false;
+      deleteButton.disabled = true;
     }
-    
-    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
-  }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/van-destinations/${actualId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-cache'
+      });
+
+      const result = await parseJsonResponse(response);
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete van destination');
+      }
+
+      // Remove from state
+      const filtered = vanDestinationState.data.filter(d => {
+        const dId = resolveVanDestinationId(d);
+        return String(dId) !== String(actualId);
+      });
+      setVanDestinationData(filtered);
+
+      // Remove card from DOM
+      if (card && card.parentElement) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+          card.remove();
+        }, 300);
+      }
+
+      showSuccessMessage(`${destinationName} deleted successfully!`);
+      
+      // Re-render to ensure UI is in sync
+      renderVanDestinations();
+    } catch (error) {
+      console.error('❌ Error deleting van destination:', error);
+      showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
+      setStatusTag(statusTag, 'Delete failed', 'error');
+      
+      if (deleteButton) {
+        deleteButton.disabled = false;
+      }
+      
+      setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+    }
+  });
 }
 
 function showNewVanDestinationCard() {
@@ -2674,60 +2659,56 @@ async function handleTourSave({ tourId, categorySelect, saveButton, inlineStatus
 }
 
 async function handleTourDelete({ tourId, tourCategory, deleteButton, card, inlineStatus, statusTag }) {
-  const confirmed = confirm(`Are you sure you want to delete "${tourCategory}"?\n\nThis action cannot be undone. The tour and all its pricing tiers and images will be removed from Supabase.`);
-  
-  if (!confirmed) {
-    return;
-  }
+  showConfirmModal('Confirm Delete', `Are you sure you want to delete "${tourCategory}"?\n\nThis action cannot be undone. The tour and all its pricing tiers and images will be removed from Supabase.`, async () => {
+    showInlineStatus(inlineStatus, 'Deleting tour...');
+    setStatusTag(statusTag, 'Deleting...', 'default');
 
-  showInlineStatus(inlineStatus, 'Deleting tour...');
-  setStatusTag(statusTag, 'Deleting...', 'default');
-
-  if (deleteButton) {
-    deleteButton.disabled = true;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/tours/${tourId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-cache'
-    });
-
-    const result = await parseJsonResponse(response);
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to delete tour');
-    }
-
-    const filtered = tourState.data.filter(t => resolveTourId(t) !== tourId);
-    setTourData(filtered);
-
-    if (card && card.parentElement) {
-      card.style.opacity = '0';
-      card.style.transform = 'scale(0.95)';
-      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      
-      setTimeout(() => {
-        card.remove();
-      }, 300);
-    }
-
-    showSuccessMessage(`${tourCategory} deleted successfully!`);
-    renderTours();
-  } catch (error) {
-    console.error('❌ Error deleting tour:', error);
-    showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
-    setStatusTag(statusTag, 'Delete failed', 'error');
-    
     if (deleteButton) {
-      deleteButton.disabled = false;
+      deleteButton.disabled = true;
     }
-    
-    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
-  }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/tours/${tourId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-cache'
+      });
+
+      const result = await parseJsonResponse(response);
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete tour');
+      }
+
+      const filtered = tourState.data.filter(t => resolveTourId(t) !== tourId);
+      setTourData(filtered);
+
+      if (card && card.parentElement) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+          card.remove();
+        }, 300);
+      }
+
+      showSuccessMessage(`${tourCategory} deleted successfully!`);
+      renderTours();
+    } catch (error) {
+      console.error('❌ Error deleting tour:', error);
+      showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
+      setStatusTag(statusTag, 'Delete failed', 'error');
+      
+      if (deleteButton) {
+        deleteButton.disabled = false;
+      }
+      
+      setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+    }
+  });
 }
 
 async function handleTourImageUpload({ tourId, file, uploadButton, inlineStatus, statusTag, imagesGallery, fileInput }) {
@@ -3121,47 +3102,43 @@ async function handlePricingUpdate({ tourId, pricingId, tierWrapper, inlineStatu
 }
 
 async function handlePricingDelete({ tourId, pricingId, tierWrapper, inlineStatus, statusTag }) {
-  const confirmed = confirm('Are you sure you want to delete this pricing tier?');
-  
-  if (!confirmed) {
-    return;
-  }
+  showConfirmModal('Confirm Delete', 'Are you sure you want to delete this pricing tier?', async () => {
+    showInlineStatus(inlineStatus, 'Deleting pricing tier...');
+    setStatusTag(statusTag, 'Deleting...', 'default');
 
-  showInlineStatus(inlineStatus, 'Deleting pricing tier...');
-  setStatusTag(statusTag, 'Deleting...', 'default');
+    try {
+      const response = await fetch(`${API_BASE_URL}/tours/${tourId}/pricing/${pricingId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-cache'
+      });
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/tours/${tourId}/pricing/${pricingId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-cache'
-    });
+      const result = await parseJsonResponse(response);
 
-    const result = await parseJsonResponse(response);
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete pricing tier');
+      }
 
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to delete pricing tier');
+      // Remove tier from DOM
+      if (tierWrapper && tierWrapper.parentElement) {
+        tierWrapper.remove();
+      }
+
+      // Reload all tours to update state
+      await loadTours();
+
+      showInlineStatus(inlineStatus, 'Pricing tier deleted successfully', 'success');
+      setStatusTag(statusTag, 'Tier deleted', 'success');
+    } catch (error) {
+      console.error('❌ Error deleting pricing tier:', error);
+      showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
+      setStatusTag(statusTag, 'Delete failed', 'error');
+      
+      setTimeout(() => clearInlineStatus(inlineStatus), 4000);
     }
-
-    // Remove tier from DOM
-    if (tierWrapper && tierWrapper.parentElement) {
-      tierWrapper.remove();
-    }
-
-    // Reload all tours to update state
-    await loadTours();
-
-    showInlineStatus(inlineStatus, 'Pricing tier deleted successfully', 'success');
-    setStatusTag(statusTag, 'Tier deleted', 'success');
-  } catch (error) {
-    console.error('❌ Error deleting pricing tier:', error);
-    showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
-    setStatusTag(statusTag, 'Delete failed', 'error');
-    
-    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
-  }
+  });
 }
 
 function initializeTourManager() {
@@ -3639,65 +3616,61 @@ async function handleQrcodeDelete({ qrcodeId, qrcodeName, deleteButton, card, in
   
   actualId = idString; // Use the validated string ID
 
-  const confirmed = confirm(`Are you sure you want to delete "${qrcodeName}"?\n\nThis action cannot be undone. The QRCode will be removed from Supabase and will no longer appear on the home page.`);
-  
-  if (!confirmed) {
-    return;
-  }
+  showConfirmModal('Confirm Delete', `Are you sure you want to delete "${qrcodeName}"?\n\nThis action cannot be undone. The QRCode will be removed from Supabase and will no longer appear on the home page.`, async () => {
+    showInlineStatus(inlineStatus, 'Deleting QRCode record...');
+    setStatusTag(statusTag, 'Deleting...', 'default');
 
-  showInlineStatus(inlineStatus, 'Deleting QRCode record...');
-  setStatusTag(statusTag, 'Deleting...', 'default');
-
-  if (deleteButton) {
-    deleteButton.disabled = true;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/qrcode/${actualId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-cache'
-    });
-
-    const result = await parseJsonResponse(response);
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to delete QRCode record');
-    }
-
-    // Remove from state
-    const filtered = qrcodeState.data.filter(q => {
-      const qId = resolveQrcodeId(q);
-      return String(qId) !== String(actualId);
-    });
-    setQrcodeData(filtered);
-
-    if (card && card.parentElement) {
-      card.style.opacity = '0';
-      card.style.transform = 'scale(0.95)';
-      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      
-      setTimeout(() => {
-        card.remove();
-      }, 300);
-    }
-
-    showSuccessMessage(`${qrcodeName} deleted successfully!`);
-    
-    renderQrcode();
-  } catch (error) {
-    console.error('❌ Error deleting QRCode record:', error);
-    showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
-    setStatusTag(statusTag, 'Delete failed', 'error');
-    
     if (deleteButton) {
-      deleteButton.disabled = false;
+      deleteButton.disabled = true;
     }
-    
-    setTimeout(() => clearInlineStatus(inlineStatus), 4000);
-  }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/qrcode/${actualId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-cache'
+      });
+
+      const result = await parseJsonResponse(response);
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete QRCode record');
+      }
+
+      // Remove from state
+      const filtered = qrcodeState.data.filter(q => {
+        const qId = resolveQrcodeId(q);
+        return String(qId) !== String(actualId);
+      });
+      setQrcodeData(filtered);
+
+      if (card && card.parentElement) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+          card.remove();
+        }, 300);
+      }
+
+      showSuccessMessage(`${qrcodeName} deleted successfully!`);
+      
+      renderQrcode();
+    } catch (error) {
+      console.error('❌ Error deleting QRCode record:', error);
+      showInlineStatus(inlineStatus, `Delete failed: ${error.message}`, 'error');
+      setStatusTag(statusTag, 'Delete failed', 'error');
+      
+      if (deleteButton) {
+        deleteButton.disabled = false;
+      }
+      
+      setTimeout(() => clearInlineStatus(inlineStatus), 4000);
+    }
+  });
 }
 
 function showNewQrcodeCard() {
@@ -4267,30 +4240,30 @@ function createPackageCard(pkg) {
   if (deleteBtn) {
     deleteBtn.addEventListener('click', async () => {
       const name = descInput?.value?.trim() || 'this package';
-      if (!confirm(`Delete ${name}? This action cannot be undone.`)) return;
-      showInlineStatus(inlineStatus, 'Deleting...');
-      setStatusTag(statusTag, 'Deleting...', 'default');
-      deleteBtn.disabled = true;
-      try {
-        const response = await fetch(`${API_BASE_URL}/package-only/${id}`, { method: 'DELETE', cache: 'no-cache' });
-        const result = await parseJsonResponse(response);
-        if (!response.ok || !result.success) throw new Error(result.message || 'Delete failed');
-        const el = packageUI.list?.querySelector(`[data-package-id="${id}"]`);
-        el?.remove();
-        packageState.data = packageState.data.filter(x => resolvePackageId(x) !== id);
-        packageState.byId.delete(String(id));
-        showInlineStatus(inlineStatus, 'Deleted', 'success');
-        setStatusTag(statusTag, 'Deleted', 'success');
-        showSuccessMessage(`${name} deleted successfully!`);
-      } catch (e) {
-        console.error('❌ Error deleting package:', e);
-        showInlineStatus(inlineStatus, `Delete failed: ${e.message}`, 'error');
-        setStatusTag(statusTag, 'Delete failed', 'error');
-      } finally {
-        deleteBtn.disabled = false;
-        setTimeout(() => clearInlineStatus(inlineStatus), 3000);
-      }
-    });
+      showConfirmModal('Confirm Delete', `Delete ${name}? This action cannot be undone.`, async () => {
+        showInlineStatus(inlineStatus, 'Deleting...');
+        setStatusTag(statusTag, 'Deleting...', 'default');
+        deleteBtn.disabled = true;
+        try {
+          const response = await fetch(`${API_BASE_URL}/package-only/${id}`, { method: 'DELETE', cache: 'no-cache' });
+          const result = await parseJsonResponse(response);
+          if (!response.ok || !result.success) throw new Error(result.message || 'Delete failed');
+          const el = packageUI.list?.querySelector(`[data-package-id="${id}"]`);
+          el?.remove();
+          packageState.data = packageState.data.filter(x => resolvePackageId(x) !== id);
+          packageState.byId.delete(String(id));
+          showInlineStatus(inlineStatus, 'Deleted', 'success');
+          setStatusTag(statusTag, 'Deleted', 'success');
+          showSuccessMessage(`${name} deleted successfully!`);
+        } catch (e) {
+          console.error('❌ Error deleting package:', e);
+          showInlineStatus(inlineStatus, `Delete failed: ${e.message}`, 'error');
+          setStatusTag(statusTag, 'Delete failed', 'error');
+        } finally {
+          deleteBtn.disabled = false;
+          setTimeout(() => clearInlineStatus(inlineStatus), 3000);
+        }
+      });
   }
 
   return frag;
@@ -4582,51 +4555,47 @@ async function handleUploadVanImage(file) {
 }
 
 async function handleDeleteVanImage(imageId, imageCard) {
-  const confirmed = confirm('Are you sure you want to delete this van image?\n\nThis action cannot be undone.');
+  showConfirmModal('Confirm Delete', 'Are you sure you want to delete this van image?\n\nThis action cannot be undone.', async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/van-images/${imageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        },
+        cache: 'no-cache'
+      });
 
-  if (!confirmed) {
-    return;
-  }
+      const result = await parseJsonResponse(response);
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/van-images/${imageId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json'
-      },
-      cache: 'no-cache'
-    });
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete van image');
+      }
 
-    const result = await parseJsonResponse(response);
+      // Remove from state
+      vanImagesState.data = vanImagesState.data.filter(img => img.van_images_id !== imageId);
+      updateVanImagesSyncStatus();
 
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Failed to delete van image');
+      // Remove card from DOM with animation
+      if (imageCard && imageCard.parentElement) {
+        imageCard.style.opacity = '0';
+        imageCard.style.transform = 'scale(0.95)';
+        imageCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+        setTimeout(() => {
+          imageCard.remove();
+          // Re-render if no images left
+          if (vanImagesState.data.length === 0) {
+            renderVanImages();
+          }
+        }, 300);
+      }
+
+      showSuccessMessage('Van image deleted successfully!');
+    } catch (error) {
+      console.error('❌ Error deleting van image:', error);
+      setVanImagesError(`Delete failed: ${error.message}`);
     }
-
-    // Remove from state
-    vanImagesState.data = vanImagesState.data.filter(img => img.van_images_id !== imageId);
-    updateVanImagesSyncStatus();
-
-    // Remove card from DOM with animation
-    if (imageCard && imageCard.parentElement) {
-      imageCard.style.opacity = '0';
-      imageCard.style.transform = 'scale(0.95)';
-      imageCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-
-      setTimeout(() => {
-        imageCard.remove();
-        // Re-render if no images left
-        if (vanImagesState.data.length === 0) {
-          renderVanImages();
-        }
-      }, 300);
-    }
-
-    showSuccessMessage('Van image deleted successfully!');
-  } catch (error) {
-    console.error('❌ Error deleting van image:', error);
-    setVanImagesError(`Delete failed: ${error.message}`);
-  }
+  });
 }
 
 function initializeVanImagesManager() {

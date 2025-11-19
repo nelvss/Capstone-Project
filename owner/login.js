@@ -72,7 +72,7 @@ async function handleLogin(event) {
         passwordField.classList.add('error');
         
         // Show error message
-        alert(error.message || 'Login failed. Please check your credentials.');
+        showErrorModal('Login Error', error.message || 'Login failed. Please check your credentials.');
         
         // Remove error styling after 3 seconds
         setTimeout(() => {
@@ -93,7 +93,7 @@ async function handleRegister(event) {
 
     // Validate passwords match
     if (password !== confirmPassword) {
-        alert('Passwords do not match. Please try again.');
+        showErrorModal('Validation Error', 'Passwords do not match. Please try again.');
         document.getElementById('registerPassword').classList.add('error');
         document.getElementById('confirmPassword').classList.add('error');
         return;
@@ -101,7 +101,7 @@ async function handleRegister(event) {
 
     // Validate password length
     if (password.length < 6) {
-        alert('Password must be at least 6 characters long.');
+        showErrorModal('Validation Error', 'Password must be at least 6 characters long.');
         document.getElementById('registerPassword').classList.add('error');
         return;
     }
@@ -164,7 +164,7 @@ async function handleRegister(event) {
         confirmPasswordField.classList.add('error');
         
         // Show error message
-        alert(error.message || 'Registration failed. Please try again.');
+        showErrorModal('Registration Error', error.message || 'Registration failed. Please try again.');
         
         // Remove error styling after 3 seconds
         setTimeout(() => {
@@ -307,7 +307,7 @@ async function handleForgotPassword(event) {
     const forgotPasswordButton = document.getElementById('forgotPasswordButton');
 
     if (!email) {
-        alert('Please enter your email address.');
+        showErrorModal('Validation Error', 'Please enter your email address.');
         return;
     }
 
@@ -334,10 +334,10 @@ async function handleForgotPassword(event) {
         }
 
         // Show success message
-        alert('Verification code has been sent to your email. Please check your inbox.');
-        
-        // Redirect to verify code page with email
-        window.location.href = `verify-code.html?email=${encodeURIComponent(email)}`;
+        showSuccessModal('Success', 'Verification code has been sent to your email. Please check your inbox.').then(() => {
+          // Redirect to verify code page with email
+          window.location.href = `verify-code.html?email=${encodeURIComponent(email)}`;
+        });
 
     } catch (error) {
         console.error('Forgot password error:', error);
@@ -351,7 +351,7 @@ async function handleForgotPassword(event) {
         emailField.classList.add('error');
         
         // Show error message
-        alert(error.message || 'Failed to send reset link. Please try again.');
+        showErrorModal('Error', error.message || 'Failed to send reset link. Please try again.');
         
         // Remove error styling after 3 seconds
         setTimeout(() => {

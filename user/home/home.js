@@ -1322,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       
       if (invalidFiles.length > 0) {
-        alert('Some files were skipped:\n' + invalidFiles.join('\n') + '\n\nPlease ensure files are images under 5MB each.');
+        showErrorModal('File Upload Warning', 'Some files were skipped:\n' + invalidFiles.join('\n') + '\n\nPlease ensure files are images under 5MB each.');
       }
       
       if (validFiles.length > 0) {
@@ -1372,7 +1372,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const feedbackText = document.getElementById('feedback').value.trim();
       
       if (!feedbackText) {
-        alert('Please enter a message or feedback before sending.');
+        showErrorModal('Validation Error', 'Please enter a message or feedback before sending.');
         return;
       }
       
@@ -1432,18 +1432,18 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           
           // Show success message
-          alert('Thank you for your feedback! Your message has been submitted successfully.');
+          showSuccessModal('Success', 'Thank you for your feedback! Your message has been submitted successfully.');
           
           // Reload feedback to show the new one
           loadFeedback();
         } else {
           // Show error message
-          alert(`Failed to send feedback: ${result.message}`);
+          showErrorModal('Error', `Failed to send feedback: ${result.message}`);
         }
         
       } catch (error) {
         console.error('Error submitting feedback:', error);
-        alert('Failed to send feedback. Please try again later.');
+        showErrorModal('Error', 'Failed to send feedback. Please try again later.');
       } finally {
         // Re-enable button
         sendFeedbackBtn.disabled = false;
@@ -1682,30 +1682,28 @@ async function deleteFeedback(feedbackId) {
   }
   
   // Show confirmation dialog
-  if (!confirm('Are you sure you want to delete this feedback? This action cannot be undone.')) {
-    return;
-  }
-  
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/feedback/${feedbackId}`, {
-      method: 'DELETE'
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      // Show success message
-      alert('Feedback deleted successfully');
-      // Reload feedback to show updated list
-      loadFeedback();
-    } else {
-      console.error('Failed to delete feedback:', result.message);
-      alert(`Failed to delete feedback: ${result.message || 'Please try again.'}`);
+  showConfirmModal('Confirm Delete', 'Are you sure you want to delete this feedback? This action cannot be undone.', async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feedback/${feedbackId}`, {
+        method: 'DELETE'
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message
+        showSuccessModal('Success', 'Feedback deleted successfully');
+        // Reload feedback to show updated list
+        loadFeedback();
+      } else {
+        console.error('Failed to delete feedback:', result.message);
+        showErrorModal('Error', `Failed to delete feedback: ${result.message || 'Please try again.'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
+      showErrorModal('Error', 'Failed to delete feedback. Please try again later.');
     }
-  } catch (error) {
-    console.error('Error deleting feedback:', error);
-    alert('Failed to delete feedback. Please try again later.');
-  }
+  });
 }
 
 // Function to show feedback image in modal - must be global for onclick handlers

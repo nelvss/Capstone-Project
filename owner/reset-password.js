@@ -8,7 +8,7 @@ async function handleResetPassword(event) {
 
     // Validate passwords match
     if (newPassword !== confirmNewPassword) {
-        alert('Passwords do not match. Please try again.');
+        showErrorModal('Validation Error', 'Passwords do not match. Please try again.');
         document.getElementById('newPassword').classList.add('error');
         document.getElementById('confirmNewPassword').classList.add('error');
         return;
@@ -16,7 +16,7 @@ async function handleResetPassword(event) {
 
     // Validate password length
     if (newPassword.length < 6) {
-        alert('Password must be at least 6 characters long.');
+        showErrorModal('Validation Error', 'Password must be at least 6 characters long.');
         document.getElementById('newPassword').classList.add('error');
         return;
     }
@@ -26,8 +26,9 @@ async function handleResetPassword(event) {
     const token = urlParams.get('token');
 
     if (!token) {
-        alert('Invalid reset token. Please verify your code again.');
-        window.location.href = 'login.html';
+        showErrorModal('Error', 'Invalid reset token. Please verify your code again.').then(() => {
+          window.location.href = 'login.html';
+        });
         return;
     }
 
@@ -54,10 +55,10 @@ async function handleResetPassword(event) {
         }
 
         // Show success message
-        alert('Password has been reset successfully! You can now login with your new password.');
-        
-        // Redirect to login page
-        window.location.href = 'login.html';
+        showSuccessModal('Success', 'Password has been reset successfully! You can now login with your new password.').then(() => {
+          // Redirect to login page
+          window.location.href = 'login.html';
+        });
 
     } catch (error) {
         console.error('Reset password error:', error);
@@ -74,7 +75,7 @@ async function handleResetPassword(event) {
         confirmNewPasswordField.classList.add('error');
         
         // Show error message
-        alert(error.message || 'Failed to reset password. The token may have expired. Please verify your code again.');
+        showErrorModal('Error', error.message || 'Failed to reset password. The token may have expired. Please verify your code again.');
         
         // Remove error styling after 3 seconds
         setTimeout(() => {
@@ -125,8 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const token = urlParams.get('token');
     
     if (!token) {
-        alert('Invalid reset token. Please verify your code again.');
-        window.location.href = 'login.html';
+        showErrorModal('Error', 'Invalid reset token. Please verify your code again.').then(() => {
+          window.location.href = 'login.html';
+        });
     }
 });
 

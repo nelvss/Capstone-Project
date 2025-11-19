@@ -616,7 +616,7 @@ async function handleConfirm(booking, button) {
     console.error('Error confirming booking:', error);
     button.disabled = false;
     button.textContent = 'Confirm';
-    alert('Failed to confirm booking: ' + error.message);
+    showErrorModal('Error', 'Failed to confirm booking: ' + error.message);
   }
 }
 
@@ -663,7 +663,7 @@ async function handleCancel(booking, button) {
     console.error('Error cancelling booking:', error);
     button.disabled = false;
     button.textContent = 'Cancel';
-    alert('Failed to cancel booking: ' + error.message);
+    showErrorModal('Error', 'Failed to cancel booking: ' + error.message);
   }
 }
 
@@ -994,7 +994,7 @@ async function processRescheduleConfirmation() {
       confirmBtn.disabled = false;
       confirmBtn.textContent = 'Confirm Reschedule';
     }
-    alert('Failed to confirm reschedule: ' + error.message);
+    showErrorModal('Error', 'Failed to confirm reschedule: ' + error.message);
   }
 }
 
@@ -1421,8 +1421,9 @@ function checkSession() {
     
     // Check if user is owner
     if (session.type !== 'owner') {
-      alert('Access denied. Owner access required.');
-      window.location.href = 'login.html';
+      showErrorModal('Access Denied', 'Owner access required.').then(() => {
+        window.location.href = 'login.html';
+      });
       return false;
     }
     

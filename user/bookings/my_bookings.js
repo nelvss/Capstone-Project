@@ -686,7 +686,7 @@ async function openRescheduleModal(bookingId, buttonElement = null) {
     
     // Hide modal and show error
     modal.hide();
-    alert(`Failed to load booking details: ${error.message}`);
+    showErrorModal('Error', `Failed to load booking details: ${error.message}`);
   } finally {
     // Restore button state
     if (buttonElement) {
@@ -705,7 +705,7 @@ async function submitRescheduleRequest() {
   
   // Validation
   if (!bookingId || !newArrivalDate || !newDepartureDate) {
-    alert('Please fill in all fields');
+    showErrorModal('Validation Error', 'Please fill in all fields');
     return;
   }
   
@@ -716,12 +716,12 @@ async function submitRescheduleRequest() {
   today.setHours(0, 0, 0, 0);
   
   if (arrival < today) {
-    alert('Arrival date cannot be in the past');
+    showErrorModal('Validation Error', 'Arrival date cannot be in the past');
     return;
   }
   
   if (departure <= arrival) {
-    alert('Departure date must be after arrival date');
+    showErrorModal('Validation Error', 'Departure date must be after arrival date');
     return;
   }
   
@@ -850,7 +850,7 @@ async function submitRescheduleRequest() {
     
   } catch (error) {
     console.error('Error submitting reschedule request:', error);
-    alert(`Failed to submit reschedule request: ${error.message}`);
+    showErrorModal('Error', `Failed to submit reschedule request: ${error.message}`);
     
     // Re-enable submit button
     const submitBtn = document.querySelector('#rescheduleModal .btn-primary');

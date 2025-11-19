@@ -322,7 +322,7 @@ async function handleConfirm(booking, button) {
     console.error('Error confirming booking:', error);
     button.disabled = false;
     button.textContent = 'Confirm';
-    alert('Failed to confirm booking: ' + error.message);
+    showErrorModal('Error', 'Failed to confirm booking: ' + error.message);
   }
 }
 
@@ -366,7 +366,7 @@ async function handleCancel(booking, button) {
     console.error('Error cancelling booking:', error);
     button.disabled = false;
     button.textContent = 'Cancel';
-    alert('Failed to cancel booking: ' + error.message);
+    showErrorModal('Error', 'Failed to cancel booking: ' + error.message);
   }
 }
 
@@ -694,7 +694,7 @@ async function processRescheduleConfirmation() {
       confirmBtn.disabled = false;
       confirmBtn.textContent = 'Confirm Reschedule';
     }
-    alert('Failed to confirm reschedule: ' + error.message);
+    showErrorModal('Error', 'Failed to confirm reschedule: ' + error.message);
   }
 }
 
@@ -1163,7 +1163,7 @@ async function submitBookingEditForm(event) {
 
   const payload = collectBookingFormData();
   if (!payload) {
-    alert('Unable to collect booking details. Please try again.');
+    showErrorModal('Error', 'Unable to collect booking details. Please try again.');
     return;
   }
 
@@ -1182,7 +1182,7 @@ async function submitBookingEditForm(event) {
   });
 
   if (missingFields.length > 0) {
-    alert(`Please fill out the following fields: ${missingFields.map(field => field.replace(/_/g, ' ')).join(', ')}`);
+    showErrorModal('Validation Error', `Please fill out the following fields: ${missingFields.map(field => field.replace(/_/g, ' ')).join(', ')}`);
     return;
   }
 
@@ -1230,7 +1230,7 @@ async function submitBookingEditForm(event) {
     updateStaffStats();
   } catch (error) {
     console.error('Error updating booking:', error);
-    alert(error.message || 'Failed to update booking. Please try again.');
+    showErrorModal('Error', error.message || 'Failed to update booking. Please try again.');
   } finally {
     if (submitButton) {
       submitButton.disabled = false;
@@ -1540,7 +1540,12 @@ function checkSession() {
   if (!userSession) { window.location.href = '../owner/login.html'; return false; }
   try {
     const session = JSON.parse(userSession);
-    if (session.type !== 'staff') { alert('Access denied. Staff access required.'); window.location.href = '../owner/login.html'; return false; }
+    if (session.type !== 'staff') { 
+      showErrorModal('Access Denied', 'Staff access required.').then(() => {
+        window.location.href = '../owner/login.html';
+      });
+      return false;
+    }
     const welcomeElement = document.querySelector('.user-welcome');
     if (welcomeElement) welcomeElement.textContent = `Welcome, ${session.username}`;
     return true;

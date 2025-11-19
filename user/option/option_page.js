@@ -46,7 +46,7 @@
     // Navigation function to proceed to next step
     window.proceedToBooking = function() {
         if (!window.selectedBookingOption) {
-            alert('Please select a booking option first.');
+            showErrorModal('Validation Error', 'Please select a booking option first.');
             return;
         }
         

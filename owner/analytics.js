@@ -13,8 +13,9 @@ function checkSession() {
     
     // Check if user is owner
     if (session.type !== 'owner') {
-      alert('Access denied. Owner access required.');
-      window.location.href = 'login.html';
+      showErrorModal('Access Denied', 'Owner access required.').then(() => {
+        window.location.href = 'login.html';
+      });
       return false;
     }
     
@@ -1651,10 +1652,10 @@ function navigateWithTransition(url) {
 
 // Logout functionality
 function handleLogout() {
-  if (confirm('Are you sure you want to logout?')) {
+  showConfirmModal('Confirm Logout', 'Are you sure you want to logout?', () => {
     localStorage.removeItem('userSession');
     window.location.href = '../user/home/home.html';
-  }
+  });
 }
 
 // Start real-time updates

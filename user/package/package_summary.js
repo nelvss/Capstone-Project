@@ -484,14 +484,14 @@
         
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file.');
+            showErrorModal('Validation Error', 'Please select an image file.');
             return;
         }
         
         // Validate file size (max 5MB)
         const maxSize = 5 * 1024 * 1024; // 5MB in bytes
         if (file.size > maxSize) {
-            alert('File size must be less than 5MB.');
+            showErrorModal('Validation Error', 'File size must be less than 5MB.');
             return;
         }
         
@@ -903,7 +903,7 @@
             
         } catch (error) {
             console.error('Booking submission error:', error);
-            alert('❌ Failed to submit booking: ' + error.message);
+            showErrorModal('Error', 'Failed to submit booking: ' + error.message);
             
             // Reset button state
             const submitBtn = document.querySelector('button[onclick="submitBooking()"]');

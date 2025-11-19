@@ -458,14 +458,14 @@ function handleFileUpload(event) {
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
-        alert('Please select an image file.');
+        showErrorModal('Validation Error', 'Please select an image file.');
         return;
     }
     
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
-        alert('File size must be less than 5MB.');
+        showErrorModal('Validation Error', 'File size must be less than 5MB.');
         return;
     }
     
@@ -740,7 +740,7 @@ async function submitBooking() {
         
     } catch (error) {
         console.error('Tour booking submission error:', error);
-        alert('❌ Failed to submit tour booking: ' + error.message);
+        showErrorModal('Error', 'Failed to submit tour booking: ' + error.message);
         
         // Reset button state
         const submitBtn = document.getElementById('submitBookingBtn');

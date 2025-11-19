@@ -7,12 +7,12 @@ async function handleVerifyCode(event) {
     const verifyCodeButton = document.getElementById('verifyCodeButton');
 
     if (!email) {
-        alert('Email is required.');
+        showErrorModal('Validation Error', 'Email is required.');
         return;
     }
 
     if (!code || code.length !== 6) {
-        alert('Please enter a valid 6-digit verification code.');
+        showErrorModal('Validation Error', 'Please enter a valid 6-digit verification code.');
         document.getElementById('verificationCode').classList.add('error');
         return;
     }
@@ -40,10 +40,10 @@ async function handleVerifyCode(event) {
         }
 
         // Show success message
-        alert('Code verified successfully! Redirecting to password reset page...');
-        
-        // Redirect to reset password page with session token
-        window.location.href = `reset-password.html?token=${encodeURIComponent(data.token)}`;
+        showSuccessModal('Success', 'Code verified successfully! Redirecting to password reset page...').then(() => {
+          // Redirect to reset password page with session token
+          window.location.href = `reset-password.html?token=${encodeURIComponent(data.token)}`;
+        });
 
     } catch (error) {
         console.error('Verify code error:', error);
@@ -57,7 +57,7 @@ async function handleVerifyCode(event) {
         codeField.classList.add('error');
         
         // Show error message
-        alert(error.message || 'Invalid or expired verification code. Please try again or request a new code.');
+        showErrorModal('Error', error.message || 'Invalid or expired verification code. Please try again or request a new code.');
         
         // Remove error styling after 3 seconds
         setTimeout(() => {
@@ -73,7 +73,7 @@ async function handleResendCode(event) {
     const email = document.getElementById('verifyEmail').value.trim().toLowerCase();
 
     if (!email) {
-        alert('Email is required.');
+        showErrorModal('Validation Error', 'Email is required.');
         return;
     }
 
@@ -101,11 +101,11 @@ async function handleResendCode(event) {
         }
 
         // Show success message
-        alert('A new verification code has been sent to your email. Please check your inbox.');
+        showSuccessModal('Success', 'A new verification code has been sent to your email. Please check your inbox.');
 
     } catch (error) {
         console.error('Resend code error:', error);
-        alert(error.message || 'Failed to resend code. Please try again.');
+        showErrorModal('Error', error.message || 'Failed to resend code. Please try again.');
     } finally {
         resendLink.textContent = originalText;
         resendLink.style.pointerEvents = 'auto';
@@ -121,8 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('verifyEmail').value = email;
     } else {
         // If no email in URL, redirect back to login
-        alert('Email is required. Redirecting to login page...');
-        window.location.href = 'login.html';
+        showErrorModal('Error', 'Email is required. Redirecting to login page...').then(() => {
+          window.location.href = 'login.html';
+        });
     }
 });
 
