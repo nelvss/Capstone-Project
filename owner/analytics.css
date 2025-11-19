@@ -784,7 +784,8 @@ header h1 {
 }
 
 .filter-select-month {
-  width: 150px;
+  width: 160px; /* Increased width to accommodate "All Months" text */
+  min-width: 160px; /* Ensure minimum width */
 }
 
 .filter-select-week {
