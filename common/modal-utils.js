@@ -5,6 +5,58 @@
  */
 
 /**
+ * Inject shared styles for the confirmation modal once
+ */
+function ensureConfirmModalStyles() {
+  if (document.getElementById('confirmModalStyles')) {
+    return;
+  }
+
+  const style = document.createElement('style');
+  style.id = 'confirmModalStyles';
+  style.textContent = `
+    .confirm-modal .modal-dialog {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+    }
+
+    .confirm-modal .modal-content {
+      width: min(480px, calc(100% - 32px));
+      margin: 0 auto;
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+      border: none;
+    }
+
+    .confirm-modal .modal-header {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 20px 24px 12px;
+    }
+
+    .confirm-modal .modal-body {
+      padding: 12px 24px 8px;
+    }
+
+    .confirm-modal .modal-footer {
+      padding: 0 24px 20px;
+      gap: 12px;
+    }
+
+    @media (max-width: 576px) {
+      .confirm-modal .modal-content {
+        width: calc(100% - 24px);
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
+/**
  * Show an error modal
  * @param {string} title - Modal title (default: "Error")
  * @param {string} message - Error message to display
@@ -78,6 +130,8 @@ function showErrorModal(title = 'Error', message) {
  */
 function showConfirmModal(title = 'Confirm', message, onConfirm = null, onCancel = null) {
   return new Promise((resolve) => {
+    ensureConfirmModalStyles();
+
     // Remove existing confirm modal if any
     const existingModal = document.getElementById('confirmModal');
     if (existingModal) {
@@ -86,7 +140,7 @@ function showConfirmModal(title = 'Confirm', message, onConfirm = null, onCancel
 
     // Create modal HTML
     const modalHTML = `
-      <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+      <div class="modal fade confirm-modal" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
@@ -120,30 +174,32 @@ function showConfirmModal(title = 'Confirm', message, onConfirm = null, onCancel
     // Get modal element
     const modalElement = document.getElementById('confirmModal');
     const modal = new bootstrap.Modal(modalElement);
+    let resolved = false;
+
+    const finish = (value, callback) => {
+      if (resolved) {
+        return;
+      }
+      resolved = true;
+      if (callback) {
+        callback();
+      }
+      resolve(value);
+    };
 
     // Handle confirm button click
     document.getElementById('confirmModalConfirmBtn').addEventListener('click', () => {
       modal.hide();
-      if (onConfirm) {
-        onConfirm();
-      }
-      resolve(true);
+      finish(true, onConfirm);
     });
 
     // Handle cancel button click and backdrop/close
-    const handleCancel = () => {
-      if (onCancel) {
-        onCancel();
-      }
-      resolve(false);
-    };
+    const handleCancel = () => finish(false, onCancel);
 
     document.getElementById('confirmModalCancelBtn').addEventListener('click', handleCancel);
     modalElement.addEventListener('hidden.bs.modal', () => {
       modalElement.remove();
-      if (!modalElement.classList.contains('show')) {
-        handleCancel();
-      }
+      handleCancel();
     });
 
     // Show modal
