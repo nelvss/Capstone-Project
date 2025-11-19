@@ -658,75 +658,145 @@ const getServicePerformance = async (req, res) => {
     
     console.log('📊 Fetching service performance:', { start_date, end_date });
     
-    // Get tour bookings
-    let tourQuery = supabase
-      .from('booking_tour')
-      .select('tour_type, booking_id, tour_date');
+    const pageSize = 1000; // Supabase's maximum per request
     
-    // Tour bookings don't have created_at - filter tours by actual tour_date
-    if (start_date) {
-      tourQuery = tourQuery.gte('tour_date', start_date);
-    }
-    if (end_date) {
-      tourQuery = tourQuery.lte('tour_date', end_date);
-    }
+    // Get tour bookings with pagination
+    let allTourBookings = [];
+    let tourOffset = 0;
+    let hasMoreTours = true;
     
-    const { data: tourBookings, error: tourError } = await tourQuery;
-    
-    if (tourError) {
-      console.warn('⚠️ Error fetching tour bookings:', tourError.message);
-    }
-    
-    // Get vehicle bookings
-    let vehicleQuery = supabase
-      .from('booking_vehicles')
-      .select('booking_id, vehicle_id');
-    
-    const { data: vehicleBookings, error: vehicleError } = await vehicleQuery;
-    
-    if (vehicleError) {
-      console.warn('⚠️ Error fetching vehicle bookings:', vehicleError.message);
-    }
-    
-    // Get diving bookings
-    let divingQuery = supabase
-      .from('bookings_diving')
-      .select('diving_type, booking_id');
-    
-    const { data: divingBookings, error: divingError } = await divingQuery;
-    
-    if (divingError) {
-      console.warn('⚠️ Error fetching diving bookings:', divingError.message);
+    while (hasMoreTours) {
+      let tourQuery = supabase
+        .from('booking_tour')
+        .select('tour_type, booking_id, tour_date')
+        .range(tourOffset, tourOffset + pageSize - 1);
+      
+      // Tour bookings don't have created_at - filter tours by actual tour_date
+      if (start_date) {
+        tourQuery = tourQuery.gte('tour_date', start_date);
+      }
+      if (end_date) {
+        tourQuery = tourQuery.lte('tour_date', end_date);
+      }
+      
+      const { data: tourBookingsPage, error: tourError } = await tourQuery;
+      
+      if (tourError) {
+        console.warn('⚠️ Error fetching tour bookings:', tourError.message);
+        hasMoreTours = false;
+      } else if (tourBookingsPage && tourBookingsPage.length > 0) {
+        allTourBookings = allTourBookings.concat(tourBookingsPage);
+        tourOffset += pageSize;
+        
+        // If we got less than pageSize results, we've reached the end
+        if (tourBookingsPage.length < pageSize) {
+          hasMoreTours = false;
+        }
+      } else {
+        hasMoreTours = false;
+      }
     }
     
-    // Get van rental bookings (removed pickup_date as it doesn't exist in the table)
-    const { data: vanBookings, error: vanError } = await supabase
-      .from('bookings_van_rental')
-      .select('booking_id, van_destination_id');
+    // Get vehicle bookings with pagination
+    let allVehicleBookings = [];
+    let vehicleOffset = 0;
+    let hasMoreVehicles = true;
     
-    if (vanError) {
-      console.warn('⚠️ Error fetching van bookings:', vanError.message);
+    while (hasMoreVehicles) {
+      const { data: vehicleBookingsPage, error: vehicleError } = await supabase
+        .from('booking_vehicles')
+        .select('booking_id, vehicle_id')
+        .range(vehicleOffset, vehicleOffset + pageSize - 1);
+      
+      if (vehicleError) {
+        console.warn('⚠️ Error fetching vehicle bookings:', vehicleError.message);
+        hasMoreVehicles = false;
+      } else if (vehicleBookingsPage && vehicleBookingsPage.length > 0) {
+        allVehicleBookings = allVehicleBookings.concat(vehicleBookingsPage);
+        vehicleOffset += pageSize;
+        
+        // If we got less than pageSize results, we've reached the end
+        if (vehicleBookingsPage.length < pageSize) {
+          hasMoreVehicles = false;
+        }
+      } else {
+        hasMoreVehicles = false;
+      }
+    }
+    
+    // Get diving bookings with pagination
+    let allDivingBookings = [];
+    let divingOffset = 0;
+    let hasMoreDiving = true;
+    
+    while (hasMoreDiving) {
+      const { data: divingBookingsPage, error: divingError } = await supabase
+        .from('bookings_diving')
+        .select('diving_type, booking_id')
+        .range(divingOffset, divingOffset + pageSize - 1);
+      
+      if (divingError) {
+        console.warn('⚠️ Error fetching diving bookings:', divingError.message);
+        hasMoreDiving = false;
+      } else if (divingBookingsPage && divingBookingsPage.length > 0) {
+        allDivingBookings = allDivingBookings.concat(divingBookingsPage);
+        divingOffset += pageSize;
+        
+        // If we got less than pageSize results, we've reached the end
+        if (divingBookingsPage.length < pageSize) {
+          hasMoreDiving = false;
+        }
+      } else {
+        hasMoreDiving = false;
+      }
+    }
+    
+    // Get van rental bookings with pagination
+    let allVanBookings = [];
+    let vanOffset = 0;
+    let hasMoreVans = true;
+    
+    while (hasMoreVans) {
+      const { data: vanBookingsPage, error: vanError } = await supabase
+        .from('bookings_van_rental')
+        .select('booking_id, van_destination_id')
+        .range(vanOffset, vanOffset + pageSize - 1);
+      
+      if (vanError) {
+        console.warn('⚠️ Error fetching van bookings:', vanError.message);
+        hasMoreVans = false;
+      } else if (vanBookingsPage && vanBookingsPage.length > 0) {
+        allVanBookings = allVanBookings.concat(vanBookingsPage);
+        vanOffset += pageSize;
+        
+        // If we got less than pageSize results, we've reached the end
+        if (vanBookingsPage.length < pageSize) {
+          hasMoreVans = false;
+        }
+      } else {
+        hasMoreVans = false;
+      }
     }
     
     // Aggregate service counts
     const services = {
       tours: {},
-      vehicles: vehicleBookings?.length || 0,
+      vehicles: allVehicleBookings?.length || 0,
       diving: {},
-      van_rentals: vanBookings?.length || 0
+      van_rentals: allVanBookings?.length || 0
     };
     
     // Count tour types - handle null/undefined
-    if (tourBookings && Array.isArray(tourBookings)) {
-      tourBookings.forEach(booking => {
+    if (allTourBookings && Array.isArray(allTourBookings)) {
+      allTourBookings.forEach(booking => {
         const tourType = booking.tour_type || 'unknown';
         services.tours[tourType] = (services.tours[tourType] || 0) + 1;
       });
     }
     
     // Count diving types - handle null/undefined
-    if (divingBookings && Array.isArray(divingBookings)) {
-      divingBookings.forEach(booking => {
+    if (allDivingBookings && Array.isArray(allDivingBookings)) {
+      allDivingBookings.forEach(booking => {
         const divingType = booking.diving_type || 'unknown';
         services.diving[divingType] = (services.diving[divingType] || 0) + 1;
       });
