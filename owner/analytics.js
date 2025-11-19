@@ -740,8 +740,51 @@ function initializeFilters() {
         'avgBookingValueMonthFilter'
     ];
     
+    // Populate all year filters
+    const yearFilters = [
+        'bookingTypeYearFilter',
+        'packageDistributionYearFilter',
+        'tourDistributionYearFilter',
+        'touristVolumeYearFilter',
+        'avgBookingValueYearFilter'
+    ];
+    
     // Define all 12 months
     const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Define years from 2019 to 2025
+    const allYears = ['2019', '2020', '2021', '2022', '2023', '2024', '2025'];
+    
+    // Populate year filters
+    yearFilters.forEach(filterId => {
+        const select = document.getElementById(filterId);
+        if (select) {
+            // Clear existing options
+            select.innerHTML = '';
+            
+            // Add "All Years" option first
+            const defaultOption = document.createElement('option');
+            defaultOption.value = 'all';
+            defaultOption.textContent = 'All Years';
+            defaultOption.selected = true;
+            select.appendChild(defaultOption);
+            
+            // Add all years
+            allYears.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                select.appendChild(option);
+            });
+            
+            // Remove any existing event listeners by cloning (this removes all listeners)
+            const newSelect = select.cloneNode(true);
+            select.parentNode.replaceChild(newSelect, select);
+            
+            // Add change event listener to the new select element
+            newSelect.addEventListener('change', (e) => handleYearFilter(e, filterId));
+        }
+    });
     
     monthFilters.forEach(filterId => {
         const select = document.getElementById(filterId);
@@ -784,11 +827,29 @@ function initializeFilters() {
     });
 }
 
+// Handle year filter change
+function handleYearFilter(event, filterId) {
+    const year = event.target.value;
+    const baseId = filterId.replace('YearFilter', '');
+    const monthFilterId = baseId + 'MonthFilter';
+    const monthSelect = document.getElementById(monthFilterId);
+    const month = monthSelect ? monthSelect.value : 'all';
+    
+    // Update the corresponding chart
+    updateChart(monthFilterId, month, 'all', year);
+}
+
 // Handle month filter change
 function handleMonthFilter(event, filterId) {
     const month = event.target.value;
     const weekFilterId = filterId.replace('MonthFilter', 'WeekFilter');
     const weekSelect = document.getElementById(weekFilterId);
+    
+    // Get year filter value
+    const baseId = filterId.replace('MonthFilter', '');
+    const yearFilterId = baseId + 'YearFilter';
+    const yearSelect = document.getElementById(yearFilterId);
+    const year = yearSelect ? yearSelect.value : 'all';
     
     // Clear week filter only if it exists
     if (weekSelect) {
@@ -806,7 +867,7 @@ function handleMonthFilter(event, filterId) {
     }
     
     // Update the corresponding chart
-    updateChart(filterId, month, 'all');
+    updateChart(filterId, month, 'all', year);
 }
 
 // Handle week filter change
@@ -821,19 +882,19 @@ function handleWeekFilter(event, filterId) {
 }
 
 // Update chart based on filters
-function updateChart(monthFilterId, month, week) {
+function updateChart(monthFilterId, month, week, year) {
     let chartKey = '';
     
     if (monthFilterId.includes('bookingType')) {
-        loadBookingTypeData();
+        loadBookingTypeData(month, year);
     } else if (monthFilterId.includes('packageDistribution')) {
-        loadPackageDistributionData();
+        loadPackageDistributionData(month, year);
     } else if (monthFilterId.includes('tourDistribution')) {
-        loadTourDistributionData();
+        loadTourDistributionData(month, year);
     } else if (monthFilterId.includes('touristVolume')) {
-        loadTouristVolumeData();
+        loadTouristVolumeData(month, year);
     } else if (monthFilterId.includes('avgBookingValue')) {
-        loadAvgBookingValueData();
+        loadAvgBookingValueData(month, year);
     }
 }
 
@@ -2270,7 +2331,7 @@ async function loadBookingStatusData() {
     }
 }
 
-async function loadBookingTypeData() {
+async function loadBookingTypeData(month = 'all', year = 'all') {
     // Prevent multiple simultaneous loads
     if (isLoadingChartData) {
         console.log('⏸️ Chart data already loading, skipping booking type...');
@@ -2278,8 +2339,27 @@ async function loadBookingTypeData() {
     }
     
     try {
-        // Fetch all historical data without date filters
-        const url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month`;
+        // Build URL with filters
+        let url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month`;
+        
+        // Add date filters based on year and month selection
+        if (year !== 'all' && month !== 'all') {
+            // Specific year and month - get data for that specific month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            url += `&start_date=${year}-${monthStr}-01&end_date=${year}-${monthStr}-31`;
+        } else if (year !== 'all') {
+            // Specific year, all months - get data for entire year
+            url += `&start_date=${year}-01-01&end_date=${year}-12-31`;
+        } else if (month !== 'all') {
+            // All years, specific month - get data for that month across all years
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            // Get data for this month from 2019-2025
+            url += `&start_date=2019-${monthStr}-01&end_date=2025-${monthStr}-31`;
+        }
+        // If both are 'all', fetch all historical data (no date filters)
+        
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2345,7 +2425,7 @@ async function loadBookingTypeData() {
     }
 }
 
-async function loadPackageDistributionData() {
+async function loadPackageDistributionData(month = 'all', year = 'all') {
     // Prevent multiple simultaneous loads
     if (isLoadingChartData) {
         console.log('⏸️ Chart data already loading, skipping package distribution...');
@@ -2353,8 +2433,30 @@ async function loadPackageDistributionData() {
     }
     
     try {
-        // Fetch all historical data without date filters
-        const url = `${window.API_URL}/api/analytics/package-distribution`;
+        // Build URL with filters
+        let url = `${window.API_URL}/api/analytics/package-distribution?`;
+        const params = [];
+        
+        // Add date filters based on year and month selection
+        if (year !== 'all' && month !== 'all') {
+            // Specific year and month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            params.push(`start_date=${year}-${monthStr}-01`);
+            params.push(`end_date=${year}-${monthStr}-31`);
+        } else if (year !== 'all') {
+            // Specific year, all months
+            params.push(`start_date=${year}-01-01`);
+            params.push(`end_date=${year}-12-31`);
+        } else if (month !== 'all') {
+            // All years, specific month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            params.push(`start_date=2019-${monthStr}-01`);
+            params.push(`end_date=2025-${monthStr}-31`);
+        }
+        
+        url += params.join('&');
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2402,7 +2504,7 @@ async function loadPackageDistributionData() {
     }
 }
 
-async function loadTourDistributionData() {
+async function loadTourDistributionData(month = 'all', year = 'all') {
     // Prevent multiple simultaneous loads
     if (isLoadingChartData) {
         console.log('⏸️ Chart data already loading, skipping tour distribution...');
@@ -2410,8 +2512,30 @@ async function loadTourDistributionData() {
     }
     
     try {
-        // Fetch all historical data without date filters
-        const url = `${window.API_URL}/api/analytics/tour-distribution`;
+        // Build URL with filters
+        let url = `${window.API_URL}/api/analytics/tour-distribution?`;
+        const params = [];
+        
+        // Add date filters based on year and month selection
+        if (year !== 'all' && month !== 'all') {
+            // Specific year and month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            params.push(`start_date=${year}-${monthStr}-01`);
+            params.push(`end_date=${year}-${monthStr}-31`);
+        } else if (year !== 'all') {
+            // Specific year, all months
+            params.push(`start_date=${year}-01-01`);
+            params.push(`end_date=${year}-12-31`);
+        } else if (month !== 'all') {
+            // All years, specific month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            params.push(`start_date=2019-${monthStr}-01`);
+            params.push(`end_date=2025-${monthStr}-31`);
+        }
+        
+        url += params.join('&');
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2458,7 +2582,7 @@ async function loadTourDistributionData() {
     }
 }
 
-async function loadTouristVolumeData() {
+async function loadTouristVolumeData(month = 'all', year = 'all') {
     // Prevent multiple simultaneous loads
     if (isLoadingChartData) {
         console.log('⏸️ Chart data already loading, skipping tourist volume...');
@@ -2466,8 +2590,25 @@ async function loadTouristVolumeData() {
     }
     
     try {
-        // Fetch all historical data without date filters
-        const url = `${window.API_URL}/api/analytics/tourist-volume?group_by=month`;
+        // Build URL with filters
+        let url = `${window.API_URL}/api/analytics/tourist-volume?group_by=month`;
+        
+        // Add date filters based on year and month selection
+        if (year !== 'all' && month !== 'all') {
+            // Specific year and month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            url += `&start_date=${year}-${monthStr}-01&end_date=${year}-${monthStr}-31`;
+        } else if (year !== 'all') {
+            // Specific year, all months
+            url += `&start_date=${year}-01-01&end_date=${year}-12-31`;
+        } else if (month !== 'all') {
+            // All years, specific month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            url += `&start_date=2019-${monthStr}-01&end_date=2025-${monthStr}-31`;
+        }
+        
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -2511,7 +2652,7 @@ async function loadTouristVolumeData() {
     }
 }
 
-async function loadAvgBookingValueData() {
+async function loadAvgBookingValueData(month = 'all', year = 'all') {
     // Prevent multiple simultaneous loads
     if (isLoadingChartData) {
         console.log('⏸️ Chart data already loading, skipping avg booking value...');
@@ -2519,8 +2660,25 @@ async function loadAvgBookingValueData() {
     }
     
     try {
-        // Fetch all historical data without date filters
-        const url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=month`;
+        // Build URL with filters
+        let url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=month`;
+        
+        // Add date filters based on year and month selection
+        if (year !== 'all' && month !== 'all') {
+            // Specific year and month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            url += `&start_date=${year}-${monthStr}-01&end_date=${year}-${monthStr}-31`;
+        } else if (year !== 'all') {
+            // Specific year, all months
+            url += `&start_date=${year}-01-01&end_date=${year}-12-31`;
+        } else if (month !== 'all') {
+            // All years, specific month
+            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+            const monthStr = monthNum.toString().padStart(2, '0');
+            url += `&start_date=2019-${monthStr}-01&end_date=2025-${monthStr}-31`;
+        }
+        
         const response = await fetch(url);
         
         if (!response.ok) {
