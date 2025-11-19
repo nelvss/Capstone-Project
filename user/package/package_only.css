@@ -500,7 +500,7 @@ body {
 .form-floating label[for="totalAmount"] {
     position: absolute !important;
     top: 0.5rem !important;
-    left: 0.75rem !important;
+    left: 1rem !important;
     font-size: 0.7rem !important;
     font-weight: 600 !important;
     color: #6c757d !important;
