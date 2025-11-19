@@ -282,7 +282,14 @@
                   <h5 class="card-title mb-0">
                     <i class="fas fa-calendar-alt me-2"></i>Seasonal Forecast - Peak & Low Seasons
                   </h5>
-                  <span class="badge bg-primary">Monthly Predictions</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <select id="seasonalPredictionYearFilter" class="form-select form-select-sm" style="width: auto;">
+                      <option value="2025">2025</option>
+                      <option value="2026">2026</option>
+                      <option value="2027">2027</option>
+                    </select>
+                    <span class="badge bg-primary">Monthly Predictions</span>
+                  </div>
                 </div>
                 <div class="card-body">
                   <div id="seasonalPredictionStatus" class="small text-muted mb-2"></div>

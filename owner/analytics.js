@@ -264,9 +264,10 @@ async function fetchAnalyticsDataFromApi() {
     
     // Load seasonal prediction (non-blocking)
     try {
-      const currentYear = new Date().getFullYear();
+      const yearFilter = document.getElementById('seasonalPredictionYearFilter');
+      const selectedYear = yearFilter ? yearFilter.value : new Date().getFullYear();
       const seasonalParams = new URLSearchParams({
-        year: currentYear.toString(),
+        year: selectedYear.toString(),
         lookback_years: '2'
       });
       const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction?${seasonalParams.toString()}`);
@@ -742,7 +743,8 @@ function initializeFilters() {
         'packageDistributionYearFilter',
         'tourDistributionYearFilter',
         'touristVolumeYearFilter',
-        'avgBookingValueYearFilter'
+        'avgBookingValueYearFilter',
+        'seasonalPredictionYearFilter'
     ];
     
     yearFilters.forEach(filterId => {
@@ -851,6 +853,8 @@ function handleYearFilter(event, filterId) {
             loadTouristVolumeData();
         } else if (filterId.includes('avgBookingValue')) {
             loadAvgBookingValueData();
+        } else if (filterId.includes('seasonalPrediction')) {
+            loadSeasonalPredictionData(year);
         }
     }
 }
@@ -1494,6 +1498,24 @@ async function createSeasonalPredictionChart() {
       statusEl.textContent = 'Unable to generate seasonal forecast. Please try again later.';
       statusEl.className = 'small text-danger mb-2';
     }
+  }
+}
+
+// Load seasonal prediction data for a specific year
+async function loadSeasonalPredictionData(year) {
+  try {
+    const seasonalParams = new URLSearchParams({
+      year: year.toString(),
+      lookback_years: '2'
+    });
+    const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction?${seasonalParams.toString()}`);
+    const seasonalResult = await seasonalResponse.json();
+    if (seasonalResponse.ok && seasonalResult.success) {
+      analyticsData.seasonal_prediction = seasonalResult.data;
+      createSeasonalPredictionChart();
+    }
+  } catch (error) {
+    console.error('Failed to load seasonal prediction:', error);
   }
 }
 

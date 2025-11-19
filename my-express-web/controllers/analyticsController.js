@@ -1706,6 +1706,29 @@ const getSeasonalPrediction = async (req, res) => {
       });
     }
     
+    // Fetch payments for historical bookings to calculate revenue
+    const bookingIds = historicalBookings.map(b => b.booking_id);
+    let historicalPayments = [];
+    if (bookingIds.length > 0) {
+      const { data: payments, error: paymentsError } = await supabase
+        .from('payments')
+        .select('booking_id, total_booking_amount')
+        .in('booking_id', bookingIds);
+      
+      if (!paymentsError && payments) {
+        historicalPayments = payments;
+      }
+    }
+    
+    // Calculate average revenue per booking
+    const totalRevenue = historicalPayments.length > 0
+      ? historicalPayments.reduce((sum, p) => 
+          sum + (parseFloat(p.total_booking_amount) || 0), 0)
+      : 0;
+    const avgRevenuePerBooking = historicalBookings.length > 0 
+      ? totalRevenue / historicalBookings.length 
+      : 0;
+    
     // Group bookings by month across all years
     const monthlyData = {};
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
@@ -1776,6 +1799,7 @@ const getSeasonalPrediction = async (req, res) => {
       const trendMultiplier = trend === 'increasing' ? 1.1 : trend === 'decreasing' ? 0.9 : 1.0;
       const predictedBookings = Math.round(avgBookings * trendMultiplier);
       const predictedTourists = Math.round(avgTourists * trendMultiplier);
+      const predictedRevenue = predictedBookings * avgRevenuePerBooking;
       
       monthlyPredictions.push({
         month_number: i + 1,
@@ -1783,6 +1807,7 @@ const getSeasonalPrediction = async (req, res) => {
         historical_avg_bookings: Math.round(avgBookings),
         predicted_bookings: predictedBookings,
         predicted_tourists: predictedTourists,
+        predicted_revenue: Math.round(predictedRevenue),
         trend: trend,
         growth_rate: parseFloat(growthRate.toFixed(2)),
         confidence: yearsCount >= 2 ? 'high' : 'medium'
