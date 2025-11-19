@@ -477,11 +477,40 @@ body {
     margin-bottom: 1.5rem !important;
 }
 
+/* Make the Total Amount field same width as Diving Experience container */
 #totalAmount {
+    width: 89%;
+    max-width: 100%;
+    margin-left: 40px;
+    display: block;
+    padding-top: 1.8rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    height: auto !important;
+    min-height: 58px !important;
+    margin-top: -5% !important;
     font-size: 1.1rem;
     font-weight: 600;
     background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%) !important;
     border: 2px solid #dc2626 !important;
+}
+
+/* Put the Total Amount label inside the input box at the top */
+.form-floating label[for="totalAmount"] {
+    position: absolute !important;
+    top: -2rem !important;
+    left: 3.5rem !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    color: #6c757d !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
 }
 
 /* Total Amount in hotel row specific styling */
