@@ -190,6 +190,12 @@ function mapBookingRecord(apiBooking) {
 
   rawBooking.total_booking_amount = totalAmount;
   rawBooking.payment_date = apiBooking.payment_date || null;
+  // Store payment data in rawBooking as backup
+  rawBooking.payment_method = apiBooking.payment_method || null;
+  rawBooking.payment_option = apiBooking.payment_option || null;
+  rawBooking.paid_amount = apiBooking.paid_amount || null;
+  rawBooking.remaining_balance = apiBooking.remaining_balance || null;
+  rawBooking.receipt_image_url = apiBooking.receipt_image_url || null;
   if (!rawBooking.vehicle_bookings) rawBooking.vehicle_bookings = [];
   if (!rawBooking.van_rental_bookings) rawBooking.van_rental_bookings = [];
   if (!rawBooking.diving_bookings) rawBooking.diving_bookings = [];
@@ -872,27 +878,44 @@ function openReceiptModal(booking) {
     paid_amount: booking.paid_amount,
     remaining_balance: booking.remaining_balance,
     receipt_image_url: booking.receipt_image_url,
-    raw: booking.raw
+    raw_payment_option: booking.raw?.payment_option,
+    raw_payment_method: booking.raw?.payment_method,
+    raw_paid_amount: booking.raw?.paid_amount,
+    raw_remaining_balance: booking.raw?.remaining_balance,
+    fullRaw: booking.raw
   });
   
-  // Get payment information - check both direct properties and raw object
-  const paymentOption = booking.payment_option || booking.raw?.payment_option || 'N/A';
-  const paymentMethod = booking.payment_method || booking.raw?.payment_method || 'N/A';
-  const paidAmount = booking.paid_amount || booking.raw?.paid_amount || 0;
-  const remainingBalance = booking.remaining_balance || booking.raw?.remaining_balance || 0;
-  const imageUrl = booking.receipt_image_url || booking.raw?.receipt_image_url;
+  // Get payment information - check multiple sources with priority
+  // Priority: 1. Direct booking properties, 2. raw object, 3. Check if values are null vs undefined
+  const paymentOption = booking.payment_option ?? booking.raw?.payment_option ?? null;
+  const paymentMethod = booking.payment_method ?? booking.raw?.payment_method ?? null;
+  const paidAmount = booking.paid_amount ?? booking.raw?.paid_amount ?? null;
+  const remainingBalance = booking.remaining_balance ?? booking.raw?.remaining_balance ?? null;
+  const imageUrl = booking.receipt_image_url ?? booking.raw?.receipt_image_url ?? null;
+  
+  console.log('💰 Extracted payment data:', {
+    paymentOption,
+    paymentMethod,
+    paidAmount,
+    remainingBalance,
+    hasImage: !!imageUrl
+  });
   
   // Set payment option
   const paymentOptionEl = document.getElementById('receiptPaymentOption');
   if (paymentOptionEl) {
-    if (paymentOption === 'Full Payment' || paymentOption === 'full') {
+    if (!paymentOption || paymentOption === 'N/A' || paymentOption === null) {
+      paymentOptionEl.textContent = 'N/A';
+      paymentOptionEl.style.color = '#94a3b8';
+    } else if (paymentOption === 'Full Payment' || paymentOption === 'full' || paymentOption.toLowerCase().includes('full')) {
       paymentOptionEl.textContent = 'Full Payment';
       paymentOptionEl.style.color = '#10b981';
-    } else if (paymentOption === 'Down Payment' || paymentOption === 'Partial Payment' || paymentOption === 'down') {
+    } else if (paymentOption === 'Down Payment' || paymentOption === 'Partial Payment' || paymentOption === 'down' || paymentOption.toLowerCase().includes('down') || paymentOption.toLowerCase().includes('partial')) {
       paymentOptionEl.textContent = 'Down Payment';
       paymentOptionEl.style.color = '#f59e0b';
     } else {
       paymentOptionEl.textContent = paymentOption;
+      paymentOptionEl.style.color = '#64748b';
     }
   }
   
@@ -905,28 +928,35 @@ function openReceiptModal(booking) {
     paymentMethodIconEl.innerHTML = '';
     
     // Set icon based on payment method
-    const methodLower = (paymentMethod || '').toLowerCase();
-    if (methodLower.includes('gcash')) {
-      paymentMethodIconEl.innerHTML = '<i class="fas fa-mobile-alt"></i>';
-      paymentMethodTextEl.textContent = 'GCash';
-    } else if (methodLower.includes('paymaya')) {
-      paymentMethodIconEl.innerHTML = '<i class="fas fa-credit-card"></i>';
-      paymentMethodTextEl.textContent = 'PayMaya';
-    } else if (methodLower.includes('banking') || methodLower.includes('bank')) {
-      paymentMethodIconEl.innerHTML = '<i class="fas fa-university"></i>';
-      paymentMethodTextEl.textContent = 'Online Banking';
-    } else {
+    if (!paymentMethod || paymentMethod === 'N/A' || paymentMethod === null) {
       paymentMethodIconEl.innerHTML = '<i class="fas fa-money-bill"></i>';
-      paymentMethodTextEl.textContent = paymentMethod;
+      paymentMethodTextEl.textContent = 'N/A';
+    } else {
+      const methodLower = String(paymentMethod).toLowerCase();
+      if (methodLower.includes('gcash')) {
+        paymentMethodIconEl.innerHTML = '<i class="fas fa-mobile-alt"></i>';
+        paymentMethodTextEl.textContent = 'GCash';
+      } else if (methodLower.includes('paymaya')) {
+        paymentMethodIconEl.innerHTML = '<i class="fas fa-credit-card"></i>';
+        paymentMethodTextEl.textContent = 'PayMaya';
+      } else if (methodLower.includes('banking') || methodLower.includes('bank')) {
+        paymentMethodIconEl.innerHTML = '<i class="fas fa-university"></i>';
+        paymentMethodTextEl.textContent = 'Online Banking';
+      } else {
+        paymentMethodIconEl.innerHTML = '<i class="fas fa-money-bill"></i>';
+        paymentMethodTextEl.textContent = paymentMethod;
+      }
     }
   }
   
   // Set paid amount
   const paidAmountEl = document.getElementById('receiptPaidAmount');
   if (paidAmountEl) {
-    paidAmountEl.textContent = paidAmount > 0 
-      ? `₱${parseFloat(paidAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-      : 'N/A';
+    if (paidAmount && paidAmount > 0) {
+      paidAmountEl.textContent = `₱${parseFloat(paidAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    } else {
+      paidAmountEl.textContent = 'N/A';
+    }
   }
   
   // Handle remaining balance (show only for Down Payment)
