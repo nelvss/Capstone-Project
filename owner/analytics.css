@@ -1137,3 +1137,33 @@ header h1 {
   transform: translateY(-5px);
   box-shadow: var(--shadow-md);
 }
+
+/* Year Dropdown Icon Styling */
+.year-dropdown-wrapper {
+  display: inline-block;
+  width: auto;
+}
+
+.year-dropdown-wrapper .form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none;
+  width: auto;
+  padding-right: 2rem;
+}
+
+.year-dropdown-icon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--dark-gray);
+  font-size: 0.75rem;
+  z-index: 1;
+}
+
+.year-dropdown-wrapper .form-select:focus + .year-dropdown-icon {
+  color: var(--primary-red);
+}

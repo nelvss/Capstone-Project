@@ -751,7 +751,7 @@ function initializeFilters() {
         const select = document.getElementById(filterId);
         if (select) {
             // Add more years if needed
-            const years = [2022, 2023, 2024, 2025, 2026];
+            const years = [2019, 2020, 2021, 2022, 2023, 2024];
             
             // Clear existing options except the default
             const hasDefaultOptions = select.querySelectorAll('option').length > 0;
@@ -760,7 +760,7 @@ function initializeFilters() {
                     const option = document.createElement('option');
                     option.value = year;
                     option.textContent = year;
-                    if (year === 2025) option.selected = true;
+                    if (year === 2024) option.selected = true;
                     select.appendChild(option);
                 });
             }
