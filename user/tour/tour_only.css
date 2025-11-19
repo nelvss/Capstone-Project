@@ -249,9 +249,11 @@ body {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    width: 100%;
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
+    box-sizing: border-box;
 }
 
 .card-header {
@@ -408,7 +410,10 @@ body {
 .container {
     padding-left: 1rem;
     padding-right: 1rem;
-    max-width: 760px;
+    max-width: 1200px;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
 }
 
 .row {
@@ -949,9 +954,12 @@ body {
 
 /* Ensure the main card doesn't expand */
 .card {
-    max-width: 100% !important;
+    max-width: 1200px !important;
+    width: 100% !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 /* Allow dropdown overflow in card for Vehicle Rental */
