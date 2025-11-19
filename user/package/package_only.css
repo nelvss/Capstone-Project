@@ -1519,6 +1519,15 @@ body {
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
+/* ===== REDUCE WIDTH FOR PACKAGE ONLY STEP 2 ===== */
+.booking-step-2 .container {
+    max-width: 800px !important;
+}
+
+.booking-step-2 .card {
+    max-width: 800px !important;
+}
+
 /* ============================================
    PACKAGE INFO MODAL STYLES
    ============================================ */
@@ -1819,4 +1828,13 @@ body {
     background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* ===== REDUCE WIDTH FOR PACKAGE ONLY STEP 2 ===== */
+.booking-step-2 .container {
+    max-width: 800px !important;
+}
+
+.booking-step-2 .card {
+    max-width: 800px !important;
 }

@@ -1007,9 +1007,9 @@ body {
 
 /* ===== REDUCE WIDTH FOR TOUR ONLY STEP 2 ===== */
 .booking-step-2 .container {
-    max-width: 900px !important;
+    max-width: 800px !important;
 }
 
 .booking-step-2 .card {
-    max-width: 900px !important;
+    max-width: 800px !important;
 }
