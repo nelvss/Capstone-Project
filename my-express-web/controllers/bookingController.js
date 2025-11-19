@@ -524,6 +524,13 @@ const getBookings = async (req, res) => {
       console.log(`📊 Fetched ${payments.length} payment records`);
       
       if (payments && payments.length > 0) {
+        // Debug: Log sample payment data
+        console.log('💰 Sample payment data:', payments.slice(0, 3).map(p => ({
+          booking_id: p.booking_id,
+          payment_method: p.payment_method,
+          payment_option: p.payment_option,
+          paid_amount: p.paid_amount
+        })));
         // Sort by payment_date descending and take the first one for each booking
         const sortedPayments = payments.sort((a, b) => {
           const dateA = new Date(a.payment_date || 0);
@@ -532,8 +539,10 @@ const getBookings = async (req, res) => {
         });
         
         paymentsData = sortedPayments.reduce((acc, payment) => {
-          if (!acc[payment.booking_id]) {
-            acc[payment.booking_id] = {
+          // Normalize booking_id to handle string/number and whitespace issues
+          const normalizedPaymentId = String(payment.booking_id).trim();
+          if (!acc[normalizedPaymentId] && !acc[payment.booking_id]) {
+            const paymentData = {
               total_booking_amount: payment.total_booking_amount,
               receipt_image_url: payment.receipt_image_url || null,
               payment_method: payment.payment_method || null,
@@ -541,9 +550,18 @@ const getBookings = async (req, res) => {
               paid_amount: payment.paid_amount || null,
               remaining_balance: payment.remaining_balance || null
             };
+            // Store under both normalized and original key for compatibility
+            acc[normalizedPaymentId] = paymentData;
+            if (normalizedPaymentId !== String(payment.booking_id)) {
+              acc[payment.booking_id] = paymentData;
+            }
           }
           return acc;
         }, {});
+        
+        // Debug: Log which bookings have payment data
+        console.log('💰 Bookings with payment data:', Object.keys(paymentsData).slice(0, 10));
+        console.log('💰 Total bookings with payments:', Object.keys(paymentsData).length);
       }
     }
     
@@ -573,7 +591,10 @@ const getBookings = async (req, res) => {
       const vanRentals = vanRentalBookingsData[normalizedBookingId] || [];
       const vanRentalsFallback = vanRentals.length === 0 ? (vanRentalBookingsData[booking.booking_id] || []) : vanRentals;
       
-      const paymentInfo = paymentsData[booking.booking_id] || null;
+      // Try both normalized and original booking_id for payment lookup
+      const normalizedBookingId = String(booking.booking_id).trim();
+      const paymentInfo = paymentsData[normalizedBookingId] || paymentsData[booking.booking_id] || null;
+      
       return {
         ...booking,
         hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
@@ -848,8 +869,10 @@ const getUserBookings = async (req, res) => {
         });
         
         paymentsData = sortedPayments.reduce((acc, payment) => {
-          if (!acc[payment.booking_id]) {
-            acc[payment.booking_id] = {
+          // Normalize booking_id to handle string/number and whitespace issues
+          const normalizedPaymentId = String(payment.booking_id).trim();
+          if (!acc[normalizedPaymentId] && !acc[payment.booking_id]) {
+            const paymentData = {
               total_booking_amount: payment.total_booking_amount,
               receipt_image_url: payment.receipt_image_url || null,
               payment_method: payment.payment_method || null,
@@ -857,6 +880,11 @@ const getUserBookings = async (req, res) => {
               paid_amount: payment.paid_amount || null,
               remaining_balance: payment.remaining_balance || null
             };
+            // Store under both normalized and original key for compatibility
+            acc[normalizedPaymentId] = paymentData;
+            if (normalizedPaymentId !== String(payment.booking_id)) {
+              acc[payment.booking_id] = paymentData;
+            }
           }
           return acc;
         }, {});
@@ -889,7 +917,10 @@ const getUserBookings = async (req, res) => {
       const vanRentals = vanRentalBookingsData[normalizedBookingId] || [];
       const vanRentalsFallback = vanRentals.length === 0 ? (vanRentalBookingsData[booking.booking_id] || []) : vanRentals;
       
-      const paymentInfo = paymentsData[booking.booking_id] || null;
+      // Try both normalized and original booking_id for payment lookup
+      const normalizedBookingId = String(booking.booking_id).trim();
+      const paymentInfo = paymentsData[normalizedBookingId] || paymentsData[booking.booking_id] || null;
+      
       return {
         ...booking,
         hotels: booking.hotel_id ? hotelsData[booking.hotel_id] : null,
