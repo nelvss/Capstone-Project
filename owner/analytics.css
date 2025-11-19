@@ -784,8 +784,8 @@ header h1 {
 }
 
 .filter-select-month {
-  width: 160px; /* Increased width to accommodate "All Months" text */
-  min-width: 160px; /* Ensure minimum width */
+  width: 150px;
+  padding-right: 2.5rem !important; /* Reserve space for dropdown arrow to prevent text overlap */
 }
 
 .filter-select-week {
