@@ -491,12 +491,16 @@ async function showBookingDetails(bookingId, buttonElement = null) {
   }
 }
 
-// Handle logout
+// Handle logout - show custom modal
 function handleLogout() {
-  if (confirm('Are you sure you want to logout?')) {
-    localStorage.removeItem('userSession');
-    window.location.href = '/owner/login.html';
-  }
+  const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+  logoutModal.show();
+}
+
+// Confirm logout and perform logout action
+function confirmLogout() {
+  localStorage.removeItem('userSession');
+  window.location.href = '/owner/login.html';
 }
 
 // Initialize Socket.IO for real-time booking updates
