@@ -127,7 +127,13 @@ const emailTemplates = {
                     <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin: 30px 0;">
                       <p style="margin: 0; color: #1e40af; font-size: 14px; line-height: 1.6;">
                         <strong>💡 Need Help?</strong><br>
-                        If you have any questions or need to make changes, please don't hesitate to contact us. We're here to make your experience perfect!
+                        If you have any questions or need to make changes, please don't hesitate to contact us. We're here to make your experience perfect!<br><br>
+                        <strong>Contact Numbers:</strong><br>
+                        0912 345 6789<br>
+                        0995 178 1598<br>
+                        0954 258 4691<br>
+                        0917 854 8276<br>
+                        0977 820 0028
                       </p>
                     </div>
                     
@@ -251,7 +257,13 @@ const emailTemplates = {
                     <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin: 30px 0;">
                       <p style="margin: 0; color: #1e40af; font-size: 14px; line-height: 1.6;">
                         <strong>🔄 Want to Rebook?</strong><br>
-                        If this cancellation was made in error or you'd like to make a new booking, please contact us immediately. We'd be happy to help you plan your perfect trip!
+                        If this cancellation was made in error or you'd like to make a new booking, please contact us immediately. We'd be happy to help you plan your perfect trip!<br><br>
+                        <strong>Contact Numbers:</strong><br>
+                        0912 345 6789<br>
+                        0995 178 1598<br>
+                        0954 258 4691<br>
+                        0917 854 8276<br>
+                        0977 820 0028
                       </p>
                     </div>
                     
@@ -367,7 +379,13 @@ const emailTemplates = {
                     <div style="background: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 30px 0;">
                       <p style="margin: 0; color: #065f46; font-size: 15px; line-height: 1.6;">
                         <strong style="font-size: 16px;">✅ Reschedule Confirmed</strong><br>
-                        Your booking has been successfully rescheduled. Please note the new dates above. If you have any questions or need further assistance, please don't hesitate to contact us.
+                        Your booking has been successfully rescheduled. Please note the new dates above. If you have any questions or need further assistance, please don't hesitate to contact us.<br><br>
+                        <strong>Contact Numbers:</strong><br>
+                        0912 345 6789<br>
+                        0995 178 1598<br>
+                        0954 258 4691<br>
+                        0917 854 8276<br>
+                        0977 820 0028
                       </p>
                     </div>
                     
@@ -507,7 +525,13 @@ const emailTemplates = {
                     <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin: 30px 0;">
                       <p style="margin: 0; color: #1e40af; font-size: 15px; line-height: 1.6;">
                         <strong style="font-size: 16px;">ℹ️ Important Information</strong><br>
-                        Your booking remains active with the original dates shown above. If you need to reschedule in the future, please submit a new reschedule request through your account. If you have any questions or concerns, please don't hesitate to contact us.
+                        Your booking remains active with the original dates shown above. If you need to reschedule in the future, please submit a new reschedule request through your account. If you have any questions or concerns, please don't hesitate to contact us at:<br><br>
+                        <strong>Contact Numbers:</strong><br>
+                        0912 345 6789<br>
+                        0995 178 1598<br>
+                        0954 258 4691<br>
+                        0917 854 8276<br>
+                        0977 820 0028
                       </p>
                     </div>
                     
