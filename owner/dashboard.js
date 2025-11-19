@@ -943,6 +943,52 @@ async function processRescheduleConfirmation() {
     }
     
     // Prepare booking data for email (with new dates)
+    // Format vehicle info
+    let vehicleInfo = 'N/A';
+    if (currentBooking.vehicle_bookings && currentBooking.vehicle_bookings.length > 0) {
+      const vehicleNames = currentBooking.vehicle_bookings.map(vb => {
+        if (vb.vehicle) {
+          return `${vb.vehicle.name} (${vb.rental_days} day${vb.rental_days > 1 ? 's' : ''})`;
+        }
+        return `${vb.vehicle_name} (${vb.rental_days} day${vb.rental_days > 1 ? 's' : ''})`;
+      });
+      vehicleInfo = vehicleNames.join(', ');
+    }
+
+    // Format van rental info
+    let vanRentalInfo = 'N/A';
+    if (currentBooking.van_rental_bookings && currentBooking.van_rental_bookings.length > 0) {
+      const vanRentalDetails = currentBooking.van_rental_bookings.map(vrb => {
+        let locationType = 'Unknown';
+        if (vrb.choose_destination) {
+          if (vrb.choose_destination.includes('Within')) {
+            locationType = 'Within';
+          } else if (vrb.choose_destination.includes('Outside')) {
+            locationType = 'Outside';
+          } else {
+            locationType = vrb.choose_destination;
+          }
+        }
+        const tripType = vrb.trip_type === 'roundtrip' ? 'Round Trip' : 'One Way';
+        return `${locationType} - ${tripType}`;
+      });
+      vanRentalInfo = vanRentalDetails.join(', ');
+    }
+
+    // Format hotel info
+    let hotelDisplay = 'No Hotel Selected';
+    if (currentBooking.booking_type === 'tour_only') {
+      hotelDisplay = 'N/A';
+    } else if (currentBooking.hotels?.name) {
+      hotelDisplay = currentBooking.hotels.name;
+    }
+
+    // Format price
+    const totalAmount = currentBooking.total_booking_amount || 0;
+    const formattedPrice = totalAmount > 0
+      ? `₱${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : '₱0';
+
     const emailBooking = {
       booking_id: booking.id,
       customer_first_name: currentBooking.customer_first_name,
@@ -954,7 +1000,12 @@ async function processRescheduleConfirmation() {
       number_of_tourist: currentBooking.number_of_tourist,
       booking_type: currentBooking.booking_type,
       booking_preferences: currentBooking.booking_preferences || '',
-      total_booking_amount: currentBooking.total_booking_amount || 0
+      total_booking_amount: currentBooking.total_booking_amount || 0,
+      services: currentBooking.booking_preferences || 'N/A',
+      rental: vehicleInfo,
+      vanRental: vanRentalInfo,
+      hotel: hotelDisplay,
+      price: formattedPrice
     };
     
     // Automatically send reschedule confirmation email
