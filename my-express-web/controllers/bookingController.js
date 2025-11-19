@@ -909,7 +909,6 @@ const getUserBookings = async (req, res) => {
       const vanRentalsFallback = vanRentals.length === 0 ? (vanRentalBookingsData[booking.booking_id] || []) : vanRentals;
       
       // Try both normalized and original booking_id for payment lookup
-      const normalizedBookingId = String(booking.booking_id).trim();
       const paymentInfo = paymentsData[normalizedBookingId] || paymentsData[booking.booking_id] || null;
       
       return {
