@@ -268,6 +268,10 @@ body {
     padding: 2.5rem !important;
     min-height: 400px;
     border-radius: 0 0 15px 15px;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
 }
 
 /* ===== FORM CONTROLS STYLING ===== */
@@ -543,6 +547,11 @@ body {
     background: rgba(220, 38, 38, 0.1);
     border-radius: 8px;
     border-left: 4px solid #dc2626;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
 }
   
 .form-control.is-invalid {
@@ -691,6 +700,22 @@ body {
 
 #step2-error-message {
     display: none;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Error message styling - prevent card stretching */
+.alert,
+.hotel-error-message,
+.step2-error-message {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
 }
 
 /* Animation for form appearance */
