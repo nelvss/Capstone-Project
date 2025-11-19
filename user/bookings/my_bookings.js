@@ -841,9 +841,6 @@ async function submitRescheduleRequest() {
     // Reset form
     document.getElementById('rescheduleForm').reset();
     
-    // Show success message
-    alert('Reschedule request submitted successfully! The admin will review your request and notify you once it\'s confirmed.');
-    
     // Reload bookings to show updated status
     await loadUserBookings();
     
