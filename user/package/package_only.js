@@ -220,8 +220,9 @@
 
         const currentDestination = destinationSelect?.value || '';
         const currentPlace = document.getElementById('placeSelect')?.value || '';
+        const currentTripType = document.getElementById('tripTypeSelect')?.value || '';
 
-        populatePlaceOptions(currentDestination, currentPlace);
+        populatePlaceOptions(currentDestination, currentPlace, currentTripType);
 
         console.log('✅ Van destination options refreshed for', currentDestination || 'no selection');
     }
@@ -2868,7 +2869,7 @@
         );
     }
 
-    function populatePlaceOptions(locationType, selectedValue = '') {
+    function populatePlaceOptions(locationType, selectedValue = '', tripType = '') {
         if (!placeSelect) return;
 
         const previousValue = selectedValue || placeSelect.value;
@@ -2879,7 +2880,24 @@
         }
 
         const destinations = getDestinationsByLocationType(locationType);
-        destinations.forEach(dest => {
+        
+        // Filter destinations based on trip type if provided
+        let filteredDestinations = destinations;
+        if (tripType) {
+            if (tripType === 'oneway') {
+                filteredDestinations = destinations.filter(dest => {
+                    const price = parseFloat(dest.oneway_price) || 0;
+                    return price > 0;
+                });
+            } else if (tripType === 'roundtrip') {
+                filteredDestinations = destinations.filter(dest => {
+                    const price = parseFloat(dest.roundtrip_price) || 0;
+                    return price > 0;
+                });
+            }
+        }
+        
+        filteredDestinations.forEach(dest => {
             if (!dest.destination_name) return;
             const option = document.createElement('option');
             option.value = dest.destination_name;
@@ -2890,8 +2908,12 @@
             placeSelect.appendChild(option);
         });
 
-        if (previousValue) {
+        // Only restore previous value if it still exists in the filtered list
+        if (previousValue && Array.from(placeSelect.options).some(opt => opt.value === previousValue)) {
             placeSelect.value = previousValue;
+        } else if (previousValue) {
+            // Clear selection if previous value is no longer available
+            placeSelect.selectedIndex = 0;
         }
         
         // Force select to maintain fixed width after options are added
@@ -2951,7 +2973,8 @@
         const locationType = isWithin ? 'Within Puerto Galera' : isOutside ? 'Outside Puerto Galera' : '';
         if (enableControls) {
             const desiredPlace = preserveValues ? selectedPlace : '';
-            populatePlaceOptions(locationType, desiredPlace);
+            const currentTripType = preserveValues ? selectedTripType : (tripTypeSelect?.value || '');
+            populatePlaceOptions(locationType, desiredPlace, currentTripType);
 
             if (preserveValues && placeSelect && selectedPlace) {
                 placeSelect.value = selectedPlace;
@@ -2993,6 +3016,14 @@
 
     if (tripTypeSelect) {
         tripTypeSelect.addEventListener('change', () => {
+            // Re-filter place options based on new trip type
+            const currentDestination = destinationSelect?.value || '';
+            if (currentDestination) {
+                const currentPlace = placeSelect?.value || '';
+                const newTripType = tripTypeSelect?.value || '';
+                const locationType = currentDestination;
+                populatePlaceOptions(locationType, currentPlace, newTripType);
+            }
             updateVanPrice();
             saveCurrentFormData();
         });
