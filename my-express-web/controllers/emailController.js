@@ -11,7 +11,7 @@ const sendEmailToCustomer = async (req, res) => {
       });
     }
     
-    if (!['confirm', 'cancel', 'reschedule'].includes(action)) {
+    if (!['confirm', 'cancel', 'reschedule', 'reschedule_cancelled'].includes(action)) {
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid action type' 

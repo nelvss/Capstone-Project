@@ -1049,6 +1049,247 @@ async function processRescheduleConfirmation() {
   }
 }
 
+// Process reschedule cancellation - revert to original dates
+async function processRescheduleCancellation() {
+  if (!currentRescheduleBooking || !currentRescheduleButton) {
+    console.error('No booking or button stored for reschedule cancellation');
+    return;
+  }
+  
+  const booking = currentRescheduleBooking;
+  const button = currentRescheduleButton;
+  
+  // Disable buttons and show loading state
+  const cancelBtn = document.querySelector('#rescheduleConfirmationModal .action-btn[style*="background-color: #6b7280"]');
+  const confirmBtn = document.getElementById('finalConfirmRescheduleBtn');
+  if (cancelBtn) {
+    cancelBtn.disabled = true;
+    cancelBtn.textContent = 'Processing...';
+  }
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+  }
+  
+  try {
+    // Get current booking details to preserve all fields
+    const getResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!getResponse.ok) {
+      throw new Error('Failed to fetch booking details');
+    }
+    
+    const getResult = await getResponse.json();
+    if (!getResult.success || !getResult.booking) {
+      throw new Error('Booking not found');
+    }
+    
+    const currentBooking = getResult.booking;
+    
+    // Check if original dates exist
+    if (!currentBooking.original_arrival_date || !currentBooking.original_departure_date) {
+      throw new Error('Original dates not found. Cannot revert reschedule request.');
+    }
+    
+    // Transform vehicle_bookings to vehicles format
+    const vehicles = (currentBooking.vehicle_bookings || []).map(vb => ({
+      vehicle_id: vb.vehicle_id,
+      vehicle_name: vb.vehicle_name || '',
+      rental_days: vb.rental_days || 0,
+      total_amount: vb.total_amount || 0
+    }));
+    
+    // Transform van_rental_bookings to van_rentals format
+    const van_rentals = (currentBooking.van_rental_bookings || []).map(vrb => ({
+      van_destination_id: vrb.van_destination_id || '',
+      choose_destination: vrb.choose_destination || vrb.location_type || '',
+      trip_type: vrb.trip_type || 'oneway',
+      number_of_days: vrb.number_of_days || 0,
+      total_amount: vrb.total_amount || 0
+    }));
+    
+    // Transform diving_bookings to diving format
+    const diving = (currentBooking.diving_bookings || []).map(db => ({
+      number_of_divers: db.number_of_divers || 0,
+      total_amount: db.total_amount || 0
+    }));
+    
+    // Prepare update payload - revert to original dates and clear reschedule flags
+    const updatePayload = {
+      customer_first_name: currentBooking.customer_first_name,
+      customer_last_name: currentBooking.customer_last_name,
+      customer_email: currentBooking.customer_email,
+      customer_contact: currentBooking.customer_contact,
+      arrival_date: currentBooking.original_arrival_date, // Revert to original
+      departure_date: currentBooking.original_departure_date, // Revert to original
+      booking_type: currentBooking.booking_type,
+      booking_preferences: currentBooking.booking_preferences || '',
+      number_of_tourist: currentBooking.number_of_tourist,
+      status: currentBooking.status, // Keep current status
+      reschedule_requested: false, // Clear reschedule flag
+      reschedule_requested_at: null, // Clear reschedule timestamp
+      original_arrival_date: null, // Clear original date fields
+      original_departure_date: null // Clear original date fields
+    };
+    
+    // Add optional fields if they exist
+    if (currentBooking.hotel_id) updatePayload.hotel_id = currentBooking.hotel_id;
+    if (currentBooking.package_only_id) updatePayload.package_only_id = currentBooking.package_only_id;
+    
+    // Preserve vehicles, van_rentals, diving, total_booking_amount, and receipt_image_url
+    if (vehicles.length > 0) updatePayload.vehicles = vehicles;
+    if (van_rentals.length > 0) updatePayload.van_rentals = van_rentals;
+    if (diving.length > 0) updatePayload.diving = diving;
+    if (currentBooking.total_booking_amount !== null && currentBooking.total_booking_amount !== undefined) {
+      updatePayload.total_booking_amount = currentBooking.total_booking_amount;
+    }
+    if (currentBooking.receipt_image_url !== null && currentBooking.receipt_image_url !== undefined && currentBooking.receipt_image_url !== '') {
+      updatePayload.receipt_image_url = currentBooking.receipt_image_url;
+    }
+    
+    // Update booking to revert dates and clear reschedule flags
+    const updateResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatePayload)
+    });
+    
+    const updateResult = await updateResponse.json();
+    
+    if (!updateResult.success) {
+      throw new Error(updateResult.message || 'Failed to cancel reschedule');
+    }
+    
+    // Prepare booking data for email (with original dates and requested dates)
+    // Format vehicle info
+    let vehicleInfo = 'N/A';
+    if (currentBooking.vehicle_bookings && currentBooking.vehicle_bookings.length > 0) {
+      const vehicleNames = currentBooking.vehicle_bookings.map(vb => {
+        if (vb.vehicle) {
+          return `${vb.vehicle.name} (${vb.rental_days} day${vb.rental_days > 1 ? 's' : ''})`;
+        }
+        return `${vb.vehicle_name} (${vb.rental_days} day${vb.rental_days > 1 ? 's' : ''})`;
+      });
+      vehicleInfo = vehicleNames.join(', ');
+    }
+
+    // Format van rental info
+    let vanRentalInfo = 'N/A';
+    if (currentBooking.van_rental_bookings && currentBooking.van_rental_bookings.length > 0) {
+      const vanRentalDetails = currentBooking.van_rental_bookings.map(vrb => {
+        let locationType = 'Unknown';
+        if (vrb.choose_destination) {
+          if (vrb.choose_destination.includes('Within')) {
+            locationType = 'Within';
+          } else if (vrb.choose_destination.includes('Outside')) {
+            locationType = 'Outside';
+          } else {
+            locationType = vrb.choose_destination;
+          }
+        }
+        const tripType = vrb.trip_type === 'roundtrip' ? 'Round Trip' : 'One Way';
+        return `${locationType} - ${tripType}`;
+      });
+      vanRentalInfo = vanRentalDetails.join(', ');
+    }
+
+    // Format hotel info
+    let hotelDisplay = 'No Hotel Selected';
+    if (currentBooking.booking_type === 'tour_only') {
+      hotelDisplay = 'N/A';
+    } else if (currentBooking.hotels?.name) {
+      hotelDisplay = currentBooking.hotels.name;
+    }
+
+    // Format price
+    const totalAmount = currentBooking.total_booking_amount || 0;
+    const formattedPrice = totalAmount > 0
+      ? `₱${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : '₱0';
+
+    // Format dates for email
+    const formatDateForEmail = (dateString) => {
+      if (!dateString) return 'N/A';
+      return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
+    const emailBooking = {
+      booking_id: booking.id,
+      customer_first_name: currentBooking.customer_first_name,
+      customer_last_name: currentBooking.customer_last_name,
+      email: booking.email,
+      customer_email: booking.email,
+      arrival_date: currentBooking.original_arrival_date, // Original dates (restored)
+      departure_date: currentBooking.original_departure_date, // Original dates (restored)
+      requested_arrival_date: currentBooking.arrival_date, // Requested dates (cancelled)
+      requested_departure_date: currentBooking.departure_date, // Requested dates (cancelled)
+      arrival: formatDateForEmail(currentBooking.original_arrival_date),
+      departure: formatDateForEmail(currentBooking.original_departure_date),
+      number_of_tourist: currentBooking.number_of_tourist,
+      booking_type: currentBooking.booking_type,
+      booking_preferences: currentBooking.booking_preferences || '',
+      total_booking_amount: currentBooking.total_booking_amount || 0,
+      services: currentBooking.booking_preferences || 'N/A',
+      rental: vehicleInfo,
+      vanRental: vanRentalInfo,
+      hotel: hotelDisplay,
+      price: formattedPrice
+    };
+    
+    // Automatically send reschedule cancellation email
+    const emailResult = await sendEmail('reschedule_cancelled', emailBooking);
+    
+    if (emailResult.success) {
+      console.log(`Reschedule cancellation email sent successfully to ${booking.email}`);
+      booking.reschedule_requested = false;
+      if (booking.raw) {
+        booking.raw.reschedule_requested = false;
+        booking.raw.reschedule_requested_at = null;
+        booking.raw.arrival_date = currentBooking.original_arrival_date;
+        booking.raw.departure_date = currentBooking.original_departure_date;
+        booking.raw.original_arrival_date = null;
+        booking.raw.original_departure_date = null;
+      }
+      showNotification('✅ Reschedule request cancelled and email sent successfully', 'success');
+      renderTable();
+      closeRescheduleConfirmationModal();
+    } else {
+      console.warn(`Failed to send reschedule cancellation email: ${emailResult.message}`);
+      // Still update the UI since the reschedule was cancelled in the database
+      booking.reschedule_requested = false;
+      if (booking.raw) {
+        booking.raw.reschedule_requested = false;
+        booking.raw.reschedule_requested_at = null;
+        booking.raw.arrival_date = currentBooking.original_arrival_date;
+        booking.raw.departure_date = currentBooking.original_departure_date;
+        booking.raw.original_arrival_date = null;
+        booking.raw.original_departure_date = null;
+      }
+      showNotification('⚠️ Reschedule cancelled but email failed to send', 'warning');
+      renderTable();
+      closeRescheduleConfirmationModal();
+    }
+  } catch (error) {
+    console.error('Error cancelling reschedule:', error);
+    if (cancelBtn) {
+      cancelBtn.disabled = false;
+      cancelBtn.textContent = 'Cancel';
+    }
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+    }
+    showErrorModal('Error', 'Failed to cancel reschedule: ' + error.message);
+  }
+}
+
 // Close modal when clicking outside
 document.addEventListener('click', function(event) {
   const rescheduleModal = document.getElementById('rescheduleConfirmationModal');
