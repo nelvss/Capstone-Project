@@ -870,36 +870,12 @@ function openReceiptModal(booking) {
   
   if (!modal) return;
   
-  // Debug: Log booking object to see what data we have
-  console.log('📋 Booking data in receipt modal:', {
-    bookingId: booking.id,
-    payment_option: booking.payment_option,
-    payment_method: booking.payment_method,
-    paid_amount: booking.paid_amount,
-    remaining_balance: booking.remaining_balance,
-    receipt_image_url: booking.receipt_image_url,
-    raw_payment_option: booking.raw?.payment_option,
-    raw_payment_method: booking.raw?.payment_method,
-    raw_paid_amount: booking.raw?.paid_amount,
-    raw_remaining_balance: booking.raw?.remaining_balance,
-    fullRaw: booking.raw
-  });
-  
-  // Get payment information - check multiple sources with priority
-  // Priority: 1. Direct booking properties, 2. raw object, 3. Check if values are null vs undefined
+  // Get payment information - check both direct properties and raw object
   const paymentOption = booking.payment_option ?? booking.raw?.payment_option ?? null;
   const paymentMethod = booking.payment_method ?? booking.raw?.payment_method ?? null;
   const paidAmount = booking.paid_amount ?? booking.raw?.paid_amount ?? null;
   const remainingBalance = booking.remaining_balance ?? booking.raw?.remaining_balance ?? null;
   const imageUrl = booking.receipt_image_url ?? booking.raw?.receipt_image_url ?? null;
-  
-  console.log('💰 Extracted payment data:', {
-    paymentOption,
-    paymentMethod,
-    paidAmount,
-    remainingBalance,
-    hasImage: !!imageUrl
-  });
   
   // Set payment option
   const paymentOptionEl = document.getElementById('receiptPaymentOption');
