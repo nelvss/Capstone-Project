@@ -1652,10 +1652,8 @@ function navigateWithTransition(url) {
 
 // Logout functionality
 function handleLogout() {
-  showConfirmModal('Confirm Logout', 'Are you sure you want to logout?', () => {
-    localStorage.removeItem('userSession');
-    window.location.href = '../user/home/home.html';
-  });
+  localStorage.removeItem('userSession');
+  window.location.href = '../user/home/home.html';
 }
 
 // Start real-time updates

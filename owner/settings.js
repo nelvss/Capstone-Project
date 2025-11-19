@@ -94,10 +94,8 @@ function navigateWithTransition(url) {
 
 // Logout functionality (same as dashboard)
 function handleLogout() {
-  showConfirmModal('Confirm Logout', 'Are you sure you want to logout? Any unsaved changes will be lost.', () => {
-    localStorage.removeItem('userSession');
-    window.location.href = '../user/home/home.html';
-  });
+  localStorage.removeItem('userSession');
+  window.location.href = '../user/home/home.html';
 }
 
 // Session checking
