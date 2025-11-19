@@ -480,7 +480,14 @@
 
     function setError(inputEl, message) {
         // error holder is the next sibling after .form-floating
-        const errorHolder = inputEl.closest(".form-floating")?.nextElementSibling;
+        let errorHolder = inputEl.closest(".form-floating")?.nextElementSibling;
+        // If not found, look for .field-error as sibling of parent container (for select elements)
+        if (!errorHolder) {
+            const parentContainer = inputEl.closest(".col-12, .col-md-4, .col-md-6, .col-lg-6, .van-fixed-col, .van-section");
+            if (parentContainer) {
+                errorHolder = parentContainer.querySelector(".field-error");
+            }
+        }
         if (!errorHolder) return; // silent guard
         if (message) {
             inputEl.classList.add("is-invalid");
@@ -527,6 +534,12 @@
         const divingOptions = document.querySelectorAll('.diving-option:checked');
         const hasDiving = divingOptions.length > 0;
         
+        // Get van rental elements
+        const destinationSelect = document.getElementById('destinationSelect');
+        const placeSelect = document.getElementById('placeSelect');
+        const tripTypeSelect = document.getElementById('tripTypeSelect');
+        const vanNumberOfDays = document.getElementById('vanNumberOfDays');
+        
         // Clear previous errors
         if (touristCountInput) {
             setError(touristCountInput, "");
@@ -536,6 +549,18 @@
         }
         if (numberOfDiversInput) {
             setError(numberOfDiversInput, "");
+        }
+        if (destinationSelect) {
+            setError(destinationSelect, "");
+        }
+        if (placeSelect) {
+            setError(placeSelect, "");
+        }
+        if (tripTypeSelect) {
+            setError(tripTypeSelect, "");
+        }
+        if (vanNumberOfDays) {
+            setError(vanNumberOfDays, "");
         }
         
         // Validate that at least one service is selected
@@ -582,6 +607,15 @@
             }
         }
         
+        // If rental days are selected but no vehicle is selected
+        if (rentalDaysSelect && rentalDaysSelect.value && rentalDaysSelect.value !== "" && !hasRentalVehicle) {
+            setError(rentalDaysSelect, "Please select a vehicle when rental days are specified.");
+            valid = false;
+            if (!valid && !hasTourPackages) {
+                rentalDaysSelect.focus();
+            }
+        }
+        
         // If diving is selected, validate number of divers
         if (hasDiving) {
             const numberOfDivers = parseInt(numberOfDiversInput.value) || 0;
@@ -601,6 +635,58 @@
                 setError(numberOfDiversInput, "Number of Divers must be at least 1.");
                 valid = false;
                 numberOfDiversInput.focus();
+            }
+        }
+        
+        // If number of divers is entered but no diving option is selected
+        if (numberOfDiversInput && numberOfDiversInput.value && numberOfDiversInput.value.trim() !== "" && !hasDiving) {
+            const numberOfDivers = parseInt(numberOfDiversInput.value) || 0;
+            if (numberOfDivers > 0) {
+                setError(numberOfDiversInput, "Please select a diving service when number of divers is specified.");
+                valid = false;
+                if (!valid && !hasTourPackages && (!hasRentalVehicle || rentalDaysSelect.value === "")) {
+                    numberOfDiversInput.focus();
+                }
+            }
+        }
+        
+        // Van Rental validation - if any field has a value, all must be complete
+        if (destinationSelect || placeSelect || tripTypeSelect || vanNumberOfDays) {
+            const destinationValue = destinationSelect?.value || "";
+            const placeValue = placeSelect?.value || "";
+            const tripTypeValue = tripTypeSelect?.value || "";
+            const vanDaysValue = vanNumberOfDays?.value || "";
+            
+            const hasAnyVanValue = destinationValue !== "" || placeValue !== "" || tripTypeValue !== "" || vanDaysValue !== "";
+            const allVanComplete = destinationValue !== "" && placeValue !== "" && tripTypeValue !== "" && vanDaysValue !== "";
+            
+            if (hasAnyVanValue && !allVanComplete) {
+                // Find the first incomplete field and show error
+                if (destinationValue === "") {
+                    setError(destinationSelect, "Please complete all Van Rental selections (destination, place, trip type, and days).");
+                    valid = false;
+                    if (valid === false) {
+                        destinationSelect?.focus();
+                    }
+                } else if (placeValue === "") {
+                    setError(placeSelect, "Please complete all Van Rental selections (destination, place, trip type, and days).");
+                    valid = false;
+                    if (valid === false) {
+                        placeSelect?.focus();
+                    }
+                } else if (tripTypeValue === "") {
+                    setError(tripTypeSelect, "Please complete all Van Rental selections (destination, place, trip type, and days).");
+                    valid = false;
+                    if (valid === false) {
+                        tripTypeSelect?.focus();
+                    }
+                } else if (vanDaysValue === "") {
+                    setError(vanNumberOfDays, "Please complete all Van Rental selections (destination, place, trip type, and days).");
+                    valid = false;
+                    if (valid === false) {
+                        vanNumberOfDays?.focus();
+                    }
+                }
             }
         }
         
