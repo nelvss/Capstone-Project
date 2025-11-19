@@ -375,6 +375,10 @@
         // Update payment amount if on payment step
         if (step === 4 && bookingData) {
             updatePaymentAmount();
+            // Small delay to ensure DOM is ready before setting up payment options
+            setTimeout(() => {
+                setupPaymentOptions();
+            }, 100);
         }
     }
 
@@ -394,16 +398,59 @@
         }
     }
 
+    // Payment Options setup: copy total and initialize minimum down payment
+    function setupPaymentOptions() {
+        const summaryTotalElement = document.getElementById('summary-total-amount');
+        const paymentTotalElement = document.getElementById('payment-total-amount');
+        if (summaryTotalElement && paymentTotalElement) {
+            const totalText = summaryTotalElement.textContent || '₱0.00';
+            paymentTotalElement.textContent = totalText;
+        }
+
+        // Minimum down payment: ₱500 per tourist
+        if (!bookingData) {
+            console.warn('No booking data available for setupPaymentOptions');
+            return;
+        }
+        
+        const numTourists = parseInt(bookingData.touristCount, 10) || 0;
+        const minimumDownPayment = Math.max(0, numTourists * 500);
+
+        const minimumDownPaymentText = document.getElementById('minimumDownPaymentText');
+        const minimumDownPaymentAmount = document.getElementById('minimumDownPaymentAmount');
+        const downPaymentInput = document.getElementById('downPaymentAmount');
+        
+        if (minimumDownPaymentText) {
+            minimumDownPaymentText.textContent = `Minimum for your booking: ₱${minimumDownPayment.toLocaleString()}`;
+        }
+        if (minimumDownPaymentAmount) {
+            minimumDownPaymentAmount.textContent = `₱${minimumDownPayment.toLocaleString()}`;
+        }
+        if (downPaymentInput) {
+            downPaymentInput.min = minimumDownPayment;
+        }
+    }
+
     // Handle payment option changes
     document.addEventListener('change', function(e) {
         if (e.target.name === 'paymentOption') {
             const downPaymentSection = document.getElementById('downPaymentSection');
             const downPaymentReminder = document.getElementById('downPaymentReminder');
+            const downPaymentAmountInput = document.getElementById('downPaymentAmount');
             
             if (e.target.value === 'down') {
                 downPaymentSection.classList.remove('d-none');
                 downPaymentReminder.classList.remove('d-none');
-                updateRemainingBalance();
+                
+                // Set minimum value and focus
+                if (downPaymentAmountInput) {
+                    const minimumValue = parseInt(downPaymentAmountInput.getAttribute('min')) || 1000;
+                    downPaymentAmountInput.value = minimumValue;
+                    downPaymentAmountInput.focus();
+                    updateRemainingBalance();
+                } else {
+                    updateRemainingBalance();
+                }
             } else {
                 downPaymentSection.classList.add('d-none');
                 downPaymentReminder.classList.add('d-none');
