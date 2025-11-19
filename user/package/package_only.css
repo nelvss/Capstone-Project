@@ -499,8 +499,8 @@ body {
 /* Put the Total Amount label inside the input box at the top */
 .form-floating label[for="totalAmount"] {
     position: absolute !important;
-    top: -2rem !important;
-    left: 3.5rem !important;
+    top: 0.5rem !important;
+    left: 0.75rem !important;
     font-size: 0.7rem !important;
     font-weight: 600 !important;
     color: #6c757d !important;
