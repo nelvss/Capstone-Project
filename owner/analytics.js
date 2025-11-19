@@ -267,8 +267,7 @@ async function fetchAnalyticsDataFromApi() {
       const yearFilter = document.getElementById('seasonalPredictionYearFilter');
       const selectedYear = yearFilter ? yearFilter.value : new Date().getFullYear();
       const seasonalParams = new URLSearchParams({
-        year: selectedYear.toString(),
-        lookback_years: '2'
+        year: selectedYear.toString()
       });
       const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction?${seasonalParams.toString()}`);
       const seasonalResult = await seasonalResponse.json();
@@ -1505,8 +1504,7 @@ async function createSeasonalPredictionChart() {
 async function loadSeasonalPredictionData(year) {
   try {
     const seasonalParams = new URLSearchParams({
-      year: year.toString(),
-      lookback_years: '2'
+      year: year.toString()
     });
     const seasonalResponse = await fetch(`${window.API_URL}/api/analytics/seasonal-prediction?${seasonalParams.toString()}`);
     const seasonalResult = await seasonalResponse.json();

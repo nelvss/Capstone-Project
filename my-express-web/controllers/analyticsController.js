@@ -1661,14 +1661,14 @@ const getBookingDemandTimeseries = async (req, res) => {
 // Get seasonal prediction (Peak vs Low seasons by month)
 const getSeasonalPrediction = async (req, res) => {
   try {
-    const { year, lookback_years = 2 } = req.query;
+    const { year } = req.query;
     const targetYear = year ? parseInt(year) : new Date().getFullYear();
-    const lookbackYears = Math.min(Math.max(parseInt(lookback_years), 1), 5);
     
-    console.log('📊 Generating seasonal prediction:', { targetYear, lookbackYears });
+    console.log('📊 Generating seasonal prediction:', { targetYear });
     
-    // Fetch historical booking data for the past years
-    const startDate = new Date(targetYear - lookbackYears, 0, 1).toISOString();
+    // Fetch ALL available historical booking data up to the target year
+    // Use a reasonable start date (e.g., 10 years back) to get all available data
+    const startDate = new Date(targetYear - 10, 0, 1).toISOString();
     const endDate = new Date(targetYear - 1, 11, 31, 23, 59, 59).toISOString();
     
     let query = supabase
@@ -1696,7 +1696,7 @@ const getSeasonalPrediction = async (req, res) => {
         data: {
           generated_at: new Date().toISOString(),
           target_year: targetYear,
-          lookback_years: lookbackYears,
+          lookback_years: 0,
           has_sufficient_data: false,
           message: 'Insufficient historical data for seasonal prediction',
           months: [],
@@ -1850,6 +1850,13 @@ const getSeasonalPrediction = async (req, res) => {
     peakMonths.sort((a, b) => b.predicted_bookings - a.predicted_bookings);
     lowMonths.sort((a, b) => a.predicted_bookings - b.predicted_bookings);
     
+    // Calculate actual lookback years from the data
+    const allYears = new Set();
+    for (let i = 0; i < 12; i++) {
+      Object.keys(monthlyData[i].years_data).forEach(year => allYears.add(parseInt(year)));
+    }
+    const actualLookbackYears = allYears.size > 0 ? targetYear - Math.min(...Array.from(allYears)) : 0;
+    
     console.log('✅ Seasonal prediction generated successfully');
     
     res.json({
@@ -1857,7 +1864,7 @@ const getSeasonalPrediction = async (req, res) => {
       data: {
         generated_at: new Date().toISOString(),
         target_year: targetYear,
-        lookback_years: lookbackYears,
+        lookback_years: actualLookbackYears,
         historical_data_points: historicalBookings.length,
         has_sufficient_data: true,
         average_monthly_bookings: Math.round(avgMonthlyBookings),
