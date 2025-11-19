@@ -21,7 +21,10 @@ function initializeSocketIO() {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+      timeout: 20000,
+      withCredentials: true
     });
 
     window.socket.on('connect', () => {
@@ -29,13 +32,22 @@ function initializeSocketIO() {
       showNotification('✅ Real-time updates connected', 'success');
     });
 
-    window.socket.on('disconnect', () => {
-      console.log('🔌 Disconnected from server');
-      showNotification('⚠️ Real-time updates disconnected', 'warning');
+    window.socket.on('disconnect', (reason) => {
+      console.log('🔌 Disconnected from server:', reason);
+      if (reason === 'io server disconnect') {
+        // Server disconnected the socket, need to manually reconnect
+        window.socket.connect();
+      } else {
+        showNotification('⚠️ Real-time updates disconnected', 'warning');
+      }
     });
 
     window.socket.on('connect_error', (error) => {
       console.error('🔌 Connection error:', error);
+      // Don't show notification on every connection attempt to avoid spam
+      if (error.type === 'TransportError' || error.message.includes('websocket')) {
+        console.warn('WebSocket connection failed, will retry with polling');
+      }
     });
 
     // Listen for booking updates
@@ -231,7 +243,24 @@ async function loadBookings() {
   try {
     console.log('📊 Loading bookings from API...');
     
-    const response = await fetch(`${API_URL}/api/bookings`);
+    const response = await fetch(`${API_URL}/api/bookings`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 502) {
+        throw new Error('Server is temporarily unavailable. Please try again later.');
+      } else if (response.status === 0 || response.status >= 500) {
+        throw new Error('Server error. Please check if the API server is running.');
+      } else {
+        throw new Error(`Failed to load bookings: ${response.status} ${response.statusText}`);
+      }
+    }
+    
     const result = await response.json();
     
     if (!result.success) {
@@ -246,19 +275,29 @@ async function loadBookings() {
   } catch (error) {
     console.error('❌ Error loading bookings:', error);
     
+    // Check if it's a network/CORS error
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      console.error('Network error - possible CORS issue or server down');
+      error.message = 'Cannot connect to server. Please check your internet connection and ensure the API server is running.';
+    }
+    
     // Fallback to empty array or show error message
     bookings = [];
     
     // Show error message to user
     const errorMessage = document.createElement('div');
     errorMessage.className = 'alert alert-danger';
+    errorMessage.style.cssText = 'margin: 20px; padding: 15px; border-radius: 8px;';
     errorMessage.innerHTML = `
       <i class="fas fa-exclamation-triangle me-2"></i>
-      Failed to load bookings: ${error.message}
+      <strong>Failed to load bookings:</strong> ${error.message}
+      <br><small>If this persists, please check the API server status.</small>
     `;
     
-    const container = document.querySelector('.container-fluid');
+    const container = document.querySelector('.container-fluid') || document.querySelector('.main-content');
     if (container) {
+      const existingError = container.querySelector('.alert-danger');
+      if (existingError) existingError.remove();
       container.insertBefore(errorMessage, container.firstChild);
     }
     
@@ -271,7 +310,24 @@ async function loadVehicles() {
   try {
     console.log('🚗 Loading vehicles from API...');
     
-    const response = await fetch(`${API_URL}/api/vehicles`);
+    const response = await fetch(`${API_URL}/api/vehicles`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 502) {
+        throw new Error('Server is temporarily unavailable');
+      } else if (response.status === 0 || response.status >= 500) {
+        throw new Error('Server error');
+      } else {
+        throw new Error(`Failed to load vehicles: ${response.status}`);
+      }
+    }
+    
     const result = await response.json();
     
     if (!result.success) {
@@ -285,6 +341,9 @@ async function loadVehicles() {
     
   } catch (error) {
     console.error('❌ Error loading vehicles:', error);
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      console.error('Network error - possible CORS issue or server down');
+    }
     availableVehicles = [];
     return false;
   }
@@ -295,7 +354,24 @@ async function loadVanDestinations() {
   try {
     console.log('🚐 Loading van destinations from API...');
     
-    const response = await fetch(`${API_URL}/api/van-destinations`);
+    const response = await fetch(`${API_URL}/api/van-destinations`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 502) {
+        throw new Error('Server is temporarily unavailable');
+      } else if (response.status === 0 || response.status >= 500) {
+        throw new Error('Server error');
+      } else {
+        throw new Error(`Failed to load van destinations: ${response.status}`);
+      }
+    }
+    
     const result = await response.json();
     
     console.log('📥 Van destinations response:', result);
@@ -312,6 +388,9 @@ async function loadVanDestinations() {
     
   } catch (error) {
     console.error('❌ Error loading van destinations:', error);
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      console.error('Network error - possible CORS issue or server down');
+    }
     availableVanDestinations = [];
     return false;
   }
@@ -322,7 +401,24 @@ async function loadTours() {
   try {
     console.log('🏝️ Loading tours from API...');
     
-    const response = await fetch(`${API_URL}/api/tours`);
+    const response = await fetch(`${API_URL}/api/tours`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 502) {
+        throw new Error('Server is temporarily unavailable');
+      } else if (response.status === 0 || response.status >= 500) {
+        throw new Error('Server error');
+      } else {
+        throw new Error(`Failed to load tours: ${response.status}`);
+      }
+    }
+    
     const result = await response.json();
     
     if (!result.success) {
@@ -336,6 +432,9 @@ async function loadTours() {
     
   } catch (error) {
     console.error('❌ Error loading tours:', error);
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      console.error('Network error - possible CORS issue or server down');
+    }
     availableTours = [];
     return false;
   }
@@ -346,7 +445,24 @@ async function loadPackages() {
   try {
     console.log('📦 Loading packages from API...');
     
-    const response = await fetch(`${API_URL}/api/package-only?include=pricing`);
+    const response = await fetch(`${API_URL}/api/package-only?include=pricing`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 502) {
+        throw new Error('Server is temporarily unavailable');
+      } else if (response.status === 0 || response.status >= 500) {
+        throw new Error('Server error');
+      } else {
+        throw new Error(`Failed to load packages: ${response.status}`);
+      }
+    }
+    
     const result = await response.json();
     
     if (!result.success) {
@@ -360,6 +476,9 @@ async function loadPackages() {
     
   } catch (error) {
     console.error('❌ Error loading packages:', error);
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      console.error('Network error - possible CORS issue or server down');
+    }
     availablePackages = [];
     return false;
   }
@@ -370,7 +489,24 @@ async function loadDiving() {
   try {
     console.log('🤿 Loading diving options from API...');
     
-    const response = await fetch(`${API_URL}/api/diving`);
+    const response = await fetch(`${API_URL}/api/diving`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 502) {
+        throw new Error('Server is temporarily unavailable');
+      } else if (response.status === 0 || response.status >= 500) {
+        throw new Error('Server error');
+      } else {
+        throw new Error(`Failed to load diving options: ${response.status}`);
+      }
+    }
+    
     const result = await response.json();
     
     if (!result.success) {
@@ -384,6 +520,9 @@ async function loadDiving() {
     
   } catch (error) {
     console.error('❌ Error loading diving options:', error);
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      console.error('Network error - possible CORS issue or server down');
+    }
     availableDiving = [];
     return false;
   }
@@ -394,6 +533,7 @@ async function sendEmail(action, booking) {
   try {
     const response = await fetch(`${API_URL}/api/send-email`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -402,6 +542,14 @@ async function sendEmail(action, booking) {
         booking: booking
       })
     });
+    
+    if (!response.ok) {
+      if (response.status === 502) {
+        throw new Error('Server is temporarily unavailable');
+      } else if (response.status === 0 || response.status >= 500) {
+        throw new Error('Server error');
+      }
+    }
     
     const result = await response.json();
     
@@ -412,9 +560,15 @@ async function sendEmail(action, booking) {
     }
   } catch (error) {
     console.error('Error sending email:', error);
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      return { 
+        success: false, 
+        message: 'Cannot connect to server. Please check if the API server is running.' 
+      };
+    }
     return { 
       success: false, 
-      message: 'Failed to connect to email server. Please ensure the server is running.' 
+      message: error.message || 'Failed to connect to email server. Please ensure the server is running.' 
     };
   }
 }
@@ -429,6 +583,7 @@ async function handleConfirm(booking, button) {
     // Update booking status in database
     const statusResponse = await fetch(`${API_URL}/api/bookings/${booking.id}/status`, {
       method: 'PUT',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -475,6 +630,7 @@ async function handleCancel(booking, button) {
     // Update booking status in database
     const statusResponse = await fetch(`${API_URL}/api/bookings/${booking.id}/status`, {
       method: 'PUT',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -563,6 +719,7 @@ async function handleConfirmReschedule(booking, button) {
     // Get current booking details to preserve all fields
     const getResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       }
@@ -698,6 +855,7 @@ async function processRescheduleConfirmation() {
     // Get current booking details to preserve all fields
     const getResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
       method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       }
@@ -771,6 +929,7 @@ async function processRescheduleConfirmation() {
     // Update booking to clear reschedule flags
     const updateResponse = await fetch(`${API_URL}/api/bookings/${booking.id}`, {
       method: 'PUT',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
