@@ -1004,3 +1004,12 @@ body {
     border-color: #ef4444;
     color: white;
 }
+
+/* ===== REDUCE WIDTH FOR TOUR ONLY STEP 2 ===== */
+.booking-step-2 .container {
+    max-width: 900px !important;
+}
+
+.booking-step-2 .card {
+    max-width: 900px !important;
+}
