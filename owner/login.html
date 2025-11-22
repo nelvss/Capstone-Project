@@ -111,6 +111,16 @@
                         </div>
                     </div>
                     
+                    <div class="form-group">
+                        <div class="terms-checkbox-wrapper">
+                            <input type="checkbox" id="acceptTerms" name="acceptTerms" class="terms-checkbox" required>
+                            <label for="acceptTerms" class="terms-label">
+                                I agree to the <a href="#" class="terms-link" onclick="showTermsModal(event)">Terms and Conditions</a>
+                            </label>
+                        </div>
+                        <div class="terms-error" id="termsError"></div>
+                    </div>
+                    
                     <button type="submit" class="btn-login" id="registerButton">
                         <span class="btn-text">CREATE ACCOUNT</span>
                         <span class="btn-loading">Creating account...</span>

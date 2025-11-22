@@ -131,6 +131,33 @@ async function handleRegister(event) {
         return;
     }
 
+    // Validate terms and conditions
+    const acceptTerms = document.getElementById('acceptTerms');
+    if (!acceptTerms.checked) {
+        showErrorModal('Validation Error', 'You must agree to the Terms and Conditions to create an account.');
+        acceptTerms.classList.add('error');
+        const termsWrapper = acceptTerms.closest('.terms-checkbox-wrapper');
+        if (termsWrapper) {
+            termsWrapper.classList.add('error');
+        }
+        const termsError = document.getElementById('termsError');
+        if (termsError) {
+            termsError.textContent = 'You must agree to the Terms and Conditions.';
+        }
+        return;
+    }
+
+    // Clear terms error if checkbox is checked
+    acceptTerms.classList.remove('error');
+    const termsWrapper = acceptTerms.closest('.terms-checkbox-wrapper');
+    if (termsWrapper) {
+        termsWrapper.classList.remove('error');
+    }
+    const termsError = document.getElementById('termsError');
+    if (termsError) {
+        termsError.textContent = '';
+    }
+
     // Show loading state
     registerButton.classList.add('loading');
     registerButton.disabled = true;
@@ -397,6 +424,82 @@ async function handleForgotPassword(event) {
     }
 }
 
+// Show Terms and Conditions Modal
+function showTermsModal(event) {
+    event.preventDefault();
+    
+    // Remove existing terms modal if any
+    const existingModal = document.getElementById('termsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Create modal HTML
+    const modalHTML = `
+      <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title" id="termsModalLabel">
+                <i class="fas fa-file-contract me-2"></i>Terms and Conditions
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height: 500px; overflow-y: auto; text-align: left;">
+              <p><strong>Last Updated:</strong> ${new Date().toLocaleDateString()}</p>
+              <hr>
+              <h5>1. Acceptance of Terms</h5>
+              <p>By creating an account, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our service.</p>
+              
+              <h5>2. Account Registration</h5>
+              <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+              
+              <h5>3. User Responsibilities</h5>
+              <p>You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate, current, and complete.</p>
+              
+              <h5>4. Booking and Cancellation</h5>
+              <p>All bookings are subject to availability and our cancellation policy. Please review booking details carefully before confirming.</p>
+              
+              <h5>5. Privacy</h5>
+              <p>Your personal information will be handled in accordance with our Privacy Policy. By using our service, you consent to the collection and use of your information as described.</p>
+              
+              <h5>6. Limitation of Liability</h5>
+              <p>We are not liable for any indirect, incidental, special, or consequential damages arising from your use of our service.</p>
+              
+              <h5>7. Changes to Terms</h5>
+              <p>We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the new terms.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="termsModalOkBtn">
+                <i class="fas fa-check me-1"></i>I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Insert modal into body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Get modal element
+    const modalElement = document.getElementById('termsModal');
+    const modal = new bootstrap.Modal(modalElement);
+
+    // Focus OK button when modal is shown
+    modalElement.addEventListener('shown.bs.modal', () => {
+      document.getElementById('termsModalOkBtn').focus();
+    });
+
+    // Clean up when modal is hidden
+    modalElement.addEventListener('hidden.bs.modal', () => {
+      modalElement.remove();
+    });
+
+    // Show modal
+    modal.show();
+}
+
 // Check URL parameters on page load
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -404,6 +507,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize back arrow behavior
     updateBackArrowBehavior();
+    
+    // Clear terms error when checkbox is checked
+    const acceptTermsCheckbox = document.getElementById('acceptTerms');
+    if (acceptTermsCheckbox) {
+        acceptTermsCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                this.classList.remove('error');
+                const termsError = document.getElementById('termsError');
+                if (termsError) {
+                    termsError.textContent = '';
+                }
+                const wrapper = this.closest('.terms-checkbox-wrapper');
+                if (wrapper) {
+                    wrapper.classList.remove('error');
+                }
+            }
+        });
+    }
     
     if (mode === 'register') {
         switchToRegister({ preventDefault: () => {} });
