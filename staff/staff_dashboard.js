@@ -4,6 +4,29 @@
 let bookings = [];
 
 let staffStatusFilter = 'all';
+let staffYearFilter = 'all';
+
+// Helper function to extract year from date string
+function getYearFromDate(dateString) {
+  if (!dateString) return null;
+  try {
+    // Try parsing as Date object first
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+      return date.getFullYear().toString();
+    }
+    // Try extracting year from YYYY-MM-DD format directly
+    if (typeof dateString === 'string' && dateString.length >= 4) {
+      const yearMatch = dateString.match(/^(\d{4})/);
+      if (yearMatch) {
+        return yearMatch[1];
+      }
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
 
 // API Configuration (same endpoint if used by owners)
 const API_URL = (window.API_URL && window.API_URL.length > 0)
@@ -1542,10 +1565,26 @@ function renderTable() {
   const rows = bookings.filter(b => {
     // Always include bookings with reschedule requests regardless of status
     if (b.reschedule_requested) {
+      // Still apply year filter if needed
+      if (staffYearFilter !== 'all' && b.arrival) {
+        const arrivalYear = getYearFromDate(b.arrival);
+        if (arrivalYear && arrivalYear !== staffYearFilter) {
+          return false;
+        }
+      }
       return true;
     }
     // For other bookings, apply the status filter
-    return staffStatusFilter === 'all' ? (b.status === 'pending') : (b.status === staffStatusFilter);
+    const matchesStatus = staffStatusFilter === 'all' ? (b.status === 'pending') : (b.status === staffStatusFilter);
+    
+    // Apply year filter
+    let matchesYear = true;
+    if (staffYearFilter !== 'all' && b.arrival) {
+      const arrivalYear = getYearFromDate(b.arrival);
+      matchesYear = arrivalYear ? arrivalYear === staffYearFilter : false;
+    }
+    
+    return matchesStatus && matchesYear;
   });
   rows.forEach(b => {
     const tr = document.createElement('tr');
@@ -1650,8 +1689,10 @@ function renderTable() {
 }
 
 function staffFilterChange() {
-  const sel = document.getElementById('staff-status-filter');
-  staffStatusFilter = sel ? sel.value : 'all';
+  const statusSel = document.getElementById('staff-status-filter');
+  const yearSel = document.getElementById('staff-year-filter');
+  staffStatusFilter = statusSel ? statusSel.value : 'all';
+  staffYearFilter = yearSel ? yearSel.value : 'all';
   renderTable();
 }
 
@@ -1679,8 +1720,18 @@ function filterTable(searchTerm) {
     // Apply status filter for non-reschedule bookings
     const matchesStatus = staffStatusFilter === 'all' ? (b.status === 'pending') : (b.status === staffStatusFilter);
     
-    // Include if it matches reschedule OR status filter
+    // Apply year filter
+    let matchesYear = true;
+    if (staffYearFilter !== 'all' && b.arrival) {
+      const arrivalYear = getYearFromDate(b.arrival);
+      matchesYear = arrivalYear ? arrivalYear === staffYearFilter : false;
+    }
+    
+    // Include if it matches reschedule OR status filter, and matches year filter
     if (!matchesReschedule && !matchesStatus) {
+      return false;
+    }
+    if (!matchesYear) {
       return false;
     }
     

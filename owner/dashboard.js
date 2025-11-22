@@ -7,6 +7,29 @@ let availablePackages = []; // Store packages for dropdown
 let availableDiving = []; // Store diving options for dropdown
 
 let ownerStatusFilter = 'all';
+let ownerYearFilter = 'all';
+
+// Helper function to extract year from date string
+function getYearFromDate(dateString) {
+  if (!dateString) return null;
+  try {
+    // Try parsing as Date object first
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+      return date.getFullYear().toString();
+    }
+    // Try extracting year from YYYY-MM-DD format directly
+    if (typeof dateString === 'string' && dateString.length >= 4) {
+      const yearMatch = dateString.match(/^(\d{4})/);
+      if (yearMatch) {
+        return yearMatch[1];
+      }
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
 
 // API Configuration
 const API_URL = (window.API_URL && window.API_URL.length > 0)
@@ -1442,10 +1465,26 @@ function renderTable() {
   const rows = bookings.filter(b => {
     // Always include bookings with reschedule requests regardless of status
     if (b.reschedule_requested) {
+      // Still apply year filter if needed
+      if (ownerYearFilter !== 'all' && b.arrival) {
+        const arrivalYear = getYearFromDate(b.arrival);
+        if (arrivalYear && arrivalYear !== ownerYearFilter) {
+          return false;
+        }
+      }
       return true;
     }
     // For other bookings, apply the status filter
-    return ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter);
+    const matchesStatus = ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter);
+    
+    // Apply year filter
+    let matchesYear = true;
+    if (ownerYearFilter !== 'all' && b.arrival) {
+      const arrivalYear = getYearFromDate(b.arrival);
+      matchesYear = arrivalYear ? arrivalYear === ownerYearFilter : false;
+    }
+    
+    return matchesStatus && matchesYear;
   });
   rows.forEach(b => {
     const tr = document.createElement('tr');
@@ -1543,8 +1582,10 @@ function renderTable() {
 }
 
 function ownerFilterChange() {
-  const sel = document.getElementById('owner-status-filter');
-  ownerStatusFilter = sel ? sel.value : 'all';
+  const statusSel = document.getElementById('owner-status-filter');
+  const yearSel = document.getElementById('owner-year-filter');
+  ownerStatusFilter = statusSel ? statusSel.value : 'all';
+  ownerYearFilter = yearSel ? yearSel.value : 'all';
   renderTable();
 }
 
@@ -1574,8 +1615,18 @@ function filterTable(searchTerm) {
     // Apply status filter for non-reschedule bookings
     const matchesStatus = ownerStatusFilter === 'all' ? (b.status === 'pending') : (b.status === ownerStatusFilter);
     
-    // Include if it matches reschedule OR status filter
+    // Apply year filter
+    let matchesYear = true;
+    if (ownerYearFilter !== 'all' && b.arrival) {
+      const arrivalYear = getYearFromDate(b.arrival);
+      matchesYear = arrivalYear ? arrivalYear === ownerYearFilter : false;
+    }
+    
+    // Include if it matches reschedule OR status filter, and matches year filter
     if (!matchesReschedule && !matchesStatus) {
+      return false;
+    }
+    if (!matchesYear) {
       return false;
     }
     
