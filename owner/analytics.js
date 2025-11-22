@@ -2331,6 +2331,30 @@ async function loadBookingStatusData() {
     }
 }
 
+// Helper function to format period labels based on year selection
+function formatPeriodLabel(period, year) {
+    const parts = period.split('-');
+    if (parts.length === 2) {
+        // Monthly format: YYYY-MM
+        if (year === 'all') {
+            // Show full date format when viewing all years
+            return period;
+        } else {
+            // Show only month name when specific year is selected
+            const monthNum = parseInt(parts[1], 10);
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            if (monthNum >= 1 && monthNum <= 12) {
+                return monthNames[monthNum - 1];
+            }
+            return period;
+        }
+    } else if (parts.length === 3 && period.includes('W')) {
+        // Weekly format: YYYY-Www (e.g., 2025-W20)
+        return period;
+    }
+    return period;
+}
+
 async function loadBookingTypeData(month = 'all', year = 'all') {
     // Prevent multiple simultaneous loads
     if (isLoadingChartData) {
@@ -2380,21 +2404,8 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
         if (result.success && result.comparison && Array.isArray(result.comparison)) {
             const chart = chartInstances['bookingTypeChart'];
             if (chart && result.comparison.length > 0) {
-                // Format labels to show full date (YYYY-MM format) for multi-year data
-                const labels = result.comparison.map(c => {
-                    const parts = c.period.split('-');
-                    if (parts.length === 2) {
-                        // Monthly format: YYYY-MM - show full date
-                        return c.period;
-                    } else if (parts.length === 3 && c.period.includes('W')) {
-                        // Weekly format: YYYY-Www (e.g., 2025-W20)
-                        const weekMatch = c.period.match(/W(\d+)/);
-                        if (weekMatch) {
-                            return c.period;
-                        }
-                    }
-                    return c.period;
-                });
+                // Format labels based on year selection
+                const labels = result.comparison.map(c => formatPeriodLabel(c.period, year));
                 
                 chart.data.labels = labels;
                 chart.data.datasets[0].data = result.comparison.map(c => c.package_only || 0);
@@ -2621,18 +2632,8 @@ async function loadTouristVolumeData(month = 'all', year = 'all') {
         if (result.success && result.volume && Array.isArray(result.volume)) {
             const chart = chartInstances['touristVolumeChart'];
             if (chart && result.volume.length > 0) {
-                // Format labels to show full date (YYYY-MM format) for multi-year data
-                const labels = result.volume.map(v => {
-                    const parts = v.period.split('-');
-                    if (parts.length === 2) {
-                        // Monthly format: YYYY-MM - show full date
-                        return v.period;
-                    } else if (parts.length === 3 && v.period.includes('W')) {
-                        // Weekly format: YYYY-Www (e.g., 2025-W20)
-                        return v.period;
-                    }
-                    return v.period;
-                });
+                // Format labels based on year selection
+                const labels = result.volume.map(v => formatPeriodLabel(v.period, year));
                 
                 chart.data.labels = labels;
                 chart.data.datasets[0].data = result.volume.map(v => v.tourists || 0);
@@ -2691,18 +2692,8 @@ async function loadAvgBookingValueData(month = 'all', year = 'all') {
         if (result.success && result.avgValues && Array.isArray(result.avgValues)) {
             const chart = chartInstances['avgBookingValueChart'];
             if (chart && result.avgValues.length > 0) {
-                // Format labels to show full date (YYYY-MM format) for multi-year data
-                const labels = result.avgValues.map(v => {
-                    const parts = v.period.split('-');
-                    if (parts.length === 2) {
-                        // Monthly format: YYYY-MM - show full date
-                        return v.period;
-                    } else if (parts.length === 3 && v.period.includes('W')) {
-                        // Weekly format: YYYY-Www (e.g., 2025-W20)
-                        return v.period;
-                    }
-                    return v.period;
-                });
+                // Format labels based on year selection
+                const labels = result.avgValues.map(v => formatPeriodLabel(v.period, year));
                 
                 chart.data.labels = labels;
                 chart.data.datasets[0].data = result.avgValues.map(v => v.average || 0);
