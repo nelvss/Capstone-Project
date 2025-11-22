@@ -197,6 +197,53 @@
             console.warn('Unable to autofill email from userSession:', err);
         }
     }
+
+    // Auto-fill user info (firstName, lastName, contactNo) from logged-in user account
+    function autofillUserInfoFromSession() {
+        try {
+            const raw = localStorage.getItem('userSession');
+            if (!raw) {
+                console.log('autofillUserInfoFromSession: no userSession found in localStorage');
+                return;
+            }
+
+            const session = JSON.parse(raw);
+            if (!session) {
+                console.log('autofillUserInfoFromSession: invalid session data');
+                return;
+            }
+
+            // Auto-fill First Name
+            const firstNameInput = document.getElementById('firstName');
+            if (firstNameInput && session.firstName) {
+                firstNameInput.value = String(session.firstName).trim();
+                setError(firstNameInput, "");
+                console.log('autofillUserInfoFromSession: firstName field set to', session.firstName);
+            }
+
+            // Auto-fill Last Name
+            const lastNameInput = document.getElementById('lastName');
+            if (lastNameInput && session.lastName) {
+                lastNameInput.value = String(session.lastName).trim();
+                setError(lastNameInput, "");
+                console.log('autofillUserInfoFromSession: lastName field set to', session.lastName);
+            }
+
+            // Auto-fill Contact Number
+            const contactNoInput = document.getElementById('contactNo');
+            if (contactNoInput && session.contactNumber) {
+                // Remove all non-numeric characters to match the formatting
+                const contactNumber = String(session.contactNumber).replace(/\D/g, '');
+                if (contactNumber) {
+                    contactNoInput.value = contactNumber;
+                    setError(contactNoInput, "");
+                    console.log('autofillUserInfoFromSession: contactNo field set to', contactNumber);
+                }
+            }
+        } catch (err) {
+            console.warn('Unable to autofill user info from userSession:', err);
+        }
+    }
     
     // Auto-format contact number as user types
     const contactNoInput = document.getElementById('contactNo');
@@ -306,6 +353,9 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Ensure email reflects the logged-in account
         autofillEmailFromSession();
+        
+        // Auto-fill user info (firstName, lastName, contactNo) from session
+        autofillUserInfoFromSession();
 
         loadExistingFormData();
         console.log("Booking form initialized successfully!");
@@ -313,5 +363,6 @@
 
     // Expose for debugging in browser console (optional, harmless in production)
     window.autofillEmailFromSession = autofillEmailFromSession;
+    window.autofillUserInfoFromSession = autofillUserInfoFromSession;
 
 })();

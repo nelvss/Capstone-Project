@@ -34,6 +34,9 @@ async function handleLogin(event) {
             type: data.user.role,
             email: data.user.email,
             userId: data.user.id,
+            firstName: data.user.firstName || null,
+            lastName: data.user.lastName || null,
+            contactNumber: data.user.contactNumber || null,
             loginTime: data.user.loginTime
         }));
 
@@ -87,9 +90,31 @@ async function handleRegister(event) {
     event.preventDefault();
 
     const email = document.getElementById('registerEmail').value.trim().toLowerCase();
+    const firstName = document.getElementById('registerFirstName').value.trim();
+    const lastName = document.getElementById('registerLastName').value.trim();
+    const contactNumber = document.getElementById('registerContactNumber').value.trim();
     const password = document.getElementById('registerPassword').value.trim();
     const confirmPassword = document.getElementById('confirmPassword').value.trim();
     const registerButton = document.getElementById('registerButton');
+
+    // Validate required fields
+    if (!firstName) {
+        showErrorModal('Validation Error', 'First Name is required.');
+        document.getElementById('registerFirstName').classList.add('error');
+        return;
+    }
+
+    if (!lastName) {
+        showErrorModal('Validation Error', 'Last Name is required.');
+        document.getElementById('registerLastName').classList.add('error');
+        return;
+    }
+
+    if (!contactNumber) {
+        showErrorModal('Validation Error', 'Contact Number is required.');
+        document.getElementById('registerContactNumber').classList.add('error');
+        return;
+    }
 
     // Validate passwords match
     if (password !== confirmPassword) {
@@ -119,7 +144,7 @@ async function handleRegister(event) {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password, firstName, lastName, contactNumber })
         });
 
         const data = await response.json();
@@ -133,6 +158,9 @@ async function handleRegister(event) {
             type: data.user.role,
             email: data.user.email,
             userId: data.user.id,
+            firstName: data.user.firstName || null,
+            lastName: data.user.lastName || null,
+            contactNumber: data.user.contactNumber || null,
             loginTime: data.user.loginTime
         }));
 
@@ -156,10 +184,16 @@ async function handleRegister(event) {
         
         // Add visual feedback for error
         const emailField = document.getElementById('registerEmail');
+        const firstNameField = document.getElementById('registerFirstName');
+        const lastNameField = document.getElementById('registerLastName');
+        const contactNumberField = document.getElementById('registerContactNumber');
         const passwordField = document.getElementById('registerPassword');
         const confirmPasswordField = document.getElementById('confirmPassword');
         
         emailField.classList.add('error');
+        firstNameField.classList.add('error');
+        lastNameField.classList.add('error');
+        contactNumberField.classList.add('error');
         passwordField.classList.add('error');
         confirmPasswordField.classList.add('error');
         
@@ -169,6 +203,9 @@ async function handleRegister(event) {
         // Remove error styling after 3 seconds
         setTimeout(() => {
             emailField.classList.remove('error');
+            firstNameField.classList.remove('error');
+            lastNameField.classList.remove('error');
+            contactNumberField.classList.remove('error');
             passwordField.classList.remove('error');
             confirmPasswordField.classList.remove('error');
         }, 3000);

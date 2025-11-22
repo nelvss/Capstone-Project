@@ -79,7 +79,7 @@ const login = async (req, res) => {
     // First, check if multiple users exist with this email
     const { data: allUsers, error: checkError } = await supabase
       .from('users')
-      .select('id, email, password_hash, role')
+      .select('id, email, password_hash, role, first_name, last_name, contact_number')
       .eq('email', normalizedEmail);
     
     if (checkError) {
@@ -132,6 +132,9 @@ const login = async (req, res) => {
         id: user.id,
         email: user.email,
         role: user.role,
+        firstName: user.first_name || null,
+        lastName: user.last_name || null,
+        contactNumber: user.contact_number || null,
         loginTime: new Date().toISOString()
       }
     });
@@ -148,7 +151,7 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, firstName, lastName, contactNumber } = req.body;
     
     if (!email || !password) {
       return res.status(400).json({ 
@@ -189,15 +192,23 @@ const register = async (req, res) => {
     const saltRounds = 10;
     const password_hash = await bcrypt.hash(password, saltRounds);
     
+    // Prepare user data
+    const userData = {
+      email: normalizedEmail,
+      password_hash: password_hash,
+      role: 'customer'
+    };
+    
+    // Add optional fields if provided
+    if (firstName) userData.first_name = firstName.trim();
+    if (lastName) userData.last_name = lastName.trim();
+    if (contactNumber) userData.contact_number = contactNumber.trim();
+    
     // Create user with default role 'customer'
     const { data: newUser, error: insertError } = await supabase
       .from('users')
-      .insert([{
-        email: normalizedEmail,
-        password_hash: password_hash,
-        role: 'customer'
-      }])
-      .select('id, email, role')
+      .insert([userData])
+      .select('id, email, role, first_name, last_name, contact_number')
       .single();
     
     if (insertError || !newUser) {
@@ -218,6 +229,9 @@ const register = async (req, res) => {
         id: newUser.id,
         email: newUser.email,
         role: newUser.role,
+        firstName: newUser.first_name || null,
+        lastName: newUser.last_name || null,
+        contactNumber: newUser.contact_number || null,
         loginTime: new Date().toISOString()
       }
     });
