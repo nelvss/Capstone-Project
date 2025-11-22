@@ -429,6 +429,14 @@
         if (downPaymentInput) {
             downPaymentInput.min = minimumDownPayment;
         }
+        
+        // Set max attribute on down payment input to prevent exceeding total amount
+        const downPaymentAmountInput = document.getElementById('downPaymentAmount');
+        const paymentTotalElementForMax = document.getElementById('payment-total-amount');
+        if (downPaymentAmountInput && paymentTotalElementForMax) {
+            const totalAmount = parseFloat(paymentTotalElementForMax.textContent.replace(/[₱,]/g, '')) || 0;
+            downPaymentAmountInput.setAttribute('max', totalAmount);
+        }
     }
 
     // Handle payment option changes
@@ -442,10 +450,23 @@
                 downPaymentSection.classList.remove('d-none');
                 downPaymentReminder.classList.remove('d-none');
                 
-                // Set minimum value and focus
+                // Set minimum value, max attribute, and focus
                 if (downPaymentAmountInput) {
                     const minimumValue = parseInt(downPaymentAmountInput.getAttribute('min')) || 1000;
                     downPaymentAmountInput.value = minimumValue;
+                    
+                    // Ensure max attribute is set based on total amount
+                    const paymentTotalElement = document.getElementById('payment-total-amount');
+                    if (paymentTotalElement) {
+                        const totalAmount = parseFloat(paymentTotalElement.textContent.replace(/[₱,]/g, '')) || 0;
+                        downPaymentAmountInput.setAttribute('max', totalAmount);
+                    } else {
+                        // Fallback to bookingData if element not available
+                        const totalAmount = bookingData.totalAmount || '₱0.00';
+                        const totalNumeric = parseFloat(totalAmount.replace(/[₱,]/g, '')) || 0;
+                        downPaymentAmountInput.setAttribute('max', totalNumeric);
+                    }
+                    
                     downPaymentAmountInput.focus();
                     updateRemainingBalance();
                 } else {
@@ -464,14 +485,75 @@
             updateRemainingBalance();
         }
     });
+    
+    // Handle down payment amount blur for additional validation
+    document.addEventListener('blur', function(e) {
+        if (e.target.id === 'downPaymentAmount') {
+            updateRemainingBalance();
+        }
+    }, true);
 
     function updateRemainingBalance() {
-        const totalAmount = bookingData.totalAmount || '₱0.00';
-        const totalNumeric = parseFloat(totalAmount.replace(/[₱,]/g, '')) || 0;
-        const downPayment = parseFloat(document.getElementById('downPaymentAmount').value) || 0;
-        const remaining = totalNumeric - downPayment;
+        // Get total amount from payment-total-amount element or bookingData
+        let totalNumeric = 0;
+        const paymentTotalElement = document.getElementById('payment-total-amount');
+        if (paymentTotalElement && paymentTotalElement.textContent) {
+            totalNumeric = parseFloat(paymentTotalElement.textContent.replace(/[₱,]/g, '')) || 0;
+        } else {
+            const totalAmount = bookingData.totalAmount || '₱0.00';
+            totalNumeric = parseFloat(totalAmount.replace(/[₱,]/g, '')) || 0;
+        }
         
-        document.getElementById('remainingBalance').textContent = `₱${remaining.toLocaleString()}.00`;
+        const downPaymentAmountInput = document.getElementById('downPaymentAmount');
+        let downPayment = parseFloat(downPaymentAmountInput?.value) || 0;
+        const remainingBalanceElement = document.getElementById('remainingBalance');
+        
+        // Validate that down payment does not exceed total amount
+        if (downPayment > totalNumeric) {
+            // Reset to total amount if it exceeds
+            downPayment = totalNumeric;
+            if (downPaymentAmountInput) {
+                downPaymentAmountInput.value = totalNumeric;
+                
+                // Show error styling
+                downPaymentAmountInput.classList.add('is-invalid');
+                
+                // Show error message - place after the small element showing minimum
+                let errorMessageEl = document.getElementById('downPaymentErrorMessage');
+                const minimumTextEl = document.getElementById('minimumDownPaymentAmount');
+                
+                if (!errorMessageEl) {
+                    // Create error message element if it doesn't exist
+                    errorMessageEl = document.createElement('div');
+                    errorMessageEl.id = 'downPaymentErrorMessage';
+                    errorMessageEl.className = 'invalid-feedback d-block text-danger';
+                    
+                    // Place it after the small element showing minimum, or after form-floating if small doesn't exist
+                    if (minimumTextEl && minimumTextEl.parentElement) {
+                        minimumTextEl.parentElement.insertAdjacentElement('afterend', errorMessageEl);
+                    } else if (downPaymentAmountInput.parentElement) {
+                        downPaymentAmountInput.parentElement.insertAdjacentElement('afterend', errorMessageEl);
+                    }
+                }
+                const totalDisplay = `₱${totalNumeric.toLocaleString()}.00`;
+                errorMessageEl.textContent = `Down payment cannot exceed total amount of ${totalDisplay}`;
+                errorMessageEl.style.display = 'block';
+            }
+        } else {
+            // Remove error styling and message if valid
+            if (downPaymentAmountInput) {
+                downPaymentAmountInput.classList.remove('is-invalid');
+            }
+            const errorMessageEl = document.getElementById('downPaymentErrorMessage');
+            if (errorMessageEl) {
+                errorMessageEl.style.display = 'none';
+            }
+        }
+        
+        const remaining = totalNumeric - downPayment;
+        if (remainingBalanceElement) {
+            remainingBalanceElement.textContent = `₱${remaining.toLocaleString()}.00`;
+        }
     }
 
     // ----------------------------
