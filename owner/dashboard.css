@@ -583,6 +583,13 @@ header h1 {
   height: 48px;
 }
 
+.filters-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
 .filter-container {
   display: inline-flex;
   align-items: center;
@@ -594,7 +601,6 @@ header h1 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   height: 48px;
   transition: all 0.3s ease;
-  margin-left: auto;
 }
 
 .filter-container:hover {

@@ -486,6 +486,13 @@ header h1 {
   height: 48px;
 }
 
+.filters-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
 .filter-container {
   display: inline-flex;
   align-items: center;
@@ -542,9 +549,6 @@ header h1 {
   box-shadow: none; 
 }
 
-.filter-container-spacing {
-  margin-left: auto;
-}
 
 .search-input {
   width: 100%;

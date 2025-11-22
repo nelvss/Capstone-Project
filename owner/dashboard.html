@@ -115,31 +115,33 @@
         <input type="text" id="searchInput" class="search-input" placeholder="Search bookings, customers...">
       </div>
 
-      <div class="filter-container filter-container-spacing">
-        <i class="fas fa-filter filter-icon"></i>
-        <label for="owner-status-filter" class="filter-label">Status:</label>
-        <select id="owner-status-filter" onchange="ownerFilterChange()">
-          <option value="all">All</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="pending">Pending</option>
-        </select>
-      </div>
+      <div class="filters-wrapper">
+        <div class="filter-container filter-container-spacing">
+          <i class="fas fa-filter filter-icon"></i>
+          <label for="owner-status-filter" class="filter-label">Status:</label>
+          <select id="owner-status-filter" onchange="ownerFilterChange()">
+            <option value="all">All</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
 
-      <div class="filter-container filter-container-spacing">
-        <i class="fas fa-calendar filter-icon"></i>
-        <label for="owner-year-filter" class="filter-label">Year:</label>
-        <select id="owner-year-filter" onchange="ownerFilterChange()">
-          <option value="all">All</option>
-          <option value="2019">2019</option>
-          <option value="2020">2020</option>
-          <option value="2021">2021</option>
-          <option value="2022">2022</option>
-          <option value="2023">2023</option>
-          <option value="2024">2024</option>
-          <option value="2025">2025</option>
-          <option value="2026">2026</option>
-        </select>
+        <div class="filter-container filter-container-spacing">
+          <i class="fas fa-calendar filter-icon"></i>
+          <label for="owner-year-filter" class="filter-label">Year:</label>
+          <select id="owner-year-filter" onchange="ownerFilterChange()">
+            <option value="all">All</option>
+            <option value="2019">2019</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+          </select>
+        </div>
       </div>
     </section>
     <section class="table-section">
