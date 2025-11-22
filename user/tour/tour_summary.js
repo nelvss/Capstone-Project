@@ -333,10 +333,51 @@ function setupPaymentOptionListeners() {
     }
     
     if (downPaymentAmountInput) {
-        downPaymentAmountInput.addEventListener('input', updateRemainingBalance);
+        downPaymentAmountInput.addEventListener('input', function(e) {
+            // Strip any non-numeric characters that might have been entered
+            const numericValue = e.target.value.replace(/[^0-9.]/g, '');
+            if (e.target.value !== numericValue) {
+                e.target.value = numericValue;
+            }
+            updateRemainingBalance();
+        });
         
         // Also validate on blur to catch any edge cases
         downPaymentAmountInput.addEventListener('blur', updateRemainingBalance);
+        
+        // Ensure only numeric input is allowed
+        downPaymentAmountInput.addEventListener('keydown', function(e) {
+            // Allow: backspace, delete, tab, escape, enter, decimal point
+            if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true) ||
+                // Allow: home, end, left, right, down, up
+                (e.keyCode >= 35 && e.keyCode <= 40)) {
+                return;
+            }
+            // Ensure that it is a number and stop the keypress
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+        
+        // Handle paste events to strip non-numeric characters
+        downPaymentAmountInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            const numericValue = paste.replace(/[^0-9.]/g, '');
+            if (numericValue) {
+                const currentValue = this.value;
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = currentValue.substring(0, start) + numericValue + currentValue.substring(end);
+                this.setSelectionRange(start + numericValue.length, start + numericValue.length);
+                updateRemainingBalance();
+            }
+        });
     }
 }
 
