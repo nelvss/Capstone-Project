@@ -1486,6 +1486,14 @@ function renderTable() {
     
     return matchesStatus && matchesYear;
   });
+  
+  // Sort by created_at in descending order (newest first)
+  rows.sort((a, b) => {
+    const dateA = new Date(a.raw?.created_at || 0);
+    const dateB = new Date(b.raw?.created_at || 0);
+    return dateB - dateA; // Descending order (newest first)
+  });
+  
   rows.forEach(b => {
     const tr = document.createElement('tr');
     const receiptCell = getReceiptCell(b.receipt_image_url);
@@ -1646,6 +1654,13 @@ function filterTable(searchTerm) {
       b.contact.toLowerCase().includes(searchLower) ||
       b.email.toLowerCase().includes(searchLower)
     );
+  });
+  
+  // Sort by created_at in descending order (newest first)
+  filteredBookings.sort((a, b) => {
+    const dateA = new Date(a.raw?.created_at || 0);
+    const dateB = new Date(b.raw?.created_at || 0);
+    return dateB - dateA; // Descending order (newest first)
   });
   
   filteredBookings.forEach(b => {
