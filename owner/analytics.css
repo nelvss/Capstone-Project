@@ -1113,7 +1113,8 @@ header h1 {
 }
 
 /* Seasonal Prediction Styles */
-#seasonalPredictionChart {
+#seasonalPredictionBookingsChart,
+#seasonalPredictionRevenueChart {
   max-height: 350px;
 }
 

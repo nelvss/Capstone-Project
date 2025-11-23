@@ -716,7 +716,8 @@ function initializeNavigation() {
 
 // Initialize all charts
 function initializeCharts() {
-    createSeasonalPredictionChart();
+    createSeasonalPredictionBookingsChart();
+    createSeasonalPredictionRevenueChart();
     // New analytics charts
     createBookingTypeChart();
     createPackageDistributionChart();
@@ -1328,9 +1329,9 @@ function createWeatherImpactChart() {
     });
 }
 
-// Seasonal Prediction Chart (Peak vs Low Seasons)
-async function createSeasonalPredictionChart() {
-  const canvas = document.getElementById('seasonalPredictionChart');
+// Seasonal Prediction Chart - Bookings (Bar Chart)
+async function createSeasonalPredictionBookingsChart() {
+  const canvas = document.getElementById('seasonalPredictionBookingsChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   
@@ -1344,9 +1345,9 @@ async function createSeasonalPredictionChart() {
     const seasonalData = analyticsData.seasonal_prediction;
     
     if (!seasonalData || !seasonalData.has_sufficient_data) {
-      if (chartInstances['seasonalPredictionChart']) {
-        chartInstances['seasonalPredictionChart'].destroy();
-        chartInstances['seasonalPredictionChart'] = null;
+      if (chartInstances['seasonalPredictionBookingsChart']) {
+        chartInstances['seasonalPredictionBookingsChart'].destroy();
+        chartInstances['seasonalPredictionBookingsChart'] = null;
       }
       if (statusEl) {
         statusEl.textContent = seasonalData?.message || 'Not enough historical data to predict seasonal patterns yet.';
@@ -1358,7 +1359,6 @@ async function createSeasonalPredictionChart() {
     const months = seasonalData.months || [];
     const labels = months.map(m => m.month_name);
     const predictedBookings = months.map(m => m.predicted_bookings);
-    const predictedRevenue = months.map(m => m.predicted_revenue / 1000); // Convert to thousands
     
     // Color code based on season classification
     const backgroundColors = months.map(m => {
@@ -1368,11 +1368,11 @@ async function createSeasonalPredictionChart() {
       return 'rgba(255, 193, 7, 0.7)'; // Moderate - Yellow
     });
     
-    if (chartInstances['seasonalPredictionChart']) {
-      chartInstances['seasonalPredictionChart'].destroy();
+    if (chartInstances['seasonalPredictionBookingsChart']) {
+      chartInstances['seasonalPredictionBookingsChart'].destroy();
     }
     
-    chartInstances['seasonalPredictionChart'] = new Chart(ctx, {
+    chartInstances['seasonalPredictionBookingsChart'] = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
@@ -1382,19 +1382,7 @@ async function createSeasonalPredictionChart() {
             data: predictedBookings,
             backgroundColor: backgroundColors,
             borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
-            borderWidth: 2,
-            yAxisID: 'y'
-          },
-          {
-            label: 'Predicted Revenue (₱K)',
-            data: predictedRevenue,
-            type: 'line',
-            borderColor: '#20c997',
-            backgroundColor: 'rgba(32, 201, 151, 0.1)',
-            borderWidth: 3,
-            fill: false,
-            tension: 0.4,
-            yAxisID: 'y1'
+            borderWidth: 2
           }
         ]
       },
@@ -1415,19 +1403,6 @@ async function createSeasonalPredictionChart() {
               text: 'Predicted Bookings'
             },
             beginAtZero: true
-          },
-          y1: {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            title: {
-              display: true,
-              text: 'Revenue (₱K)'
-            },
-            beginAtZero: true,
-            grid: {
-              drawOnChartArea: false
-            }
           }
         },
         plugins: {
@@ -1438,16 +1413,11 @@ async function createSeasonalPredictionChart() {
           tooltip: {
             callbacks: {
               label: (context) => {
-                const label = context.dataset.label || '';
-                const value = context.parsed.y;
-                if (label.includes('Revenue')) {
-                  return `${label}: ₱${value.toFixed(1)}K`;
-                }
-                return `${label}: ${Math.round(value)} bookings`;
+                return `Predicted Bookings: ${Math.round(context.parsed.y)} bookings`;
               },
               afterLabel: (context) => {
                 const monthData = months[context.dataIndex];
-                if (context.datasetIndex === 0 && monthData) {
+                if (monthData) {
                   const percentage = monthData.percentage_of_average || 
                     ((monthData.predicted_bookings / seasonalData.average_monthly_bookings) * 100).toFixed(0);
                   return `${percentage}% of average\nTrend: ${monthData.trend}`;
@@ -1469,14 +1439,99 @@ async function createSeasonalPredictionChart() {
     }
     
   } catch (error) {
-    console.error('❌ Failed to create seasonal prediction chart:', error);
-    if (chartInstances['seasonalPredictionChart']) {
-      chartInstances['seasonalPredictionChart'].destroy();
-      chartInstances['seasonalPredictionChart'] = null;
+    console.error('❌ Failed to create seasonal prediction bookings chart:', error);
+    if (chartInstances['seasonalPredictionBookingsChart']) {
+      chartInstances['seasonalPredictionBookingsChart'].destroy();
+      chartInstances['seasonalPredictionBookingsChart'] = null;
     }
     if (statusEl) {
       statusEl.textContent = 'Unable to generate seasonal forecast. Please try again later.';
       statusEl.className = 'small text-danger mb-2';
+    }
+  }
+}
+
+// Seasonal Prediction Chart - Revenue (Line Chart)
+async function createSeasonalPredictionRevenueChart() {
+  const canvas = document.getElementById('seasonalPredictionRevenueChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  try {
+    const seasonalData = analyticsData.seasonal_prediction;
+    
+    if (!seasonalData || !seasonalData.has_sufficient_data) {
+      if (chartInstances['seasonalPredictionRevenueChart']) {
+        chartInstances['seasonalPredictionRevenueChart'].destroy();
+        chartInstances['seasonalPredictionRevenueChart'] = null;
+      }
+      return;
+    }
+    
+    const months = seasonalData.months || [];
+    const labels = months.map(m => m.month_name);
+    const predictedRevenue = months.map(m => m.predicted_revenue / 1000); // Convert to thousands
+    
+    if (chartInstances['seasonalPredictionRevenueChart']) {
+      chartInstances['seasonalPredictionRevenueChart'].destroy();
+    }
+    
+    chartInstances['seasonalPredictionRevenueChart'] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Predicted Revenue (₱K)',
+            data: predictedRevenue,
+            borderColor: '#20c997',
+            backgroundColor: 'rgba(32, 201, 151, 0.1)',
+            borderWidth: 3,
+            fill: false,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Revenue (₱K)'
+            },
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                return `Predicted Revenue (₱K): ₱${context.parsed.y.toFixed(1)}K`;
+              }
+            }
+          }
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Failed to create seasonal prediction revenue chart:', error);
+    if (chartInstances['seasonalPredictionRevenueChart']) {
+      chartInstances['seasonalPredictionRevenueChart'].destroy();
+      chartInstances['seasonalPredictionRevenueChart'] = null;
     }
   }
 }
@@ -1488,7 +1543,8 @@ async function loadSeasonalPredictionData() {
     const seasonalResult = await seasonalResponse.json();
     if (seasonalResponse.ok && seasonalResult.success) {
       analyticsData.seasonal_prediction = seasonalResult.data;
-      createSeasonalPredictionChart();
+      createSeasonalPredictionBookingsChart();
+      createSeasonalPredictionRevenueChart();
     }
   } catch (error) {
     console.error('Failed to load seasonal prediction:', error);
