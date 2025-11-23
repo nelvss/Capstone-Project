@@ -31,6 +31,51 @@ function checkSession() {
 // Chart instances storage
 const chartInstances = {};
 
+// Helper function to generate grayscale colors for charts
+function generateGrayscaleColors(count, startLightness = 240, endLightness = 96) {
+  const colors = [];
+  const rgbaColors = [];
+  const step = (startLightness - endLightness) / Math.max(count - 1, 1);
+  
+  for (let i = 0; i < count; i++) {
+    const lightness = Math.round(startLightness - (step * i));
+    // Convert to hex
+    const hex = '#' + lightness.toString(16).padStart(2, '0').repeat(3);
+    colors.push(hex);
+    // Also create rgba version with opacity
+    rgbaColors.push(`rgba(${lightness}, ${lightness}, ${lightness}, 0.8)`);
+  }
+  
+  return { hex: colors, rgba: rgbaColors };
+}
+
+// Predefined grayscale arrays for common use cases
+const grayscalePalette = {
+  // For 10+ segments (light to dark)
+  extended: ['#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0', 
+             '#a0a0a0', '#909090', '#808080', '#707070', '#606060',
+             '#505050', '#404040', '#303030'],
+  // For 2 series
+  twoSeries: {
+    light: 'rgba(180, 180, 180, 0.8)',
+    dark: 'rgba(80, 80, 80, 0.8)',
+    lightBorder: 'rgba(180, 180, 180, 1)',
+    darkBorder: 'rgba(80, 80, 80, 1)'
+  },
+  // For single series
+  single: {
+    color: '#6c757d',
+    rgba: 'rgba(108, 117, 125, 1)',
+    background: 'rgba(108, 117, 125, 0.1)'
+  },
+  // For medium single series (lines)
+  medium: {
+    color: '#808080',
+    rgba: 'rgba(128, 128, 128, 1)',
+    background: 'rgba(128, 128, 128, 0.1)'
+  }
+};
+
 // API Configuration (shared across pages)
 window.API_URL = window.API_URL || 'https://api.otgpuertogaleratravel.com';
 // Toggle to use API or fallback sample data (default: true to use API)
@@ -1053,8 +1098,8 @@ function createRevenueTrendChart() {
             datasets: [{
                 label: 'Revenue (₱)',
                 data: monthlyData.map(d => d.revenue),
-                borderColor: '#dc3545',
-                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                borderColor: '#505050',
+                backgroundColor: 'rgba(80, 80, 80, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
@@ -1094,8 +1139,8 @@ function createDailyBookingChart() {
             datasets: [{
                 label: 'Booking Pattern',
                 data: [45, 38, 42, 48, 65, 89, 78],
-                borderColor: '#17a2b8',
-                backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                borderColor: '#808080',
+                backgroundColor: 'rgba(128, 128, 128, 0.2)',
                 borderWidth: 2
             }]
         },
@@ -1121,8 +1166,8 @@ function createMonthlyBookingChart() {
             datasets: [{
                 label: 'Bookings',
                 data: analyticsData.monthlyRevenue.map(d => d.bookings),
-                borderColor: '#28a745',
-                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderColor: '#6c757d',
+                backgroundColor: 'rgba(108, 117, 125, 0.1)',
                 borderWidth: 2,
                 fill: true
             }]
@@ -1153,9 +1198,9 @@ function createPopularServicesChart() {
                 label: 'Bookings',
                 data: serviceBookings,
                 backgroundColor: [
-                    '#dc3545', '#007bff', '#28a745', '#ffc107',
-                    '#17a2b8', '#6f42c1', '#e83e8c', '#fd7e14',
-                    '#20c997', '#6c757d'
+                    '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0',
+                    '#b0b0b0', '#a0a0a0', '#909090', '#808080',
+                    '#707070', '#606060'
                 ],
                 borderRadius: 6
             }]
@@ -1186,9 +1231,9 @@ function createServiceRevenueChart() {
             datasets: [{
                 data: serviceRevenue,
                 backgroundColor: [
-                    '#dc3545', '#007bff', '#28a745', '#ffc107',
-                    '#17a2b8', '#6f42c1', '#e83e8c', '#fd7e14',
-                    '#20c997', '#6c757d'
+                    '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0',
+                    '#b0b0b0', '#a0a0a0', '#909090', '#808080',
+                    '#707070', '#606060'
                 ]
             }]
         },
@@ -1218,15 +1263,15 @@ function createSeasonalAnalysisChart() {
                 {
                     label: 'Bookings',
                     data: analyticsData.monthlyRevenue.map(d => d.bookings),
-                    borderColor: '#dc3545',
-                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    borderColor: '#505050',
+                    backgroundColor: 'rgba(80, 80, 80, 0.1)',
                     yAxisID: 'y'
                 },
                 {
                     label: 'Revenue (₱K)',
                     data: analyticsData.monthlyRevenue.map(d => d.revenue / 1000),
-                    borderColor: '#007bff',
-                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    borderColor: '#808080',
+                    backgroundColor: 'rgba(128, 128, 128, 0.1)',
                     yAxisID: 'y1'
                 }
             ]
@@ -1268,12 +1313,12 @@ function createSeasonalServicesChart() {
                 {
                     label: 'Peak Season',
                     data: [89, 78, 67, 45, 34, 23],
-                    backgroundColor: '#ffc107'
+                    backgroundColor: '#b4b4b4'
                 },
                 {
                     label: 'Low Season',
                     data: [34, 45, 23, 67, 56, 78],
-                    backgroundColor: '#17a2b8'
+                    backgroundColor: '#808080'
                 }
             ]
         },
@@ -1301,11 +1346,11 @@ function createWeatherImpactChart() {
             datasets: [{
                 label: 'Sunny Days',
                 data: [{x: 28, y: 145}, {x: 25, y: 167}, {x: 30, y: 189}],
-                backgroundColor: '#ffc107'
+                backgroundColor: '#b4b4b4'
             }, {
                 label: 'Rainy Days',
                 data: [{x: 18, y: 67}, {x: 15, y: 54}, {x: 12, y: 62}],
-                backgroundColor: '#17a2b8'
+                backgroundColor: '#808080'
             }]
         },
         options: {
@@ -1360,12 +1405,12 @@ async function createSeasonalPredictionBookingsChart() {
     const labels = months.map(m => m.month_name);
     const predictedBookings = months.map(m => m.predicted_bookings);
     
-    // Color code based on season classification
+    // Color code based on season classification (grayscale)
     const backgroundColors = months.map(m => {
       const percentage = (m.predicted_bookings / seasonalData.average_monthly_bookings) * 100;
-      if (percentage >= 125) return 'rgba(220, 53, 69, 0.7)'; // Peak - Red
-      if (percentage <= 75) return 'rgba(13, 110, 253, 0.7)'; // Low - Blue
-      return 'rgba(255, 193, 7, 0.7)'; // Moderate - Yellow
+      if (percentage >= 125) return 'rgba(40, 40, 40, 0.7)'; // Peak - Dark gray
+      if (percentage <= 75) return 'rgba(180, 180, 180, 0.7)'; // Low - Light gray
+      return 'rgba(128, 128, 128, 0.7)'; // Moderate - Medium gray
     });
     
     if (chartInstances['seasonalPredictionBookingsChart']) {
@@ -1484,8 +1529,8 @@ async function createSeasonalPredictionRevenueChart() {
           {
             label: 'Predicted Revenue (₱K)',
             data: predictedRevenue,
-            borderColor: '#20c997',
-            backgroundColor: 'rgba(32, 201, 151, 0.1)',
+            borderColor: '#808080',
+            backgroundColor: 'rgba(128, 128, 128, 0.1)',
             borderWidth: 3,
             fill: false,
             tension: 0.4
@@ -1730,8 +1775,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Snorkeling',
                     data: [28, 32, 35, 25, 20, 18, 22, 26, 30, 33, 36, 40],
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 1)',
+                    borderColor: 'rgba(240, 240, 240, 1)',
+                    backgroundColor: 'rgba(240, 240, 240, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1739,8 +1784,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Island Hopping',
                     data: [25, 28, 30, 22, 18, 16, 20, 24, 27, 29, 32, 35],
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    backgroundColor: 'rgba(54, 162, 235, 1)',
+                    borderColor: 'rgba(220, 220, 220, 1)',
+                    backgroundColor: 'rgba(220, 220, 220, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1748,8 +1793,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Inland Tour',
                     data: [18, 20, 22, 16, 13, 11, 14, 16, 18, 20, 22, 24],
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    backgroundColor: 'rgba(255, 206, 86, 1)',
+                    borderColor: 'rgba(200, 200, 200, 1)',
+                    backgroundColor: 'rgba(200, 200, 200, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1757,8 +1802,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Vehicle Rental',
                     data: [15, 16, 18, 12, 10, 8, 11, 13, 15, 16, 18, 20],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 1)',
+                    borderColor: 'rgba(180, 180, 180, 1)',
+                    backgroundColor: 'rgba(180, 180, 180, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1766,8 +1811,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Hotels',
                     data: [32, 35, 38, 28, 24, 20, 25, 29, 33, 36, 40, 45],
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    backgroundColor: 'rgba(153, 102, 255, 1)',
+                    borderColor: 'rgba(160, 160, 160, 1)',
+                    backgroundColor: 'rgba(160, 160, 160, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1775,8 +1820,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Diving',
                     data: [10, 12, 14, 9, 7, 6, 8, 10, 12, 13, 15, 17],
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    backgroundColor: 'rgba(255, 159, 64, 1)',
+                    borderColor: 'rgba(140, 140, 140, 1)',
+                    backgroundColor: 'rgba(140, 140, 140, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1834,8 +1879,8 @@ function createServiceDistributionChart2() {
                 {
                     label: 'Package 1',
                     data: [28, 32, 35, 25, 20, 18, 22, 26, 30, 33, 36, 40],
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 1)',
+                    borderColor: 'rgba(240, 240, 240, 1)',
+                    backgroundColor: 'rgba(240, 240, 240, 1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: false,
@@ -1845,8 +1890,8 @@ function createServiceDistributionChart2() {
                 {
                     label: 'Package 2',
                     data: [25, 28, 30, 22, 18, 16, 20, 24, 27, 29, 32, 35],
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    backgroundColor: 'rgba(54, 162, 235, 1)',
+                    borderColor: 'rgba(200, 200, 200, 1)',
+                    backgroundColor: 'rgba(200, 200, 200, 1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: false,
@@ -1856,8 +1901,8 @@ function createServiceDistributionChart2() {
                 {
                     label: 'Package 3',
                     data: [18, 20, 22, 16, 13, 11, 14, 16, 18, 20, 22, 24],
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    backgroundColor: 'rgba(255, 206, 86, 1)',
+                    borderColor: 'rgba(160, 160, 160, 1)',
+                    backgroundColor: 'rgba(160, 160, 160, 1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: false,
@@ -1867,8 +1912,8 @@ function createServiceDistributionChart2() {
                 {
                     label: 'Package 4',
                     data: [15, 16, 18, 12, 10, 8, 11, 13, 15, 16, 18, 20],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 1)',
+                    borderColor: 'rgba(120, 120, 120, 1)',
+                    backgroundColor: 'rgba(120, 120, 120, 1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: false,
@@ -1945,32 +1990,32 @@ function createBookingTrendsChart() {
                 label: 'Bookings',
                 data: data.map(d => d.bookings),
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)',
-                    'rgba(201, 203, 207, 0.8)',
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)'
+                    'rgba(240, 240, 240, 0.8)',
+                    'rgba(220, 220, 220, 0.8)',
+                    'rgba(200, 200, 200, 0.8)',
+                    'rgba(180, 180, 180, 0.8)',
+                    'rgba(160, 160, 160, 0.8)',
+                    'rgba(140, 140, 140, 0.8)',
+                    'rgba(120, 120, 120, 0.8)',
+                    'rgba(240, 240, 240, 0.8)',
+                    'rgba(220, 220, 220, 0.8)',
+                    'rgba(200, 200, 200, 0.8)',
+                    'rgba(180, 180, 180, 0.8)',
+                    'rgba(160, 160, 160, 0.8)'
                 ],
                 borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                    'rgba(201, 203, 207, 1)',
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)'
+                    'rgba(240, 240, 240, 1)',
+                    'rgba(220, 220, 220, 1)',
+                    'rgba(200, 200, 200, 1)',
+                    'rgba(180, 180, 180, 1)',
+                    'rgba(160, 160, 160, 1)',
+                    'rgba(140, 140, 140, 1)',
+                    'rgba(120, 120, 120, 1)',
+                    'rgba(240, 240, 240, 1)',
+                    'rgba(220, 220, 220, 1)',
+                    'rgba(200, 200, 200, 1)',
+                    'rgba(180, 180, 180, 1)',
+                    'rgba(160, 160, 160, 1)'
                 ],
                 borderWidth: 1,
                 borderRadius: 5
@@ -2021,11 +2066,11 @@ function createBookingStatusChart() {
             datasets: [{
                 data: [0, 0, 0, 0, 0],
                 backgroundColor: [
-                    '#ffc107',
-                    '#28a745',
-                    '#dc3545',
-                    '#17a2b8',
-                    '#6c757d'
+                    '#f0f0f0',
+                    '#d0d0d0',
+                    '#b0b0b0',
+                    '#909090',
+                    '#707070'
                 ],
                 borderWidth: 2,
                 borderColor: '#fff'
@@ -2059,15 +2104,15 @@ function createBookingTypeChart() {
                 {
                     label: 'Package Only',
                     data: [],
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(180, 180, 180, 0.8)',
+                    borderColor: 'rgba(180, 180, 180, 1)',
                     borderWidth: 1
                 },
                 {
                     label: 'Tour Only',
                     data: [],
-                    backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(80, 80, 80, 0.8)',
+                    borderColor: 'rgba(80, 80, 80, 1)',
                     borderWidth: 1
                 }
             ]
@@ -2105,16 +2150,16 @@ function createPackageDistributionChart() {
             datasets: [{
                 data: [0, 0, 0, 0],
                 backgroundColor: [
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)'
+                    'rgba(240, 240, 240, 0.8)',
+                    'rgba(200, 200, 200, 0.8)',
+                    'rgba(160, 160, 160, 0.8)',
+                    'rgba(120, 120, 120, 0.8)'
                 ],
                 borderColor: [
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)'
+                    'rgba(240, 240, 240, 1)',
+                    'rgba(200, 200, 200, 1)',
+                    'rgba(160, 160, 160, 1)',
+                    'rgba(120, 120, 120, 1)'
                 ],
                 borderWidth: 2
             }]
@@ -2158,14 +2203,14 @@ function createTourDistributionChart() {
             datasets: [{
                 data: [0, 0, 0],
                 backgroundColor: [
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)',
-                    'rgba(23, 162, 184, 0.8)'
+                    'rgba(200, 200, 200, 0.8)',
+                    'rgba(150, 150, 150, 0.8)',
+                    'rgba(100, 100, 100, 0.8)'
                 ],
                 borderColor: [
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                    'rgba(23, 162, 184, 1)'
+                    'rgba(200, 200, 200, 1)',
+                    'rgba(150, 150, 150, 1)',
+                    'rgba(100, 100, 100, 1)'
                 ],
                 borderWidth: 2
             }]
@@ -2209,8 +2254,8 @@ function createTouristVolumeChart() {
             datasets: [{
                 label: 'Tourists',
                 data: [],
-                borderColor: '#17a2b8',
-                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                borderColor: '#808080',
+                backgroundColor: 'rgba(128, 128, 128, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
@@ -2248,8 +2293,8 @@ function createAvgBookingValueChart() {
             datasets: [{
                 label: 'Average Booking Value',
                 data: [],
-                borderColor: '#28a745',
-                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderColor: '#6c757d',
+                backgroundColor: 'rgba(108, 117, 125, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
@@ -2293,13 +2338,13 @@ function createPeakBookingDaysChart() {
                 label: 'Bookings',
                 data: [0, 0, 0, 0, 0, 0, 0],
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)',
-                    'rgba(201, 203, 207, 0.8)'
+                    'rgba(240, 240, 240, 0.8)',
+                    'rgba(220, 220, 220, 0.8)',
+                    'rgba(200, 200, 200, 0.8)',
+                    'rgba(180, 180, 180, 0.8)',
+                    'rgba(160, 160, 160, 0.8)',
+                    'rgba(140, 140, 140, 0.8)',
+                    'rgba(120, 120, 120, 0.8)'
                 ],
                 borderWidth: 1
             }]
@@ -2336,8 +2381,8 @@ function createServicePerformanceChart() {
             datasets: [{
                 label: 'Bookings',
                 data: [],
-                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(128, 128, 128, 0.8)',
+                borderColor: 'rgba(128, 128, 128, 1)',
                 borderWidth: 1
             }]
         },
