@@ -875,6 +875,13 @@ body {
     transition: opacity 0.2s ease;
 }
 
+/* Validation/Error Messages Spacing */
+#step2-error-message,
+.step2-error-message {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+}
+
 /* Van Rental Section Visibility with Smooth Transitions */
 .van-rental-section-hidden {
     max-height: 0;

@@ -902,6 +902,15 @@ body {
     max-width: 100% !important;
 }
 
+/* Validation/Error Messages Spacing */
+#step2-error-message,
+.step2-error-message,
+#hotel-error-message,
+.hotel-error-message {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+}
+
 /* Van Rental Section Visibility with Smooth Transitions */
 .van-rental-section-hidden {
     max-height: 0;
