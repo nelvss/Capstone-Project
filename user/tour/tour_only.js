@@ -406,8 +406,50 @@
             rentalOptionsContainer.appendChild(vehicleOption);
         });
 
+        // Add special "Van" option for Van Rental with Tourist Franchise
+        const vanOption = document.createElement('div');
+        vanOption.className = 'form-check mb-2';
+        
+        const vanInput = document.createElement('input');
+        vanInput.type = 'checkbox';
+        vanInput.className = 'form-check-input rental-option rental-option-van';
+        vanInput.id = 'rental-van-special';
+        vanInput.value = 'Van';
+        
+        const vanLabel = document.createElement('label');
+        vanLabel.className = 'form-check-label d-flex align-items-center';
+        vanLabel.htmlFor = 'rental-van-special';
+        
+        const vanSpan = document.createElement('span');
+        vanSpan.innerHTML = 'Van <small class="text-muted ms-2">(Van Rental with Tourist Franchise)</small>';
+        
+        vanLabel.appendChild(vanSpan);
+        vanOption.appendChild(vanInput);
+        vanOption.appendChild(vanLabel);
+        
+        rentalOptionsContainer.appendChild(vanOption);
+
         // Re-attach event listeners for vehicle selection
         attachVehicleEventListeners();
+        
+        // Check if Van should be restored from sessionStorage
+        setTimeout(() => {
+            const tourSelectionsString = sessionStorage.getItem('tourSelections');
+            if (tourSelectionsString) {
+                try {
+                    const tourSelections = JSON.parse(tourSelectionsString);
+                    if (tourSelections.rentalVehicles && tourSelections.rentalVehicles.includes('Van')) {
+                        const vanCheckbox = document.getElementById('rental-van-special');
+                        if (vanCheckbox) {
+                            vanCheckbox.checked = true;
+                            handleVanSelection(true);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking Van selection:', error);
+                }
+            }
+        }, 100);
     }
 
     // Render error message in vehicle options
@@ -430,10 +472,54 @@
             
             // Add new listener
             newOption.addEventListener('change', () => {
-                calculateVehiclePrice();
-                clearRentalDaysErrorIfNoVehicles();
+                // Handle Van selection separately
+                if (newOption.classList.contains('rental-option-van')) {
+                    handleVanSelection(newOption.checked);
+                } else {
+                    calculateVehiclePrice();
+                    clearRentalDaysErrorIfNoVehicles();
+                }
             });
         });
+    }
+
+    // Handle Van selection - show/hide Van Rental section
+    function handleVanSelection(isSelected) {
+        const vanRentalSection = document.getElementById('vanRentalSection');
+        if (!vanRentalSection) return;
+
+        if (isSelected) {
+            // Show the Van Rental section
+            vanRentalSection.classList.remove('van-rental-section-hidden');
+        } else {
+            // Hide the Van Rental section and clear fields
+            vanRentalSection.classList.add('van-rental-section-hidden');
+            clearVanRentalFields();
+        }
+    }
+
+    // Clear Van Rental form fields
+    function clearVanRentalFields() {
+        const destinationSelect = document.getElementById('destinationSelect');
+        const placeSelect = document.getElementById('placeSelect');
+        const tripTypeSelect = document.getElementById('tripTypeSelect');
+        const vanNumberOfDays = document.getElementById('vanNumberOfDays');
+        const vanTotalAmount = document.getElementById('vanTotalAmount');
+
+        if (destinationSelect) {
+            destinationSelect.value = '';
+            destinationSelect.dispatchEvent(new Event('change'));
+        }
+        if (placeSelect) placeSelect.value = '';
+        if (tripTypeSelect) tripTypeSelect.value = '';
+        if (vanNumberOfDays) vanNumberOfDays.value = '';
+        if (vanTotalAmount) vanTotalAmount.value = '0.00';
+
+        // Clear errors
+        if (destinationSelect) setError(destinationSelect, '');
+        if (placeSelect) setError(placeSelect, '');
+        if (tripTypeSelect) setError(tripTypeSelect, '');
+        if (vanNumberOfDays) setError(vanNumberOfDays, '');
     }
     
     // Get vehicle by name (for backward compatibility)
@@ -958,7 +1044,8 @@
         
         if (!vehicleAmountInput || !rentalDaysSelect) return 0;
 
-        const selectedVehicles = document.querySelectorAll(".rental-option:checked");
+        // Exclude Van from regular vehicle calculations
+        const selectedVehicles = document.querySelectorAll(".rental-option:checked:not(.rental-option-van)");
         const rentalDays = parseInt(rentalDaysSelect.value) || 0;
         
         if (selectedVehicles.length === 0 || rentalDays === 0) {
@@ -1823,7 +1910,13 @@
                 // Restore rental vehicles
                 tourSelections.rentalVehicles?.forEach(vehicle => {
                     const checkbox = document.querySelector(`.rental-option[value="${vehicle}"]`);
-                    if (checkbox) checkbox.checked = true;
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        // If it's Van, show the Van Rental section
+                        if (vehicle === 'Van' && checkbox.classList.contains('rental-option-van')) {
+                            handleVanSelection(true);
+                        }
+                    }
                 });
                 
                 // Restore rental days
@@ -1840,6 +1933,33 @@
                 // Restore number of divers
                 if (tourSelections.numberOfDivers) {
                     document.getElementById('numberOfDiver').value = tourSelections.numberOfDivers;
+                }
+                
+                // Restore van rental data
+                if (tourSelections.vanDestination) {
+                    const destinationSelect = document.getElementById('destinationSelect');
+                    if (destinationSelect) {
+                        destinationSelect.value = tourSelections.vanDestination;
+                        // Trigger change event to show appropriate fields
+                        destinationSelect.dispatchEvent(new Event('change'));
+                        
+                        // Wait for the change event to update the UI, then restore other fields
+                        setTimeout(() => {
+                            if (tourSelections.vanPlace) {
+                                const placeSelectEl = document.getElementById('placeSelect');
+                                if (placeSelectEl) placeSelectEl.value = tourSelections.vanPlace;
+                            }
+                            if (tourSelections.vanTripType) {
+                                const tripTypeSelectEl = document.getElementById('tripTypeSelect');
+                                if (tripTypeSelectEl) tripTypeSelectEl.value = tourSelections.vanTripType;
+                            }
+                            if (tourSelections.vanDays) {
+                                const vanDaysSelectEl = document.getElementById('vanNumberOfDays');
+                                if (vanDaysSelectEl) vanDaysSelectEl.value = tourSelections.vanDays;
+                            }
+                            updateVanPrice();
+                        }, 50);
+                    }
                 }
                 
                 // Restore selected hotel

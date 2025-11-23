@@ -902,6 +902,23 @@ body {
     max-width: 100% !important;
 }
 
+/* Van Rental Section Visibility with Smooth Transitions */
+.van-rental-section-hidden {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, margin-bottom 0.4s ease-in-out, padding 0.4s ease-in-out;
+}
+
+#vanRentalSection:not(.van-rental-section-hidden) {
+    max-height: 1000px;
+    opacity: 1;
+    transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, margin-bottom 0.4s ease-in-out, padding 0.4s ease-in-out;
+}
+
 /* Prevent card stretching from van rental section */
 .border.rounded-3.p-3.mb-3.bg-white.shadow-sm {
     max-width: 100% !important;
