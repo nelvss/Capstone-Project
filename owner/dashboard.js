@@ -1487,11 +1487,21 @@ function renderTable() {
     return matchesStatus && matchesYear;
   });
   
-  // Sort by created_at in descending order (newest first)
+  // Sort by created_at or booking_id in descending order (newest first)
   rows.sort((a, b) => {
+    // Try to sort by created_at timestamp first
     const dateA = new Date(a.raw?.created_at || 0);
     const dateB = new Date(b.raw?.created_at || 0);
-    return dateB - dateA; // Descending order (newest first)
+    
+    // If both have valid created_at timestamps, use those
+    if (dateA.getTime() > 0 && dateB.getTime() > 0) {
+      return dateB - dateA;
+    }
+    
+    // Otherwise, fall back to sorting by booking_id (higher ID = newer)
+    const idA = String(a.id || '').split('-').pop() || '0';
+    const idB = String(b.id || '').split('-').pop() || '0';
+    return parseInt(idB) - parseInt(idA);
   });
   
   rows.forEach(b => {
@@ -1656,11 +1666,21 @@ function filterTable(searchTerm) {
     );
   });
   
-  // Sort by created_at in descending order (newest first)
+  // Sort by created_at or booking_id in descending order (newest first)
   filteredBookings.sort((a, b) => {
+    // Try to sort by created_at timestamp first
     const dateA = new Date(a.raw?.created_at || 0);
     const dateB = new Date(b.raw?.created_at || 0);
-    return dateB - dateA; // Descending order (newest first)
+    
+    // If both have valid created_at timestamps, use those
+    if (dateA.getTime() > 0 && dateB.getTime() > 0) {
+      return dateB - dateA;
+    }
+    
+    // Otherwise, fall back to sorting by booking_id (higher ID = newer)
+    const idA = String(a.id || '').split('-').pop() || '0';
+    const idB = String(b.id || '').split('-').pop() || '0';
+    return parseInt(idB) - parseInt(idA);
   });
   
   filteredBookings.forEach(b => {
