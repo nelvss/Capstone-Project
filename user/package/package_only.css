@@ -1521,11 +1521,11 @@ body {
 
 /* ===== REDUCE WIDTH FOR PACKAGE ONLY STEP 2 ===== */
 .booking-step-2 .container {
-    max-width: 800px !important;
+    max-width: 1400px !important;
 }
 
 .booking-step-2 .card {
-    max-width: 800px !important;
+    max-width: 1400px !important;
 }
 
 /* ============================================
@@ -1832,9 +1832,846 @@ body {
 
 /* ===== REDUCE WIDTH FOR PACKAGE ONLY STEP 2 ===== */
 .booking-step-2 .container {
-    max-width: 800px !important;
+    max-width: 1400px !important;
 }
 
 .booking-step-2 .card {
-    max-width: 800px !important;
+    max-width: 1400px !important;
+}
+
+
+
+/* ===== PACKAGE COMPARISON TABLE STYLES ===== */
+
+/* Sticky Selection Summary Bar */
+.sticky-selection-summary {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.sticky-selection-summary.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.sticky-selection-summary .selection-info {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.sticky-selection-summary .selection-info i {
+    font-size: 1.2rem;
+}
+
+.sticky-selection-summary .selection-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Collapse Toggle Button */
+.collapse-toggle {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.collapse-toggle:hover {
+    background-color: #dc3545;
+    color: white;
+    transform: rotate(180deg);
+}
+
+.collapse-toggle[aria-expanded="false"] #collapseIcon {
+    transform: rotate(180deg);
+}
+
+.collapse-toggle #collapseIcon {
+    transition: transform 0.3s ease;
+}
+
+/* Quick Info Tip Styling */
+.package-quick-info {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 100%);
+    border-left: 4px solid #ffc107;
+    border-radius: 8px;
+    animation: slideInFromTop 0.5s ease;
+}
+
+.package-quick-info i.fa-lightbulb {
+    animation: pulse-light 2s infinite;
+}
+
+@keyframes pulse-light {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.package-comparison-section {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.comparison-header h5 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.comparison-header p {
+    font-size: 0.95rem;
+}
+
+/* Hotel Filter Tabs */
+.hotel-tabs {
+    margin-bottom: 1.5rem;
+}
+
+.hotel-tabs .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.hotel-tabs .btn {
+    flex: 1 1 auto;
+    min-width: 120px;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.hotel-tabs .btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.hotel-tabs .btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.hotel-tabs .btn-check:checked + .btn-outline-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+/* Comparison Table Styling */
+.comparison-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
+}
+
+.comparison-table thead {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.comparison-table thead th {
+    border: none;
+    padding: 1rem;
+    font-weight: 700;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.comparison-table .hotel-column {
+    min-width: 180px;
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    z-index: 10;
+}
+
+.comparison-table .package-column {
+    min-width: 200px;
+}
+
+.package-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.package-header strong {
+    font-size: 1.1rem;
+}
+
+.package-header small {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.package-header .btn-package-info {
+    margin-top: 0.25rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    padding: 0.25rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.package-header .btn-package-info:hover {
+    transform: scale(1.15);
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffc107;
+}
+
+.package-header .btn-package-info i {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Table Body */
+.comparison-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.comparison-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.comparison-table tbody tr.row-highlighted {
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+    border-left: 4px solid #dc3545;
+}
+
+.comparison-table tbody tr.row-highlighted td {
+    font-weight: 600;
+}
+
+.comparison-table tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    border-color: #dee2e6;
+}
+
+.comparison-table tbody td:first-child {
+    font-weight: 700;
+    color: #dc3545;
+    background: white;
+    position: sticky;
+    left: 0;
+    z-index: 9;
+    border-right: 2px solid #dee2e6;
+}
+
+.price-cell {
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.price-cell:hover {
+    background-color: #fff5f5;
+}
+
+.price-cell.selected {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+    border: 2px solid #dc3545;
+    box-shadow: inset 0 0 10px rgba(220, 53, 69, 0.2);
+    position: relative;
+}
+
+.price-cell.selected::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: #dc3545;
+    font-size: 1rem;
+    animation: checkmark-appear 0.3s ease;
+}
+
+@keyframes checkmark-appear {
+    from {
+        opacity: 0;
+        transform: scale(0);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.price-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.price-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.75rem;
+}
+
+.price-tier {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.15rem 0.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.price-tier:last-child {
+    border-bottom: none;
+}
+
+.tier-label {
+    color: #6c757d;
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.tier-price {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+.unavailable-package {
+    opacity: 0.4;
+    pointer-events: none;
+    position: relative;
+}
+
+.unavailable-package::before {
+    content: 'Not Available';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(108, 117, 125, 0.9);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Comparison Legend */
+.comparison-legend {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+}
+
+.comparison-legend small {
+    font-size: 0.85rem;
+}
+
+/* Responsive Design for Comparison Table */
+@media (max-width: 768px) {
+    .hotel-tabs .btn-group {
+        flex-direction: column;
+    }
+    
+    .hotel-tabs .btn {
+        width: 100%;
+    }
+    
+    .comparison-table {
+        font-size: 0.85rem;
+    }
+    
+    .comparison-table thead th {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .comparison-table tbody td {
+        padding: 0.5rem;
+    }
+    
+    .package-header strong {
+        font-size: 0.95rem;
+    }
+    
+    .package-header small {
+        font-size: 0.7rem;
+    }
+    
+    .price-tiers {
+        font-size: 0.7rem;
+    }
+    
+    .comparison-table .hotel-column {
+        min-width: 140px;
+    }
+    
+    .comparison-table .package-column {
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 576px) {
+    .comparison-table {
+        font-size: 0.75rem;
+    }
+    
+    .comparison-table .hotel-column {
+        min-width: 100px;
+        font-size: 0.85rem;
+    }
+    
+    .comparison-table .package-column {
+        min-width: 120px;
+    }
+    
+    .package-header strong {
+        font-size: 0.85rem;
+    }
+    
+    .price-tiers {
+        font-size: 0.65rem;
+    }
+    
+    .tier-label,
+    .tier-price {
+        font-size: 0.7rem;
+    }
+}
+
+/* ===== MINIMAL PACKAGE CARDS ===== */
+.package-mini-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    border: 2px solid #e0e7ff;
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.package-mini-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.package-mini-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+    transform: translateY(-5px);
+}
+
+.package-mini-card:hover::before {
+    opacity: 1;
+}
+
+.package-mini-card.selected {
+    border-color: #667eea;
+    border-width: 3px;
+    background: linear-gradient(135deg, #e8f0fe 0%, #e1e9ff 100%);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3), 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: scale(1.05);
+}
+
+.package-mini-card.selected::before {
+    opacity: 1;
+    height: 4px;
+}
+
+/* Bestseller Card Styling */
+.package-mini-bestseller {
+    border-color: #ffd700;
+    background: linear-gradient(135deg, #fffbf5 0%, #fff5e6 100%);
+}
+
+.package-mini-bestseller::before {
+    background: linear-gradient(90deg, #ffd700 0%, #ff8c00 100%);
+    opacity: 1;
+}
+
+.package-mini-bestseller:hover {
+    border-color: #ff8c00;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+}
+
+.package-mini-bestseller.selected {
+    border-color: #ff8c00;
+    background: linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4), 0 0 0 4px rgba(255, 215, 0, 0.2);
+}
+
+/* Package Card Elements */
+.package-mini-badge {
+    position: absolute;
+    top: -8px;
+    right: 8px;
+    background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+.package-mini-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.package-mini-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.package-mini-bestseller .package-mini-name {
+    background: linear-gradient(135deg, #ff8c00 0%, #ffd700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.package-mini-card .btn-package-info {
+    color: #667eea;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.package-mini-card .btn-package-info:hover {
+    color: #764ba2;
+    transform: scale(1.2);
+}
+
+.package-mini-duration {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.package-mini-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0.25rem 0;
+    filter: drop-shadow(0 1px 2px rgba(102, 126, 234, 0.3));
+}
+
+.package-mini-bestseller .package-mini-price {
+    background: linear-gradient(135deg, #ff8c00 0%, #ffd700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 1px 2px rgba(255, 140, 0, 0.3));
+}
+
+.package-mini-includes {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    line-height: 1.2;
+    margin-top: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .package-mini-card {
+        min-height: 130px;
+        padding: 0.75rem;
+    }
+    
+    .package-mini-name {
+        font-size: 0.85rem;
+    }
+    
+    .package-mini-price {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .package-mini-card {
+        min-height: 120px;
+        padding: 0.6rem;
+    }
+    
+    .package-mini-name {
+        font-size: 0.8rem;
+    }
+    
+    .package-mini-duration {
+        font-size: 0.7rem;
+    }
+    
+    .package-mini-price {
+        font-size: 1rem;
+    }
+    
+    .package-mini-includes {
+        font-size: 0.65rem;
+    }
+}
+
+/* ===== COMPARISON MODAL STYLING ===== */
+#compareModal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1.5rem;
+}
+
+#compareModal .modal-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+#compareModal .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+#compareModal .nav-tabs {
+    border-bottom: 2px solid #e0e7ff;
+}
+
+#compareModal .nav-link {
+    color: #6b7280;
+    font-weight: 600;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+#compareModal .nav-link:hover {
+    color: #667eea;
+    background: #f8f9ff;
+}
+
+#compareModal .nav-link.active {
+    color: #667eea;
+    background: linear-gradient(135deg, #f8f9ff 0%, #fff5f8 100%);
+    border-bottom: 3px solid #667eea;
+}
+
+.compare-package-info {
+    background: linear-gradient(135deg, #f8f9ff 0%, #fff5f8 100%);
+    padding: 1.25rem;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.compare-package-info h6 {
+    color: #667eea;
+    margin-bottom: 0.75rem;
+}
+
+.compare-package-info ul {
+    padding-left: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.compare-package-info li {
+    margin-bottom: 0.4rem;
+    line-height: 1.6;
+}
+
+.compare-package-info .text-primary {
+    color: #667eea !important;
+}
+
+.compare-package-info .text-success {
+    color: #10b981 !important;
+}
+
+.compare-package-info .text-warning {
+    color: #f59e0b !important;
+}
+
+.compare-package-info .text-info {
+    color: #3b82f6 !important;
+}
+
+.compare-package-info .badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    vertical-align: middle;
+}
+
+.compare-package-info em {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.compare-table {
+    font-size: 0.9rem;
+}
+
+.compare-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.compare-table thead th {
+    font-weight: 600;
+    padding: 0.75rem;
+    border: none;
+}
+
+.compare-table tbody td {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+.compare-table tbody tr:hover {
+    background: #f8f9ff;
+}
+
+.compare-table .fw-bold {
+    color: #667eea;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    .compare-table {
+        font-size: 0.8rem;
+    }
+    
+    .compare-table thead th,
+    .compare-table tbody td {
+        padding: 0.5rem 0.25rem;
+    }
+}
+
+/* ===== PACKAGE INFO MODAL SECTIONS ===== */
+.itinerary-section,
+.islands-section,
+.notes-section {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8f9ff;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.itinerary-title,
+.islands-title,
+.notes-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 0.75rem;
+}
+
+.itinerary-title i,
+.islands-title i,
+.notes-title i {
+    margin-right: 0.5rem;
+}
+
+.itinerary-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 8px;
+    border-left: 3px solid #3b82f6;
+    line-height: 1.6;
+}
+
+.island-item,
+.note-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    line-height: 1.6;
+}
+
+.island-item i,
+.note-item i {
+    color: #667eea;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.note-item i {
+    color: #f59e0b;
+}
+
+.island-item span,
+.note-item span {
+    flex: 1;
+}
+
+/* Enhanced styling for existing sections */
+.description-section {
+    padding: 1rem;
+    background: linear-gradient(135deg, #f8f9ff 0%, #fff5f8 100%);
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.description-section p {
+    margin: 0;
+    line-height: 1.8;
+    color: #374151;
 }

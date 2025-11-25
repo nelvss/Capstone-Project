@@ -3284,55 +3284,122 @@
             'Package 1': {
                 title: 'Package 1 - 2 Days 1 Night',
                 subtitle: 'Hotel + Island Tour + Land Tour',
-                description: 'Experience the best of Puerto Galera with our 2-day adventure package. Enjoy comfortable accommodation, exciting island hopping, and explore the beautiful inland attractions.',
+                image: '../../Images/package1.png',
+                description: 'Perfect for weekend getaways! Experience the best of Puerto Galera with our 2-day adventure package combining comfortable accommodation, exciting island hopping, and scenic land tours.',
                 inclusions: [
                     'Hotel accommodation (1 night)',
-                    'Island hopping tour (full day)',
-                    'Land tour to scenic destinations',
-                    'Tour guide services',
-                    'Boat transportation',
+                    'Island hopping tour - Coral Garden, Haligi Beach, Underwater Cave',
+                    'Land tour - Tamaraw Falls, Tukuran Falls',
+                    'Breakfast (Day 2)',
+                    'Professional tour guide services',
+                    'Boat transportation & fuel',
+                    'Snorkeling equipment',
                     'Environmental fees'
+                ],
+                itinerary: [
+                    '<strong>Day 1:</strong> Check-in → Island Hopping Tour (Coral Garden, Haligi Beach, Underwater Cave) → Beach Relaxation → Dinner on your own',
+                    '<strong>Day 2:</strong> Breakfast → Land Tour (Tamaraw Falls, Tukuran Falls) → Check-out'
+                ],
+                notes: [
+                    'Meals not included except breakfast on Day 2',
+                    'Bring your own snorkeling gear or use provided equipment',
+                    'Waterproof bag recommended for island hopping'
                 ]
             },
             'Package 2': {
-                title: 'Package 2 - 3 Days 2 Nights ⭐ BESTSELLER',
+                title: 'Package 2 - 3 Days 2 Nights ⭐ MOST AVAILED',
                 subtitle: 'Hotel + Island Tour + Land Tour',
-                description: 'Our most popular package! Immerse yourself in 3 days of island paradise with comfortable stays, island adventures, and inland explorations. Perfect for those who want to experience everything Puerto Galera has to offer.',
+                image: '../../Images/package2.png',
+                description: 'Our most popular package! Immerse yourself in 3 days of island paradise with comfortable stays, island adventures, and inland explorations. Ideal for families and groups wanting the complete Puerto Galera experience.',
                 inclusions: [
                     'Hotel accommodation (2 nights)',
-                    'Island hopping tour (full day)',
-                    'Land tour to scenic destinations',
-                    'Tour guide services',
-                    'Boat transportation',
-                    'Environmental fees',
-                    'Extended leisure time'
+                    'Full-day island hopping tour',
+                    'Extended land tour with multiple stops',
+                    'Breakfast (Day 2 & 3)',
+                    'Professional tour guide services',
+                    'Boat transportation & fuel',
+                    'Complete snorkeling equipment set',
+                    'Safety equipment & life vests',
+                    'Environmental fees'
+                ],
+                itinerary: [
+                    '<strong>Day 1:</strong> Check-in → Beach Activities → Sunset Viewing → Free Time for Dinner',
+                    '<strong>Day 2:</strong> Breakfast → Island Hopping Adventure → Lunch (own expense) → Land Tour → Beach Relaxation',
+                    '<strong>Day 3:</strong> Breakfast → Morning Beach Activities → Check-out'
+                ],
+                notes: [
+                    'Most value for money - includes everything!',
+                    'Recommended for first-time visitors',
+                    'Flexible schedule allows for rest periods',
+                    'Lunch and dinner not included (many options available nearby)'
                 ]
             },
             'Package 3': {
                 title: 'Package 3 - 2 Days 1 Night',
                 subtitle: 'Hotel + Island Tour',
-                description: 'Perfect for beach lovers! Enjoy 2 days of island paradise with comfortable accommodation and an exciting island hopping adventure visiting the most beautiful beaches and snorkeling spots.',
+                image: '../../Images/package3.png',
+                description: 'Beach lovers\' paradise! Perfect for those who want to focus on island hopping and beach activities. Enjoy 2 days of sun, sea, and snorkeling at Puerto Galera\'s most beautiful islands.',
                 inclusions: [
                     'Hotel accommodation (1 night)',
-                    'Island hopping tour (full day)',
-                    'Tour guide services',
-                    'Boat transportation',
-                    'Snorkeling equipment',
+                    'Full-day island hopping tour',
+                    'Breakfast (Day 2)',
+                    'Island tour guide services',
+                    'Boat transportation & fuel',
+                    'Snorkeling gear & masks',
+                    'Life jackets & safety equipment',
                     'Environmental fees'
+                ],
+                itinerary: [
+                    '<strong>Day 1:</strong> Check-in → Island Hopping Adventure → White Beach & Coral Garden → Haligi Beach → Underwater Cave Exploration → Beach Relaxation → Dinner (own expense)',
+                    '<strong>Day 2:</strong> Breakfast → Morning Beach Activities → Swimming → Check-out'
+                ],
+                islands: [
+                    'White Beach - pristine sand and crystal waters',
+                    'Coral Garden - amazing snorkeling spot',
+                    'Haligi Beach - photo opportunities',
+                    'Underwater Cave - adventure exploration'
+                ],
+                notes: [
+                    'Perfect for snorkeling enthusiasts',
+                    'More beach time, no land tour',
+                    'Bring waterproof camera for underwater photos',
+                    'Meals not included except breakfast'
                 ]
             },
             'Package 4': {
                 title: 'Package 4 - 3 Days 2 Nights',
                 subtitle: 'Hotel + Island Tour',
-                description: 'Extended island adventure with 3 days of relaxation and exploration. Enjoy comfortable accommodation for 2 nights and a comprehensive island hopping tour to discover the best beaches and marine life.',
+                image: '../../Images/package4.png',
+                description: 'Ultimate island experience! Extended 3-day adventure with maximum beach and island time. Perfect for those who want to fully immerse themselves in Puerto Galera\'s marine beauty without rushing.',
                 inclusions: [
                     'Hotel accommodation (2 nights)',
-                    'Island hopping tour (full day)',
-                    'Tour guide services',
-                    'Boat transportation',
-                    'Snorkeling equipment',
-                    'Environmental fees',
-                    'Beach leisure time'
+                    'Extended island hopping tour',
+                    'Breakfast (Day 2 & 3)',
+                    'Professional guide services',
+                    'Boat transportation & fuel',
+                    'Complete snorkeling equipment set',
+                    'Life jackets & safety equipment',
+                    'Underwater camera rental (on request)',
+                    'Environmental fees'
+                ],
+                itinerary: [
+                    '<strong>Day 1:</strong> Check-in → Beach Orientation → Sunset Beach Walk → Stargazing',
+                    '<strong>Day 2:</strong> Breakfast → Full Day Island Hopping → Multiple Snorkeling Locations → Hidden Beach Destinations → Marine Sanctuary Visit → Beach BBQ (optional) → Night Swimming',
+                    '<strong>Day 3:</strong> Breakfast → Morning Beach Activities → Final Swim → Check-out'
+                ],
+                islands: [
+                    'Multiple premium snorkeling locations',
+                    'Hidden beach destinations',
+                    'Marine sanctuary visit',
+                    'Photo opportunity islands',
+                    'Secluded coves and lagoons'
+                ],
+                notes: [
+                    'Maximum relaxation and exploration time',
+                    'Best for photographers and diving enthusiasts',
+                    'Flexible schedule with plenty of rest time',
+                    'Optional activities available (jet ski, parasailing)',
+                    'Meals not included except breakfasts'
                 ]
             }
         };
@@ -3352,7 +3419,7 @@
             const sortedPricing = [...packageInfo.pricing].sort((a, b) => a.min_tourist - b.min_tourist);
             
             pricingHTML = '<div class="pricing-section">';
-            pricingHTML += '<div class="pricing-title"><i class="fas fa-tag"></i>Pricing Per Person</div>';
+            pricingHTML += '<div class="pricing-title"><i class="fas fa-tag"></i> Pricing Per Person</div>';
             
             if (selectedHotel) {
                 pricingHTML += `<p class="text-muted small mb-3"><i class="fas fa-hotel me-1"></i>Prices shown for: <strong>${selectedHotel}</strong></p>`;
@@ -3366,7 +3433,7 @@
                 pricingHTML += `
                     <div class="pricing-item">
                         <span class="pricing-pax">
-                            <i class="fas fa-users"></i>${paxRange}
+                            <i class="fas fa-users"></i> ${paxRange}
                         </span>
                         <span class="pricing-cost">₱${tier.price_per_head.toLocaleString()}</span>
                     </div>
@@ -3378,7 +3445,7 @@
         
         // Generate inclusions section
         let inclusionsHTML = '<div class="inclusions-section">';
-        inclusionsHTML += '<div class="inclusions-title"><i class="fas fa-check-circle"></i>Package Inclusions</div>';
+        inclusionsHTML += '<div class="inclusions-title"><i class="fas fa-check-circle"></i> Package Inclusions</div>';
         detail.inclusions.forEach(item => {
             inclusionsHTML += `
                 <div class="inclusion-item">
@@ -3389,13 +3456,62 @@
         });
         inclusionsHTML += '</div>';
         
+        // Generate itinerary section if available
+        let itineraryHTML = '';
+        if (detail.itinerary) {
+            itineraryHTML = '<div class="itinerary-section">';
+            itineraryHTML += '<div class="itinerary-title"><i class="fas fa-route"></i> Itinerary</div>';
+            detail.itinerary.forEach(day => {
+                itineraryHTML += `<div class="itinerary-item">${day}</div>`;
+            });
+            itineraryHTML += '</div>';
+        }
+        
+        // Generate island stops section if available
+        let islandsHTML = '';
+        if (detail.islands) {
+            islandsHTML = '<div class="islands-section">';
+            islandsHTML += '<div class="islands-title"><i class="fas fa-umbrella-beach"></i> Island Destinations</div>';
+            detail.islands.forEach(island => {
+                islandsHTML += `
+                    <div class="island-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${island}</span>
+                    </div>
+                `;
+            });
+            islandsHTML += '</div>';
+        }
+        
+        // Generate notes section if available
+        let notesHTML = '';
+        if (detail.notes) {
+            notesHTML = '<div class="notes-section">';
+            notesHTML += '<div class="notes-title"><i class="fas fa-info-circle"></i> Important Notes</div>';
+            detail.notes.forEach(note => {
+                notesHTML += `
+                    <div class="note-item">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>${note}</span>
+                    </div>
+                `;
+            });
+            notesHTML += '</div>';
+        }
+        
         // Combine all sections
         const content = `
+            <div class="package-image-section mb-3">
+                <img src="${detail.image}" alt="${packageName}" class="img-fluid rounded" style="width: 100%; max-height: 300px; object-fit: cover;">
+            </div>
             <div class="description-section">
                 <p><strong>${detail.description}</strong></p>
             </div>
             ${pricingHTML}
             ${inclusionsHTML}
+            ${itineraryHTML}
+            ${islandsHTML}
+            ${notesHTML}
             ${!selectedHotel ? '<div class="alert alert-info mt-3"><i class="fas fa-info-circle me-2"></i>Select a hotel to see specific pricing for your preferred accommodation.</div>' : ''}
         `;
         
@@ -3441,6 +3557,493 @@
             console.log('✅ Modal closed and cleaned up');
         });
     }
+
+    // ===== COMPARISON TABLE FUNCTIONALITY =====
+    
+    // Function to populate the comparison table
+    async function populateComparisonTable(filterHotel = 'all') {
+        const tableBody = document.getElementById('comparisonTableBody');
+        if (!tableBody) {
+            console.warn('⚠️ Comparison table body not found');
+            return;
+        }
+        
+        // Ensure packages are loaded
+        if (!packagesData || packagesData.length === 0) {
+            console.log('⏳ Waiting for packages data...');
+            await fetchPackages();
+        }
+        
+        if (!packagesData || packagesData.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Failed to load package data. Please refresh the page.</td></tr>';
+            return;
+        }
+        
+        // Get unique hotels from packages or use predefined list
+        const allHotels = [
+            'Ilaya Resort',
+            'The Mangyan Grand Hotel',
+            'Mindoro Transient House',
+            'Bliss Beach Resort',
+            'Southview Lodge'
+        ];
+        
+        const hotels = filterHotel === 'all' ? allHotels : [filterHotel];
+        
+        // Clear table
+        tableBody.innerHTML = '';
+        
+        // Create rows for each hotel
+        hotels.forEach(hotelName => {
+            const row = document.createElement('tr');
+            
+            // Hotel name cell
+            const hotelCell = document.createElement('td');
+            hotelCell.textContent = hotelName;
+            row.appendChild(hotelCell);
+            
+            // Package cells (Package 1-4)
+            const packages = ['Package 1', 'Package 2', 'Package 3', 'Package 4'];
+            packages.forEach(packageCategory => {
+                const packageCell = document.createElement('td');
+                packageCell.className = 'price-cell';
+                packageCell.dataset.hotel = hotelName;
+                packageCell.dataset.package = packageCategory;
+                
+                // Get package data for this hotel and category
+                const pkg = getPackageByCategoryAndHotel(packageCategory, hotelName);
+                
+                if (!pkg || !pkg.pricing || pkg.pricing.length === 0) {
+                    // Package not available for this hotel
+                    packageCell.className += ' unavailable-package';
+                    packageCell.innerHTML = '<div class="price-display"><small class="text-muted">N/A</small></div>';
+                } else {
+                    // Display pricing tiers
+                    const priceTiersDiv = document.createElement('div');
+                    priceTiersDiv.className = 'price-tiers';
+                    
+                    // Sort pricing tiers
+                    const sortedPricing = [...pkg.pricing].sort((a, b) => a.min_tourist - b.min_tourist);
+                    
+                    sortedPricing.forEach(tier => {
+                        const tierDiv = document.createElement('div');
+                        tierDiv.className = 'price-tier';
+                        
+                        const paxRange = tier.min_tourist === tier.max_tourist 
+                            ? `${tier.min_tourist}`
+                            : tier.max_tourist >= 100 
+                                ? `${tier.min_tourist}+`
+                                : `${tier.min_tourist}-${tier.max_tourist}`;
+                        
+                        tierDiv.innerHTML = `
+                            <span class="tier-label">${paxRange} pax</span>
+                            <span class="tier-price">₱${tier.price_per_head.toLocaleString()}</span>
+                        `;
+                        
+                        priceTiersDiv.appendChild(tierDiv);
+                    });
+                    
+                    packageCell.appendChild(priceTiersDiv);
+                    
+                    // Add click handler to select package
+                    packageCell.addEventListener('click', function() {
+                        selectPackageFromTable(hotelName, packageCategory, packageCell);
+                    });
+                }
+                
+                row.appendChild(packageCell);
+            });
+            
+            tableBody.appendChild(row);
+        });
+        
+        console.log(`✅ Comparison table populated for ${filterHotel === 'all' ? 'all hotels' : filterHotel}`);
+    }
+    
+    // Function to select package from comparison table
+    function selectPackageFromTable(hotelName, packageCategory, cellElement) {
+        console.log(`📦 Selected: ${packageCategory} at ${hotelName}`);
+        
+        // Clear all selected cells
+        document.querySelectorAll('.price-cell.selected').forEach(cell => {
+            cell.classList.remove('selected');
+        });
+        
+        // Mark this cell as selected
+        cellElement.classList.add('selected');
+        
+        // Update hotel selection
+        const hotelRadios = document.querySelectorAll('input[name="hotel-selection"]');
+        hotelRadios.forEach(radio => {
+            if (radio.value === hotelName) {
+                radio.checked = true;
+                lastSelectedHotel = hotelName;
+            } else {
+                radio.checked = false;
+            }
+        });
+        
+        // Update package selection
+        const packageRadios = document.querySelectorAll('.package-selection-option');
+        packageRadios.forEach(radio => {
+            if (radio.value === packageCategory) {
+                radio.checked = true;
+                lastSelectedPackage = packageCategory;
+            } else {
+                radio.checked = false;
+            }
+        });
+        
+        // Update the selected hotel text
+        const selectedHotelText = document.getElementById('selectedHotelText');
+        if (selectedHotelText) {
+            selectedHotelText.textContent = hotelName;
+        }
+        
+        // Update package availability and pricing
+        updatePackageAvailability(hotelName);
+        updatePackageDropdownPrices(hotelName);
+        updatePackageSelectionPricing();
+        
+        // Calculate total amount
+        setTimeout(() => {
+            calculateTotalAmount();
+        }, 10);
+        
+        // Save form data
+        saveCurrentFormData();
+        
+        // Scroll to selection summary or tourist count
+        const touristCountInput = document.getElementById('touristCount');
+        if (touristCountInput) {
+            touristCountInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                touristCountInput.focus();
+            }, 500);
+        }
+    }
+    
+    // Function to handle hotel filter changes
+    function setupHotelFilter() {
+        const filterRadios = document.querySelectorAll('.hotel-filter');
+        filterRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const filterValue = this.value;
+                console.log(`🔍 Filtering by: ${filterValue}`);
+                populateComparisonTable(filterValue);
+            });
+        });
+    }
+    
+    // Initialize comparison table when packages are loaded
+    function initializeComparisonTable() {
+        // Wait for packages to be fetched
+        if (packagesData && packagesData.length > 0) {
+            populateComparisonTable();
+            setupHotelFilter();
+        } else {
+            // Retry after a short delay
+            setTimeout(initializeComparisonTable, 500);
+        }
+    }
+    
+    // Start initialization
+    initializeComparisonTable();
+
+    // ----------------------------
+    // ENHANCED UI FEATURES
+    // ----------------------------
+    
+    // Initialize Bootstrap tooltips
+    function initializeTooltips() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+    
+    // Setup collapse toggle button animation
+    function setupCollapseToggle() {
+        const collapseElement = document.getElementById('comparisonTableCollapse');
+        const toggleBtn = document.getElementById('collapseToggleBtn');
+        const collapseIcon = document.getElementById('collapseIcon');
+        
+        if (collapseElement && toggleBtn && collapseIcon) {
+            collapseElement.addEventListener('show.bs.collapse', function () {
+                collapseIcon.classList.remove('fa-chevron-down');
+                collapseIcon.classList.add('fa-chevron-up');
+                toggleBtn.setAttribute('aria-expanded', 'true');
+            });
+            
+            collapseElement.addEventListener('hide.bs.collapse', function () {
+                collapseIcon.classList.remove('fa-chevron-up');
+                collapseIcon.classList.add('fa-chevron-down');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+            });
+        }
+    }
+    
+    // Update sticky summary bar
+    function updateStickySummary() {
+        const stickyBar = document.getElementById('stickySelectionSummary');
+        const summaryText = document.getElementById('stickySummaryText');
+        const summaryPrice = document.getElementById('stickySummaryPrice');
+        
+        if (!stickyBar || !summaryText || !summaryPrice) return;
+        
+        const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+        const selectedPackage = document.querySelector('.package-selection-option:checked');
+        const touristCount = document.getElementById('touristCount')?.value || 0;
+        
+        if (selectedHotel && selectedPackage && touristCount > 0) {
+            const hotelName = selectedHotel.value;
+            const packageName = selectedPackage.value;
+            const packagePrice = parseFloat(selectedPackage.dataset.price) || 0;
+            const totalPackagePrice = packagePrice * parseInt(touristCount);
+            
+            summaryText.textContent = `${packageName} at ${hotelName} • ${touristCount} Tourist(s)`;
+            summaryPrice.textContent = `₱${totalPackagePrice.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            
+            stickyBar.classList.add('show');
+        } else {
+            summaryText.textContent = 'Select a package to begin';
+            summaryPrice.textContent = '₱0.00';
+            stickyBar.classList.remove('show');
+        }
+    }
+    
+    // Highlight selected row in comparison table
+    function highlightSelectedRow() {
+        const selectedHotel = document.querySelector('input[name="hotel-selection"]:checked');
+        
+        if (!selectedHotel) return;
+        
+        const hotelName = selectedHotel.value;
+        const tableBody = document.getElementById('comparisonTableBody');
+        
+        if (!tableBody) return;
+        
+        // Remove all highlights
+        tableBody.querySelectorAll('tr').forEach(row => {
+            row.classList.remove('row-highlighted');
+        });
+        
+        // Add highlight to selected hotel row
+        tableBody.querySelectorAll('tr').forEach(row => {
+            const firstCell = row.querySelector('td:first-child');
+            if (firstCell && firstCell.textContent.trim() === hotelName) {
+                row.classList.add('row-highlighted');
+            }
+        });
+    }
+    
+    // Listen for selection changes
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'hotel-selection' || 
+            e.target.classList.contains('package-selection-option') ||
+            e.target.id === 'touristCount') {
+            updateStickySummary();
+            highlightSelectedRow();
+        }
+    });
+    
+    // Setup handlers for mini package cards
+    function setupMiniCardHandlers() {
+        const miniCards = document.querySelectorAll('.package-mini-card');
+        
+        miniCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't trigger if clicking the info button
+                if (e.target.closest('.btn-package-info')) {
+                    return;
+                }
+                
+                const packageName = this.dataset.package;
+                console.log(`📦 Package card clicked: ${packageName}`);
+                
+                // Clear all selected cards
+                document.querySelectorAll('.package-mini-card.selected').forEach(selectedCard => {
+                    selectedCard.classList.remove('selected');
+                });
+                
+                // Mark this card as selected
+                this.classList.add('selected');
+                
+                // Update package selection radio button
+                const packageRadios = document.querySelectorAll('.package-selection-option');
+                packageRadios.forEach(radio => {
+                    if (radio.value === packageName) {
+                        radio.checked = true;
+                        // Trigger change event to update pricing
+                        radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+                
+                // Update the selected package text
+                const selectedPackageText = document.getElementById('selectedPackageText');
+                if (selectedPackageText) {
+                    selectedPackageText.textContent = packageName;
+                }
+                
+                // Trigger updates
+                updateStickySummary();
+                
+                // Scroll to tourist count
+                const touristCountInput = document.getElementById('touristCount');
+                if (touristCountInput) {
+                    setTimeout(() => {
+                        touristCountInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        touristCountInput.focus();
+                    }, 300);
+                }
+            });
+        });
+        
+        console.log(`✅ Set up ${miniCards.length} mini card handlers`);
+    }
+    
+    // Populate comparison modal with pricing data
+    function populateComparisonModal() {
+        console.log('🔄 Populating comparison modal...');
+        console.log('📦 Packages data available:', packagesData ? packagesData.length : 0);
+        
+        if (!packagesData || packagesData.length === 0) {
+            console.warn('⚠️ No package data available for comparison modal');
+            // Show message in all tables
+            const packages = ['Package 1', 'Package 2', 'Package 3', 'Package 4'];
+            packages.forEach((packageName, index) => {
+                const tbody = document.getElementById(`compare-package${index + 1}-body`);
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Package data is loading... Please wait or refresh the page.
+                    </td></tr>`;
+                }
+            });
+            return;
+        }
+        
+        const packages = ['Package 1', 'Package 2', 'Package 3', 'Package 4'];
+        const hotels = [
+            { name: 'Ilaya Resort', id: '08e190f4-60da-4188-9c8b-de535ef3fcf2' },
+            { name: 'The Mangyan Grand Hotel', id: 'd824f56b-db62-442c-9cf4-26f4c0cc83d0' },
+            { name: 'Bliss Beach Resort', id: '2da89c09-1c3d-4cd5-817d-637c1c0289de' },
+            { name: 'Casa de Honcho', id: '11986747-1a86-4d88-a952-a66b69c7e3ec' },
+            { name: 'SouthView', id: '7c071f4b-5ced-4f34-8864-755e5a4d5c38' }
+        ];
+        
+        let totalRowsPopulated = 0;
+        
+        packages.forEach((packageName, index) => {
+            const tbody = document.getElementById(`compare-package${index + 1}-body`);
+            if (!tbody) {
+                console.warn(`⚠️ Table body not found for ${packageName}`);
+                return;
+            }
+            
+            let html = '';
+            let rowsForThisPackage = 0;
+            
+            hotels.forEach(hotel => {
+                const pkg = packagesData.find(p => p.category === packageName && p.hotel_id === hotel.id);
+                
+                console.log(`🔍 Looking for ${packageName} at ${hotel.name}:`, pkg ? 'Found' : 'Not found');
+                
+                if (!pkg || !pkg.pricing || pkg.pricing.length === 0) {
+                    // Package not available for this hotel
+                    html += `<tr class="table-secondary">
+                        <td class="fw-bold">${hotel.name}</td>
+                        <td colspan="6" class="text-center text-muted"><em>Not Available</em></td>
+                    </tr>`;
+                    return;
+                }
+                
+                // Sort pricing tiers
+                const sortedPricing = [...pkg.pricing].sort((a, b) => a.min_tourist - b.min_tourist);
+                
+                console.log(`💰 Pricing tiers for ${packageName} at ${hotel.name}:`, sortedPricing.length);
+                
+                // Create pricing map for standard tiers
+                const pricingMap = {
+                    '1': null,
+                    '2': null,
+                    '3-4': null,
+                    '5-6': null,
+                    '7-9': null,
+                    '10+': null
+                };
+                
+                // Map database pricing to display tiers
+                sortedPricing.forEach(tier => {
+                    const min = tier.min_tourist;
+                    const max = tier.max_tourist;
+                    const price = tier.price_per_head;
+                    
+                    if (min === 1 && max === 1) pricingMap['1'] = price;
+                    else if (min === 2 && max === 2) pricingMap['2'] = price;
+                    else if (min === 3 && max === 4) pricingMap['3-4'] = price;
+                    else if (min === 5 && max === 6) pricingMap['5-6'] = price;
+                    else if (min === 7 && max === 9) pricingMap['7-9'] = price;
+                    else if (min >= 10) pricingMap['10+'] = price;
+                });
+                
+                html += `<tr>
+                    <td class="fw-bold">${hotel.name}</td>
+                    <td class="text-center">${pricingMap['1'] ? '₱' + pricingMap['1'].toLocaleString() : '-'}</td>
+                    <td class="text-center">${pricingMap['2'] ? '₱' + pricingMap['2'].toLocaleString() : '-'}</td>
+                    <td class="text-center">${pricingMap['3-4'] ? '₱' + pricingMap['3-4'].toLocaleString() : '-'}</td>
+                    <td class="text-center">${pricingMap['5-6'] ? '₱' + pricingMap['5-6'].toLocaleString() : '-'}</td>
+                    <td class="text-center">${pricingMap['7-9'] ? '₱' + pricingMap['7-9'].toLocaleString() : '-'}</td>
+                    <td class="text-center">${pricingMap['10+'] ? '₱' + pricingMap['10+'].toLocaleString() : '-'}</td>
+                </tr>`;
+                rowsForThisPackage++;
+            });
+            
+            if (rowsForThisPackage === 0) {
+                html = `<tr><td colspan="7" class="text-center text-muted">
+                    <i class="fas fa-info-circle me-2"></i>No hotels available for this package
+                </td></tr>`;
+            }
+            
+            tbody.innerHTML = html;
+            totalRowsPopulated += rowsForThisPackage;
+        });
+        
+        console.log(`✅ Comparison modal populated with ${totalRowsPopulated} pricing rows`);
+    }
+    
+    // Populate modal when it's shown
+    const compareModal = document.getElementById('compareModal');
+    if (compareModal) {
+        compareModal.addEventListener('show.bs.modal', function () {
+            console.log('📊 Compare modal opened, attempting to populate...');
+            // Try to fetch packages if not loaded
+            if (!packagesData || packagesData.length === 0) {
+                console.log('🔄 Packages not loaded, fetching now...');
+                fetchPackages().then(() => {
+                    console.log('✅ Packages fetched, populating modal...');
+                    populateComparisonModal();
+                });
+            } else {
+                populateComparisonModal();
+            }
+        });
+    }
+    
+    // Initialize enhanced features
+    setTimeout(() => {
+        initializeTooltips();
+        setupCollapseToggle();
+        setupMiniCardHandlers();
+        updateStickySummary();
+        
+        // Populate comparison modal if packages are already loaded
+        if (packagesData && packagesData.length > 0) {
+            console.log('✅ Packages already loaded on init, populating comparison modal');
+            populateComparisonModal();
+        } else {
+            console.log('⏳ Packages not loaded yet on init');
+        }
+    }, 500);
 
     console.log("Tour booking form initialized successfully!");
 })();

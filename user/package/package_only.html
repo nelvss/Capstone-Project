@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/user/package/package_only.css">
+    <!-- Ensure the script reference at the bottom uses the same relative path:
+        <script src="./package_only.js"></script>
+    -->
     <title>Package Booking Form</title>
 </head>
 <body>
@@ -29,225 +32,105 @@
                                 </div>
                                 <h2 class="text-center mb-3">BOOKING FORM</h2>
                                 
-                                <!-- Tour Packages Row -->
-                                <div class="row g-3 mb-4">
-                                    <!-- Package 1 - 2 Days 1 Night -->
-                                    <div class="col-12 col-md-6 col-lg-3">
-                                        <div class="dropdown w-100 h-100">
-                                            <button class="btn btn-primary w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="package1Dropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                                                <span>Package 1</span>
-                                                <i class="fa-solid fa-chevron-down"></i>
+                                <!-- Sticky Selection Summary Bar (Initially Hidden) -->
+                                <div class="sticky-selection-summary" id="stickySelectionSummary">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="selection-info">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            <span id="stickySummaryText">Select a package to begin</span>
+                                        </div>
+                                        <div class="selection-price">
+                                            <strong id="stickySummaryPrice">₱0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Package Price Comparison Section - Minimal Design -->
+                                <div class="package-comparison-section mb-4">
+                                    <div class="comparison-header d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="text-danger fw-bold mb-0">
+                                            <i class="fas fa-box-open me-2"></i>Available Packages
+                                        </h6>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#compareModal" title="Compare all packages and prices">
+                                                <i class="fas fa-balance-scale me-1"></i>Compare Prices
                                             </button>
-                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="package1Dropdown">
-                                                <div class="mb-2">
-                                                    <h6 class="text-primary fw-bold mb-1">Package 1 - 2D1N</h6>
-                                                    <small class="text-muted">Hotel + Island + Land Tour</small>
-                                                </div>
-                                                <div class="pricing-list">
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">1 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="1">₱6,400</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">2 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="2">₱3,200</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">3-4 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="3">₱2,950</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">5-6 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="5">₱2,650</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">7-9 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="7">₱2,350</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">10+ pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 1" data-tier="10">₱2,100</span>
-                                                    </div>
-                                                </div>
-                                                <div class="mt-2 pt-2 border-top">
-                                                    <small class="text-muted fst-italic">
-                                                        <i class="fas fa-info-circle me-1"></i>
-                                                        Note: Price may vary depending on hotel selection
-                                                    </small>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary w-100 btn-package-info" data-package="Package 1">
-                                                        <i class="fas fa-info-circle me-1"></i> More Info
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            <button class="btn btn-sm btn-outline-danger collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#packagesCollapse" aria-expanded="true" aria-controls="packagesCollapse" title="Toggle packages">
+                                                <i class="fas fa-chevron-up" id="collapseIcon"></i>
+                                            </button>
                                         </div>
                                     </div>
 
-                                    <!-- Package 2 - 3 Days 2 Nights (Best Seller) -->
-                                    <div class="col-12 col-md-6 col-lg-3">
-                                        <div class="dropdown w-100 h-100">
-                                            <button class="btn btn-danger w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="package2Dropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                                                <span>Package 2 <span class="badge bg-warning text-dark ms-2">BESTSELLER</span></span>
-                                                <i class="fa-solid fa-chevron-down"></i>
-                                            </button>
-                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="package2Dropdown">
-                                                <div class="mb-2">
-                                                    <h6 class="text-danger fw-bold mb-1">Package 2 - 3D2N ⭐</h6>
-                                                    <small class="text-muted">Hotel + Island + Land Tour</small>
+                                    <!-- Collapsible Package Cards -->
+                                    <div class="collapse show" id="packagesCollapse">
+                                        <div class="row g-2">
+                                            <!-- Package 1 Card -->
+                                            <div class="col-6 col-md-3">
+                                                <div class="package-mini-card" data-package="Package 1">
+                                                    <div class="package-mini-header">
+                                                        <span class="package-mini-name">Package 1</span>
+                                                        <button type="button" class="btn btn-sm btn-link p-0 btn-package-info" data-package="Package 1" title="Details">
+                                                            <i class="fas fa-info-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="package-mini-duration">2D1N</div>
+                                                    <div class="package-mini-price">from ₱2,100</div>
+                                                    <div class="package-mini-includes">Hotel + Island + Land</div>
                                                 </div>
-                                                <div class="pricing-list">
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">1 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="1">₱7,600</span>
+                                            </div>
+
+                                            <!-- Package 2 Card (Bestseller) -->
+                                            <div class="col-6 col-md-3">
+                                                <div class="package-mini-card package-mini-bestseller" data-package="Package 2">
+                                                    <span class="package-mini-badge">⭐ Best</span>
+                                                    <div class="package-mini-header">
+                                                        <span class="package-mini-name">Package 2</span>
+                                                        <button type="button" class="btn btn-sm btn-link p-0 btn-package-info" data-package="Package 2" title="Details">
+                                                            <i class="fas fa-info-circle"></i>
+                                                        </button>
                                                     </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">2 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="2">₱3,800</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">3-4 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="3">₱3,450</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">5-6 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="5">₱3,150</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">7-9 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="7">₱2,850</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">10+ pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 2" data-tier="10">₱2,600</span>
-                                                    </div>
+                                                    <div class="package-mini-duration">3D2N</div>
+                                                    <div class="package-mini-price">from ₱2,600</div>
+                                                    <div class="package-mini-includes">Hotel + Island + Land</div>
                                                 </div>
-                                                <div class="mt-2 pt-2 border-top">
-                                                    <small class="text-muted fst-italic">
-                                                        <i class="fas fa-info-circle me-1"></i>
-                                                        Note: Price may vary depending on hotel selection
-                                                    </small>
+                                            </div>
+
+                                            <!-- Package 3 Card -->
+                                            <div class="col-6 col-md-3">
+                                                <div class="package-mini-card" data-package="Package 3">
+                                                    <div class="package-mini-header">
+                                                        <span class="package-mini-name">Package 3</span>
+                                                        <button type="button" class="btn btn-sm btn-link p-0 btn-package-info" data-package="Package 3" title="Details">
+                                                            <i class="fas fa-info-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="package-mini-duration">2D1N</div>
+                                                    <div class="package-mini-price">from ₱1,650</div>
+                                                    <div class="package-mini-includes">Hotel + Island</div>
                                                 </div>
-                                                <div class="mt-2">
-                                                    <button type="button" class="btn btn-sm btn-outline-danger w-100 btn-package-info" data-package="Package 2">
-                                                        <i class="fas fa-info-circle me-1"></i> More Info
-                                                    </button>
+                                            </div>
+
+                                            <!-- Package 4 Card -->
+                                            <div class="col-6 col-md-3">
+                                                <div class="package-mini-card" data-package="Package 4">
+                                                    <div class="package-mini-header">
+                                                        <span class="package-mini-name">Package 4</span>
+                                                        <button type="button" class="btn btn-sm btn-link p-0 btn-package-info" data-package="Package 4" title="Details">
+                                                            <i class="fas fa-info-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="package-mini-duration">3D2N</div>
+                                                    <div class="package-mini-price">from ₱2,100</div>
+                                                    <div class="package-mini-includes">Hotel + Island</div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Package 3 - 2 Days 1 Night -->
-                                    <div class="col-12 col-md-6 col-lg-3">
-                                        <div class="dropdown w-100 h-100">
-                                            <button class="btn btn-info w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="package3Dropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                                                <span>Package 3</span>
-                                                <i class="fa-solid fa-chevron-down"></i>
-                                            </button>
-                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="package3Dropdown">
-                                                <div class="mb-2">
-                                                    <h6 class="text-info fw-bold mb-1">Package 3 - 2D1N</h6>
-                                                    <small class="text-muted">Hotel + Island Tour</small>
-                                                </div>
-                                                <div class="pricing-list">
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">1 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="1">₱5,600</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">2 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="2">₱2,800</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">3 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="3">₱2,550</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">4 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="4">₱2,300</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">5-6 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="5">₱1,950</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">7-9 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="7">₱1,850</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">10+ pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 3" data-tier="10">₱1,650</span>
-                                                    </div>
-                                                </div>
-                                                <div class="mt-2 pt-2 border-top">
-                                                    <small class="text-muted fst-italic">
-                                                        <i class="fas fa-info-circle me-1"></i>
-                                                        Note: Price may vary depending on hotel selection
-                                                    </small>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <button type="button" class="btn btn-sm btn-outline-info w-100 btn-package-info" data-package="Package 3">
-                                                        <i class="fas fa-info-circle me-1"></i> More Info
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Package 4 - 3 Days 2 Nights -->
-                                    <div class="col-12 col-md-6 col-lg-3">
-                                        <div class="dropdown w-100 h-100">
-                                            <button class="btn btn-success w-100 h-100 d-flex justify-content-between align-items-center" type="button" id="package4Dropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                                                <span>Package 4</span>
-                                                <i class="fa-solid fa-chevron-down"></i>
-                                            </button>
-                                            <div class="dropdown-menu w-100 p-3" aria-labelledby="package4Dropdown">
-                                                <div class="mb-2">
-                                                    <h6 class="text-success fw-bold mb-1">Package 4 - 3D2N</h6>
-                                                    <small class="text-muted">Hotel + Island Tour</small>
-                                                </div>
-                                                <div class="pricing-list">
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">1 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="1">₱6,600</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">2 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="2">₱3,300</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">3 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="3">₱3,150</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">4 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="4">₱3,000</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">5-6 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="5">₱2,700</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">7-9 pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="7">₱2,400</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between py-1">
-                                                        <span class="small">10+ pax</span>
-                                                        <span class="fw-bold package-price" data-package="Package 4" data-tier="10">₱2,100</span>
-                                                    </div>
-                                                </div>
-                                                <div class="mt-2 pt-2 border-top">
-                                                    <small class="text-muted fst-italic">
-                                                        <i class="fas fa-info-circle me-1"></i>
-                                                        Note: Price may vary depending on hotel selection
-                                                    </small>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <button type="button" class="btn btn-sm btn-outline-success w-100 btn-package-info" data-package="Package 4">
-                                                        <i class="fas fa-info-circle me-1"></i> More Info
-                                                    </button>
-                                                </div>
-                                            </div>
+                                        <!-- Quick Tip -->
+                                        <div class="text-center mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-info-circle me-1"></i>Prices vary by group size • Click card to select
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
@@ -623,6 +506,455 @@
         </div>
     </section>
 
+    <!-- Package Comparison Modal -->
+    <div class="modal fade" id="compareModal" tabindex="-1" aria-labelledby="compareModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-gradient">
+                    <div>
+                        <h5 class="modal-title" id="compareModalLabel">
+                            <i class="fas fa-balance-scale me-2"></i>Compare All Packages & Prices
+                        </h5>
+                        <p class="mb-0 small text-muted">View pricing across all hotels and group sizes</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- Package Tabs -->
+                    <ul class="nav nav-tabs px-3 pt-3" id="comparePackageTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="compare-package1-tab" data-bs-toggle="tab" data-bs-target="#compare-package1" type="button" role="tab">
+                                <i class="fas fa-box me-1"></i>Package 1
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="compare-package2-tab" data-bs-toggle="tab" data-bs-target="#compare-package2" type="button" role="tab">
+                                <i class="fas fa-star me-1"></i>Package 2 <span class="badge bg-warning text-dark">Best</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="compare-package3-tab" data-bs-toggle="tab" data-bs-target="#compare-package3" type="button" role="tab">
+                                <i class="fas fa-box me-1"></i>Package 3
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="compare-package4-tab" data-bs-toggle="tab" data-bs-target="#compare-package4" type="button" role="tab">
+                                <i class="fas fa-box me-1"></i>Package 4
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content p-3" id="comparePackageTabContent">
+                        <!-- Package 1 -->
+                        <div class="tab-pane fade show active" id="compare-package1" role="tabpanel">
+                            <div class="compare-package-info mb-3">
+                                <h6 class="fw-bold mb-3"><i class="fas fa-box-open me-2"></i>Package 1 Details</h6>
+                                <div class="alert alert-success mb-3">
+                                    <strong><i class="fas fa-tag me-2"></i>Starting Price:</strong> From ₱2,100 per person
+                                    <small class="d-block mt-1 text-muted">Prices vary by hotel and group size - see table below</small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong><i class="fas fa-calendar-alt me-2 text-primary"></i>Duration:</strong> 2 Days 1 Night</p>
+                                        <p class="mb-2"><strong><i class="fas fa-check-circle me-2 text-success"></i>What's Included:</strong></p>
+                                        <ul class="small mb-2">
+                                            <li><i class="fas fa-hotel me-1 text-info"></i>Hotel Accommodation (1 night)</li>
+                                            <li><i class="fas fa-ship me-1 text-info"></i>Island Hopping Tour</li>
+                                            <li><i class="fas fa-car me-1 text-info"></i>Land Tour Adventures</li>
+                                            <li><i class="fas fa-utensils me-1 text-info"></i>Breakfast (Day 2)</li>
+                                            <li><i class="fas fa-camera me-1 text-info"></i>Tour Guide Services</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong><i class="fas fa-route me-2 text-warning"></i>Itinerary Highlights:</strong></p>
+                                        <ul class="small mb-2">
+                                            <li><strong>Day 1:</strong> Check-in → Island Tour (Coral Garden, Haligi Beach, Underwater Cave) → Dinner</li>
+                                            <li><strong>Day 2:</strong> Breakfast → Land Tour (Tamaraw Falls, Tukuran Falls) → Check-out</li>
+                                        </ul>
+                                        <p class="mb-0 small"><i class="fas fa-info-circle me-1 text-muted"></i><em>Perfect for weekend getaways!</em></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover compare-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Hotel</th>
+                                            <th class="text-center">1 pax</th>
+                                            <th class="text-center">2 pax</th>
+                                            <th class="text-center">3-4 pax</th>
+                                            <th class="text-center">5-6 pax</th>
+                                            <th class="text-center">7-9 pax</th>
+                                            <th class="text-center">10+ pax</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compare-package1-body">
+                                        <tr>
+                                            <td class="fw-bold">Ilaya Resort</td>
+                                            <td class="text-center">₱3,500</td>
+                                            <td class="text-center">₱2,800</td>
+                                            <td class="text-center">₱2,400</td>
+                                            <td class="text-center">₱2,200</td>
+                                            <td class="text-center">₱2,100</td>
+                                            <td class="text-center">₱2,000</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">The Mangyan Grand Hotel</td>
+                                            <td class="text-center">₱3,800</td>
+                                            <td class="text-center">₱3,000</td>
+                                            <td class="text-center">₱2,600</td>
+                                            <td class="text-center">₱2,400</td>
+                                            <td class="text-center">₱2,300</td>
+                                            <td class="text-center">₱2,200</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Bliss Beach Resort</td>
+                                            <td class="text-center">₱3,200</td>
+                                            <td class="text-center">₱2,600</td>
+                                            <td class="text-center">₱2,300</td>
+                                            <td class="text-center">₱2,100</td>
+                                            <td class="text-center">₱2,000</td>
+                                            <td class="text-center">₱1,900</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Casa de Honcho</td>
+                                            <td class="text-center">₱3,600</td>
+                                            <td class="text-center">₱2,900</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,300</td>
+                                            <td class="text-center">₱2,200</td>
+                                            <td class="text-center">₱2,100</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">SouthView</td>
+                                            <td class="text-center">₱3,000</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,200</td>
+                                            <td class="text-center">₱2,000</td>
+                                            <td class="text-center">₱1,900</td>
+                                            <td class="text-center">₱1,800</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Package 2 -->
+                        <div class="tab-pane fade" id="compare-package2" role="tabpanel">
+                            <div class="compare-package-info mb-3">
+                                <h6 class="fw-bold mb-3"><i class="fas fa-box-open me-2"></i>Package 2 Details <span class="badge bg-warning text-dark">⭐ MOST AVAILED</span></h6>
+                                <div class="alert alert-success mb-3">
+                                    <strong><i class="fas fa-tag me-2"></i>Starting Price:</strong> From ₱2,600 per person
+                                    <small class="d-block mt-1 text-muted">Best value! Prices vary by hotel and group size - see table below</small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong><i class="fas fa-calendar-alt me-2 text-primary"></i>Duration:</strong> 3 Days 2 Nights</p>
+                                        <p class="mb-2"><strong><i class="fas fa-check-circle me-2 text-success"></i>What's Included:</strong></p>
+                                        <ul class="small mb-2">
+                                            <li><i class="fas fa-hotel me-1 text-info"></i>Hotel Accommodation (2 nights)</li>
+                                            <li><i class="fas fa-ship me-1 text-info"></i>Island Hopping Tour</li>
+                                            <li><i class="fas fa-car me-1 text-info"></i>Extended Land Tour</li>
+                                            <li><i class="fas fa-utensils me-1 text-info"></i>Breakfast (Day 2 & 3)</li>
+                                            <li><i class="fas fa-camera me-1 text-info"></i>Professional Tour Guide</li>
+                                            <li><i class="fas fa-water me-1 text-info"></i>Snorkeling Equipment</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong><i class="fas fa-route me-2 text-warning"></i>Itinerary Highlights:</strong></p>
+                                        <ul class="small mb-2">
+                                            <li><strong>Day 1:</strong> Check-in → Beach Activities → Sunset View → Dinner</li>
+                                            <li><strong>Day 2:</strong> Breakfast → Island Hopping → Lunch → Land Tour → Free Time</li>
+                                            <li><strong>Day 3:</strong> Breakfast → Additional Activities → Check-out</li>
+                                        </ul>
+                                        <p class="mb-0 small"><i class="fas fa-star me-1 text-warning"></i><em>Most popular choice! Ideal for families and groups.</em></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover compare-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Hotel</th>
+                                            <th class="text-center">1 pax</th>
+                                            <th class="text-center">2 pax</th>
+                                            <th class="text-center">3-4 pax</th>
+                                            <th class="text-center">5-6 pax</th>
+                                            <th class="text-center">7-9 pax</th>
+                                            <th class="text-center">10+ pax</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compare-package2-body">
+                                        <tr>
+                                            <td class="fw-bold">Ilaya Resort</td>
+                                            <td class="text-center">₱4,200</td>
+                                            <td class="text-center">₱3,400</td>
+                                            <td class="text-center">₱2,900</td>
+                                            <td class="text-center">₱2,700</td>
+                                            <td class="text-center">₱2,600</td>
+                                            <td class="text-center">₱2,500</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">The Mangyan Grand Hotel</td>
+                                            <td class="text-center">₱4,500</td>
+                                            <td class="text-center">₱3,600</td>
+                                            <td class="text-center">₱3,100</td>
+                                            <td class="text-center">₱2,900</td>
+                                            <td class="text-center">₱2,800</td>
+                                            <td class="text-center">₱2,700</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Bliss Beach Resort</td>
+                                            <td class="text-center">₱3,900</td>
+                                            <td class="text-center">₱3,200</td>
+                                            <td class="text-center">₱2,800</td>
+                                            <td class="text-center">₱2,600</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,400</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Casa de Honcho</td>
+                                            <td class="text-center">₱4,300</td>
+                                            <td class="text-center">₱3,500</td>
+                                            <td class="text-center">₱3,000</td>
+                                            <td class="text-center">₱2,800</td>
+                                            <td class="text-center">₱2,700</td>
+                                            <td class="text-center">₱2,600</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">SouthView</td>
+                                            <td class="text-center">₱3,700</td>
+                                            <td class="text-center">₱3,100</td>
+                                            <td class="text-center">₱2,700</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,400</td>
+                                            <td class="text-center">₱2,300</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Package 3 -->
+                        <div class="tab-pane fade" id="compare-package3" role="tabpanel">
+                            <div class="compare-package-info mb-3">
+                                <h6 class="fw-bold mb-3"><i class="fas fa-box-open me-2"></i>Package 3 Details</h6>
+                                <div class="alert alert-success mb-3">
+                                    <strong><i class="fas fa-tag me-2"></i>Starting Price:</strong> From ₱1,800 per person
+                                    <small class="d-block mt-1 text-muted">Island tour only - Prices vary by hotel and group size - see table below</small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong><i class="fas fa-calendar-alt me-2 text-primary"></i>Duration:</strong> 2 Days 1 Night</p>
+                                        <p class="mb-2"><strong><i class="fas fa-check-circle me-2 text-success"></i>What's Included:</strong></p>
+                                        <ul class="small mb-2">
+                                            <li><i class="fas fa-hotel me-1 text-info"></i>Hotel Accommodation (1 night)</li>
+                                            <li><i class="fas fa-ship me-1 text-info"></i>Island Hopping Tour</li>
+                                            <li><i class="fas fa-utensils me-1 text-info"></i>Breakfast (Day 2)</li>
+                                            <li><i class="fas fa-mask-snorkel me-1 text-info"></i>Snorkeling Gear</li>
+                                            <li><i class="fas fa-camera me-1 text-info"></i>Island Tour Guide</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong><i class="fas fa-route me-2 text-warning"></i>Itinerary Highlights:</strong></p>
+                                        <ul class="small mb-2">
+                                            <li><strong>Day 1:</strong> Check-in → Island Hopping Adventure → Beach Relaxation → Dinner</li>
+                                            <li><strong>Day 2:</strong> Breakfast → Morning Swim → Check-out</li>
+                                        </ul>
+                                        <p class="mb-2"><strong><i class="fas fa-umbrella-beach me-2 text-info"></i>Island Stops:</strong></p>
+                                        <ul class="small mb-0">
+                                            <li>White Beach & Coral Garden</li>
+                                            <li>Haligi Beach & Snorkeling Spots</li>
+                                            <li>Underwater Cave Exploration</li>
+                                        </ul>
+                                        <p class="mb-0 small mt-2"><i class="fas fa-info-circle me-1 text-muted"></i><em>Beach lovers' paradise!</em></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover compare-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Hotel</th>
+                                            <th class="text-center">1 pax</th>
+                                            <th class="text-center">2 pax</th>
+                                            <th class="text-center">3-4 pax</th>
+                                            <th class="text-center">5-6 pax</th>
+                                            <th class="text-center">7-9 pax</th>
+                                            <th class="text-center">10+ pax</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compare-package3-body">
+                                        <tr>
+                                            <td class="fw-bold">Ilaya Resort</td>
+                                            <td class="text-center">₱2,800</td>
+                                            <td class="text-center">₱2,300</td>
+                                            <td class="text-center">₱2,000</td>
+                                            <td class="text-center">₱1,900</td>
+                                            <td class="text-center">₱1,800</td>
+                                            <td class="text-center">₱1,700</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">The Mangyan Grand Hotel</td>
+                                            <td class="text-center">₱3,000</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,200</td>
+                                            <td class="text-center">₱2,100</td>
+                                            <td class="text-center">₱2,000</td>
+                                            <td class="text-center">₱1,900</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Bliss Beach Resort</td>
+                                            <td class="text-center">₱2,600</td>
+                                            <td class="text-center">₱2,200</td>
+                                            <td class="text-center">₱1,900</td>
+                                            <td class="text-center">₱1,800</td>
+                                            <td class="text-center">₱1,700</td>
+                                            <td class="text-center">₱1,600</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Casa de Honcho</td>
+                                            <td class="text-center">₱2,900</td>
+                                            <td class="text-center">₱2,400</td>
+                                            <td class="text-center">₱2,100</td>
+                                            <td class="text-center">₱2,000</td>
+                                            <td class="text-center">₱1,900</td>
+                                            <td class="text-center">₱1,800</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">SouthView</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,100</td>
+                                            <td class="text-center">₱1,900</td>
+                                            <td class="text-center">₱1,800</td>
+                                            <td class="text-center">₱1,700</td>
+                                            <td class="text-center">₱1,600</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Package 4 -->
+                        <div class="tab-pane fade" id="compare-package4" role="tabpanel">
+                            <div class="compare-package-info mb-3">
+                                <h6 class="fw-bold mb-3"><i class="fas fa-box-open me-2"></i>Package 4 Details</h6>
+                                <div class="alert alert-success mb-3">
+                                    <strong><i class="fas fa-tag me-2"></i>Starting Price:</strong> From ₱2,300 per person
+                                    <small class="d-block mt-1 text-muted">Extended island experience - Prices vary by hotel and group size - see table below</small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong><i class="fas fa-calendar-alt me-2 text-primary"></i>Duration:</strong> 3 Days 2 Nights</p>
+                                        <p class="mb-2"><strong><i class="fas fa-check-circle me-2 text-success"></i>What's Included:</strong></p>
+                                        <ul class="small mb-2">
+                                            <li><i class="fas fa-hotel me-1 text-info"></i>Hotel Accommodation (2 nights)</li>
+                                            <li><i class="fas fa-ship me-1 text-info"></i>Extended Island Tours</li>
+                                            <li><i class="fas fa-utensils me-1 text-info"></i>Breakfast (Day 2 & 3)</li>
+                                            <li><i class="fas fa-mask-snorkel me-1 text-info"></i>Complete Snorkeling Set</li>
+                                            <li><i class="fas fa-life-ring me-1 text-info"></i>Safety Equipment & Life Vests</li>
+                                            <li><i class="fas fa-camera me-1 text-info"></i>Professional Guide Services</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong><i class="fas fa-route me-2 text-warning"></i>Itinerary Highlights:</strong></p>
+                                        <ul class="small mb-2">
+                                            <li><strong>Day 1:</strong> Check-in → Orientation → Beach Walk → Sunset Viewing</li>
+                                            <li><strong>Day 2:</strong> Breakfast → Full Day Island Hopping → Snorkeling → Beach BBQ</li>
+                                            <li><strong>Day 3:</strong> Breakfast → Morning Beach Activities → Check-out</li>
+                                        </ul>
+                                        <p class="mb-2"><strong><i class="fas fa-umbrella-beach me-2 text-info"></i>Extended Island Stops:</strong></p>
+                                        <ul class="small mb-0">
+                                            <li>Multiple Snorkeling Locations</li>
+                                            <li>Hidden Beach Destinations</li>
+                                            <li>Marine Sanctuary Visit</li>
+                                            <li>Photo Opportunity Islands</li>
+                                        </ul>
+                                        <p class="mb-0 small mt-2"><i class="fas fa-info-circle me-1 text-muted"></i><em>Ultimate island experience!</em></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover compare-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Hotel</th>
+                                            <th class="text-center">1 pax</th>
+                                            <th class="text-center">2 pax</th>
+                                            <th class="text-center">3-4 pax</th>
+                                            <th class="text-center">5-6 pax</th>
+                                            <th class="text-center">7-9 pax</th>
+                                            <th class="text-center">10+ pax</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="compare-package4-body">
+                                        <tr>
+                                            <td class="fw-bold">Ilaya Resort</td>
+                                            <td class="text-center">₱3,500</td>
+                                            <td class="text-center">₱2,900</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,400</td>
+                                            <td class="text-center">₱2,300</td>
+                                            <td class="text-center">₱2,200</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">The Mangyan Grand Hotel</td>
+                                            <td class="text-center">₱3,700</td>
+                                            <td class="text-center">₱3,100</td>
+                                            <td class="text-center">₱2,700</td>
+                                            <td class="text-center">₱2,600</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,400</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Bliss Beach Resort</td>
+                                            <td class="text-center">₱3,300</td>
+                                            <td class="text-center">₱2,800</td>
+                                            <td class="text-center">₱2,400</td>
+                                            <td class="text-center">₱2,300</td>
+                                            <td class="text-center">₱2,200</td>
+                                            <td class="text-center">₱2,100</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Casa de Honcho</td>
+                                            <td class="text-center">₱3,600</td>
+                                            <td class="text-center">₱3,000</td>
+                                            <td class="text-center">₱2,600</td>
+                                            <td class="text-center">₱2,500</td>
+                                            <td class="text-center">₱2,400</td>
+                                            <td class="text-center">₱2,300</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">SouthView</td>
+                                            <td class="text-center">₱3,200</td>
+                                            <td class="text-center">₱2,700</td>
+                                            <td class="text-center">₱2,400</td>
+                                            <td class="text-center">₱2,300</td>
+                                            <td class="text-center">₱2,200</td>
+                                            <td class="text-center">₱2,100</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing Note -->
+                    <div class="alert alert-info mx-3 mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Prices shown are per person. Larger groups get better rates!
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Package Information Modal -->
     <div class="modal fade" id="packageInfoModal" tabindex="-1" aria-labelledby="packageInfoModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -656,6 +988,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/user/package/package_only.js"></script>
+    <script src="package_only.js"></script>
 </body>
 </html>
