@@ -239,13 +239,13 @@
 
         <!-- Predictive Analytics Section -->
         <section id="predictive" class="analytics-section d-none">
-          <!-- Seasonal Prediction (Peak vs Low Seasons) -->
+          <!-- Seasonal Prediction - Bookings Chart -->
           <div class="row mb-4">
             <div class="col-md-12">
               <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">
-                    <i class="fas fa-calendar-alt me-2"></i>Seasonal Forecast - Peak & Low Seasons
+                    <i class="fas fa-calendar-alt me-2"></i>Seasonal Forecast - Predicted Bookings
                   </h5>
                   <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-primary">Monthly Predictions</span>
@@ -253,7 +253,7 @@
                 </div>
                 <div class="card-body">
                   <div id="seasonalPredictionStatus" class="small text-muted mb-2"></div>
-                  <canvas id="seasonalPredictionChart" height="280"></canvas>
+                  <canvas id="seasonalPredictionBookingsChart" height="280"></canvas>
                   <div class="row mt-3">
                     <div class="col-md-4">
                       <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
@@ -283,6 +283,25 @@
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seasonal Prediction - Revenue Chart -->
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Seasonal Forecast - Predicted Revenue
+                  </h5>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">Monthly Predictions</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <canvas id="seasonalPredictionRevenueChart" height="280"></canvas>
                 </div>
               </div>
             </div>

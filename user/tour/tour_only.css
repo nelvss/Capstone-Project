@@ -875,6 +875,30 @@ body {
     transition: opacity 0.2s ease;
 }
 
+/* Validation/Error Messages Spacing */
+#step2-error-message,
+.step2-error-message {
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+}
+
+/* Van Rental Section Visibility with Smooth Transitions */
+.van-rental-section-hidden {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, margin-bottom 0.4s ease-in-out, padding 0.4s ease-in-out;
+}
+
+#vanRentalSection:not(.van-rental-section-hidden) {
+    max-height: 1000px;
+    opacity: 1;
+    transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, margin-bottom 0.4s ease-in-out, padding 0.4s ease-in-out;
+}
+
 .van-disabled {
     opacity: 0.55;
 }
