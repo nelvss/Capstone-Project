@@ -1,5 +1,13 @@
 const supabase = require('../config/supabase');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// Conditionally require Google Generative AI (only if package is installed)
+let GoogleGenerativeAI;
+try {
+  GoogleGenerativeAI = require('@google/generative-ai').GoogleGenerativeAI;
+} catch (error) {
+  console.warn('⚠️ @google/generative-ai package not installed. AI chart interpretation will be unavailable.');
+  GoogleGenerativeAI = null;
+}
 
 const getRevenue = async (req, res) => {
   try {
@@ -1897,6 +1905,14 @@ const getSeasonalPrediction = async (req, res) => {
 // Interpret chart data using Google Gemini AI
 const interpretChart = async (req, res) => {
   try {
+    // Check if Google Generative AI package is installed
+    if (!GoogleGenerativeAI) {
+      return res.status(503).json({
+        success: false,
+        error: 'AI service package not installed. Please run: npm install @google/generative-ai'
+      });
+    }
+
     const { chartType, labels, datasets, chartTitle } = req.body;
 
     // Validate input
