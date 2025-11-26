@@ -1168,3 +1168,59 @@ header h1 {
 .year-dropdown-wrapper .form-select:focus + .year-dropdown-icon {
   color: var(--primary-red);
 }
+
+/* AI Insights Modal Styling */
+#aiInsightsModal .modal-header {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+}
+
+#aiInsightsModal .modal-header .btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+#aiInsightsContent .ai-insight-text {
+  line-height: 1.8;
+  color: var(--text-dark);
+}
+
+#aiInsightsContent .ai-insight-text p {
+  margin-bottom: 1rem;
+  text-align: justify;
+}
+
+#aiInsightsContent h6 {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+#aiInsightsContent .border-bottom {
+  border-color: var(--medium-gray) !important;
+}
+
+#aiInterpretBtn {
+  white-space: nowrap;
+}
+
+#aiInterpretBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Per-chart AI insights card styling */
+.ai-insights-card {
+  border-left: 4px solid var(--primary-red);
+}
+
+.ai-insights-card .card-header {
+  border-bottom-color: var(--medium-gray);
+}
+
+.ai-insights-body {
+  min-height: 80px;
+}
+
+.ai-insights-body .ai-insights-text p {
+  line-height: 1.6;
+}

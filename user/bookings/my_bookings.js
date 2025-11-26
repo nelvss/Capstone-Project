@@ -217,7 +217,7 @@ function createBookingCard(booking) {
     <div class="booking-card">
       <div class="booking-card-header">
         <div class="booking-id">
-          <i class="fas fa-hashtag me-2"></i>
+          <span class="me-2">Booking ID:</span>
           <strong>${booking.booking_id || 'N/A'}</strong>
         </div>
         ${getStatusBadge(booking.status)}

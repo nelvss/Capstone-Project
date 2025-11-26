@@ -49,30 +49,30 @@ function generateGrayscaleColors(count, startLightness = 240, endLightness = 96)
   return { hex: colors, rgba: rgbaColors };
 }
 
-// Predefined grayscale arrays for common use cases
+// Predefined red monochrome arrays for common use cases
 const grayscalePalette = {
-  // For 10+ segments (light to dark)
-  extended: ['#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0', 
-             '#a0a0a0', '#909090', '#808080', '#707070', '#606060',
-             '#505050', '#404040', '#303030'],
+  // For 10+ segments (light to dark red)
+  extended: ['#ffcccc', '#ffb3b3', '#ff9999', '#ff8080', '#ff6666', 
+             '#ff4d4d', '#ff3333', '#ff1a1a', '#ff0000', '#e60000',
+             '#cc0000', '#b30000', '#990000'],
   // For 2 series
   twoSeries: {
-    light: 'rgba(180, 180, 180, 0.8)',
-    dark: 'rgba(80, 80, 80, 0.8)',
-    lightBorder: 'rgba(180, 180, 180, 1)',
-    darkBorder: 'rgba(80, 80, 80, 1)'
+    light: 'rgba(255, 153, 153, 0.8)',
+    dark: 'rgba(204, 0, 0, 0.8)',
+    lightBorder: 'rgba(255, 153, 153, 1)',
+    darkBorder: 'rgba(204, 0, 0, 1)'
   },
   // For single series
   single: {
-    color: '#6c757d',
-    rgba: 'rgba(108, 117, 125, 1)',
-    background: 'rgba(108, 117, 125, 0.1)'
+    color: '#dc3545',
+    rgba: 'rgba(220, 53, 69, 1)',
+    background: 'rgba(220, 53, 69, 0.1)'
   },
   // For medium single series (lines)
   medium: {
-    color: '#808080',
-    rgba: 'rgba(128, 128, 128, 1)',
-    background: 'rgba(128, 128, 128, 0.1)'
+    color: '#ff0000',
+    rgba: 'rgba(255, 0, 0, 1)',
+    background: 'rgba(255, 0, 0, 0.1)'
   }
 };
 
@@ -584,6 +584,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Populate UI metrics and initialize charts
     populateAnalyticsUI();
     initializeCharts();
+    
+    // Add AI Insights button after charts are initialized
+    setTimeout(() => {
+      addAIIntepretationButton();
+    }, 500); // Small delay to ensure DOM is fully ready
     
     console.log('✅ Analytics Dashboard fully initialized');
 });
@@ -1098,8 +1103,8 @@ function createRevenueTrendChart() {
             datasets: [{
                 label: 'Revenue (₱)',
                 data: monthlyData.map(d => d.revenue),
-                borderColor: '#505050',
-                backgroundColor: 'rgba(80, 80, 80, 0.1)',
+                borderColor: '#cc0000',
+                backgroundColor: 'rgba(204, 0, 0, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
@@ -1139,8 +1144,8 @@ function createDailyBookingChart() {
             datasets: [{
                 label: 'Booking Pattern',
                 data: [45, 38, 42, 48, 65, 89, 78],
-                borderColor: '#808080',
-                backgroundColor: 'rgba(128, 128, 128, 0.2)',
+                borderColor: '#ff0000',
+                backgroundColor: 'rgba(255, 0, 0, 0.2)',
                 borderWidth: 2
             }]
         },
@@ -1166,8 +1171,8 @@ function createMonthlyBookingChart() {
             datasets: [{
                 label: 'Bookings',
                 data: analyticsData.monthlyRevenue.map(d => d.bookings),
-                borderColor: '#6c757d',
-                backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
                 borderWidth: 2,
                 fill: true
             }]
@@ -1198,9 +1203,9 @@ function createPopularServicesChart() {
                 label: 'Bookings',
                 data: serviceBookings,
                 backgroundColor: [
-                    '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0',
-                    '#b0b0b0', '#a0a0a0', '#909090', '#808080',
-                    '#707070', '#606060'
+                    '#ffcccc', '#ffb3b3', '#ff9999', '#ff8080',
+                    '#ff6666', '#ff4d4d', '#ff3333', '#ff1a1a',
+                    '#ff0000', '#e60000'
                 ],
                 borderRadius: 6
             }]
@@ -1231,9 +1236,9 @@ function createServiceRevenueChart() {
             datasets: [{
                 data: serviceRevenue,
                 backgroundColor: [
-                    '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0',
-                    '#b0b0b0', '#a0a0a0', '#909090', '#808080',
-                    '#707070', '#606060'
+                    '#ffcccc', '#ffb3b3', '#ff9999', '#ff8080',
+                    '#ff6666', '#ff4d4d', '#ff3333', '#ff1a1a',
+                    '#ff0000', '#e60000'
                 ]
             }]
         },
@@ -1263,15 +1268,15 @@ function createSeasonalAnalysisChart() {
                 {
                     label: 'Bookings',
                     data: analyticsData.monthlyRevenue.map(d => d.bookings),
-                    borderColor: '#505050',
-                    backgroundColor: 'rgba(80, 80, 80, 0.1)',
+                    borderColor: '#cc0000',
+                    backgroundColor: 'rgba(204, 0, 0, 0.1)',
                     yAxisID: 'y'
                 },
                 {
                     label: 'Revenue (₱K)',
                     data: analyticsData.monthlyRevenue.map(d => d.revenue / 1000),
-                    borderColor: '#808080',
-                    backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                    borderColor: '#ff0000',
+                    backgroundColor: 'rgba(255, 0, 0, 0.1)',
                     yAxisID: 'y1'
                 }
             ]
@@ -1313,12 +1318,12 @@ function createSeasonalServicesChart() {
                 {
                     label: 'Peak Season',
                     data: [89, 78, 67, 45, 34, 23],
-                    backgroundColor: '#b4b4b4'
+                    backgroundColor: '#ff6666'
                 },
                 {
                     label: 'Low Season',
                     data: [34, 45, 23, 67, 56, 78],
-                    backgroundColor: '#808080'
+                    backgroundColor: '#ff0000'
                 }
             ]
         },
@@ -1346,11 +1351,11 @@ function createWeatherImpactChart() {
             datasets: [{
                 label: 'Sunny Days',
                 data: [{x: 28, y: 145}, {x: 25, y: 167}, {x: 30, y: 189}],
-                backgroundColor: '#b4b4b4'
+                backgroundColor: '#ff6666'
             }, {
                 label: 'Rainy Days',
                 data: [{x: 18, y: 67}, {x: 15, y: 54}, {x: 12, y: 62}],
-                backgroundColor: '#808080'
+                backgroundColor: '#ff0000'
             }]
         },
         options: {
@@ -1405,12 +1410,12 @@ async function createSeasonalPredictionBookingsChart() {
     const labels = months.map(m => m.month_name);
     const predictedBookings = months.map(m => m.predicted_bookings);
     
-    // Color code based on season classification (grayscale)
+    // Color code based on season classification (red monochrome)
     const backgroundColors = months.map(m => {
       const percentage = (m.predicted_bookings / seasonalData.average_monthly_bookings) * 100;
-      if (percentage >= 125) return 'rgba(40, 40, 40, 0.7)'; // Peak - Dark gray
-      if (percentage <= 75) return 'rgba(180, 180, 180, 0.7)'; // Low - Light gray
-      return 'rgba(128, 128, 128, 0.7)'; // Moderate - Medium gray
+      if (percentage >= 125) return 'rgba(153, 0, 0, 0.7)'; // Peak - Dark red
+      if (percentage <= 75) return 'rgba(255, 153, 153, 0.7)'; // Low - Light red
+      return 'rgba(255, 0, 0, 0.7)'; // Moderate - Medium red
     });
     
     if (chartInstances['seasonalPredictionBookingsChart']) {
@@ -1529,8 +1534,8 @@ async function createSeasonalPredictionRevenueChart() {
           {
             label: 'Predicted Revenue (₱K)',
             data: predictedRevenue,
-            borderColor: '#808080',
-            backgroundColor: 'rgba(128, 128, 128, 0.1)',
+            borderColor: '#ff0000',
+            backgroundColor: 'rgba(255, 0, 0, 0.1)',
             borderWidth: 3,
             fill: false,
             tension: 0.4
@@ -1775,8 +1780,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Snorkeling',
                     data: [28, 32, 35, 25, 20, 18, 22, 26, 30, 33, 36, 40],
-                    borderColor: 'rgba(240, 240, 240, 1)',
-                    backgroundColor: 'rgba(240, 240, 240, 1)',
+                    borderColor: 'rgba(255, 204, 204, 1)',
+                    backgroundColor: 'rgba(255, 204, 204, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1784,8 +1789,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Island Hopping',
                     data: [25, 28, 30, 22, 18, 16, 20, 24, 27, 29, 32, 35],
-                    borderColor: 'rgba(220, 220, 220, 1)',
-                    backgroundColor: 'rgba(220, 220, 220, 1)',
+                    borderColor: 'rgba(255, 179, 179, 1)',
+                    backgroundColor: 'rgba(255, 179, 179, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1793,8 +1798,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Inland Tour',
                     data: [18, 20, 22, 16, 13, 11, 14, 16, 18, 20, 22, 24],
-                    borderColor: 'rgba(200, 200, 200, 1)',
-                    backgroundColor: 'rgba(200, 200, 200, 1)',
+                    borderColor: 'rgba(255, 128, 128, 1)',
+                    backgroundColor: 'rgba(255, 128, 128, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1802,8 +1807,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Vehicle Rental',
                     data: [15, 16, 18, 12, 10, 8, 11, 13, 15, 16, 18, 20],
-                    borderColor: 'rgba(180, 180, 180, 1)',
-                    backgroundColor: 'rgba(180, 180, 180, 1)',
+                    borderColor: 'rgba(255, 77, 77, 1)',
+                    backgroundColor: 'rgba(255, 77, 77, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1811,8 +1816,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Hotels',
                     data: [32, 35, 38, 28, 24, 20, 25, 29, 33, 36, 40, 45],
-                    borderColor: 'rgba(160, 160, 160, 1)',
-                    backgroundColor: 'rgba(160, 160, 160, 1)',
+                    borderColor: 'rgba(255, 26, 26, 1)',
+                    backgroundColor: 'rgba(255, 26, 26, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1820,8 +1825,8 @@ function createServiceDistributionChart() {
                 {
                     label: 'Diving',
                     data: [10, 12, 14, 9, 7, 6, 8, 10, 12, 13, 15, 17],
-                    borderColor: 'rgba(140, 140, 140, 1)',
-                    backgroundColor: 'rgba(140, 140, 140, 1)',
+                    borderColor: 'rgba(204, 0, 0, 1)',
+                    backgroundColor: 'rgba(204, 0, 0, 1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: false
@@ -1879,8 +1884,8 @@ function createServiceDistributionChart2() {
                 {
                     label: 'Package 1',
                     data: [28, 32, 35, 25, 20, 18, 22, 26, 30, 33, 36, 40],
-                    borderColor: 'rgba(240, 240, 240, 1)',
-                    backgroundColor: 'rgba(240, 240, 240, 1)',
+                    borderColor: 'rgba(255, 204, 204, 1)',
+                    backgroundColor: 'rgba(255, 204, 204, 1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: false,
@@ -1890,8 +1895,8 @@ function createServiceDistributionChart2() {
                 {
                     label: 'Package 2',
                     data: [25, 28, 30, 22, 18, 16, 20, 24, 27, 29, 32, 35],
-                    borderColor: 'rgba(200, 200, 200, 1)',
-                    backgroundColor: 'rgba(200, 200, 200, 1)',
+                    borderColor: 'rgba(255, 128, 128, 1)',
+                    backgroundColor: 'rgba(255, 128, 128, 1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: false,
@@ -1901,8 +1906,8 @@ function createServiceDistributionChart2() {
                 {
                     label: 'Package 3',
                     data: [18, 20, 22, 16, 13, 11, 14, 16, 18, 20, 22, 24],
-                    borderColor: 'rgba(160, 160, 160, 1)',
-                    backgroundColor: 'rgba(160, 160, 160, 1)',
+                    borderColor: 'rgba(255, 26, 26, 1)',
+                    backgroundColor: 'rgba(255, 26, 26, 1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: false,
@@ -1912,8 +1917,8 @@ function createServiceDistributionChart2() {
                 {
                     label: 'Package 4',
                     data: [15, 16, 18, 12, 10, 8, 11, 13, 15, 16, 18, 20],
-                    borderColor: 'rgba(120, 120, 120, 1)',
-                    backgroundColor: 'rgba(120, 120, 120, 1)',
+                    borderColor: 'rgba(179, 0, 0, 1)',
+                    backgroundColor: 'rgba(179, 0, 0, 1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: false,
@@ -1990,32 +1995,32 @@ function createBookingTrendsChart() {
                 label: 'Bookings',
                 data: data.map(d => d.bookings),
                 backgroundColor: [
-                    'rgba(240, 240, 240, 0.8)',
-                    'rgba(220, 220, 220, 0.8)',
-                    'rgba(200, 200, 200, 0.8)',
-                    'rgba(180, 180, 180, 0.8)',
-                    'rgba(160, 160, 160, 0.8)',
-                    'rgba(140, 140, 140, 0.8)',
-                    'rgba(120, 120, 120, 0.8)',
-                    'rgba(240, 240, 240, 0.8)',
-                    'rgba(220, 220, 220, 0.8)',
-                    'rgba(200, 200, 200, 0.8)',
-                    'rgba(180, 180, 180, 0.8)',
-                    'rgba(160, 160, 160, 0.8)'
+                    'rgba(255, 204, 204, 0.8)',
+                    'rgba(255, 179, 179, 0.8)',
+                    'rgba(255, 153, 153, 0.8)',
+                    'rgba(255, 128, 128, 0.8)',
+                    'rgba(255, 102, 102, 0.8)',
+                    'rgba(255, 77, 77, 0.8)',
+                    'rgba(255, 51, 51, 0.8)',
+                    'rgba(255, 26, 26, 0.8)',
+                    'rgba(255, 0, 0, 0.8)',
+                    'rgba(230, 0, 0, 0.8)',
+                    'rgba(204, 0, 0, 0.8)',
+                    'rgba(179, 0, 0, 0.8)'
                 ],
                 borderColor: [
-                    'rgba(240, 240, 240, 1)',
-                    'rgba(220, 220, 220, 1)',
-                    'rgba(200, 200, 200, 1)',
-                    'rgba(180, 180, 180, 1)',
-                    'rgba(160, 160, 160, 1)',
-                    'rgba(140, 140, 140, 1)',
-                    'rgba(120, 120, 120, 1)',
-                    'rgba(240, 240, 240, 1)',
-                    'rgba(220, 220, 220, 1)',
-                    'rgba(200, 200, 200, 1)',
-                    'rgba(180, 180, 180, 1)',
-                    'rgba(160, 160, 160, 1)'
+                    'rgba(255, 204, 204, 1)',
+                    'rgba(255, 179, 179, 1)',
+                    'rgba(255, 153, 153, 1)',
+                    'rgba(255, 128, 128, 1)',
+                    'rgba(255, 102, 102, 1)',
+                    'rgba(255, 77, 77, 1)',
+                    'rgba(255, 51, 51, 1)',
+                    'rgba(255, 26, 26, 1)',
+                    'rgba(255, 0, 0, 1)',
+                    'rgba(230, 0, 0, 1)',
+                    'rgba(204, 0, 0, 1)',
+                    'rgba(179, 0, 0, 1)'
                 ],
                 borderWidth: 1,
                 borderRadius: 5
@@ -2066,11 +2071,11 @@ function createBookingStatusChart() {
             datasets: [{
                 data: [0, 0, 0, 0, 0],
                 backgroundColor: [
-                    '#f0f0f0',
-                    '#d0d0d0',
-                    '#b0b0b0',
-                    '#909090',
-                    '#707070'
+                    '#ffcccc',
+                    '#ff9999',
+                    '#ff6666',
+                    '#ff3333',
+                    '#cc0000'
                 ],
                 borderWidth: 2,
                 borderColor: '#fff'
@@ -2104,15 +2109,15 @@ function createBookingTypeChart() {
                 {
                     label: 'Package Only',
                     data: [],
-                    backgroundColor: 'rgba(180, 180, 180, 0.8)',
-                    borderColor: 'rgba(180, 180, 180, 1)',
+                    backgroundColor: 'rgba(255, 153, 153, 0.8)',
+                    borderColor: 'rgba(255, 153, 153, 1)',
                     borderWidth: 1
                 },
                 {
                     label: 'Tour Only',
                     data: [],
-                    backgroundColor: 'rgba(80, 80, 80, 0.8)',
-                    borderColor: 'rgba(80, 80, 80, 1)',
+                    backgroundColor: 'rgba(204, 0, 0, 0.8)',
+                    borderColor: 'rgba(204, 0, 0, 1)',
                     borderWidth: 1
                 }
             ]
@@ -2150,16 +2155,16 @@ function createPackageDistributionChart() {
             datasets: [{
                 data: [0, 0, 0, 0],
                 backgroundColor: [
-                    'rgba(240, 240, 240, 0.8)',
-                    'rgba(200, 200, 200, 0.8)',
-                    'rgba(160, 160, 160, 0.8)',
-                    'rgba(120, 120, 120, 0.8)'
+                    'rgba(255, 204, 204, 0.8)',
+                    'rgba(255, 128, 128, 0.8)',
+                    'rgba(255, 26, 26, 0.8)',
+                    'rgba(179, 0, 0, 0.8)'
                 ],
                 borderColor: [
-                    'rgba(240, 240, 240, 1)',
-                    'rgba(200, 200, 200, 1)',
-                    'rgba(160, 160, 160, 1)',
-                    'rgba(120, 120, 120, 1)'
+                    'rgba(255, 204, 204, 1)',
+                    'rgba(255, 128, 128, 1)',
+                    'rgba(255, 26, 26, 1)',
+                    'rgba(179, 0, 0, 1)'
                 ],
                 borderWidth: 2
             }]
@@ -2203,14 +2208,14 @@ function createTourDistributionChart() {
             datasets: [{
                 data: [0, 0, 0],
                 backgroundColor: [
-                    'rgba(200, 200, 200, 0.8)',
-                    'rgba(150, 150, 150, 0.8)',
-                    'rgba(100, 100, 100, 0.8)'
+                    'rgba(255, 128, 128, 0.8)',
+                    'rgba(255, 51, 51, 0.8)',
+                    'rgba(204, 0, 0, 0.8)'
                 ],
                 borderColor: [
-                    'rgba(200, 200, 200, 1)',
-                    'rgba(150, 150, 150, 1)',
-                    'rgba(100, 100, 100, 1)'
+                    'rgba(255, 128, 128, 1)',
+                    'rgba(255, 51, 51, 1)',
+                    'rgba(204, 0, 0, 1)'
                 ],
                 borderWidth: 2
             }]
@@ -2254,8 +2259,8 @@ function createTouristVolumeChart() {
             datasets: [{
                 label: 'Tourists',
                 data: [],
-                borderColor: '#808080',
-                backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                borderColor: '#ff0000',
+                backgroundColor: 'rgba(255, 0, 0, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
@@ -2293,8 +2298,8 @@ function createAvgBookingValueChart() {
             datasets: [{
                 label: 'Average Booking Value',
                 data: [],
-                borderColor: '#6c757d',
-                backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
@@ -2338,13 +2343,13 @@ function createPeakBookingDaysChart() {
                 label: 'Bookings',
                 data: [0, 0, 0, 0, 0, 0, 0],
                 backgroundColor: [
-                    'rgba(240, 240, 240, 0.8)',
-                    'rgba(220, 220, 220, 0.8)',
-                    'rgba(200, 200, 200, 0.8)',
-                    'rgba(180, 180, 180, 0.8)',
-                    'rgba(160, 160, 160, 0.8)',
-                    'rgba(140, 140, 140, 0.8)',
-                    'rgba(120, 120, 120, 0.8)'
+                    'rgba(255, 204, 204, 0.8)',
+                    'rgba(255, 179, 179, 0.8)',
+                    'rgba(255, 153, 153, 0.8)',
+                    'rgba(255, 128, 128, 0.8)',
+                    'rgba(255, 77, 77, 0.8)',
+                    'rgba(255, 26, 26, 0.8)',
+                    'rgba(204, 0, 0, 0.8)'
                 ],
                 borderWidth: 1
             }]
@@ -2381,8 +2386,8 @@ function createServicePerformanceChart() {
             datasets: [{
                 label: 'Bookings',
                 data: [],
-                backgroundColor: 'rgba(128, 128, 128, 0.8)',
-                borderColor: 'rgba(128, 128, 128, 1)',
+                backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                borderColor: 'rgba(255, 0, 0, 1)',
                 borderWidth: 1
             }]
         },
@@ -2513,6 +2518,8 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
                 chart.data.datasets[1].data = result.comparison.map(c => c.tour_only || 0);
                 chart.update();
                 console.log('✅ Booking Type chart updated:', labels.length, 'data points');
+                // Generate AI insights for this chart
+                generateChartInsights('bookingTypeChart');
             } else if (chart) {
                 // No data available
                 chart.data.labels = [];
@@ -2520,9 +2527,11 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
                 chart.data.datasets[1].data = [];
                 chart.update();
                 console.log('⚠️ No booking type data available');
+                generateChartInsights('bookingTypeChart');
             }
         } else {
             console.log('⚠️ Invalid booking type response:', result);
+            generateChartInsights('bookingTypeChart');
         }
     } catch (error) {
         console.error('Error loading booking type data:', error);
@@ -2534,6 +2543,7 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
             chart.data.datasets[1].data = [];
             chart.update();
         }
+        generateChartInsights('bookingTypeChart');
     }
 }
 
@@ -2596,6 +2606,7 @@ async function loadPackageDistributionData(month = 'all', year = 'all') {
                 ];
                 chart.update();
                 console.log('✅ Package Distribution chart updated');
+                generateChartInsights('packageDistributionChart');
             }
         } else {
             console.log('⚠️ Invalid package distribution response:', result);
@@ -2604,6 +2615,7 @@ async function loadPackageDistributionData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = [0, 0, 0, 0];
                 chart.update();
             }
+            generateChartInsights('packageDistributionChart');
         }
     } catch (error) {
         console.error('Error loading package distribution data:', error);
@@ -2613,6 +2625,7 @@ async function loadPackageDistributionData(month = 'all', year = 'all') {
             chart.data.datasets[0].data = [0, 0, 0, 0];
             chart.update();
         }
+        generateChartInsights('packageDistributionChart');
     }
 }
 
@@ -2674,6 +2687,7 @@ async function loadTourDistributionData(month = 'all', year = 'all') {
                 ];
                 chart.update();
                 console.log('✅ Tour Distribution chart updated');
+                generateChartInsights('tourDistributionChart');
             }
         } else {
             console.log('⚠️ Invalid tour distribution response:', result);
@@ -2682,6 +2696,7 @@ async function loadTourDistributionData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = [0, 0, 0];
                 chart.update();
             }
+            generateChartInsights('tourDistributionChart');
         }
     } catch (error) {
         console.error('Error loading tour distribution data:', error);
@@ -2691,6 +2706,7 @@ async function loadTourDistributionData(month = 'all', year = 'all') {
             chart.data.datasets[0].data = [0, 0, 0];
             chart.update();
         }
+        generateChartInsights('tourDistributionChart');
     }
 }
 
@@ -2725,6 +2741,7 @@ async function loadTouristVolumeData(month = 'all', year = 'all') {
         
         if (!response.ok) {
             console.warn(`⚠️ Tourist volume API returned ${response.status}`);
+            generateChartInsights('touristVolumeChart');
             return;
         }
         
@@ -2740,17 +2757,21 @@ async function loadTouristVolumeData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = result.volume.map(v => v.tourists || 0);
                 chart.update();
                 console.log('✅ Tourist Volume chart updated:', labels.length, 'data points');
+                generateChartInsights('touristVolumeChart');
             } else if (chart) {
                 chart.data.labels = [];
                 chart.data.datasets[0].data = [];
                 chart.update();
                 console.log('⚠️ No tourist volume data available');
+                generateChartInsights('touristVolumeChart');
             }
         } else {
             console.log('⚠️ Invalid tourist volume response:', result);
+            generateChartInsights('touristVolumeChart');
         }
     } catch (error) {
         console.error('Error loading tourist volume data:', error);
+        generateChartInsights('touristVolumeChart');
     }
 }
 
@@ -2785,6 +2806,7 @@ async function loadAvgBookingValueData(month = 'all', year = 'all') {
         
         if (!response.ok) {
             console.warn(`⚠️ Avg booking value API returned ${response.status}`);
+            generateChartInsights('avgBookingValueChart');
             return;
         }
         
@@ -2800,17 +2822,21 @@ async function loadAvgBookingValueData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = result.avgValues.map(v => v.average || 0);
                 chart.update();
                 console.log('✅ Average Booking Value chart updated:', labels.length, 'data points');
+                generateChartInsights('avgBookingValueChart');
             } else if (chart) {
                 chart.data.labels = [];
                 chart.data.datasets[0].data = [];
                 chart.update();
                 console.log('⚠️ No average booking value data available');
+                generateChartInsights('avgBookingValueChart');
             }
         } else {
             console.log('⚠️ Invalid average booking value response:', result);
+            generateChartInsights('avgBookingValueChart');
         }
     } catch (error) {
         console.error('Error loading average booking value data:', error);
+        generateChartInsights('avgBookingValueChart');
     }
 }
 
@@ -2820,6 +2846,7 @@ async function loadPeakBookingDaysData() {
         
         if (!response.ok) {
             console.warn(`⚠️ Peak booking days API returned ${response.status}`);
+            generateChartInsights('peakBookingDaysChart');
             return;
         }
         
@@ -2840,10 +2867,12 @@ async function loadPeakBookingDaysData() {
                 
                 chart.data.datasets[0].data = dayData;
                 chart.update();
+                generateChartInsights('peakBookingDaysChart');
             }
         }
     } catch (error) {
         console.error('Error loading peak booking days data:', error);
+        generateChartInsights('peakBookingDaysChart');
     }
 }
 
@@ -2853,6 +2882,7 @@ async function loadServicePerformanceData() {
         
         if (!response.ok) {
             console.warn(`⚠️ Service performance API returned ${response.status}`);
+            generateChartInsights('servicePerformanceChart');
             return;
         }
         
@@ -2895,16 +2925,411 @@ async function loadServicePerformanceData() {
                 chart.data.labels = labels;
                 chart.data.datasets[0].data = data;
                 chart.update();
+                generateChartInsights('servicePerformanceChart');
             }
         }
     } catch (error) {
         console.error('Error loading service performance data:', error);
+        generateChartInsights('servicePerformanceChart');
     }
 }
 
 // ============================================
 // ANALYTICS CHARTS AND VISUALIZATIONS
 // ============================================
+
+// ============================================
+// AI CHART INTERPRETATION (Google Gemini)
+// ============================================
+
+/**
+ * Extract chart data from Chart.js instance for AI interpretation
+ * @param {string} chartId - The ID of the chart to extract data from
+ * @returns {Object|null} Chart data object or null if chart not found
+ */
+function extractChartData(chartId) {
+  const chart = chartInstances[chartId];
+  if (!chart) {
+    console.warn(`Chart ${chartId} not found in chartInstances`);
+    return null;
+  }
+  
+  try {
+    return {
+      type: chart.config.type,
+      labels: chart.data.labels || [],
+      datasets: chart.data.datasets.map(ds => ({
+        label: ds.label || 'Unnamed Series',
+        data: ds.data || []
+      }))
+    };
+  } catch (error) {
+    console.error(`Error extracting data from chart ${chartId}:`, error);
+    return null;
+  }
+}
+
+// Cache last payload per chart to avoid redundant AI calls
+const lastInsightsPayload = {};
+
+// Map chart IDs to their corresponding insights container IDs
+const chartInsightsElementMap = {
+  bookingTypeChart: 'bookingTypeChartInsights',
+  packageDistributionChart: 'packageDistributionChartInsights',
+  tourDistributionChart: 'tourDistributionChartInsights',
+  touristVolumeChart: 'touristVolumeChartInsights',
+  avgBookingValueChart: 'avgBookingValueChartInsights',
+  peakBookingDaysChart: 'peakBookingDaysChartInsights',
+  servicePerformanceChart: 'servicePerformanceChartInsights'
+};
+
+/**
+ * Generate and display AI insights for a specific chart in its side-card.
+ * This uses the existing interpretChartWithAI helper and updates the
+ * corresponding insights container with loading / success / error states.
+ * @param {string} chartId
+ */
+async function generateChartInsights(chartId) {
+  const insightsElementId = chartInsightsElementMap[chartId];
+  if (!insightsElementId) {
+    return;
+  }
+
+  const insightsEl = document.getElementById(insightsElementId);
+  if (!insightsEl) {
+    return;
+  }
+
+  // If analytics API (and thus AI) is disabled, show a friendly message
+  if (window.USE_ANALYTICS_API === false) {
+    insightsEl.classList.remove('text-danger');
+    insightsEl.classList.add('text-muted');
+    insightsEl.innerHTML = '<i class="fas fa-info-circle me-1"></i>AI insights are disabled while using sample data.';
+    return;
+  }
+
+  const chartData = extractChartData(chartId);
+  if (!chartData) {
+    insightsEl.classList.remove('text-danger');
+    insightsEl.classList.add('text-muted');
+    insightsEl.innerHTML = '<i class="fas fa-info-circle me-1"></i>No chart data available to analyze.';
+    return;
+  }
+
+  const hasLabels = Array.isArray(chartData.labels) && chartData.labels.length > 0;
+  const hasAnyValues = Array.isArray(chartData.datasets) && chartData.datasets.some(ds =>
+    Array.isArray(ds.data) && ds.data.some(v => typeof v === 'number' && v !== 0)
+  );
+
+  if (!hasLabels || !hasAnyValues) {
+    insightsEl.classList.remove('text-danger');
+    insightsEl.classList.add('text-muted');
+    insightsEl.innerHTML = '<i class="fas fa-info-circle me-1"></i>No data available to analyze for this period.';
+    return;
+  }
+
+  // Avoid repeated calls if payload hasn't changed
+  const payloadKey = JSON.stringify({
+    type: chartData.type,
+    labels: chartData.labels,
+    datasets: chartData.datasets.map(ds => ds.data)
+  });
+
+  if (lastInsightsPayload[chartId] === payloadKey) {
+    // Data unchanged since last insights; skip re-calculation
+    return;
+  }
+
+  lastInsightsPayload[chartId] = payloadKey;
+
+  // Show loading state
+  insightsEl.classList.remove('text-danger');
+  insightsEl.classList.add('text-muted');
+  insightsEl.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Generating insights...
+  `;
+
+  const result = await interpretChartWithAI(chartId);
+
+  if (!result.success) {
+    insightsEl.classList.remove('text-muted');
+    insightsEl.classList.add('text-danger');
+    insightsEl.innerHTML = `
+      <i class="fas fa-exclamation-triangle me-1"></i>
+      Unable to load insights. ${result.error ? `(${result.error})` : 'Please try again later.'}
+    `;
+    return;
+  }
+
+  const paragraphs = (result.interpretation || '')
+    .split('\n')
+    .map(p => p.trim())
+    .filter(p => p.length > 0)
+    .map(p => `<p class="mb-2">${p}</p>`)
+    .join('');
+
+  insightsEl.classList.remove('text-danger', 'text-muted');
+  insightsEl.innerHTML = `
+    <div class="ai-insights-text">
+      ${paragraphs}
+      <p class="mt-2 small text-muted">
+        <i class="fas fa-magic me-1"></i>Powered by AI insights.
+      </p>
+    </div>
+  `;
+}
+
+/**
+ * Get AI interpretation of a single chart
+ * @param {string} chartId - The ID of the chart to interpret
+ * @param {string} chartTitle - Optional title for the chart
+ * @returns {Promise<Object>} Interpretation result with success status and interpretation text
+ */
+async function interpretChartWithAI(chartId, chartTitle = '') {
+  const chartData = extractChartData(chartId);
+  if (!chartData) {
+    return { 
+      success: false, 
+      error: 'Chart not found or unable to extract data',
+      chartId: chartId
+    };
+  }
+  
+  // Get chart title from DOM if not provided
+  if (!chartTitle) {
+    const canvas = document.getElementById(chartId);
+    if (canvas) {
+      const cardTitle = canvas.closest('.card')?.querySelector('.card-title');
+      if (cardTitle) {
+        chartTitle = cardTitle.textContent.trim();
+      }
+    }
+    if (!chartTitle) {
+      // Generate title from chartId
+      chartTitle = chartId.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase());
+    }
+  }
+  
+  try {
+    const response = await fetch(`${window.API_URL}/api/analytics/interpret-chart`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        chartType: chartData.type,
+        labels: chartData.labels,
+        datasets: chartData.datasets,
+        chartTitle: chartTitle
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || 'Failed to generate interpretation',
+        chartId: chartId,
+        chartTitle: chartTitle
+      };
+    }
+    
+    return {
+      success: true,
+      interpretation: data.interpretation,
+      chartId: chartId,
+      chartTitle: chartTitle
+    };
+  } catch (error) {
+    console.error(`Error interpreting chart ${chartId}:`, error);
+    return {
+      success: false,
+      error: error.message || 'Network error occurred',
+      chartId: chartId,
+      chartTitle: chartTitle
+    };
+  }
+}
+
+/**
+ * Interpret all visible charts on the page
+ * @returns {Promise<Object>} Object with chartId as keys and interpretation results as values
+ */
+async function interpretAllCharts() {
+  const interpretations = {};
+  
+  // List of all chart IDs that might be present
+  const chartIds = [
+    'seasonalPredictionBookingsChart',
+    'seasonalPredictionRevenueChart',
+    'bookingTypeChart',
+    'packageDistributionChart',
+    'tourDistributionChart',
+    'touristVolumeChart',
+    'avgBookingValueChart',
+    'peakBookingDaysChart',
+    'servicePerformanceChart'
+  ];
+  
+  // Process charts sequentially to avoid overwhelming the API
+  for (const chartId of chartIds) {
+    if (chartInstances[chartId]) {
+      console.log(`Analyzing chart: ${chartId}`);
+      interpretations[chartId] = await interpretChartWithAI(chartId);
+      // Small delay between requests to be respectful to API
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+  
+  return interpretations;
+}
+
+/**
+ * Display AI insights in a modal
+ * @param {Object} interpretations - Object with chartId as keys and interpretation results as values
+ */
+function displayAIInsights(interpretations) {
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('aiInsightsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'aiInsightsModal';
+    modal.className = 'modal fade';
+    modal.setAttribute('tabindex', '-1');
+    modal.setAttribute('aria-labelledby', 'aiInsightsModalLabel');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = `
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="aiInsightsModalLabel">
+              <i class="fas fa-robot me-2"></i>AI Chart Insights
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="aiInsightsContent">
+            <!-- Content will be inserted here -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  
+  const content = document.getElementById('aiInsightsContent');
+  const successfulInterpretations = Object.entries(interpretations).filter(([_, result]) => result.success);
+  const failedInterpretations = Object.entries(interpretations).filter(([_, result]) => !result.success);
+  
+  if (successfulInterpretations.length === 0) {
+    content.innerHTML = `
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>No insights available</strong>
+        <p class="mb-0 mt-2">Unable to generate insights for any charts. ${failedInterpretations.length > 0 ? 'Please check your connection and try again.' : ''}</p>
+      </div>
+    `;
+  } else {
+    let html = '';
+    
+    successfulInterpretations.forEach(([chartId, result]) => {
+      const chartTitle = result.chartTitle || chartId.replace(/([A-Z])/g, ' $1').trim();
+      html += `
+        <div class="mb-4 pb-3 border-bottom">
+          <h6 class="text-primary mb-2">
+            <i class="fas fa-chart-${result.chartId.includes('Revenue') ? 'line' : result.chartId.includes('Distribution') ? 'pie' : 'bar'} me-2"></i>
+            ${chartTitle}
+          </h6>
+          <div class="ai-insight-text">
+            ${result.interpretation.split('\n').map(para => para.trim() ? `<p>${para}</p>` : '').join('')}
+          </div>
+        </div>
+      `;
+    });
+    
+    if (failedInterpretations.length > 0) {
+      html += `
+        <div class="alert alert-info mt-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Note:</strong> ${failedInterpretations.length} chart(s) could not be analyzed.
+        </div>
+      `;
+    }
+    
+    content.innerHTML = html;
+  }
+  
+  // Show modal using Bootstrap
+  const bsModal = new bootstrap.Modal(modal);
+  bsModal.show();
+}
+
+/**
+ * Handle AI insights button click
+ */
+async function handleGetAIInsights() {
+  const button = document.getElementById('aiInterpretBtn');
+  if (!button) return;
+  
+  // Disable button and show loading state
+  const originalHTML = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing Charts...';
+  
+  try {
+    console.log('Starting AI chart interpretation...');
+    const interpretations = await interpretAllCharts();
+    console.log('AI interpretation complete:', interpretations);
+    
+    displayAIInsights(interpretations);
+  } catch (error) {
+    console.error('Error getting AI insights:', error);
+    
+    // Show error in modal
+    const errorInterpretations = { error: { success: false, error: error.message } };
+    displayAIInsights(errorInterpretations);
+  } finally {
+    // Re-enable button
+    button.disabled = false;
+    button.innerHTML = originalHTML;
+  }
+}
+
+/**
+ * Add AI Insights button to the analytics page header
+ */
+function addAIIntepretationButton() {
+  const header = document.querySelector('.analytics-main-content .d-flex.justify-content-between');
+  if (!header) {
+    console.warn('Analytics header not found');
+    return;
+  }
+  
+  const buttonContainer = header.querySelector('.d-flex.align-items-center.gap-3');
+  if (!buttonContainer) {
+    console.warn('Button container not found');
+    return;
+  }
+  
+  // Check if button already exists
+  if (document.getElementById('aiInterpretBtn')) {
+    return;
+  }
+  
+  const button = document.createElement('button');
+  button.id = 'aiInterpretBtn';
+  button.className = 'btn btn-primary';
+  button.innerHTML = '<i class="fas fa-robot me-2"></i>Get AI Insights';
+  button.onclick = handleGetAIInsights;
+  button.title = 'Get AI-powered insights for all charts';
+  
+  buttonContainer.appendChild(button);
+}
 
 // Export detailed report
 function exportDetailedReport() {

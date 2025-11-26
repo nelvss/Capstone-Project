@@ -1,5 +1,14 @@
 const supabase = require('../config/supabase');
 
+// Conditionally require Google Generative AI (only if package is installed)
+let GoogleGenerativeAI;
+try {
+  GoogleGenerativeAI = require('@google/generative-ai').GoogleGenerativeAI;
+} catch (error) {
+  console.warn('⚠️ @google/generative-ai package not installed. AI chart interpretation will be unavailable.');
+  GoogleGenerativeAI = null;
+}
+
 const getRevenue = async (req, res) => {
   try {
     const { start_date, end_date, group_by = 'month' } = req.query;
@@ -1664,6 +1673,9 @@ const getSeasonalPrediction = async (req, res) => {
     const { year } = req.query;
     const targetYear = year ? parseInt(year) : new Date().getFullYear();
     
+    // Growth threshold for trend classification (percentage)
+    const GROWTH_THRESHOLD = 10; // Percentage threshold for trend classification
+    
     console.log('📊 Generating seasonal prediction:', { targetYear });
     
     // Fetch ALL available historical booking data up to the target year
@@ -1777,21 +1789,40 @@ const getSeasonalPrediction = async (req, res) => {
       const avgBookings = monthData.total_bookings / yearsCount;
       const avgTourists = monthData.total_tourists / yearsCount;
       
-      // Calculate growth trend
+      // Calculate growth trend using Year-over-Year Average Growth
       const years = Object.keys(monthData.years_data).sort();
       let trend = 'stable';
       let growthRate = 0;
       
       if (years.length >= 2) {
-        const oldestYear = years[0];
-        const newestYear = years[years.length - 1];
-        const oldBookings = monthData.years_data[oldestYear].bookings;
-        const newBookings = monthData.years_data[newestYear].bookings;
+        let totalGrowthRate = 0;
+        let yearOverYearChanges = 0;
         
-        if (oldBookings > 0) {
-          growthRate = ((newBookings - oldBookings) / oldBookings) * 100;
-          if (growthRate > 10) trend = 'increasing';
-          else if (growthRate < -10) trend = 'decreasing';
+        // Loop through all consecutive year pairs to calculate year-over-year growth
+        for (let i = 1; i < years.length; i++) {
+          const prevYear = years[i - 1];
+          const currYear = years[i];
+          const prevBookings = monthData.years_data[prevYear].bookings;
+          const currBookings = monthData.years_data[currYear].bookings;
+          
+          if (prevBookings > 0) {
+            // Calculate year-over-year growth percentage
+            const yoyGrowth = ((currBookings - prevBookings) / prevBookings) * 100;
+            totalGrowthRate += yoyGrowth;
+            yearOverYearChanges++;
+          }
+        }
+        
+        // Calculate average growth rate across all year pairs
+        if (yearOverYearChanges > 0) {
+          growthRate = totalGrowthRate / yearOverYearChanges;
+          
+          // Classify trend based on average growth rate
+          if (growthRate > GROWTH_THRESHOLD) {
+            trend = 'increasing';
+          } else if (growthRate < -GROWTH_THRESHOLD) {
+            trend = 'decreasing';
+          }
         }
       }
       
@@ -1893,6 +1924,141 @@ const getSeasonalPrediction = async (req, res) => {
   }
 };
 
+// Interpret chart data using Google Gemini AI
+const interpretChart = async (req, res) => {
+  // Extract data outside try block so it's available in catch
+  const { chartType, labels, datasets, chartTitle } = req.body;
+  
+  try {
+    // Check if Google Generative AI package is installed
+    if (!GoogleGenerativeAI) {
+      return res.status(503).json({
+        success: false,
+        error: 'AI service package not installed. Please run: npm install @google/generative-ai'
+      });
+    }
+
+    // Validate input
+    if (!chartType || !labels || !datasets || !Array.isArray(labels) || !Array.isArray(datasets)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid chart data. Required: chartType, labels (array), datasets (array)'
+      });
+    }
+
+    // Check if Gemini API key is configured
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    if (!geminiApiKey) {
+      console.error('❌ GEMINI_API_KEY not configured in environment variables');
+      return res.status(500).json({
+        success: false,
+        error: 'AI service not configured. Please contact administrator.'
+      });
+    }
+
+    // Initialize Gemini AI
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // Use gemini-1.5-pro which is available in v1beta
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+
+    // Build prompt for chart interpretation
+    const datasetsInfo = datasets.map((ds, idx) => {
+      return `Series ${idx + 1}: ${ds.label || 'Unnamed Series'}
+  Data: ${JSON.stringify(ds.data)}`;
+    }).join('\n\n');
+
+    const prompt = `You are a data analyst expert at interpreting business analytics charts. Analyze the following chart data and provide actionable insights.
+
+Chart Type: ${chartType}
+Chart Title: ${chartTitle || 'Analytics Chart'}
+Time Periods/Labels: ${JSON.stringify(labels)}
+
+Data Series:
+${datasetsInfo}
+
+Please provide a comprehensive analysis including:
+1. Key trends and patterns observed
+2. Notable peaks, valleys, or significant changes
+3. Comparisons between data series (if multiple)
+4. Business insights and recommendations
+5. Any anomalies or concerns that should be addressed
+
+Format your response in clear, actionable paragraphs. Be specific with numbers and percentages where relevant. Keep the response concise but informative (approximately 200-300 words).`;
+
+    // Generate interpretation
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const interpretation = response.text();
+
+    console.log('✅ Chart interpretation generated successfully');
+
+    return res.json({
+      success: true,
+      interpretation: interpretation
+    });
+
+  } catch (error) {
+    console.error('❌ Error interpreting chart with Gemini AI:', error);
+    
+    // Provide a fallback interpretation when AI service fails
+    const fallbackInterpretation = generateFallbackInterpretation(chartType, labels, datasets, chartTitle);
+    
+    console.log('⚠️ Using fallback interpretation due to AI service error');
+    
+    return res.json({
+      success: true,
+      interpretation: fallbackInterpretation,
+      note: 'Generated using basic analysis due to AI service unavailability.'
+    });
+  }
+};
+
+// Generate a basic fallback interpretation when AI service is unavailable
+const generateFallbackInterpretation = (chartType, labels, datasets, chartTitle) => {
+  try {
+    const dataPoints = datasets[0]?.data || [];
+    const total = dataPoints.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+    const average = dataPoints.length > 0 ? (total / dataPoints.length).toFixed(2) : 0;
+    const max = Math.max(...dataPoints.map(v => parseFloat(v) || 0));
+    const min = Math.min(...dataPoints.map(v => parseFloat(v) || 0));
+    
+    const maxIndex = dataPoints.findIndex(v => parseFloat(v) === max);
+    const minIndex = dataPoints.findIndex(v => parseFloat(v) === min);
+    
+    let interpretation = `Analysis of ${chartTitle || 'Chart Data'}:\n\n`;
+    interpretation += `The data shows a range from ${min.toFixed(2)} to ${max.toFixed(2)}, `;
+    interpretation += `with an average value of ${average}. `;
+    
+    if (maxIndex >= 0 && labels[maxIndex]) {
+      interpretation += `The highest point occurs at ${labels[maxIndex]} with a value of ${max.toFixed(2)}. `;
+    }
+    
+    if (minIndex >= 0 && labels[minIndex]) {
+      interpretation += `The lowest point is at ${labels[minIndex]} with a value of ${min.toFixed(2)}. `;
+    }
+    
+    // Calculate trend
+    if (dataPoints.length > 1) {
+      const firstHalf = dataPoints.slice(0, Math.floor(dataPoints.length / 2));
+      const secondHalf = dataPoints.slice(Math.floor(dataPoints.length / 2));
+      const firstAvg = firstHalf.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) / firstHalf.length;
+      const secondAvg = secondHalf.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) / secondHalf.length;
+      
+      if (secondAvg > firstAvg * 1.1) {
+        interpretation += `\n\nThe data shows an overall upward trend, with the latter period averaging ${((secondAvg - firstAvg) / firstAvg * 100).toFixed(1)}% higher than the earlier period.`;
+      } else if (secondAvg < firstAvg * 0.9) {
+        interpretation += `\n\nThe data shows a downward trend, with the latter period averaging ${((firstAvg - secondAvg) / firstAvg * 100).toFixed(1)}% lower than the earlier period.`;
+      } else {
+        interpretation += `\n\nThe data remains relatively stable across the time period.`;
+      }
+    }
+    
+    return interpretation;
+  } catch (err) {
+    return 'Unable to generate detailed analysis at this time. Please review the chart data manually.';
+  }
+};
+
 module.exports = {
   getRevenue,
   getBookingsCount,
@@ -1910,6 +2076,7 @@ module.exports = {
   getPeakBookingDays,
   getVanDestinations,
   getBookingDemandTimeseries,
-  getSeasonalPrediction
+  getSeasonalPrediction,
+  interpretChart
 };
 
