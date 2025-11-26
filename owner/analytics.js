@@ -585,6 +585,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     populateAnalyticsUI();
     initializeCharts();
     
+    // Add AI Insights button after charts are initialized
+    setTimeout(() => {
+      addAIIntepretationButton();
+    }, 500); // Small delay to ensure DOM is fully ready
+    
     console.log('✅ Analytics Dashboard fully initialized');
 });
 
@@ -2905,6 +2910,288 @@ async function loadServicePerformanceData() {
 // ============================================
 // ANALYTICS CHARTS AND VISUALIZATIONS
 // ============================================
+
+// ============================================
+// AI CHART INTERPRETATION (Google Gemini)
+// ============================================
+
+/**
+ * Extract chart data from Chart.js instance for AI interpretation
+ * @param {string} chartId - The ID of the chart to extract data from
+ * @returns {Object|null} Chart data object or null if chart not found
+ */
+function extractChartData(chartId) {
+  const chart = chartInstances[chartId];
+  if (!chart) {
+    console.warn(`Chart ${chartId} not found in chartInstances`);
+    return null;
+  }
+  
+  try {
+    return {
+      type: chart.config.type,
+      labels: chart.data.labels || [],
+      datasets: chart.data.datasets.map(ds => ({
+        label: ds.label || 'Unnamed Series',
+        data: ds.data || []
+      }))
+    };
+  } catch (error) {
+    console.error(`Error extracting data from chart ${chartId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get AI interpretation of a single chart
+ * @param {string} chartId - The ID of the chart to interpret
+ * @param {string} chartTitle - Optional title for the chart
+ * @returns {Promise<Object>} Interpretation result with success status and interpretation text
+ */
+async function interpretChartWithAI(chartId, chartTitle = '') {
+  const chartData = extractChartData(chartId);
+  if (!chartData) {
+    return { 
+      success: false, 
+      error: 'Chart not found or unable to extract data',
+      chartId: chartId
+    };
+  }
+  
+  // Get chart title from DOM if not provided
+  if (!chartTitle) {
+    const canvas = document.getElementById(chartId);
+    if (canvas) {
+      const cardTitle = canvas.closest('.card')?.querySelector('.card-title');
+      if (cardTitle) {
+        chartTitle = cardTitle.textContent.trim();
+      }
+    }
+    if (!chartTitle) {
+      // Generate title from chartId
+      chartTitle = chartId.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase());
+    }
+  }
+  
+  try {
+    const response = await fetch(`${window.API_URL}/api/analytics/interpret-chart`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        chartType: chartData.type,
+        labels: chartData.labels,
+        datasets: chartData.datasets,
+        chartTitle: chartTitle
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || 'Failed to generate interpretation',
+        chartId: chartId,
+        chartTitle: chartTitle
+      };
+    }
+    
+    return {
+      success: true,
+      interpretation: data.interpretation,
+      chartId: chartId,
+      chartTitle: chartTitle
+    };
+  } catch (error) {
+    console.error(`Error interpreting chart ${chartId}:`, error);
+    return {
+      success: false,
+      error: error.message || 'Network error occurred',
+      chartId: chartId,
+      chartTitle: chartTitle
+    };
+  }
+}
+
+/**
+ * Interpret all visible charts on the page
+ * @returns {Promise<Object>} Object with chartId as keys and interpretation results as values
+ */
+async function interpretAllCharts() {
+  const interpretations = {};
+  
+  // List of all chart IDs that might be present
+  const chartIds = [
+    'seasonalPredictionBookingsChart',
+    'seasonalPredictionRevenueChart',
+    'bookingTypeChart',
+    'packageDistributionChart',
+    'tourDistributionChart',
+    'touristVolumeChart',
+    'avgBookingValueChart',
+    'peakBookingDaysChart',
+    'servicePerformanceChart'
+  ];
+  
+  // Process charts sequentially to avoid overwhelming the API
+  for (const chartId of chartIds) {
+    if (chartInstances[chartId]) {
+      console.log(`Analyzing chart: ${chartId}`);
+      interpretations[chartId] = await interpretChartWithAI(chartId);
+      // Small delay between requests to be respectful to API
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+  
+  return interpretations;
+}
+
+/**
+ * Display AI insights in a modal
+ * @param {Object} interpretations - Object with chartId as keys and interpretation results as values
+ */
+function displayAIInsights(interpretations) {
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('aiInsightsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'aiInsightsModal';
+    modal.className = 'modal fade';
+    modal.setAttribute('tabindex', '-1');
+    modal.setAttribute('aria-labelledby', 'aiInsightsModalLabel');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = `
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="aiInsightsModalLabel">
+              <i class="fas fa-robot me-2"></i>AI Chart Insights
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="aiInsightsContent">
+            <!-- Content will be inserted here -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  
+  const content = document.getElementById('aiInsightsContent');
+  const successfulInterpretations = Object.entries(interpretations).filter(([_, result]) => result.success);
+  const failedInterpretations = Object.entries(interpretations).filter(([_, result]) => !result.success);
+  
+  if (successfulInterpretations.length === 0) {
+    content.innerHTML = `
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>No insights available</strong>
+        <p class="mb-0 mt-2">Unable to generate insights for any charts. ${failedInterpretations.length > 0 ? 'Please check your connection and try again.' : ''}</p>
+      </div>
+    `;
+  } else {
+    let html = '';
+    
+    successfulInterpretations.forEach(([chartId, result]) => {
+      const chartTitle = result.chartTitle || chartId.replace(/([A-Z])/g, ' $1').trim();
+      html += `
+        <div class="mb-4 pb-3 border-bottom">
+          <h6 class="text-primary mb-2">
+            <i class="fas fa-chart-${result.chartId.includes('Revenue') ? 'line' : result.chartId.includes('Distribution') ? 'pie' : 'bar'} me-2"></i>
+            ${chartTitle}
+          </h6>
+          <div class="ai-insight-text">
+            ${result.interpretation.split('\n').map(para => para.trim() ? `<p>${para}</p>` : '').join('')}
+          </div>
+        </div>
+      `;
+    });
+    
+    if (failedInterpretations.length > 0) {
+      html += `
+        <div class="alert alert-info mt-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Note:</strong> ${failedInterpretations.length} chart(s) could not be analyzed.
+        </div>
+      `;
+    }
+    
+    content.innerHTML = html;
+  }
+  
+  // Show modal using Bootstrap
+  const bsModal = new bootstrap.Modal(modal);
+  bsModal.show();
+}
+
+/**
+ * Handle AI insights button click
+ */
+async function handleGetAIInsights() {
+  const button = document.getElementById('aiInterpretBtn');
+  if (!button) return;
+  
+  // Disable button and show loading state
+  const originalHTML = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing Charts...';
+  
+  try {
+    console.log('Starting AI chart interpretation...');
+    const interpretations = await interpretAllCharts();
+    console.log('AI interpretation complete:', interpretations);
+    
+    displayAIInsights(interpretations);
+  } catch (error) {
+    console.error('Error getting AI insights:', error);
+    
+    // Show error in modal
+    const errorInterpretations = { error: { success: false, error: error.message } };
+    displayAIInsights(errorInterpretations);
+  } finally {
+    // Re-enable button
+    button.disabled = false;
+    button.innerHTML = originalHTML;
+  }
+}
+
+/**
+ * Add AI Insights button to the analytics page header
+ */
+function addAIIntepretationButton() {
+  const header = document.querySelector('.analytics-main-content .d-flex.justify-content-between');
+  if (!header) {
+    console.warn('Analytics header not found');
+    return;
+  }
+  
+  const buttonContainer = header.querySelector('.d-flex.align-items-center.gap-3');
+  if (!buttonContainer) {
+    console.warn('Button container not found');
+    return;
+  }
+  
+  // Check if button already exists
+  if (document.getElementById('aiInterpretBtn')) {
+    return;
+  }
+  
+  const button = document.createElement('button');
+  button.id = 'aiInterpretBtn';
+  button.className = 'btn btn-primary';
+  button.innerHTML = '<i class="fas fa-robot me-2"></i>Get AI Insights';
+  button.onclick = handleGetAIInsights;
+  button.title = 'Get AI-powered insights for all charts';
+  
+  buttonContainer.appendChild(button);
+}
 
 // Export detailed report
 function exportDetailedReport() {

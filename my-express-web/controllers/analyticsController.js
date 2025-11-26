@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const getRevenue = async (req, res) => {
   try {
@@ -1893,23 +1894,84 @@ const getSeasonalPrediction = async (req, res) => {
   }
 };
 
-module.exports = {
-  getRevenue,
-  getBookingsCount,
-  getPopularServices,
-  getBookingStatusDistribution,
-  getBookingTypeComparison,
-  getPackageDistribution,
-  getTourDistribution,
-  getRevenueByStatus,
-  getServicePerformance,
-  getTouristVolume,
-  getHotelPerformance,
-  getAvgBookingValue,
-  getCancellationRate,
-  getPeakBookingDays,
-  getVanDestinations,
-  getBookingDemandTimeseries,
-  getSeasonalPrediction
+// Interpret chart data using Google Gemini AI
+const interpretChart = async (req, res) => {
+  try {
+    const { chartType, labels, datasets, chartTitle } = req.body;
+
+    // Validate input
+    if (!chartType || !labels || !datasets || !Array.isArray(labels) || !Array.isArray(datasets)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid chart data. Required: chartType, labels (array), datasets (array)'
+      });
+    }
+
+    // Check if Gemini API key is configured
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    if (!geminiApiKey) {
+      console.error('❌ GEMINI_API_KEY not configured in environment variables');
+      return res.status(500).json({
+        success: false,
+        error: 'AI service not configured. Please contact administrator.'
+      });
+    }
+
+    // Initialize Gemini AI
+    const genAI = new GoogleGenerativeAI(geminiApiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+    // Build prompt for chart interpretation
+    const datasetsInfo = datasets.map((ds, idx) => {
+      return `Series ${idx + 1}: ${ds.label || 'Unnamed Series'}
+  Data: ${JSON.stringify(ds.data)}`;
+    }).join('\n\n');
+
+    const prompt = `You are a data analyst expert at interpreting business analytics charts. Analyze the following chart data and provide actionable insights.
+
+Chart Type: ${chartType}
+Chart Title: ${chartTitle || 'Analytics Chart'}
+Time Periods/Labels: ${JSON.stringify(labels)}
+
+Data Series:
+${datasetsInfo}
+
+Please provide a comprehensive analysis including:
+1. Key trends and patterns observed
+2. Notable peaks, valleys, or significant changes
+3. Comparisons between data series (if multiple)
+4. Business insights and recommendations
+5. Any anomalies or concerns that should be addressed
+
+Format your response in clear, actionable paragraphs. Be specific with numbers and percentages where relevant. Keep the response concise but informative (approximately 200-300 words).`;
+
+    // Generate interpretation
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const interpretation = response.text();
+
+    console.log('✅ Chart interpretation generated successfully');
+
+    return res.json({
+      success: true,
+      interpretation: interpretation
+    });
+
+  } catch (error) {
+    console.error('❌ Error interpreting chart with Gemini AI:', error);
+    
+    // Handle specific Gemini API errors
+    if (error.message && error.message.includes('API key')) {
+      return res.status(500).json({
+        success: false,
+        error: 'Invalid AI service configuration. Please contact administrator.'
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to generate chart interpretation. Please try again later.'
+    });
+  }
 };
 
