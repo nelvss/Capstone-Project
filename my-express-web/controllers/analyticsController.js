@@ -1991,3 +1991,24 @@ Format your response in clear, actionable paragraphs. Be specific with numbers a
   }
 };
 
+module.exports = {
+  getRevenue,
+  getBookingsCount,
+  getPopularServices,
+  getBookingStatusDistribution,
+  getBookingTypeComparison,
+  getPackageDistribution,
+  getTourDistribution,
+  getRevenueByStatus,
+  getServicePerformance,
+  getTouristVolume,
+  getHotelPerformance,
+  getAvgBookingValue,
+  getCancellationRate,
+  getPeakBookingDays,
+  getVanDestinations,
+  getBookingDemandTimeseries,
+  getSeasonalPrediction,
+  interpretChart
+};
+
