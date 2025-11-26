@@ -1933,9 +1933,9 @@ const interpretChart = async (req, res) => {
       });
     }
 
-    // Initialize Gemini AI (use current Gemini 1.5 Flash model)
+    // Initialize Gemini AI (use Gemini Pro model which is stable and widely available)
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
     // Build prompt for chart interpretation
     const datasetsInfo = datasets.map((ds, idx) => {
