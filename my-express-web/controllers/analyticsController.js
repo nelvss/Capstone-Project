@@ -1935,7 +1935,7 @@ const interpretChart = async (req, res) => {
 
     // Initialize Gemini AI (use current Gemini 1.5 Flash model)
     const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
     // Build prompt for chart interpretation
     const datasetsInfo = datasets.map((ds, idx) => {
