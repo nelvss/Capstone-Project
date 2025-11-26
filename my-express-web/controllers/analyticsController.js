@@ -1873,7 +1873,10 @@ const getSeasonalPrediction = async (req, res) => {
         predicted_revenue: Math.round(predictedRevenue),
         trend: trend,
         growth_rate: parseFloat(growthRate.toFixed(2)),
-        confidence: yearsCount >= 2 ? 'high' : 'medium'
+        confidence: yearsCount >= 2 ? 'high' : 'medium',
+        years_count: yearsCount,
+        total_historical_bookings: monthData.total_bookings,
+        years_with_data: Object.keys(monthData.years_data).map(y => parseInt(y)).sort()
       });
     }
     
