@@ -340,6 +340,14 @@ const getBookingTypeComparison = async (req, res) => {
       package_only: grouped[key].package_only,
       tour_only: grouped[key].tour_only
     }));
+
+    if (process.env.ANALYTICS_DEBUG === 'true') {
+      console.log('🔍 Booking type comparison summary:', {
+        periods: comparison.length,
+        totalPackageOnly: comparison.reduce((sum, c) => sum + (c.package_only || 0), 0),
+        totalTourOnly: comparison.reduce((sum, c) => sum + (c.tour_only || 0), 0)
+      });
+    }
     
     console.log('✅ Booking type comparison fetched successfully');
     

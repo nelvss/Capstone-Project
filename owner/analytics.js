@@ -76,6 +76,9 @@ const grayscalePalette = {
   }
 };
 
+// Optional debug flag for analytics behaviour
+window.ANALYTICS_DEBUG = window.ANALYTICS_DEBUG || false;
+
 // API Configuration (shared across pages)
 window.API_URL = window.API_URL || 'https://api.otgpuertogaleratravel.com';
 // Toggle to use API or fallback sample data (default: true to use API)
@@ -173,6 +176,66 @@ function updateConnectionStatus(isConnected) {
 let refreshDebounceTimer = null;
 let isRefreshing = false;
 let isLoadingChartData = false;
+
+// Shared helper: resolve date range based on year/month filters
+// Returns { startDate, endDate } strings in YYYY-MM-DD format, or null for no restriction.
+function getDateRangeForFilters(year = 'all', month = 'all') {
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const hasYear = year && year !== 'all';
+    const hasMonth = month && month !== 'all';
+
+    // No filters at all → no date restriction
+    if (!hasYear && !hasMonth) {
+        return null;
+    }
+
+    // Helper to format YYYY-MM from year + month short name
+    const toMonthParts = (y, mShort) => {
+        const monthIndex = MONTHS.indexOf(mShort);
+        if (monthIndex === -1) {
+            return null;
+        }
+        const monthNumber = monthIndex + 1;
+        const monthStr = monthNumber.toString().padStart(2, '0');
+        return { y: Number(y), monthNumber, monthStr };
+    };
+
+    // Specific year, specific month
+    if (hasYear && hasMonth) {
+        const parts = toMonthParts(year, month);
+        if (!parts) return null;
+        const { y, monthNumber, monthStr } = parts;
+        const lastDay = new Date(y, monthNumber, 0).getDate(); // day 0 of next month = last day
+        return {
+            startDate: `${y}-${monthStr}-01`,
+            endDate: `${y}-${monthStr}-${String(lastDay).padStart(2, '0')}`
+        };
+    }
+
+    // Specific year, all months
+    if (hasYear && !hasMonth) {
+        const y = Number(year);
+        return {
+            startDate: `${y}-01-01`,
+            endDate: `${y}-12-31`
+        };
+    }
+
+    // All years, specific month – span the configured analytics range
+    if (!hasYear && hasMonth) {
+        const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
+        const parts = toMonthParts(range.startYear, month);
+        if (!parts) return null;
+        const { monthNumber, monthStr } = parts;
+        const lastDay = new Date(range.endYear, monthNumber, 0).getDate();
+        return {
+            startDate: `${range.startYear}-${monthStr}-01`,
+            endDate: `${range.endYear}-${monthStr}-${String(lastDay).padStart(2, '0')}`
+        };
+    }
+
+    return null;
+}
 
 async function refreshAnalyticsData() {
     // Clear any pending refresh
@@ -2482,21 +2545,22 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
     try {
         // Build URL with filters
         let url = `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month`;
-        
+
         // Add date filters based on year and month selection
-        if (year !== 'all' && month !== 'all') {
-            // Specific year and month - get data for that specific month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            url += `&start_date=${year}-${monthStr}-01&end_date=${year}-${monthStr}-31`;
-        } else if (year !== 'all') {
-            // Specific year, all months - get data for entire year
-            url += `&start_date=${year}-01-01&end_date=${year}-12-31`;
+        const range = getDateRangeForFilters(year, month);
+        if (range) {
+            url += `&start_date=${range.startDate}&end_date=${range.endDate}`;
         }
-        // If year === 'all', we intentionally do NOT add any date filters here.
-        // For the "All Years + specific Month" case we will filter the results
+
+        // If year === 'all' and month !== 'all', we intentionally do NOT add any
+        // additional server-side filters beyond the shared helper above.
+        // For the \"All Years + specific Month\" case we will filter the results
         // client‑side based on the month part of the period string (YYYY‑MM).
         
+        if (window.ANALYTICS_DEBUG) {
+            console.log('[BookingType] Fetch URL:', url);
+        }
+
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2538,6 +2602,44 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
                 chart.data.datasets[1].data = comparison.map(c => c.tour_only || 0);
                 chart.update();
                 console.log('✅ Booking Type chart updated:', labels.length, 'data points');
+
+                // Optional dev-time consistency check:
+                // compare the value for this (year, month) pair with the same
+                // period from the \"all months\" view for the same year.
+                if (window.ANALYTICS_DEBUG && year !== 'all' && month !== 'all') {
+                    try {
+                        const yearRange = getDateRangeForFilters(year, 'all');
+                        if (yearRange) {
+                            const yearlyUrl =
+                                `${window.API_URL}/api/analytics/booking-type-comparison?group_by=month` +
+                                `&start_date=${yearRange.startDate}&end_date=${yearRange.endDate}`;
+                            fetch(yearlyUrl)
+                                .then(r => r.ok ? r.json() : null)
+                                .then(data => {
+                                    if (!data || !data.success || !Array.isArray(data.comparison)) return;
+                                    const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
+                                    const monthStr = monthIndex.toString().padStart(2, '0');
+                                    const periodKey = `${year}-${monthStr}`;
+                                    const yearlyEntry = data.comparison.find(c => c.period === periodKey);
+                                    const singleEntry = comparison.find(c => c.period === periodKey);
+                                    if (yearlyEntry && singleEntry) {
+                                        const diffPackage = (yearlyEntry.package_only || 0) - (singleEntry.package_only || 0);
+                                        const diffTour = (yearlyEntry.tour_only || 0) - (singleEntry.tour_only || 0);
+                                        if (diffPackage !== 0 || diffTour !== 0) {
+                                            console.warn('[BookingType][DEBUG] Mismatch between yearly and single-month data for',
+                                                periodKey,
+                                                { yearlyEntry, singleEntry });
+                                        }
+                                    }
+                                })
+                                .catch(err => {
+                                    console.warn('[BookingType][DEBUG] Failed to compare yearly vs monthly data:', err);
+                                });
+                        }
+                    } catch (e) {
+                        console.warn('[BookingType][DEBUG] Error during consistency check:', e);
+                    }
+                }
                 // Generate AI insights for this chart
                 generateChartInsights('bookingTypeChart');
             } else if (chart) {
@@ -2578,28 +2680,19 @@ async function loadPackageDistributionData(month = 'all', year = 'all') {
         // Build URL with filters
         let url = `${window.API_URL}/api/analytics/package-distribution?`;
         const params = [];
-        
-        // Add date filters based on year and month selection
-        if (year !== 'all' && month !== 'all') {
-            // Specific year and month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            params.push(`start_date=${year}-${monthStr}-01`);
-            params.push(`end_date=${year}-${monthStr}-31`);
-        } else if (year !== 'all') {
-            // Specific year, all months
-            params.push(`start_date=${year}-01-01`);
-            params.push(`end_date=${year}-12-31`);
-        } else if (month !== 'all') {
-            // All years, specific month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
-            params.push(`start_date=${range.startYear}-${monthStr}-01`);
-            params.push(`end_date=${range.endYear}-${monthStr}-31`);
+
+        const range = getDateRangeForFilters(year, month);
+        if (range) {
+            params.push(`start_date=${range.startDate}`);
+            params.push(`end_date=${range.endDate}`);
         }
-        
+
         url += params.join('&');
+
+        if (window.ANALYTICS_DEBUG) {
+            console.log('[PackageDistribution] Fetch URL:', url);
+        }
+
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2661,28 +2754,19 @@ async function loadTourDistributionData(month = 'all', year = 'all') {
         // Build URL with filters
         let url = `${window.API_URL}/api/analytics/tour-distribution?`;
         const params = [];
-        
-        // Add date filters based on year and month selection
-        if (year !== 'all' && month !== 'all') {
-            // Specific year and month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            params.push(`start_date=${year}-${monthStr}-01`);
-            params.push(`end_date=${year}-${monthStr}-31`);
-        } else if (year !== 'all') {
-            // Specific year, all months
-            params.push(`start_date=${year}-01-01`);
-            params.push(`end_date=${year}-12-31`);
-        } else if (month !== 'all') {
-            // All years, specific month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
-            params.push(`start_date=${range.startYear}-${monthStr}-01`);
-            params.push(`end_date=${range.endYear}-${monthStr}-31`);
+
+        const range = getDateRangeForFilters(year, month);
+        if (range) {
+            params.push(`start_date=${range.startDate}`);
+            params.push(`end_date=${range.endDate}`);
         }
-        
+
         url += params.join('&');
+
+        if (window.ANALYTICS_DEBUG) {
+            console.log('[TourDistribution] Fetch URL:', url);
+        }
+
         const response = await fetch(url);
         
         // Handle non-200 responses gracefully
@@ -2742,24 +2826,16 @@ async function loadTouristVolumeData(month = 'all', year = 'all') {
     try {
         // Build URL with filters
         let url = `${window.API_URL}/api/analytics/tourist-volume?group_by=month`;
-        
-        // Add date filters based on year and month selection
-        if (year !== 'all' && month !== 'all') {
-            // Specific year and month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            url += `&start_date=${year}-${monthStr}-01&end_date=${year}-${monthStr}-31`;
-        } else if (year !== 'all') {
-            // Specific year, all months
-            url += `&start_date=${year}-01-01&end_date=${year}-12-31`;
-        } else if (month !== 'all') {
-            // All years, specific month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
-            url += `&start_date=${range.startYear}-${monthStr}-01&end_date=${range.endYear}-${monthStr}-31`;
+
+        const range = getDateRangeForFilters(year, month);
+        if (range) {
+            url += `&start_date=${range.startDate}&end_date=${range.endDate}`;
         }
-        
+
+        if (window.ANALYTICS_DEBUG) {
+            console.log('[TouristVolume] Fetch URL:', url);
+        }
+
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -2808,24 +2884,16 @@ async function loadAvgBookingValueData(month = 'all', year = 'all') {
     try {
         // Build URL with filters
         let url = `${window.API_URL}/api/analytics/avg-booking-value?group_by=month`;
-        
-        // Add date filters based on year and month selection
-        if (year !== 'all' && month !== 'all') {
-            // Specific year and month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            url += `&start_date=${year}-${monthStr}-01&end_date=${year}-${monthStr}-31`;
-        } else if (year !== 'all') {
-            // Specific year, all months
-            url += `&start_date=${year}-01-01&end_date=${year}-12-31`;
-        } else if (month !== 'all') {
-            // All years, specific month
-            const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-            const monthStr = monthNum.toString().padStart(2, '0');
-            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
-            url += `&start_date=${range.startYear}-${monthStr}-01&end_date=${range.endYear}-${monthStr}-31`;
+
+        const range = getDateRangeForFilters(year, month);
+        if (range) {
+            url += `&start_date=${range.startDate}&end_date=${range.endDate}`;
         }
-        
+
+        if (window.ANALYTICS_DEBUG) {
+            console.log('[AvgBookingValue] Fetch URL:', url);
+        }
+
         const response = await fetch(url);
         
         if (!response.ok) {
