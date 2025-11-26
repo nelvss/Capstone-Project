@@ -1673,6 +1673,9 @@ const getSeasonalPrediction = async (req, res) => {
     const { year } = req.query;
     const targetYear = year ? parseInt(year) : new Date().getFullYear();
     
+    // Growth threshold for trend classification (percentage)
+    const GROWTH_THRESHOLD = 10; // Percentage threshold for trend classification
+    
     console.log('📊 Generating seasonal prediction:', { targetYear });
     
     // Fetch ALL available historical booking data up to the target year
@@ -1786,21 +1789,40 @@ const getSeasonalPrediction = async (req, res) => {
       const avgBookings = monthData.total_bookings / yearsCount;
       const avgTourists = monthData.total_tourists / yearsCount;
       
-      // Calculate growth trend
+      // Calculate growth trend using Year-over-Year Average Growth
       const years = Object.keys(monthData.years_data).sort();
       let trend = 'stable';
       let growthRate = 0;
       
       if (years.length >= 2) {
-        const oldestYear = years[0];
-        const newestYear = years[years.length - 1];
-        const oldBookings = monthData.years_data[oldestYear].bookings;
-        const newBookings = monthData.years_data[newestYear].bookings;
+        let totalGrowthRate = 0;
+        let yearOverYearChanges = 0;
         
-        if (oldBookings > 0) {
-          growthRate = ((newBookings - oldBookings) / oldBookings) * 100;
-          if (growthRate > 10) trend = 'increasing';
-          else if (growthRate < -10) trend = 'decreasing';
+        // Loop through all consecutive year pairs to calculate year-over-year growth
+        for (let i = 1; i < years.length; i++) {
+          const prevYear = years[i - 1];
+          const currYear = years[i];
+          const prevBookings = monthData.years_data[prevYear].bookings;
+          const currBookings = monthData.years_data[currYear].bookings;
+          
+          if (prevBookings > 0) {
+            // Calculate year-over-year growth percentage
+            const yoyGrowth = ((currBookings - prevBookings) / prevBookings) * 100;
+            totalGrowthRate += yoyGrowth;
+            yearOverYearChanges++;
+          }
+        }
+        
+        // Calculate average growth rate across all year pairs
+        if (yearOverYearChanges > 0) {
+          growthRate = totalGrowthRate / yearOverYearChanges;
+          
+          // Classify trend based on average growth rate
+          if (growthRate > GROWTH_THRESHOLD) {
+            trend = 'increasing';
+          } else if (growthRate < -GROWTH_THRESHOLD) {
+            trend = 'decreasing';
+          }
         }
       }
       
