@@ -803,8 +803,19 @@ function initializeFilters() {
     // Define all 12 months
     const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
-    // Define years from 2019 to 2025
-    const allYears = ['2019', '2020', '2021', '2022', '2023', '2024', '2025'];
+    // Define available year range dynamically (future‑proof)
+    const FIRST_ANALYTICS_YEAR = 2019;
+    const currentYear = new Date().getFullYear();
+    const lastYear = Math.max(currentYear, FIRST_ANALYTICS_YEAR);
+    const allYears = [];
+    for (let y = FIRST_ANALYTICS_YEAR; y <= lastYear; y++) {
+        allYears.push(String(y));
+    }
+    // Expose range globally so loaders can reuse it when year="all"
+    window.ANALYTICS_YEAR_RANGE = {
+        startYear: FIRST_ANALYTICS_YEAR,
+        endYear: lastYear
+    };
     
     // Populate year filters
     yearFilters.forEach(filterId => {
@@ -2485,8 +2496,9 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
             // All years, specific month - get data for that month across all years
             const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
             const monthStr = monthNum.toString().padStart(2, '0');
-            // Get data for this month from 2019-2025
-            url += `&start_date=2019-${monthStr}-01&end_date=2025-${monthStr}-31`;
+            // Use dynamic analytics year range instead of hard‑coded values
+            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
+            url += `&start_date=${range.startYear}-${monthStr}-01&end_date=${range.endYear}-${monthStr}-31`;
         }
         // If both are 'all', fetch all historical data (no date filters)
         
@@ -2574,8 +2586,9 @@ async function loadPackageDistributionData(month = 'all', year = 'all') {
             // All years, specific month
             const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
             const monthStr = monthNum.toString().padStart(2, '0');
-            params.push(`start_date=2019-${monthStr}-01`);
-            params.push(`end_date=2025-${monthStr}-31`);
+            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
+            params.push(`start_date=${range.startYear}-${monthStr}-01`);
+            params.push(`end_date=${range.endYear}-${monthStr}-31`);
         }
         
         url += params.join('&');
@@ -2656,8 +2669,9 @@ async function loadTourDistributionData(month = 'all', year = 'all') {
             // All years, specific month
             const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
             const monthStr = monthNum.toString().padStart(2, '0');
-            params.push(`start_date=2019-${monthStr}-01`);
-            params.push(`end_date=2025-${monthStr}-31`);
+            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
+            params.push(`start_date=${range.startYear}-${monthStr}-01`);
+            params.push(`end_date=${range.endYear}-${monthStr}-31`);
         }
         
         url += params.join('&');
@@ -2734,7 +2748,8 @@ async function loadTouristVolumeData(month = 'all', year = 'all') {
             // All years, specific month
             const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
             const monthStr = monthNum.toString().padStart(2, '0');
-            url += `&start_date=2019-${monthStr}-01&end_date=2025-${monthStr}-31`;
+            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
+            url += `&start_date=${range.startYear}-${monthStr}-01&end_date=${range.endYear}-${monthStr}-31`;
         }
         
         const response = await fetch(url);
@@ -2799,7 +2814,8 @@ async function loadAvgBookingValueData(month = 'all', year = 'all') {
             // All years, specific month
             const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
             const monthStr = monthNum.toString().padStart(2, '0');
-            url += `&start_date=2019-${monthStr}-01&end_date=2025-${monthStr}-31`;
+            const range = window.ANALYTICS_YEAR_RANGE || { startYear: 2019, endYear: new Date().getFullYear() };
+            url += `&start_date=${range.startYear}-${monthStr}-01&end_date=${range.endYear}-${monthStr}-31`;
         }
         
         const response = await fetch(url);
