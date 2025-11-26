@@ -1977,18 +1977,62 @@ Format your response in clear, actionable paragraphs. Be specific with numbers a
   } catch (error) {
     console.error('❌ Error interpreting chart with Gemini AI:', error);
     
-    // Handle specific Gemini API errors
-    if (error.message && error.message.includes('API key')) {
-      return res.status(500).json({
-        success: false,
-        error: 'Invalid AI service configuration. Please contact administrator.'
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to generate chart interpretation. Please try again later.'
+    // Provide a fallback interpretation when AI service fails
+    const fallbackInterpretation = generateFallbackInterpretation(chartType, labels, datasets, chartTitle);
+    
+    console.log('⚠️ Using fallback interpretation due to AI service error');
+    
+    return res.json({
+      success: true,
+      interpretation: fallbackInterpretation,
+      note: 'Generated using basic analysis due to AI service unavailability.'
     });
+  }
+};
+
+// Generate a basic fallback interpretation when AI service is unavailable
+const generateFallbackInterpretation = (chartType, labels, datasets, chartTitle) => {
+  try {
+    const dataPoints = datasets[0]?.data || [];
+    const total = dataPoints.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+    const average = dataPoints.length > 0 ? (total / dataPoints.length).toFixed(2) : 0;
+    const max = Math.max(...dataPoints.map(v => parseFloat(v) || 0));
+    const min = Math.min(...dataPoints.map(v => parseFloat(v) || 0));
+    
+    const maxIndex = dataPoints.findIndex(v => parseFloat(v) === max);
+    const minIndex = dataPoints.findIndex(v => parseFloat(v) === min);
+    
+    let interpretation = `Analysis of ${chartTitle || 'Chart Data'}:\n\n`;
+    interpretation += `The data shows a range from ${min.toFixed(2)} to ${max.toFixed(2)}, `;
+    interpretation += `with an average value of ${average}. `;
+    
+    if (maxIndex >= 0 && labels[maxIndex]) {
+      interpretation += `The highest point occurs at ${labels[maxIndex]} with a value of ${max.toFixed(2)}. `;
+    }
+    
+    if (minIndex >= 0 && labels[minIndex]) {
+      interpretation += `The lowest point is at ${labels[minIndex]} with a value of ${min.toFixed(2)}. `;
+    }
+    
+    // Calculate trend
+    if (dataPoints.length > 1) {
+      const firstHalf = dataPoints.slice(0, Math.floor(dataPoints.length / 2));
+      const secondHalf = dataPoints.slice(Math.floor(dataPoints.length / 2));
+      const firstAvg = firstHalf.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) / firstHalf.length;
+      const secondAvg = secondHalf.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) / secondHalf.length;
+      
+      if (secondAvg > firstAvg * 1.1) {
+        interpretation += `\n\nThe data shows an overall upward trend, with the latter period averaging ${((secondAvg - firstAvg) / firstAvg * 100).toFixed(1)}% higher than the earlier period.`;
+      } else if (secondAvg < firstAvg * 0.9) {
+        interpretation += `\n\nThe data shows a downward trend, with the latter period averaging ${((firstAvg - secondAvg) / firstAvg * 100).toFixed(1)}% lower than the earlier period.`;
+      } else {
+        interpretation += `\n\nThe data remains relatively stable across the time period.`;
+      }
+    }
+    
+    return interpretation;
+  } catch (err) {
+    return 'Unable to generate detailed analysis at this time. Please review the chart data manually.';
   }
 };
 
