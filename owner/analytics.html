@@ -91,10 +91,10 @@
         <!-- Overview Section -->
         <section id="overview" class="analytics-section">
 
-          <!-- New Analytics Charts Row 1 -->
+          <!-- Booking Type Comparison - Chart + AI Insights -->
           <div class="row mb-4">
-            <div class="col-md-12">
-              <div class="card shadow-sm">
+            <div class="col-lg-8 col-12">
+              <div class="card shadow-sm h-100">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">
                     <i class="fas fa-chart-bar me-2"></i>Booking Type Comparison
@@ -113,12 +113,27 @@
                 </div>
               </div>
             </div>
+            <div class="col-lg-4 col-12 mt-3 mt-lg-0">
+              <div class="card shadow-sm ai-insights-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>AI Insights
+                  </h6>
+                  <span class="badge bg-light text-muted border">Booking Types</span>
+                </div>
+                <div class="card-body">
+                  <div id="bookingTypeChartInsights" class="ai-insights-body small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Insights will appear here once data is loaded.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Package and Tour Distribution Charts -->
+          <!-- Package Distribution (Package Only) - Chart + AI Insights -->
           <div class="row mb-4">
-            <div class="col-md-6">
-              <div class="card shadow-sm">
+            <div class="col-lg-8 col-12">
+              <div class="card shadow-sm h-100">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">
                     <i class="fas fa-box me-2"></i>Package Distribution (Package Only)
@@ -137,8 +152,27 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="card shadow-sm">
+            <div class="col-lg-4 col-12 mt-3 mt-lg-0">
+              <div class="card shadow-sm ai-insights-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>AI Insights
+                  </h6>
+                  <span class="badge bg-light text-muted border">Packages</span>
+                </div>
+                <div class="card-body">
+                  <div id="packageDistributionChartInsights" class="ai-insights-body small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Insights will appear here once data is loaded.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tour Distribution (Tour Only) - Chart + AI Insights -->
+          <div class="row mb-4">
+            <div class="col-lg-8 col-12">
+              <div class="card shadow-sm h-100">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">
                     <i class="fas fa-route me-2"></i>Tour Distribution (Tour Only)
@@ -157,12 +191,27 @@
                 </div>
               </div>
             </div>
+            <div class="col-lg-4 col-12 mt-3 mt-lg-0">
+              <div class="card shadow-sm ai-insights-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>AI Insights
+                  </h6>
+                  <span class="badge bg-light text-muted border">Tours</span>
+                </div>
+                <div class="card-body">
+                  <div id="tourDistributionChartInsights" class="ai-insights-body small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Insights will appear here once data is loaded.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- New Analytics Charts Row 3 -->
+          <!-- Monthly Tourist Volume - Chart + AI Insights -->
           <div class="row mb-4">
-            <div class="col-md-6">
-              <div class="card shadow-sm">
+            <div class="col-lg-8 col-12">
+              <div class="card shadow-sm h-100">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">
                     <i class="fas fa-users me-2"></i>Monthly Tourist Volume
@@ -181,8 +230,27 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="card shadow-sm">
+            <div class="col-lg-4 col-12 mt-3 mt-lg-0">
+              <div class="card shadow-sm ai-insights-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>AI Insights
+                  </h6>
+                  <span class="badge bg-light text-muted border">Tourist Volume</span>
+                </div>
+                <div class="card-body">
+                  <div id="touristVolumeChartInsights" class="ai-insights-body small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Insights will appear here once data is loaded.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Average Booking Value - Chart + AI Insights -->
+          <div class="row mb-4">
+            <div class="col-lg-8 col-12">
+              <div class="card shadow-sm h-100">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">
                     <i class="fas fa-peso-sign me-2"></i>Average Booking Value
@@ -201,12 +269,27 @@
                 </div>
               </div>
             </div>
+            <div class="col-lg-4 col-12 mt-3 mt-lg-0">
+              <div class="card shadow-sm ai-insights-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>AI Insights
+                  </h6>
+                  <span class="badge bg-light text-muted border">Booking Value</span>
+                </div>
+                <div class="card-body">
+                  <div id="avgBookingValueChartInsights" class="ai-insights-body small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Insights will appear here once data is loaded.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- New Analytics Charts Row 4 -->
+          <!-- Peak Booking Days - Chart + AI Insights -->
           <div class="row mb-4">
-            <div class="col-md-12">
-              <div class="card shadow-sm">
+            <div class="col-lg-8 col-12">
+              <div class="card shadow-sm h-100">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">
                     <i class="fas fa-calendar-day me-2"></i>Peak Booking Days
@@ -217,12 +300,27 @@
                 </div>
               </div>
             </div>
+            <div class="col-lg-4 col-12 mt-3 mt-lg-0">
+              <div class="card shadow-sm ai-insights-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>AI Insights
+                  </h6>
+                  <span class="badge bg-light text-muted border">Booking Days</span>
+                </div>
+                <div class="card-body">
+                  <div id="peakBookingDaysChartInsights" class="ai-insights-body small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Insights will appear here once data is loaded.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- New Analytics Charts Row 5 -->
+          <!-- Service Performance - Chart + AI Insights -->
           <div class="row mb-4">
-            <div class="col-md-12">
-              <div class="card shadow-sm">
+            <div class="col-lg-8 col-12">
+              <div class="card shadow-sm h-100">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                   <h5 class="card-title mb-0">
                     <i class="fas fa-chart-bar me-2"></i>Service Performance
@@ -230,6 +328,21 @@
                 </div>
                 <div class="card-body">
                   <canvas id="servicePerformanceChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-12 mt-3 mt-lg-0">
+              <div class="card shadow-sm ai-insights-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>AI Insights
+                  </h6>
+                  <span class="badge bg-light text-muted border">Services</span>
+                </div>
+                <div class="card-body">
+                  <div id="servicePerformanceChartInsights" class="ai-insights-body small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Insights will appear here once data is loaded.
+                  </div>
                 </div>
               </div>
             </div>

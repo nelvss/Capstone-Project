@@ -1207,3 +1207,20 @@ header h1 {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+/* Per-chart AI insights card styling */
+.ai-insights-card {
+  border-left: 4px solid var(--primary-red);
+}
+
+.ai-insights-card .card-header {
+  border-bottom-color: var(--medium-gray);
+}
+
+.ai-insights-body {
+  min-height: 80px;
+}
+
+.ai-insights-body .ai-insights-text p {
+  line-height: 1.6;
+}

@@ -2518,6 +2518,8 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
                 chart.data.datasets[1].data = result.comparison.map(c => c.tour_only || 0);
                 chart.update();
                 console.log('✅ Booking Type chart updated:', labels.length, 'data points');
+                // Generate AI insights for this chart
+                generateChartInsights('bookingTypeChart');
             } else if (chart) {
                 // No data available
                 chart.data.labels = [];
@@ -2525,9 +2527,11 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
                 chart.data.datasets[1].data = [];
                 chart.update();
                 console.log('⚠️ No booking type data available');
+                generateChartInsights('bookingTypeChart');
             }
         } else {
             console.log('⚠️ Invalid booking type response:', result);
+            generateChartInsights('bookingTypeChart');
         }
     } catch (error) {
         console.error('Error loading booking type data:', error);
@@ -2539,6 +2543,7 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
             chart.data.datasets[1].data = [];
             chart.update();
         }
+        generateChartInsights('bookingTypeChart');
     }
 }
 
@@ -2601,6 +2606,7 @@ async function loadPackageDistributionData(month = 'all', year = 'all') {
                 ];
                 chart.update();
                 console.log('✅ Package Distribution chart updated');
+                generateChartInsights('packageDistributionChart');
             }
         } else {
             console.log('⚠️ Invalid package distribution response:', result);
@@ -2609,6 +2615,7 @@ async function loadPackageDistributionData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = [0, 0, 0, 0];
                 chart.update();
             }
+            generateChartInsights('packageDistributionChart');
         }
     } catch (error) {
         console.error('Error loading package distribution data:', error);
@@ -2618,6 +2625,7 @@ async function loadPackageDistributionData(month = 'all', year = 'all') {
             chart.data.datasets[0].data = [0, 0, 0, 0];
             chart.update();
         }
+        generateChartInsights('packageDistributionChart');
     }
 }
 
@@ -2679,6 +2687,7 @@ async function loadTourDistributionData(month = 'all', year = 'all') {
                 ];
                 chart.update();
                 console.log('✅ Tour Distribution chart updated');
+                generateChartInsights('tourDistributionChart');
             }
         } else {
             console.log('⚠️ Invalid tour distribution response:', result);
@@ -2687,6 +2696,7 @@ async function loadTourDistributionData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = [0, 0, 0];
                 chart.update();
             }
+            generateChartInsights('tourDistributionChart');
         }
     } catch (error) {
         console.error('Error loading tour distribution data:', error);
@@ -2696,6 +2706,7 @@ async function loadTourDistributionData(month = 'all', year = 'all') {
             chart.data.datasets[0].data = [0, 0, 0];
             chart.update();
         }
+        generateChartInsights('tourDistributionChart');
     }
 }
 
@@ -2730,6 +2741,7 @@ async function loadTouristVolumeData(month = 'all', year = 'all') {
         
         if (!response.ok) {
             console.warn(`⚠️ Tourist volume API returned ${response.status}`);
+            generateChartInsights('touristVolumeChart');
             return;
         }
         
@@ -2745,17 +2757,21 @@ async function loadTouristVolumeData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = result.volume.map(v => v.tourists || 0);
                 chart.update();
                 console.log('✅ Tourist Volume chart updated:', labels.length, 'data points');
+                generateChartInsights('touristVolumeChart');
             } else if (chart) {
                 chart.data.labels = [];
                 chart.data.datasets[0].data = [];
                 chart.update();
                 console.log('⚠️ No tourist volume data available');
+                generateChartInsights('touristVolumeChart');
             }
         } else {
             console.log('⚠️ Invalid tourist volume response:', result);
+            generateChartInsights('touristVolumeChart');
         }
     } catch (error) {
         console.error('Error loading tourist volume data:', error);
+        generateChartInsights('touristVolumeChart');
     }
 }
 
@@ -2790,6 +2806,7 @@ async function loadAvgBookingValueData(month = 'all', year = 'all') {
         
         if (!response.ok) {
             console.warn(`⚠️ Avg booking value API returned ${response.status}`);
+            generateChartInsights('avgBookingValueChart');
             return;
         }
         
@@ -2805,17 +2822,21 @@ async function loadAvgBookingValueData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = result.avgValues.map(v => v.average || 0);
                 chart.update();
                 console.log('✅ Average Booking Value chart updated:', labels.length, 'data points');
+                generateChartInsights('avgBookingValueChart');
             } else if (chart) {
                 chart.data.labels = [];
                 chart.data.datasets[0].data = [];
                 chart.update();
                 console.log('⚠️ No average booking value data available');
+                generateChartInsights('avgBookingValueChart');
             }
         } else {
             console.log('⚠️ Invalid average booking value response:', result);
+            generateChartInsights('avgBookingValueChart');
         }
     } catch (error) {
         console.error('Error loading average booking value data:', error);
+        generateChartInsights('avgBookingValueChart');
     }
 }
 
@@ -2825,6 +2846,7 @@ async function loadPeakBookingDaysData() {
         
         if (!response.ok) {
             console.warn(`⚠️ Peak booking days API returned ${response.status}`);
+            generateChartInsights('peakBookingDaysChart');
             return;
         }
         
@@ -2845,10 +2867,12 @@ async function loadPeakBookingDaysData() {
                 
                 chart.data.datasets[0].data = dayData;
                 chart.update();
+                generateChartInsights('peakBookingDaysChart');
             }
         }
     } catch (error) {
         console.error('Error loading peak booking days data:', error);
+        generateChartInsights('peakBookingDaysChart');
     }
 }
 
@@ -2858,6 +2882,7 @@ async function loadServicePerformanceData() {
         
         if (!response.ok) {
             console.warn(`⚠️ Service performance API returned ${response.status}`);
+            generateChartInsights('servicePerformanceChart');
             return;
         }
         
@@ -2900,10 +2925,12 @@ async function loadServicePerformanceData() {
                 chart.data.labels = labels;
                 chart.data.datasets[0].data = data;
                 chart.update();
+                generateChartInsights('servicePerformanceChart');
             }
         }
     } catch (error) {
         console.error('Error loading service performance data:', error);
+        generateChartInsights('servicePerformanceChart');
     }
 }
 
@@ -2940,6 +2967,117 @@ function extractChartData(chartId) {
     console.error(`Error extracting data from chart ${chartId}:`, error);
     return null;
   }
+}
+
+// Cache last payload per chart to avoid redundant AI calls
+const lastInsightsPayload = {};
+
+// Map chart IDs to their corresponding insights container IDs
+const chartInsightsElementMap = {
+  bookingTypeChart: 'bookingTypeChartInsights',
+  packageDistributionChart: 'packageDistributionChartInsights',
+  tourDistributionChart: 'tourDistributionChartInsights',
+  touristVolumeChart: 'touristVolumeChartInsights',
+  avgBookingValueChart: 'avgBookingValueChartInsights',
+  peakBookingDaysChart: 'peakBookingDaysChartInsights',
+  servicePerformanceChart: 'servicePerformanceChartInsights'
+};
+
+/**
+ * Generate and display AI insights for a specific chart in its side-card.
+ * This uses the existing interpretChartWithAI helper and updates the
+ * corresponding insights container with loading / success / error states.
+ * @param {string} chartId
+ */
+async function generateChartInsights(chartId) {
+  const insightsElementId = chartInsightsElementMap[chartId];
+  if (!insightsElementId) {
+    return;
+  }
+
+  const insightsEl = document.getElementById(insightsElementId);
+  if (!insightsEl) {
+    return;
+  }
+
+  // If analytics API (and thus AI) is disabled, show a friendly message
+  if (window.USE_ANALYTICS_API === false) {
+    insightsEl.classList.remove('text-danger');
+    insightsEl.classList.add('text-muted');
+    insightsEl.innerHTML = '<i class="fas fa-info-circle me-1"></i>AI insights are disabled while using sample data.';
+    return;
+  }
+
+  const chartData = extractChartData(chartId);
+  if (!chartData) {
+    insightsEl.classList.remove('text-danger');
+    insightsEl.classList.add('text-muted');
+    insightsEl.innerHTML = '<i class="fas fa-info-circle me-1"></i>No chart data available to analyze.';
+    return;
+  }
+
+  const hasLabels = Array.isArray(chartData.labels) && chartData.labels.length > 0;
+  const hasAnyValues = Array.isArray(chartData.datasets) && chartData.datasets.some(ds =>
+    Array.isArray(ds.data) && ds.data.some(v => typeof v === 'number' && v !== 0)
+  );
+
+  if (!hasLabels || !hasAnyValues) {
+    insightsEl.classList.remove('text-danger');
+    insightsEl.classList.add('text-muted');
+    insightsEl.innerHTML = '<i class="fas fa-info-circle me-1"></i>No data available to analyze for this period.';
+    return;
+  }
+
+  // Avoid repeated calls if payload hasn't changed
+  const payloadKey = JSON.stringify({
+    type: chartData.type,
+    labels: chartData.labels,
+    datasets: chartData.datasets.map(ds => ds.data)
+  });
+
+  if (lastInsightsPayload[chartId] === payloadKey) {
+    // Data unchanged since last insights; skip re-calculation
+    return;
+  }
+
+  lastInsightsPayload[chartId] = payloadKey;
+
+  // Show loading state
+  insightsEl.classList.remove('text-danger');
+  insightsEl.classList.add('text-muted');
+  insightsEl.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Generating insights...
+  `;
+
+  const result = await interpretChartWithAI(chartId);
+
+  if (!result.success) {
+    insightsEl.classList.remove('text-muted');
+    insightsEl.classList.add('text-danger');
+    insightsEl.innerHTML = `
+      <i class="fas fa-exclamation-triangle me-1"></i>
+      Unable to load insights. ${result.error ? `(${result.error})` : 'Please try again later.'}
+    `;
+    return;
+  }
+
+  const paragraphs = (result.interpretation || '')
+    .split('\n')
+    .map(p => p.trim())
+    .filter(p => p.length > 0)
+    .map(p => `<p class="mb-2">${p}</p>`)
+    .join('');
+
+  insightsEl.classList.remove('text-danger', 'text-muted');
+  insightsEl.innerHTML = `
+    <div class="ai-insights-text">
+      ${paragraphs}
+      <p class="mt-2 small text-muted">
+        <i class="fas fa-magic me-1"></i>Powered by AI insights.
+      </p>
+    </div>
+  `;
 }
 
 /**
