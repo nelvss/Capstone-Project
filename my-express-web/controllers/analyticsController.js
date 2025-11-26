@@ -1680,8 +1680,10 @@ const getSeasonalPrediction = async (req, res) => {
     console.log('📊 Generating seasonal prediction:', { targetYear });
     
     // Fetch ALL available historical booking data up to the target year
-    // Use a reasonable start date (e.g., 10 years back) to get all available data
-    const startDate = new Date(targetYear - 10, 0, 1).toISOString();
+    // Start from 2019 (FIRST_ANALYTICS_YEAR) to match other analytics functions
+    // This ensures consistency with booking type comparison and other analytics
+    const FIRST_ANALYTICS_YEAR = 2019;
+    const startDate = new Date(FIRST_ANALYTICS_YEAR, 0, 1).toISOString();
     const endDate = new Date(targetYear - 1, 11, 31, 23, 59, 59).toISOString();
     
     let query = supabase
@@ -1787,6 +1789,21 @@ const getSeasonalPrediction = async (req, res) => {
       const monthData = monthlyData[i];
       const yearsCount = Object.keys(monthData.years_data).length || 1;
       
+      // Debug logging for January to help diagnose calculation issues
+      if (i === 0) { // January is month index 0
+        console.log(`📊 January Calculation Debug:`, {
+          month_name: monthData.month_name,
+          years_data: monthData.years_data,
+          years_with_data: Object.keys(monthData.years_data),
+          yearsCount: yearsCount,
+          total_bookings: monthData.total_bookings,
+          breakdown_by_year: Object.keys(monthData.years_data).map(year => ({
+            year: year,
+            bookings: monthData.years_data[year].bookings
+          }))
+        });
+      }
+      
       const avgBookings = monthData.total_bookings / yearsCount;
       const avgTourists = monthData.total_tourists / yearsCount;
       
@@ -1832,6 +1849,20 @@ const getSeasonalPrediction = async (req, res) => {
       const predictedBookings = Math.round(avgBookings * trendMultiplier);
       const predictedTourists = Math.round(avgTourists * trendMultiplier);
       const predictedRevenue = predictedBookings * avgRevenuePerBooking;
+      
+      // Debug logging for January to help diagnose calculation issues
+      if (i === 0) { // January is month index 0
+        console.log(`📊 January Prediction Calculation:`, {
+          month_name: monthNames[i],
+          historical_avg_bookings: Math.round(avgBookings),
+          avgBookings_exact: avgBookings,
+          trend: trend,
+          growth_rate: growthRate,
+          trendMultiplier: trendMultiplier,
+          predicted_before_round: avgBookings * trendMultiplier,
+          predicted_bookings: predictedBookings
+        });
+      }
       
       monthlyPredictions.push({
         month_number: i + 1,
