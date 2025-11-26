@@ -1904,6 +1904,9 @@ const getSeasonalPrediction = async (req, res) => {
 
 // Interpret chart data using Google Gemini AI
 const interpretChart = async (req, res) => {
+  // Extract data outside try block so it's available in catch
+  const { chartType, labels, datasets, chartTitle } = req.body;
+  
   try {
     // Check if Google Generative AI package is installed
     if (!GoogleGenerativeAI) {
@@ -1912,8 +1915,6 @@ const interpretChart = async (req, res) => {
         error: 'AI service package not installed. Please run: npm install @google/generative-ai'
       });
     }
-
-    const { chartType, labels, datasets, chartTitle } = req.body;
 
     // Validate input
     if (!chartType || !labels || !datasets || !Array.isArray(labels) || !Array.isArray(datasets)) {
