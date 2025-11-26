@@ -272,7 +272,8 @@ const getBookingTypeComparison = async (req, res) => {
     
     let query = supabase
       .from('bookings')
-      .select('booking_type, arrival_date');
+      .select('booking_type, arrival_date, status')
+      .in('status', ['confirmed', 'completed']);
     
     if (start_date) {
       query = query.gte('arrival_date', start_date);
