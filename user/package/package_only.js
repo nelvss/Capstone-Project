@@ -4007,7 +4007,7 @@
             packages.forEach((packageName, index) => {
                 const tbody = document.getElementById(`compare-package${index + 1}-body`);
                 if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-warning">
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-warning">
                         <i class="fas fa-exclamation-triangle me-2"></i>Package data is loading... Please wait or refresh the page.
                     </td></tr>`;
                 }
@@ -4033,72 +4033,99 @@
                 return;
             }
             
-            let html = '';
-            let rowsForThisPackage = 0;
+            // Collect all unique pax ranges from all hotels for this package
+            const paxRangesSet = new Set();
+            const hotelPricingMap = {}; // hotel_id -> { paxRangeKey -> price }
             
             hotels.forEach(hotel => {
                 const pkg = packagesData.find(p => p.category === packageName && p.hotel_id === hotel.id);
                 
-                console.log(`🔍 Looking for ${packageName} at ${hotel.name}:`, pkg ? 'Found' : 'Not found');
-                
                 if (!pkg || !pkg.pricing || pkg.pricing.length === 0) {
-                    // Package not available for this hotel
-                    html += `<tr class="table-secondary">
-                        <td class="fw-bold">${hotel.name}</td>
-                        <td colspan="6" class="text-center text-muted"><em>Not Available</em></td>
-                    </tr>`;
                     return;
                 }
                 
-                // Sort pricing tiers
-                const sortedPricing = [...pkg.pricing].sort((a, b) => a.min_tourist - b.min_tourist);
+                // Initialize hotel pricing map
+                if (!hotelPricingMap[hotel.id]) {
+                    hotelPricingMap[hotel.id] = {};
+                }
                 
-                console.log(`💰 Pricing tiers for ${packageName} at ${hotel.name}:`, sortedPricing.length);
-                
-                // Create pricing map for standard tiers
-                const pricingMap = {
-                    '1': null,
-                    '2': null,
-                    '3-4': null,
-                    '5-6': null,
-                    '7-9': null,
-                    '10+': null
-                };
-                
-                // Map database pricing to display tiers
-                sortedPricing.forEach(tier => {
-                    const min = tier.min_tourist;
-                    const max = tier.max_tourist;
-                    const price = tier.price_per_head;
+                // Process each pricing tier
+                pkg.pricing.forEach(tier => {
+                    const min = tier.min_tourist || 0;
+                    const max = tier.max_tourist || Infinity;
+                    const price = tier.price_per_head || 0;
                     
-                    if (min === 1 && max === 1) pricingMap['1'] = price;
-                    else if (min === 2 && max === 2) pricingMap['2'] = price;
-                    else if (min === 3 && max === 4) pricingMap['3-4'] = price;
-                    else if (min === 5 && max === 6) pricingMap['5-6'] = price;
-                    else if (min === 7 && max === 9) pricingMap['7-9'] = price;
-                    else if (min >= 10) pricingMap['10+'] = price;
+                    // Format pax range
+                    let paxRangeKey;
+                    let paxRangeLabel;
+                    
+                    if (min === max) {
+                        paxRangeKey = `${min}`;
+                        paxRangeLabel = `${min}`;
+                    } else if (max >= 100 || max === Infinity || max > 999) {
+                        paxRangeKey = `${min}+`;
+                        paxRangeLabel = `${min}+`;
+                    } else {
+                        paxRangeKey = `${min}-${max}`;
+                        paxRangeLabel = `${min}-${max}`;
+                    }
+                    
+                    // Add to unique pax ranges set
+                    paxRangesSet.add(paxRangeKey);
+                    
+                    // Store price for this hotel and pax range
+                    hotelPricingMap[hotel.id][paxRangeKey] = price;
                 });
-                
-                html += `<tr>
-                    <td class="fw-bold">${hotel.name}</td>
-                    <td class="text-center">${pricingMap['1'] ? '₱' + pricingMap['1'].toLocaleString() : '-'}</td>
-                    <td class="text-center">${pricingMap['2'] ? '₱' + pricingMap['2'].toLocaleString() : '-'}</td>
-                    <td class="text-center">${pricingMap['3-4'] ? '₱' + pricingMap['3-4'].toLocaleString() : '-'}</td>
-                    <td class="text-center">${pricingMap['5-6'] ? '₱' + pricingMap['5-6'].toLocaleString() : '-'}</td>
-                    <td class="text-center">${pricingMap['7-9'] ? '₱' + pricingMap['7-9'].toLocaleString() : '-'}</td>
-                    <td class="text-center">${pricingMap['10+'] ? '₱' + pricingMap['10+'].toLocaleString() : '-'}</td>
-                </tr>`;
-                rowsForThisPackage++;
             });
             
-            if (rowsForThisPackage === 0) {
-                html = `<tr><td colspan="7" class="text-center text-muted">
-                    <i class="fas fa-info-circle me-2"></i>No hotels available for this package
+            // Convert set to sorted array
+            const paxRanges = Array.from(paxRangesSet).sort((a, b) => {
+                // Extract min value from range for sorting
+                const getMin = (range) => {
+                    if (range.includes('+')) {
+                        return parseInt(range.replace('+', '')) || 0;
+                    } else if (range.includes('-')) {
+                        return parseInt(range.split('-')[0]) || 0;
+                    } else {
+                        return parseInt(range) || 0;
+                    }
+                };
+                return getMin(a) - getMin(b);
+            });
+            
+            console.log(`📊 Found ${paxRanges.length} unique pax ranges for ${packageName}:`, paxRanges);
+            
+            // Generate table rows
+            let html = '';
+            
+            if (paxRanges.length === 0) {
+                html = `<tr><td colspan="6" class="text-center text-muted">
+                    <i class="fas fa-info-circle me-2"></i>No pricing data available for this package
                 </td></tr>`;
+            } else {
+                paxRanges.forEach(paxRangeKey => {
+                    // Format pax range label (same as key for now)
+                    const paxRangeLabel = paxRangeKey;
+                    
+                    html += `<tr>`;
+                    html += `<td class="fw-bold">${paxRangeLabel} pax</td>`;
+                    
+                    // Add price for each hotel
+                    hotels.forEach(hotel => {
+                        const price = hotelPricingMap[hotel.id] && hotelPricingMap[hotel.id][paxRangeKey];
+                        if (price && price > 0) {
+                            html += `<td class="text-center">₱${price.toLocaleString()}</td>`;
+                        } else {
+                            html += `<td class="text-center text-muted">-</td>`;
+                        }
+                    });
+                    
+                    html += `</tr>`;
+                });
             }
             
             tbody.innerHTML = html;
-            totalRowsPopulated += rowsForThisPackage;
+            totalRowsPopulated += paxRanges.length;
         });
         
         console.log(`✅ Comparison modal populated with ${totalRowsPopulated} pricing rows`);
