@@ -276,15 +276,26 @@ const getBookingTypeComparison = async (req, res) => {
       .in('status', ['confirmed', 'completed']);
     
     if (start_date) {
-      // Use date comparison on the date column only (without time)
-      query = query.gte('arrival_date', start_date + 'T00:00:00.000Z');
+      query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      // Include the entire end date by comparing up to 23:59:59.999Z
-      query = query.lte('arrival_date', end_date + 'T23:59:59.999Z');
+      query = query.lte('arrival_date', end_date);
     }
     
+    console.log('🔍 Query filters:', { 
+      has_start: !!start_date, 
+      has_end: !!end_date,
+      start_date, 
+      end_date 
+    });
+    
     const { data, error } = await query;
+    
+    console.log('🔍 Raw data received:', { 
+      totalRecords: data?.length || 0,
+      firstRecord: data?.[0],
+      lastRecord: data?.[data?.length - 1]
+    });
     
     if (error) {
       console.error('❌ Error fetching booking type comparison:', error);
@@ -308,12 +319,23 @@ const getBookingTypeComparison = async (req, res) => {
     
     // Group by time period
     const grouped = {};
-    data.forEach(booking => {
+    const debugSample = [];
+    
+    data.forEach((booking, index) => {
       // Skip if arrival_date is null or invalid
       if (!booking.arrival_date) return;
       
       const date = new Date(booking.arrival_date);
       if (isNaN(date.getTime())) return;
+      
+      // Collect first 5 bookings for debugging
+      if (index < 5) {
+        debugSample.push({
+          arrival_date: booking.arrival_date,
+          booking_type: booking.booking_type,
+          parsed_date: date.toISOString()
+        });
+      }
       
       let key;
       
@@ -336,6 +358,8 @@ const getBookingTypeComparison = async (req, res) => {
         grouped[key].tour_only++;
       }
     });
+    
+    console.log('🔍 Sample bookings processed:', debugSample);
     
     const comparison = Object.keys(grouped).sort().map(key => ({
       period: key,
