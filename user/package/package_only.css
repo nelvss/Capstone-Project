@@ -2592,6 +2592,8 @@ body {
     font-size: 0.9rem;
     width: 100%;
     table-layout: fixed;
+    /* Prevent columns from becoming too narrow on small screens */
+    min-width: 700px;
 }
 
 .compare-table thead {
@@ -2631,16 +2633,21 @@ body {
     .compare-table thead th,
     .compare-table tbody td {
         padding: 0.5rem 0.25rem;
+        /* Keep headers and values on a single line on small screens;
+           users can scroll horizontally to see full content */
+        white-space: nowrap;
     }
 }
 
-/* Remove horizontal scrollbar in comparison modal and keep content within width */
+/* Allow horizontal scrolling in comparison modal */
 #compareModal .modal-body {
-    overflow-x: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 #compareModal .table-responsive {
-    overflow-x: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ===== PACKAGE INFO MODAL SECTIONS ===== */
