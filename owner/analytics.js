@@ -2557,9 +2557,9 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
         // For the \"All Years + specific Month\" case we will filter the results
         // client‑side based on the month part of the period string (YYYY‑MM).
         
-        if (window.ANALYTICS_DEBUG) {
-            console.log('[BookingType] Fetch URL:', url);
-        }
+        // Always log the fetch URL for debugging booking type comparison issues
+        console.log('[BookingType] Filters - Year:', year, 'Month:', month);
+        console.log('[BookingType] Fetch URL:', url);
 
         const response = await fetch(url);
         
@@ -2579,19 +2579,36 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
         const result = await response.json();
         
         if (result.success && result.comparison && Array.isArray(result.comparison)) {
-            // If viewing all years but a specific month, filter to that month only
             let comparison = result.comparison;
-            if (year === 'all' && month !== 'all') {
-                const monthNum = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1;
-                const monthStr = monthNum.toString().padStart(2, '0');
+            
+            // CLIENT-SIDE FILTER: Ensure we only show data matching the selected filters
+            // This is a safety check to ensure consistency between "All Months" and specific month views
+            if (year !== 'all' || month !== 'all') {
+                const monthNum = month !== 'all' 
+                    ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month) + 1
+                    : null;
+                const monthStr = monthNum ? monthNum.toString().padStart(2, '0') : null;
+                
                 comparison = comparison.filter(c => {
                     // period is in format YYYY-MM or YYYY-MM-Ww
                     if (!c.period || typeof c.period !== 'string') return false;
                     const parts = c.period.split('-');
-                    // Expect at least YYYY-MM
-                    return parts.length >= 2 && parts[1] === monthStr;
+                    if (parts.length < 2) return false;
+                    
+                    // Check year filter
+                    if (year !== 'all' && parts[0] !== year) {
+                        return false;
+                    }
+                    
+                    // Check month filter
+                    if (monthStr && parts[1] !== monthStr) {
+                        return false;
+                    }
+                    
+                    return true;
                 });
             }
+            
             const chart = chartInstances['bookingTypeChart'];
             if (chart && comparison.length > 0) {
                 // Format labels based on year selection
@@ -2601,7 +2618,15 @@ async function loadBookingTypeData(month = 'all', year = 'all') {
                 chart.data.datasets[0].data = comparison.map(c => c.package_only || 0);
                 chart.data.datasets[1].data = comparison.map(c => c.tour_only || 0);
                 chart.update();
+                
+                // Enhanced debugging output
                 console.log('✅ Booking Type chart updated:', labels.length, 'data points');
+                console.log('[BookingType] Data summary:');
+                comparison.forEach((c, idx) => {
+                    console.log(`  ${c.period}: Package=${c.package_only}, Tour=${c.tour_only}`);
+                });
+                console.log(`[BookingType] Total Package Only: ${comparison.reduce((sum, c) => sum + (c.package_only || 0), 0)}`);
+                console.log(`[BookingType] Total Tour Only: ${comparison.reduce((sum, c) => sum + (c.tour_only || 0), 0)}`);
 
                 // Optional dev-time consistency check:
                 // compare the value for this (year, month) pair with the same
