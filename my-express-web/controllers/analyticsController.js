@@ -270,17 +270,49 @@ const getBookingTypeComparison = async (req, res) => {
     
     console.log('📊 Fetching booking type comparison:', { start_date, end_date, group_by });
     
-    let query = supabase
-      .from('bookings')
-      .select('booking_type, arrival_date, status')
-      .in('status', ['confirmed', 'completed']);
+    // Fetch ALL records by setting a high limit or using pagination
+    // Supabase default limit is 1000, which can cause data discrepancies
+    let allData = [];
+    let hasMore = true;
+    let offset = 0;
+    const pageSize = 1000;
     
-    if (start_date) {
-      query = query.gte('arrival_date', start_date);
+    while (hasMore) {
+      let query = supabase
+        .from('bookings')
+        .select('booking_type, arrival_date, status')
+        .in('status', ['confirmed', 'completed'])
+        .range(offset, offset + pageSize - 1);
+      
+      if (start_date) {
+        query = query.gte('arrival_date', start_date);
+      }
+      if (end_date) {
+        query = query.lte('arrival_date', end_date);
+      }
+      
+      const { data: pageData, error: pageError } = await query;
+      
+      if (pageError) {
+        console.error('❌ Error fetching page:', pageError);
+        break;
+      }
+      
+      if (!pageData || pageData.length === 0) {
+        hasMore = false;
+      } else {
+        allData = allData.concat(pageData);
+        offset += pageSize;
+        
+        // If we got less than pageSize, we've reached the end
+        if (pageData.length < pageSize) {
+          hasMore = false;
+        }
+      }
     }
-    if (end_date) {
-      query = query.lte('arrival_date', end_date);
-    }
+    
+    const data = allData;
+    const error = null;
     
     console.log('🔍 Query filters:', { 
       has_start: !!start_date, 
@@ -289,15 +321,13 @@ const getBookingTypeComparison = async (req, res) => {
       end_date 
     });
     
-    const { data, error } = await query;
-    
     console.log('🔍 Raw data received:', { 
       totalRecords: data?.length || 0,
       firstRecord: data?.[0],
       lastRecord: data?.[data?.length - 1]
     });
     
-    if (error) {
+    if (error || !data) {
       console.error('❌ Error fetching booking type comparison:', error);
       // Return empty data instead of 500 error
       return res.json({ 
