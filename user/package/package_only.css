@@ -2590,6 +2590,8 @@ body {
 
 .compare-table {
     font-size: 0.9rem;
+    width: 100%;
+    table-layout: fixed;
 }
 
 .compare-table thead {
@@ -2601,11 +2603,15 @@ body {
     font-weight: 600;
     padding: 0.75rem;
     border: none;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 .compare-table tbody td {
     padding: 0.75rem;
     vertical-align: middle;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 .compare-table tbody tr:hover {
@@ -2626,6 +2632,15 @@ body {
     .compare-table tbody td {
         padding: 0.5rem 0.25rem;
     }
+}
+
+/* Remove horizontal scrollbar in comparison modal and keep content within width */
+#compareModal .modal-body {
+    overflow-x: hidden;
+}
+
+#compareModal .table-responsive {
+    overflow-x: hidden;
 }
 
 /* ===== PACKAGE INFO MODAL SECTIONS ===== */
