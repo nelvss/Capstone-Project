@@ -2074,7 +2074,7 @@ const interpretChart = async (req, res) => {
 
     // Map chart types to business context for owner-friendly insights
     const chartContextMap = {
-      'bookingTypeChart': 'customer booking preferences between tour packages, tour-only services, and other offerings',
+      'bookingTypeChart': 'customer booking preferences between Package Only (bundled tour packages with accommodations) and Tour Only (individual tour services without lodging)',
       'packageDistributionChart': 'which package deals are most popular with customers',
       'tourDistributionChart': 'which individual tour services customers prefer',
       'touristVolumeChart': 'how many visitors you can expect during different time periods',
@@ -2084,8 +2084,19 @@ const interpretChart = async (req, res) => {
     };
 
     const businessContext = chartContextMap[chartTitle] || 'your business performance data';
+    
+    // Add specific instructions for Booking Type Comparison chart
+    let additionalContext = '';
+    if (chartTitle === 'bookingTypeChart') {
+      additionalContext = `\n\nIMPORTANT CONTEXT FOR THIS CHART:
+- "Package Only" refers to bundled tour packages that include accommodations (hotels, transient houses, etc.) along with tour activities
+- "Tour Only" refers to individual tour services without lodging - customers book just the tour activities
+- Compare these two booking types and explain which is more popular and why
+- Discuss the revenue implications of each booking type
+- Consider that Package Only bookings typically have higher values but Tour Only may have higher volume`;
+    }
 
-    const prompt = `You are analyzing ${businessContext} for a travel and tours business owner in Puerto Galera. The owner needs clear, practical insights they can act on immediately.
+    const prompt = `You are analyzing ${businessContext} for a travel and tours business owner in Puerto Galera. The owner needs clear, practical insights they can act on immediately.${additionalContext}
 
 Chart Type: ${chartType}
 Chart Title: ${chartTitle || 'Analytics Chart'}
@@ -2099,18 +2110,21 @@ Provide insights in plain business language (avoid technical jargon). Structure 
 📊 WHAT'S HAPPENING:
 - Describe the main pattern or trend in simple terms
 - Highlight the highest and lowest performing items/periods with specific numbers
+- For Booking Type Comparison: explicitly mention Package Only vs Tour Only performance
 - Mention any surprising changes or patterns
 
 💡 WHAT THIS MEANS FOR YOUR BUSINESS:
 - Explain why this matters for revenue, customer satisfaction, or operations
 - Compare to what you'd typically expect (if there are notable differences)
+- For Booking Type Comparison: explain the business implications of the Package Only vs Tour Only split
 
 🎯 RECOMMENDED ACTIONS:
 - Suggest 2-3 specific actions the owner can take
 - Focus on practical steps like promoting certain services, adjusting pricing, or preparing for busy periods
+- For Booking Type Comparison: provide specific recommendations for each booking type
 - Make recommendations concrete and actionable
 
-Use percentages and specific numbers to be precise, but explain what they mean in business terms. Keep the total response around 150-200 words. Use friendly, conversational language as if advising a business colleague.`;
+Use percentages and specific numbers to be precise, but explain what they mean in business terms. Keep the total response around 180-220 words. Use friendly, conversational language as if advising a business colleague.`;
 
     // Generate interpretation
     const result = await model.generateContent(prompt);
