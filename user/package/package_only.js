@@ -4035,7 +4035,7 @@
             
             // Collect all unique pax ranges from all hotels for this package
             const paxRangesSet = new Set();
-            const hotelPricingMap = {}; // hotel_id -> { paxRangeKey -> price }
+            const hotelPricingMap = {}; // hotel_id -> [pricing tiers]
             
             hotels.forEach(hotel => {
                 const pkg = packagesData.find(p => p.category === packageName && p.hotel_id === hotel.id);
@@ -4044,37 +4044,32 @@
                     return;
                 }
                 
-                // Initialize hotel pricing map
+                // Initialize hotel pricing list
                 if (!hotelPricingMap[hotel.id]) {
-                    hotelPricingMap[hotel.id] = {};
+                    hotelPricingMap[hotel.id] = [];
                 }
                 
                 // Process each pricing tier
                 pkg.pricing.forEach(tier => {
                     const min = tier.min_tourist || 0;
                     const max = tier.max_tourist || Infinity;
-                    const price = tier.price_per_head || 0;
+                    
+                    // Add tier to hotel pricing map (keep original object)
+                    hotelPricingMap[hotel.id].push(tier);
                     
                     // Format pax range
                     let paxRangeKey;
-                    let paxRangeLabel;
                     
                     if (min === max) {
                         paxRangeKey = `${min}`;
-                        paxRangeLabel = `${min}`;
                     } else if (max >= 100 || max === Infinity || max > 999) {
                         paxRangeKey = `${min}+`;
-                        paxRangeLabel = `${min}+`;
                     } else {
                         paxRangeKey = `${min}-${max}`;
-                        paxRangeLabel = `${min}-${max}`;
                     }
                     
                     // Add to unique pax ranges set
                     paxRangesSet.add(paxRangeKey);
-                    
-                    // Store price for this hotel and pax range
-                    hotelPricingMap[hotel.id][paxRangeKey] = price;
                 });
             });
             
@@ -4103,16 +4098,59 @@
                     <i class="fas fa-info-circle me-2"></i>No pricing data available for this package
                 </td></tr>`;
             } else {
+                // Helper to pick a representative pax count for a range
+                const getSamplePax = (range) => {
+                    if (range.includes('+')) {
+                        return parseInt(range.replace('+', '')) || 0;
+                    } else if (range.includes('-')) {
+                        const [minStr, maxStr] = range.split('-');
+                        const min = parseInt(minStr) || 0;
+                        const max = parseInt(maxStr) || min;
+                        // Use the lower bound so it always falls inside the tier that starts at min
+                        return min || 0;
+                    }
+                    return parseInt(range) || 0;
+                };
+                
+                // Helper to find price for a given pax in a hotel's pricing tiers
+                const getPriceForPax = (pricingList, paxCount) => {
+                    if (!Array.isArray(pricingList) || pricingList.length === 0) return null;
+                    
+                    const sorted = [...pricingList].sort((a, b) => (a.min_tourist || 0) - (b.min_tourist || 0));
+                    
+                    // First: exact within-range match
+                    for (const tier of sorted) {
+                        const min = tier.min_tourist || 0;
+                        const max = (tier.max_tourist != null ? tier.max_tourist : Infinity);
+                        if (paxCount >= min && paxCount <= max) {
+                            return tier.price_per_head || null;
+                        }
+                    }
+                    
+                    // Fallback: closest lower tier
+                    for (let i = sorted.length - 1; i >= 0; i--) {
+                        const max = (sorted[i].max_tourist != null ? sorted[i].max_tourist : Infinity);
+                        if (paxCount > max) {
+                            return sorted[i].price_per_head || null;
+                        }
+                    }
+                    
+                    // Last resort: highest tier
+                    return sorted[sorted.length - 1].price_per_head || null;
+                };
+                
                 paxRanges.forEach(paxRangeKey => {
-                    // Format pax range label (same as key for now)
                     const paxRangeLabel = paxRangeKey;
+                    const samplePax = getSamplePax(paxRangeKey);
                     
                     html += `<tr>`;
                     html += `<td class="fw-bold">${paxRangeLabel} pax</td>`;
                     
-                    // Add price for each hotel
+                    // Add price for each hotel using nearest matching tier
                     hotels.forEach(hotel => {
-                        const price = hotelPricingMap[hotel.id] && hotelPricingMap[hotel.id][paxRangeKey];
+                        const pricingList = hotelPricingMap[hotel.id] || [];
+                        const price = getPriceForPax(pricingList, samplePax);
+                        
                         if (price && price > 0) {
                             html += `<td class="text-center">₱${price.toLocaleString()}</td>`;
                         } else {
