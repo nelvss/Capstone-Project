@@ -276,15 +276,12 @@ const getBookingTypeComparison = async (req, res) => {
       .in('status', ['confirmed', 'completed']);
     
     if (start_date) {
-      query = query.gte('arrival_date', start_date);
+      // Use date comparison on the date column only (without time)
+      query = query.gte('arrival_date', start_date + 'T00:00:00.000Z');
     }
     if (end_date) {
-      // Add one day to end_date to include the entire end date (up to 23:59:59)
-      // This ensures bookings on the end date are included
-      const endDatePlusOne = new Date(end_date);
-      endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
-      const adjustedEndDate = endDatePlusOne.toISOString().split('T')[0];
-      query = query.lt('arrival_date', adjustedEndDate);
+      // Include the entire end date by comparing up to 23:59:59.999Z
+      query = query.lte('arrival_date', end_date + 'T23:59:59.999Z');
     }
     
     const { data, error } = await query;
