@@ -279,7 +279,12 @@ const getBookingTypeComparison = async (req, res) => {
       query = query.gte('arrival_date', start_date);
     }
     if (end_date) {
-      query = query.lte('arrival_date', end_date);
+      // Add one day to end_date to include the entire end date (up to 23:59:59)
+      // This ensures bookings on the end date are included
+      const endDatePlusOne = new Date(end_date);
+      endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+      const adjustedEndDate = endDatePlusOne.toISOString().split('T')[0];
+      query = query.lt('arrival_date', adjustedEndDate);
     }
     
     const { data, error } = await query;
@@ -341,12 +346,18 @@ const getBookingTypeComparison = async (req, res) => {
       tour_only: grouped[key].tour_only
     }));
 
-    if (process.env.ANALYTICS_DEBUG === 'true') {
-      console.log('🔍 Booking type comparison summary:', {
-        periods: comparison.length,
-        totalPackageOnly: comparison.reduce((sum, c) => sum + (c.package_only || 0), 0),
-        totalTourOnly: comparison.reduce((sum, c) => sum + (c.tour_only || 0), 0)
-      });
+    // Enhanced logging to debug discrepancies
+    console.log('🔍 Booking type comparison summary:', {
+      filters: { start_date, end_date },
+      totalRecordsFromDB: data.length,
+      periods: comparison.length,
+      totalPackageOnly: comparison.reduce((sum, c) => sum + (c.package_only || 0), 0),
+      totalTourOnly: comparison.reduce((sum, c) => sum + (c.tour_only || 0), 0)
+    });
+    
+    // Log first 3 periods for debugging
+    if (comparison.length > 0) {
+      console.log('📅 First 3 periods:', comparison.slice(0, 3));
     }
     
     console.log('✅ Booking type comparison fetched successfully');

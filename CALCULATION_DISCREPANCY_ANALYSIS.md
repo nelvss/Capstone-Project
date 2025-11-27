@@ -65,3 +65,4 @@ The debug logs I added will show:
 4. **Years count** used for average
 
 This will reveal exactly why there's a discrepancy!
+

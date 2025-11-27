@@ -115,3 +115,4 @@ If everything works correctly:
 - **predicted**: 85.1 × 1.1 = 93.6 bookings ✓
 
 Check the logs and share what you find!
+

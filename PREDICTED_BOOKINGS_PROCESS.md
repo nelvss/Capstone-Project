@@ -373,3 +373,4 @@ For each month, the system returns:
 - **Robust**: Less sensitive to single-year anomalies
 - **Practical**: Provides actionable predictions for business planning
 - **Transparent**: Shows trend, growth rate, and confidence level
+

@@ -249,3 +249,4 @@ The seasonal booking prediction model employs a two-stage approach:
 2. **Trend-Adjusted Prediction Stage**: Applies a trend multiplier derived from year-over-year average growth rate analysis to adjust the historical average.
 
 The final prediction formula integrates both components, where the predicted bookings \( \hat{B}_m \) for month \( m \) is the product of the historical average \( \bar{B}_m \) and the trend multiplier \( M_m \), rounded to the nearest integer.
+

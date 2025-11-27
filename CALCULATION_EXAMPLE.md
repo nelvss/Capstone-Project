@@ -185,3 +185,4 @@ If you see 100+ bookings in booking type comparison (which now also filters by s
 4. **Future prediction**: Prediction is for **next year**, while comparison might show all historical data
 
 The 52 bookings represents the **predicted average** for January 2025, based on the **historical average** of past January bookings, adjusted for growth trend.
+
