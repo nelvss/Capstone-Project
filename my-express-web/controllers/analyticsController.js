@@ -1756,6 +1756,14 @@ const getSeasonalPrediction = async (req, res) => {
     const startDate = new Date(FIRST_ANALYTICS_YEAR, 0, 1).toISOString();
     const endDate = new Date(targetYear - 1, 11, 31, 23, 59, 59).toISOString();
     
+    console.log('📅 Seasonal Prediction Date Range:', {
+      FIRST_ANALYTICS_YEAR,
+      targetYear,
+      startDate,
+      endDate,
+      dateRangeYears: `${FIRST_ANALYTICS_YEAR} to ${targetYear - 1}`
+    });
+    
     let query = supabase
       .from('bookings')
       .select('booking_id, arrival_date, status, number_of_tourist')
@@ -1764,6 +1772,12 @@ const getSeasonalPrediction = async (req, res) => {
       .in('status', ['confirmed', 'completed']);
     
     const { data: historicalBookings, error } = await query;
+    
+    console.log('📊 Fetched historical bookings:', {
+      totalBookings: historicalBookings?.length || 0,
+      firstBooking: historicalBookings?.[0]?.arrival_date,
+      lastBooking: historicalBookings?.[historicalBookings.length - 1]?.arrival_date
+    });
     
     if (error) {
       console.error('❌ Error fetching historical bookings:', error);
@@ -1851,6 +1865,13 @@ const getSeasonalPrediction = async (req, res) => {
       monthlyData[month].years_data[year].bookings++;
       monthlyData[month].years_data[year].tourists += parseInt(booking.number_of_tourist) || 0;
     });
+    
+    // Log aggregated years
+    const aggregatedYears = new Set();
+    for (let i = 0; i < 12; i++) {
+      Object.keys(monthlyData[i].years_data).forEach(year => aggregatedYears.add(parseInt(year)));
+    }
+    console.log('📊 Years found in aggregated data:', Array.from(aggregatedYears).sort());
     
     // Calculate averages and predictions for target year
     const monthlyPredictions = [];
@@ -1992,6 +2013,14 @@ const getSeasonalPrediction = async (req, res) => {
       Object.keys(monthlyData[i].years_data).forEach(year => allYears.add(parseInt(year)));
     }
     const actualLookbackYears = allYears.size > 0 ? targetYear - Math.min(...Array.from(allYears)) : 0;
+    
+    console.log('📊 Lookback Years Calculation:', {
+      allYearsInData: Array.from(allYears).sort(),
+      minYear: allYears.size > 0 ? Math.min(...Array.from(allYears)) : 'N/A',
+      targetYear: targetYear,
+      actualLookbackYears: actualLookbackYears,
+      calculation: `${targetYear} - ${allYears.size > 0 ? Math.min(...Array.from(allYears)) : 'N/A'} = ${actualLookbackYears}`
+    });
     
     console.log('✅ Seasonal prediction generated successfully');
     
