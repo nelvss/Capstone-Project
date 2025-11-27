@@ -2072,7 +2072,20 @@ const interpretChart = async (req, res) => {
   Data: ${JSON.stringify(ds.data)}`;
     }).join('\n\n');
 
-    const prompt = `You are a data analyst expert at interpreting business analytics charts. Analyze the following chart data and provide actionable insights.
+    // Map chart types to business context for owner-friendly insights
+    const chartContextMap = {
+      'bookingTypeChart': 'customer booking preferences between tour packages, tour-only services, and other offerings',
+      'packageDistributionChart': 'which package deals are most popular with customers',
+      'tourDistributionChart': 'which individual tour services customers prefer',
+      'touristVolumeChart': 'how many visitors you can expect during different time periods',
+      'avgBookingValueChart': 'how much customers typically spend on bookings',
+      'peakBookingDaysChart': 'which days of the week receive the most bookings',
+      'servicePerformanceChart': 'how each of your services is performing in terms of customer interest'
+    };
+
+    const businessContext = chartContextMap[chartTitle] || 'your business performance data';
+
+    const prompt = `You are analyzing ${businessContext} for a travel and tours business owner in Puerto Galera. The owner needs clear, practical insights they can act on immediately.
 
 Chart Type: ${chartType}
 Chart Title: ${chartTitle || 'Analytics Chart'}
@@ -2081,14 +2094,23 @@ Time Periods/Labels: ${JSON.stringify(labels)}
 Data Series:
 ${datasetsInfo}
 
-Please provide a comprehensive analysis including:
-1. Key trends and patterns observed
-2. Notable peaks, valleys, or significant changes
-3. Comparisons between data series (if multiple)
-4. Business insights and recommendations
-5. Any anomalies or concerns that should be addressed
+Provide insights in plain business language (avoid technical jargon). Structure your response as:
 
-Format your response in clear, actionable paragraphs. Be specific with numbers and percentages where relevant. Keep the response concise but informative (approximately 200-300 words).`;
+📊 WHAT'S HAPPENING:
+- Describe the main pattern or trend in simple terms
+- Highlight the highest and lowest performing items/periods with specific numbers
+- Mention any surprising changes or patterns
+
+💡 WHAT THIS MEANS FOR YOUR BUSINESS:
+- Explain why this matters for revenue, customer satisfaction, or operations
+- Compare to what you'd typically expect (if there are notable differences)
+
+🎯 RECOMMENDED ACTIONS:
+- Suggest 2-3 specific actions the owner can take
+- Focus on practical steps like promoting certain services, adjusting pricing, or preparing for busy periods
+- Make recommendations concrete and actionable
+
+Use percentages and specific numbers to be precise, but explain what they mean in business terms. Keep the total response around 150-200 words. Use friendly, conversational language as if advising a business colleague.`;
 
     // Generate interpretation
     const result = await model.generateContent(prompt);
@@ -2130,19 +2152,19 @@ const generateFallbackInterpretation = (chartType, labels, datasets, chartTitle)
     const maxIndex = dataPoints.findIndex(v => parseFloat(v) === max);
     const minIndex = dataPoints.findIndex(v => parseFloat(v) === min);
     
-    let interpretation = `Analysis of ${chartTitle || 'Chart Data'}:\n\n`;
-    interpretation += `The data shows a range from ${min.toFixed(2)} to ${max.toFixed(2)}, `;
-    interpretation += `with an average value of ${average}. `;
+    let interpretation = `📊 WHAT'S HAPPENING:\n`;
+    interpretation += `Your data ranges from ${min.toFixed(0)} to ${max.toFixed(0)}, with an average of ${average}. `;
     
     if (maxIndex >= 0 && labels[maxIndex]) {
-      interpretation += `The highest point occurs at ${labels[maxIndex]} with a value of ${max.toFixed(2)}. `;
+      interpretation += `Your best performance is at ${labels[maxIndex]} (${max.toFixed(0)} bookings). `;
     }
     
     if (minIndex >= 0 && labels[minIndex]) {
-      interpretation += `The lowest point is at ${labels[minIndex]} with a value of ${min.toFixed(2)}. `;
+      interpretation += `The lowest activity is at ${labels[minIndex]} (${min.toFixed(0)} bookings). `;
     }
     
     // Calculate trend
+    interpretation += `\n\n💡 WHAT THIS MEANS:\n`;
     if (dataPoints.length > 1) {
       const firstHalf = dataPoints.slice(0, Math.floor(dataPoints.length / 2));
       const secondHalf = dataPoints.slice(Math.floor(dataPoints.length / 2));
@@ -2150,17 +2172,29 @@ const generateFallbackInterpretation = (chartType, labels, datasets, chartTitle)
       const secondAvg = secondHalf.reduce((sum, val) => sum + (parseFloat(val) || 0), 0) / secondHalf.length;
       
       if (secondAvg > firstAvg * 1.1) {
-        interpretation += `\n\nThe data shows an overall upward trend, with the latter period averaging ${((secondAvg - firstAvg) / firstAvg * 100).toFixed(1)}% higher than the earlier period.`;
+        const growthPercent = ((secondAvg - firstAvg) / firstAvg * 100).toFixed(1);
+        interpretation += `Great news! Your business is growing. Recent performance is ${growthPercent}% better than earlier periods. This suggests your services are gaining popularity.`;
       } else if (secondAvg < firstAvg * 0.9) {
-        interpretation += `\n\nThe data shows a downward trend, with the latter period averaging ${((firstAvg - secondAvg) / firstAvg * 100).toFixed(1)}% lower than the earlier period.`;
+        const declinePercent = ((firstAvg - secondAvg) / firstAvg * 100).toFixed(1);
+        interpretation += `Activity has decreased by ${declinePercent}% compared to earlier periods. Consider reviewing your marketing strategy or service offerings.`;
       } else {
-        interpretation += `\n\nThe data remains relatively stable across the time period.`;
+        interpretation += `Your business performance is stable and consistent. This is good for planning and managing resources.`;
       }
     }
     
+    // Add actionable recommendations
+    interpretation += `\n\n🎯 RECOMMENDED ACTIONS:\n`;
+    if (max > average * 1.5 && maxIndex >= 0 && labels[maxIndex]) {
+      interpretation += `• Focus marketing efforts on periods like ${labels[maxIndex]} when demand is highest\n`;
+    }
+    if (min < average * 0.5 && minIndex >= 0 && labels[minIndex]) {
+      interpretation += `• Offer special promotions during ${labels[minIndex]} to boost bookings\n`;
+    }
+    interpretation += `• Monitor these trends weekly to spot opportunities early`;
+    
     return interpretation;
   } catch (err) {
-    return 'Unable to generate detailed analysis at this time. Please review the chart data manually.';
+    return '📊 We\'re having trouble analyzing this data right now. Please check back in a few minutes or contact support if this persists.';
   }
 };
 

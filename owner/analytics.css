@@ -1218,9 +1218,120 @@ header h1 {
 }
 
 .ai-insights-body {
-  min-height: 80px;
+  min-height: 100px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .ai-insights-body .ai-insights-text p {
   line-height: 1.6;
+}
+
+/* Enhanced AI Insights Section Formatting */
+.ai-insights-text .insight-section {
+  margin-bottom: 1rem;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--light-gray);
+  transition: all 0.3s ease;
+}
+
+.ai-insights-text .insight-section:hover {
+  background: var(--medium-gray);
+  transform: translateX(4px);
+}
+
+.ai-insights-text .insight-section h6 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-insights-text .insight-section h6 i {
+  font-size: 1rem;
+}
+
+.ai-insights-text .insight-content {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--dark-gray);
+}
+
+.ai-insights-text .insight-content p {
+  margin-bottom: 8px;
+}
+
+.ai-insights-text .insight-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Insight list styling */
+.ai-insights-text .insight-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0;
+}
+
+.ai-insights-text .insight-list li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.ai-insights-text .insight-list li::before {
+  content: "\2022";
+  position: absolute;
+  left: 0;
+  color: var(--primary-red);
+  font-weight: bold;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Color coding for different insight sections */
+.ai-insights-text .insight-section:has(.text-primary) {
+  border-left: 3px solid #0d6efd;
+}
+
+.ai-insights-text .insight-section:has(.text-info) {
+  border-left: 3px solid #0dcaf0;
+}
+
+.ai-insights-text .insight-section:has(.text-success) {
+  border-left: 3px solid #198754;
+}
+
+.ai-insights-text .insight-section:has(.text-warning) {
+  border-left: 3px solid #ffc107;
+}
+
+/* AI insights scrollbar */
+.ai-insights-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ai-insights-body::-webkit-scrollbar-track {
+  background: var(--light-gray);
+  border-radius: 3px;
+}
+
+.ai-insights-body::-webkit-scrollbar-thumb {
+  background: var(--primary-red);
+  border-radius: 3px;
+}
+
+.ai-insights-body::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-red-dark);
+}
+
+/* Spinner for loading insights */
+.ai-insights-body .spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
 }

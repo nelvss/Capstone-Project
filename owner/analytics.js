@@ -3179,22 +3179,127 @@ async function generateChartInsights(chartId) {
     return;
   }
 
-  const paragraphs = (result.interpretation || '')
-    .split('\n')
-    .map(p => p.trim())
-    .filter(p => p.length > 0)
-    .map(p => `<p class="mb-2">${p}</p>`)
-    .join('');
+  // Parse and format the AI response for better readability
+  const interpretation = result.interpretation || '';
+  let formattedHTML = '';
+  
+  // Split by section headers (emoji-based)
+  const sections = interpretation.split(/(?=📊|💡|🎯|⚠️)/);
+  
+  sections.forEach(section => {
+    const trimmedSection = section.trim();
+    if (!trimmedSection) return;
+    
+    // Check for section headers and format accordingly
+    if (trimmedSection.startsWith('📊')) {
+      const content = trimmedSection.replace(/📊\s*WHAT'S HAPPENING:?/i, '').trim();
+      formattedHTML += `
+        <div class="insight-section mb-3">
+          <h6 class="text-primary mb-2">
+            <i class="fas fa-chart-line me-2"></i>What's Happening
+          </h6>
+          <div class="insight-content">${formatInsightContent(content)}</div>
+        </div>
+      `;
+    } else if (trimmedSection.startsWith('💡')) {
+      const content = trimmedSection.replace(/💡\s*WHAT THIS MEANS(\s+FOR YOUR BUSINESS)?:?/i, '').trim();
+      formattedHTML += `
+        <div class="insight-section mb-3">
+          <h6 class="text-info mb-2">
+            <i class="fas fa-lightbulb me-2"></i>What This Means
+          </h6>
+          <div class="insight-content">${formatInsightContent(content)}</div>
+        </div>
+      `;
+    } else if (trimmedSection.startsWith('🎯')) {
+      const content = trimmedSection.replace(/🎯\s*RECOMMENDED ACTIONS?:?/i, '').trim();
+      formattedHTML += `
+        <div class="insight-section mb-3">
+          <h6 class="text-success mb-2">
+            <i class="fas fa-bullseye me-2"></i>Recommended Actions
+          </h6>
+          <div class="insight-content">${formatInsightContent(content)}</div>
+        </div>
+      `;
+    } else if (trimmedSection.startsWith('⚠️')) {
+      const content = trimmedSection.replace(/⚠️\s*WARNING:?/i, '').trim();
+      formattedHTML += `
+        <div class="insight-section mb-3">
+          <h6 class="text-warning mb-2">
+            <i class="fas fa-exclamation-triangle me-2"></i>Important Notice
+          </h6>
+          <div class="insight-content">${formatInsightContent(content)}</div>
+        </div>
+      `;
+    } else {
+      // Plain text without section header
+      formattedHTML += `<div class="insight-content mb-2">${formatInsightContent(trimmedSection)}</div>`;
+    }
+  });
+  
+  // If no formatted sections found, fall back to simple paragraph formatting
+  if (!formattedHTML) {
+    const paragraphs = interpretation
+      .split('\n')
+      .map(p => p.trim())
+      .filter(p => p.length > 0)
+      .map(p => `<p class="mb-2">${p}</p>`)
+      .join('');
+    formattedHTML = paragraphs;
+  }
 
   insightsEl.classList.remove('text-danger', 'text-muted');
   insightsEl.innerHTML = `
     <div class="ai-insights-text">
-      ${paragraphs}
-      <p class="mt-2 small text-muted">
-        <i class="fas fa-magic me-1"></i>Powered by AI insights.
-      </p>
+      ${formattedHTML}
+      <div class="mt-3 pt-2 border-top small text-muted">
+        <i class="fas fa-robot me-1"></i>AI-powered analysis
+      </div>
     </div>
   `;
+}
+
+/**
+ * Format insight content - convert bullet points and add proper formatting
+ * @param {string} content - Raw content text
+ * @returns {string} Formatted HTML
+ */
+function formatInsightContent(content) {
+  if (!content) return '';
+  
+  // Split by lines and process
+  const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  
+  let html = '';
+  let inList = false;
+  
+  lines.forEach(line => {
+    // Check if line is a bullet point
+    if (line.match(/^[•\-\*]\s+/) || line.match(/^\d+\.\s+/)) {
+      if (!inList) {
+        html += '<ul class="insight-list mb-2">';
+        inList = true;
+      }
+      // Remove bullet/number and add as list item
+      const cleanLine = line.replace(/^[•\-\*]\s+/, '').replace(/^\d+\.\s+/, '');
+      html += `<li>${cleanLine}</li>`;
+    } else {
+      // Close list if we were in one
+      if (inList) {
+        html += '</ul>';
+        inList = false;
+      }
+      // Add as paragraph
+      html += `<p class="mb-2">${line}</p>`;
+    }
+  });
+  
+  // Close list if still open
+  if (inList) {
+    html += '</ul>';
+  }
+  
+  return html;
 }
 
 /**
