@@ -2590,8 +2590,6 @@ body {
 
 .compare-table {
     font-size: 0.9rem;
-    width: 100%;
-    table-layout: fixed;
 }
 
 .compare-table thead {
