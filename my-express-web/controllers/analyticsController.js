@@ -1891,10 +1891,30 @@ const getSeasonalPrediction = async (req, res) => {
     }
     
     // Aggregate historical data by month
+    let invalidDates = 0;
     historicalBookings.forEach(booking => {
+      // Validate arrival_date before processing
+      if (!booking.arrival_date) {
+        invalidDates++;
+        return;
+      }
+      
       const date = new Date(booking.arrival_date);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        invalidDates++;
+        return;
+      }
+      
       const month = date.getMonth();
       const year = date.getFullYear();
+      
+      // Validate month and year are in expected range
+      if (month < 0 || month > 11 || year < FIRST_ANALYTICS_YEAR || year > targetYear - 1) {
+        invalidDates++;
+        return;
+      }
       
       if (!monthlyData[month].years_data[year]) {
         monthlyData[month].years_data[year] = {
@@ -1911,12 +1931,25 @@ const getSeasonalPrediction = async (req, res) => {
       monthlyData[month].years_data[year].tourists += parseInt(booking.number_of_tourist) || 0;
     });
     
+    if (invalidDates > 0) {
+      console.warn(`⚠️ Skipped ${invalidDates} bookings with invalid or missing arrival_date`);
+    }
+    
     // Log aggregated years
     const aggregatedYears = new Set();
     for (let i = 0; i < 12; i++) {
       Object.keys(monthlyData[i].years_data).forEach(year => aggregatedYears.add(parseInt(year)));
     }
     console.log('📊 Years found in aggregated data:', Array.from(aggregatedYears).sort());
+    
+    // Log summary for all months to verify data
+    console.log('📊 Monthly Data Summary:');
+    for (let i = 0; i < 12; i++) {
+      const monthData = monthlyData[i];
+      const yearsCount = Object.keys(monthData.years_data).length;
+      const yearsList = Object.keys(monthData.years_data).map(y => parseInt(y)).sort();
+      console.log(`  ${monthData.month_name}: ${monthData.total_bookings} bookings across ${yearsCount} years (${yearsList.join(', ')})`);
+    }
     
     // Calculate averages and predictions for target year
     const monthlyPredictions = [];
@@ -1937,6 +1970,19 @@ const getSeasonalPrediction = async (req, res) => {
             year: year,
             bookings: monthData.years_data[year].bookings
           }))
+        });
+      }
+      
+      // Log detailed breakdown for months with significant data
+      if (monthData.total_bookings > 0 && yearsCount >= 3) {
+        console.log(`📊 ${monthData.month_name} Summary:`, {
+          total_bookings: monthData.total_bookings,
+          years_count: yearsCount,
+          years: Object.keys(monthData.years_data).map(y => parseInt(y)).sort(),
+          breakdown: Object.keys(monthData.years_data).map(year => ({
+            year: parseInt(year),
+            bookings: monthData.years_data[year].bookings
+          })).sort((a, b) => a.year - b.year)
         });
       }
       
