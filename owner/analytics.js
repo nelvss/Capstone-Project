@@ -788,6 +788,18 @@ function initializeNavigation() {
         } else {
             console.error('❌ Section not found:', sectionId);
         }
+        
+        // Hide/Show AI Insights button based on section
+        const aiButton = document.getElementById('aiInterpretBtn');
+        if (aiButton) {
+            if (sectionId === 'predictive') {
+                // Hide button on Predictions page
+                aiButton.style.display = 'none';
+            } else {
+                // Show button on other pages (Overview)
+                aiButton.style.display = '';
+            }
+        }
     }
     
     // Handle click events
@@ -3540,6 +3552,17 @@ function addAIIntepretationButton() {
   
   // Check if button already exists
   if (document.getElementById('aiInterpretBtn')) {
+    return;
+  }
+  
+  // Check if we're on the Predictions page - don't add button if we are
+  const currentHash = window.location.hash.substring(1);
+  const predictiveSection = document.getElementById('predictive');
+  const isPredictiveActive = currentHash === 'predictive' || 
+    (predictiveSection && !predictiveSection.classList.contains('d-none'));
+  
+  if (isPredictiveActive) {
+    // Don't add button on Predictions page
     return;
   }
   
