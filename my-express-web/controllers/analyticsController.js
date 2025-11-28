@@ -1765,21 +1765,51 @@ const getSeasonalPrediction = async (req, res) => {
       dateRangeYears: `${FIRST_ANALYTICS_YEAR} to ${targetYear - 1}`
     });
     
-    let query = supabase
-      .from('bookings')
-      .select('booking_id, arrival_date, status, number_of_tourist')
-      .gte('arrival_date', startDate)
-      .lte('arrival_date', endDate)
-      .in('status', ['confirmed', 'completed']);
+    // Fetch ALL records using pagination to bypass Supabase's 1000 record limit
+    let historicalBookings = [];
+    let hasMore = true;
+    let offset = 0;
+    const pageSize = 1000; // Supabase's maximum per request
+    let queryError = null;
     
-    const { data: historicalBookings, error } = await query;
+    while (hasMore) {
+      let query = supabase
+        .from('bookings')
+        .select('booking_id, arrival_date, status, number_of_tourist')
+        .gte('arrival_date', startDate)
+        .lte('arrival_date', endDate)
+        .in('status', ['confirmed', 'completed'])
+        .order('arrival_date', { ascending: true }) // Order by date for consistent pagination
+        .range(offset, offset + pageSize - 1);
+      
+      const { data: pageData, error: pageError } = await query;
+      
+      if (pageError) {
+        console.error('❌ Error fetching historical bookings page:', pageError);
+        queryError = pageError;
+        break;
+      }
+      
+      if (!pageData || pageData.length === 0) {
+        hasMore = false;
+      } else {
+        historicalBookings = historicalBookings.concat(pageData);
+        offset += pageSize;
+        
+        // If we got less than pageSize results, we've reached the end
+        if (pageData.length < pageSize) {
+          hasMore = false;
+        }
+      }
+    }
     
     // Enhanced logging to debug data issues
     console.log('📊 Fetched historical bookings:', {
       totalBookings: historicalBookings?.length || 0,
       firstBooking: historicalBookings?.[0]?.arrival_date,
       lastBooking: historicalBookings?.[historicalBookings.length - 1]?.arrival_date,
-      dateRange: `${FIRST_ANALYTICS_YEAR} to ${targetYear - 1}`
+      dateRange: `${FIRST_ANALYTICS_YEAR} to ${targetYear - 1}`,
+      pagesFetched: Math.ceil((historicalBookings?.length || 0) / pageSize)
     });
     
     // Log breakdown by year to see what data we're getting
@@ -1794,12 +1824,12 @@ const getSeasonalPrediction = async (req, res) => {
       console.log('📊 Bookings by Year:', bookingsByYear);
     }
     
-    if (error) {
-      console.error('❌ Error fetching historical bookings:', error);
+    if (queryError) {
+      console.error('❌ Error fetching historical bookings:', queryError);
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch historical booking data', 
-        error: error.message 
+        error: queryError.message 
       });
     }
     
