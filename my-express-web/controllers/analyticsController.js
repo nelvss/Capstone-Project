@@ -1942,16 +1942,32 @@ const getSeasonalPrediction = async (req, res) => {
         return;
       }
       
-      const date = new Date(booking.arrival_date);
+      // Parse date string directly to avoid timezone conversion issues
+      // Dates from Supabase are typically in YYYY-MM-DD format
+      let year, month;
+      const dateStr = String(booking.arrival_date).trim();
       
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        invalidDates++;
-        return;
+      // Try parsing as YYYY-MM-DD first (most common format)
+      if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+        const parts = dateStr.split('-');
+        year = parseInt(parts[0], 10);
+        month = parseInt(parts[1], 10) - 1; // JavaScript months are 0-indexed (0-11)
+        
+        // Validate parsed values
+        if (isNaN(year) || isNaN(month) || month < 0 || month > 11) {
+          invalidDates++;
+          return;
+        }
+      } else {
+        // Fallback to Date object parsing for other formats
+        const date = new Date(booking.arrival_date);
+        if (isNaN(date.getTime())) {
+          invalidDates++;
+          return;
+        }
+        month = date.getMonth();
+        year = date.getFullYear();
       }
-      
-      const month = date.getMonth();
-      const year = date.getFullYear();
       
       // Validate month and year are in expected range
       if (month < 0 || month > 11 || year < FIRST_ANALYTICS_YEAR || year > targetYear - 1) {
