@@ -1853,25 +1853,68 @@ const getSeasonalPrediction = async (req, res) => {
     // Fetch payments for historical bookings to calculate revenue
     const bookingIds = historicalBookings.map(b => b.booking_id);
     let historicalPayments = [];
+    
     if (bookingIds.length > 0) {
-      const { data: payments, error: paymentsError } = await supabase
-        .from('payments')
-        .select('booking_id, total_booking_amount')
-        .in('booking_id', bookingIds);
+      // Handle pagination for large booking ID lists (Supabase .in() has limits)
+      const pageSize = 1000; // Supabase's maximum per request
+      let hasMore = true;
+      let offset = 0;
       
-      if (!paymentsError && payments) {
-        historicalPayments = payments;
+      while (hasMore) {
+        const bookingIdsPage = bookingIds.slice(offset, offset + pageSize);
+        
+        if (bookingIdsPage.length === 0) {
+          hasMore = false;
+          break;
+        }
+        
+        const { data: payments, error: paymentsError } = await supabase
+          .from('payments')
+          .select('booking_id, total_booking_amount')
+          .in('booking_id', bookingIdsPage);
+        
+        if (paymentsError) {
+          console.error('❌ Error fetching payments for seasonal prediction:', paymentsError);
+          // Continue with partial data rather than failing completely
+        } else if (payments && payments.length > 0) {
+          historicalPayments = historicalPayments.concat(payments);
+        }
+        
+        if (bookingIdsPage.length < pageSize) {
+          hasMore = false;
+        } else {
+          offset += pageSize;
+        }
       }
+      
+      console.log('📊 Payments fetched for revenue calculation:', {
+        totalBookingIds: bookingIds.length,
+        paymentsFound: historicalPayments.length,
+        matchRate: bookingIds.length > 0 ? ((historicalPayments.length / bookingIds.length) * 100).toFixed(1) + '%' : '0%'
+      });
     }
     
-    // Calculate average revenue per booking
+    // Calculate average revenue per booking (only for bookings that have payments)
     const totalRevenue = historicalPayments.length > 0
       ? historicalPayments.reduce((sum, p) => 
           sum + (parseFloat(p.total_booking_amount) || 0), 0)
       : 0;
-    const avgRevenuePerBooking = historicalBookings.length > 0 
-      ? totalRevenue / historicalBookings.length 
+    
+    // Only calculate average if we have payments - divide by number of payments, not all bookings
+    const avgRevenuePerBooking = historicalPayments.length > 0 
+      ? totalRevenue / historicalPayments.length 
       : 0;
+    
+    console.log('📊 Revenue calculation summary:', {
+      totalRevenue: totalRevenue,
+      avgRevenuePerBooking: avgRevenuePerBooking,
+      bookingsWithPayments: historicalPayments.length,
+      totalBookings: historicalBookings.length
+    });
+    
+    if (avgRevenuePerBooking === 0 && historicalBookings.length > 0) {
+      console.warn('⚠️ No payments found for historical bookings. Predicted revenue will be 0.');
+    }
     
     // Group bookings by month across all years
     const monthlyData = {};
