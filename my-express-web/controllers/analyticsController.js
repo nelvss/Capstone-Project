@@ -1753,8 +1753,9 @@ const getSeasonalPrediction = async (req, res) => {
     // Start from 2019 (FIRST_ANALYTICS_YEAR) to match other analytics functions
     // This ensures consistency with booking type comparison and other analytics
     const FIRST_ANALYTICS_YEAR = 2019;
-    const startDate = new Date(FIRST_ANALYTICS_YEAR, 0, 1).toISOString();
-    const endDate = new Date(targetYear - 1, 11, 31, 23, 59, 59).toISOString();
+    // Use simple YYYY-MM-DD format for better Supabase compatibility (avoids timezone issues)
+    const startDate = `${FIRST_ANALYTICS_YEAR}-01-01`;
+    const endDate = `${targetYear - 1}-12-31`;
     
     console.log('📅 Seasonal Prediction Date Range:', {
       FIRST_ANALYTICS_YEAR,
@@ -1773,11 +1774,25 @@ const getSeasonalPrediction = async (req, res) => {
     
     const { data: historicalBookings, error } = await query;
     
+    // Enhanced logging to debug data issues
     console.log('📊 Fetched historical bookings:', {
       totalBookings: historicalBookings?.length || 0,
       firstBooking: historicalBookings?.[0]?.arrival_date,
-      lastBooking: historicalBookings?.[historicalBookings.length - 1]?.arrival_date
+      lastBooking: historicalBookings?.[historicalBookings.length - 1]?.arrival_date,
+      dateRange: `${FIRST_ANALYTICS_YEAR} to ${targetYear - 1}`
     });
+    
+    // Log breakdown by year to see what data we're getting
+    if (historicalBookings && historicalBookings.length > 0) {
+      const bookingsByYear = {};
+      historicalBookings.forEach(booking => {
+        if (booking.arrival_date) {
+          const year = new Date(booking.arrival_date).getFullYear();
+          bookingsByYear[year] = (bookingsByYear[year] || 0) + 1;
+        }
+      });
+      console.log('📊 Bookings by Year:', bookingsByYear);
+    }
     
     if (error) {
       console.error('❌ Error fetching historical bookings:', error);
