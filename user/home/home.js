@@ -1534,8 +1534,9 @@ async function loadFeedback() {
 
       if (result.feedback.length === 0) {
         feedbackContainer.innerHTML = `
-          <div class="col-12 text-center">
-            <p class="text-muted">No feedback yet. Be the first to share your experience!</p>
+          <div class="col-12 text-center feedback-empty">
+            <i class="fas fa-comment-dots"></i>
+            <p>No feedback yet. Be the first to share your experience!</p>
           </div>
         `;
         return;
@@ -1549,9 +1550,21 @@ async function loadFeedback() {
           day: 'numeric'
         });
 
-        const stars = fb.rating ? Array.from({ length: 5 }, (_, i) =>
-          i < fb.rating ? '<i class="fas fa-star text-warning"></i>' : '<i class="far fa-star text-warning"></i>'
-        ).join('') : '';
+        // Build animated star icons
+        const starsHtml = fb.rating
+          ? Array.from({ length: 5 }, (_, i) =>
+            `<i class="fas fa-star ${i < fb.rating ? 'filled' : 'empty'}"></i>`
+          ).join('')
+          : '';
+
+        // Avatar initials
+        const authorName = fb.anonymous_name || 'Anonymous';
+        const initials = authorName
+          .split(' ')
+          .slice(0, 2)
+          .map(w => w[0] || '')
+          .join('')
+          .toUpperCase() || 'A';
 
         // Parse image URLs (can be single string or JSON array)
         let imageUrls = [];
@@ -1586,14 +1599,14 @@ async function loadFeedback() {
                    style="height: 200px; object-fit: cover; cursor: pointer;"
                    data-feedback-images="${encodedImageUrls}"
                    data-feedback-start="0"
-                   onerror="this.style.display='none'; console.error('Failed to load feedback image');">
+               onerror="this.style.display='none';">
             ` : `
               <div id="carousel-${uniqueId}" class="carousel slide" data-bs-ride="false">
                 <div class="carousel-inner">
                   ${imageUrls.map((url, idx) => `
                     <div class="carousel-item ${idx === 0 ? 'active' : ''}">
                       <img src="${escapeHtml(url)}" class="d-block w-100 feedback-image" alt="Feedback image ${idx + 1}" 
-                           style="height: 200px; object-fit: cover; cursor: pointer;"
+                           style="height: 210px; object-fit: cover; cursor: pointer;"
                            data-feedback-images="${encodedImageUrls}"
                            data-feedback-start="${idx}"
                            onerror="this.style.display='none'; console.error('Failed to load feedback image ${idx + 1}');">
@@ -1623,21 +1636,27 @@ async function loadFeedback() {
         ` : '';
 
         return `
-          <div class="col-md-6 col-lg-4">
-            <div class="card feedback-card h-100 shadow-sm" data-feedback-id="${feedbackId || ''}">
+          <div class="col-md-6 col-lg-4 feedback-animate">
+            <div class="card feedback-card h-100" data-feedback-id="${feedbackId || ''}">
+              <div class="feedback-card-accent"></div>
               ${imagesHtml}
               <div class="card-body d-flex flex-column">
-                <div class="mb-2">
-                  ${stars}
-                </div>
-                <p class="card-text flex-grow-1">${escapeHtml(fb.message)}</p>
-                <div class="mt-auto">
-                  <small class="text-muted">
-                    <i class="fas fa-user me-1"></i>${escapeHtml(fb.anonymous_name || 'Anonymous')}
-                    <span class="ms-3">
-                      <i class="fas fa-calendar me-1"></i>${formattedDate}
-                    </span>
-                  </small>
+                <span class="feedback-quote-icon">&ldquo;</span>
+                ${starsHtml ? `<div class="feedback-stars">${starsHtml}</div>` : ''}
+                <p class="card-text flex-grow-1">${escapeHtml(fb.message || '')}</p>
+                <div class="feedback-divider"></div>
+                <div class="feedback-author">
+                  <div class="feedback-avatar">${initials}</div>
+                  <div class="feedback-author-info">
+                    <div class="feedback-author-name">${escapeHtml(authorName)}</div>
+                    <div class="feedback-author-date">
+                      <i class="fas fa-calendar-alt"></i>
+                      ${formattedDate}
+                    </div>
+                  </div>
+                  <div class="feedback-verified">
+                    <i class="fas fa-check-circle"></i> Verified
+                  </div>
                 </div>
               </div>
             </div>
@@ -1720,8 +1739,9 @@ async function loadFeedback() {
     console.error('Error loading feedback:', error);
     if (feedbackLoader) feedbackLoader.style.display = 'none';
     feedbackContainer.innerHTML = `
-      <div class="col-12 text-center">
-        <p class="text-danger">Failed to load feedback. Please try again later.</p>
+      <div class="col-12 text-center feedback-empty">
+        <i class="fas fa-exclamation-circle" style="color: rgba(220,53,69,0.4);"></i>
+        <p style="color:#c82333;">Failed to load feedback. Please try again later.</p>
       </div>
     `;
   }
