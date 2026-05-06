@@ -909,7 +909,7 @@ function checkAndRedirectByRole() {
  * @param {number} quality - JPEG quality 0–1 (default 0.7)
  * @returns {Promise<string>} - base64 data URL of the compressed image
  */
-function compressImage(file, maxDimension = 1200, quality = 0.7) {
+function compressImage(file, maxDimension = 800, quality = 0.6) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -1437,12 +1437,25 @@ document.addEventListener('DOMContentLoaded', function () {
           feedbackData.images = validImages;
         }
 
+        // Guard: check total payload size before sending (nginx proxy limit ~1MB)
+        const bodyString = JSON.stringify(feedbackData);
+        const payloadSizeKB = new Blob([bodyString]).size / 1024;
+        if (payloadSizeKB > 900) {
+          showErrorModal(
+            'Images Too Large',
+            `Your message + images total ${Math.round(payloadSizeKB)}KB which exceeds the server limit (~900KB).\n\nPlease remove some photos and try again.`
+          );
+          sendFeedbackBtn.disabled = false;
+          sendFeedbackBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> SEND MESSAGE';
+          return;
+        }
+
         const response = await fetch(`${API_BASE_URL}/submit-feedback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(feedbackData)
+          body: bodyString
         });
 
         const result = await response.json();
