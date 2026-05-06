@@ -13,7 +13,7 @@ function getApiBaseUrl() {
     console.log('✅ Using API base from meta tag:', apiBaseFromMeta);
     return apiBaseFromMeta;
   }
-  
+
   // Fallback to production API
   const productionApi = 'https://api.otgpuertogaleratravel.com/api';
   console.log('⚠️ Meta tag not found, using production API fallback:', productionApi);
@@ -42,25 +42,25 @@ async function loadDynamicContent() {
     // Load site content (mission, vision)
     const contentResponse = await fetch(`${API_BASE_URL}/settings/content`);
     const contentResult = await contentResponse.json();
-    
+
     if (contentResult.success) {
       const content = {};
       contentResult.content.forEach(item => {
         content[item.section_key] = item.content;
       });
-      
+
       // Update Mission
       const missionElement = document.querySelector('#mission-vision .card:first-child .card-text');
       if (missionElement && content.mission) {
         missionElement.textContent = content.mission;
       }
-      
+
       // Update Vision
       const visionElement = document.querySelector('#mission-vision .card:last-child .card-text');
       if (visionElement && content.vision) {
         visionElement.textContent = content.vision;
       }
-      
+
       console.log('✅ Site content loaded dynamically');
     }
   } catch (error) {
@@ -93,7 +93,7 @@ async function loadVehicleRental() {
   try {
     const url = `${API_BASE_URL}/vehicles`;
     console.log('🔄 Fetching vehicles from:', url);
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -261,7 +261,7 @@ async function loadVanRental() {
     // Load van destinations
     const destUrl = `${API_BASE_URL}/van-destinations`;
     console.log('🔄 Fetching van destinations from:', destUrl);
-    
+
     const destResponse = await fetch(destUrl, {
       method: 'GET',
       headers: {
@@ -288,7 +288,7 @@ async function loadVanRental() {
     // Load van images
     const imagesUrl = `${API_BASE_URL}/van-images`;
     console.log('🔄 Fetching van images from:', imagesUrl);
-    
+
     const imagesResponse = await fetch(imagesUrl, {
       method: 'GET',
       headers: {
@@ -370,7 +370,7 @@ async function loadVanRental() {
     destinations.forEach(dest => {
       const oneway = Number(dest.oneway_price);
       const roundtrip = Number(dest.roundtrip_price);
-      
+
       if (Number.isFinite(oneway) && oneway > 0) {
         if (minPrice === null || oneway < minPrice) {
           minPrice = oneway;
@@ -449,7 +449,7 @@ async function loadTourOnly() {
   try {
     const url = `${API_BASE_URL}/tours`;
     console.log('🔄 Fetching tours from:', url);
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -469,7 +469,7 @@ async function loadTourOnly() {
     }
 
     const tours = result.tours || [];
-    
+
     // Map tours by category
     const toursByCategory = {
       'Snorkeling Tour': tours.find(t => t.category === 'Snorkeling Tour'),
@@ -479,10 +479,10 @@ async function loadTourOnly() {
 
     // Update Snorkeling Tour card
     updateTourCard('snorkelingTourCarousel', toursByCategory['Snorkeling Tour'], 'Snorkeling Tour');
-    
+
     // Update Inland Tour card
     updateTourCard('inlandCarousel', toursByCategory['Inland Tour'], 'Inland Tour');
-    
+
     // Update Island Hopping card
     updateTourCard('islandHoppingCarousel', toursByCategory['Island Hopping'], 'Island Hopping');
 
@@ -502,7 +502,7 @@ async function loadDiving() {
   try {
     const url = `${API_BASE_URL}/diving`;
     console.log('🔄 Fetching diving data from:', url);
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -537,10 +537,10 @@ async function loadDiving() {
     // Update diving card carousel with images
     const divingCarouselInner = document.querySelector('#divingCarousel .carousel-inner');
     if (divingCarouselInner) {
-      const images = diving.images && diving.images.length > 0 
-        ? diving.images 
+      const images = diving.images && diving.images.length > 0
+        ? diving.images
         : (diving.diving_image ? [{ image_url: diving.diving_image }] : []);
-      
+
       if (images.length > 0) {
         divingCarouselInner.innerHTML = '';
         images.forEach((image, index) => {
@@ -571,21 +571,21 @@ async function loadDiving() {
     const divingMoreInfoBtn = document.querySelector('#divingCarousel').closest('.card').querySelector('.btn-more-info');
     if (divingMoreInfoBtn) {
       let infoHtml = '';
-      
+
       // Add first image if available, otherwise use logo
-      const images = diving.images && diving.images.length > 0 
-        ? diving.images 
+      const images = diving.images && diving.images.length > 0
+        ? diving.images
         : (diving.diving_image ? [{ image_url: diving.diving_image }] : []);
-      
+
       if (images.length > 0) {
         infoHtml += `<img src='${images[0].image_url}' alt='${diving.name}' class='img-fluid rounded mb-2'>`;
       } else {
         infoHtml += `<img src='../../Images/logo.png' alt='${diving.name}' class='img-fluid rounded mb-2'>`;
       }
-      
+
       // Add title
       infoHtml += `<br><strong>${diving.name}</strong>`;
-      
+
       // Add description from database if available
       if (diving.description && diving.description.trim()) {
         infoHtml += `
@@ -594,7 +594,7 @@ async function loadDiving() {
           </div>
         `;
       }
-      
+
       // Add price
       if (diving.price_per_head) {
         infoHtml += `
@@ -606,7 +606,7 @@ async function loadDiving() {
           </div>
         `;
       }
-      
+
       // Add hardcoded inclusions as additional info
       infoHtml += `
         <div class="inclusions-section">
@@ -625,16 +625,16 @@ async function loadDiving() {
           </div>
         </div>
       `;
-      
+
       divingMoreInfoBtn.setAttribute('data-info', infoHtml);
       divingMoreInfoBtn.setAttribute('data-title', diving.name);
     }
 
     // Update service images for gallery - support multiple images
-    const images = diving.images && diving.images.length > 0 
-      ? diving.images 
+    const images = diving.images && diving.images.length > 0
+      ? diving.images
       : (diving.diving_image ? [{ image_url: diving.diving_image }] : []);
-    
+
     if (images.length > 0) {
       serviceImages['Diving'] = images.map(img => ({
         src: img.image_url,
@@ -694,12 +694,12 @@ function updateTourCard(carouselId, tour, displayName) {
   const moreInfoBtn = document.querySelector(`#${carouselId}`).closest('.card').querySelector('.btn-more-info');
   if (moreInfoBtn) {
     let pricingInfo = '';
-    
+
     // Add image if available
     if (tour.images && tour.images.length > 0) {
       pricingInfo += `<img src='${tour.images[0].image_url}' alt='${displayName}' class='img-fluid'>`;
     }
-    
+
     // Add description from database if available in a styled section
     if (tour.description && tour.description.trim()) {
       pricingInfo += `
@@ -708,7 +708,7 @@ function updateTourCard(carouselId, tour, displayName) {
         </div>
       `;
     }
-    
+
     // Add pricing tiers in a styled section if available
     if (tour.pricing && tour.pricing.length > 0) {
       pricingInfo += `
@@ -716,10 +716,10 @@ function updateTourCard(carouselId, tour, displayName) {
           <div class="pricing-title"><i class="bi bi-currency-dollar"></i>Pricing</div>
       `;
       tour.pricing.forEach(tier => {
-        const paxRange = tier.min_tourist === tier.max_tourist 
-          ? `${tier.min_tourist} pax` 
+        const paxRange = tier.min_tourist === tier.max_tourist
+          ? `${tier.min_tourist} pax`
           : `${tier.min_tourist}-${tier.max_tourist} pax`;
-        
+
         pricingInfo += `
           <div class="pricing-item">
             <span class="pricing-pax"><i class="bi bi-people-fill"></i>${paxRange}</span>
@@ -729,7 +729,7 @@ function updateTourCard(carouselId, tour, displayName) {
       });
       pricingInfo += '</div>';
     }
-    
+
     // Keep the original inclusions info (hardcoded) as fallback or additional info in a styled section
     const originalInfo = moreInfoBtn.getAttribute('data-info');
     const inclusionsMatch = originalInfo.match(/Inclusions:(.*)$/s);
@@ -758,7 +758,7 @@ function updateTourCard(carouselId, tour, displayName) {
         }
       }
     }
-    
+
     moreInfoBtn.setAttribute('data-info', pricingInfo);
     moreInfoBtn.setAttribute('data-title', displayName);
   }
@@ -778,7 +778,7 @@ function checkAuthentication() {
   if (!userSession) {
     return null;
   }
-  
+
   try {
     const session = JSON.parse(userSession);
     // Check if session is valid (has required fields)
@@ -789,13 +789,13 @@ function checkAuthentication() {
     console.error('Error parsing user session:', error);
     localStorage.removeItem('userSession');
   }
-  
+
   return null;
 }
 
 function handleBookNowClick(event) {
   event.preventDefault();
-  
+
   // Check if user is authenticated
   const session = checkAuthentication();
   if (!session) {
@@ -805,7 +805,7 @@ function handleBookNowClick(event) {
     window.location.href = '/owner/login.html';
     return false;
   }
-  
+
   // User is authenticated, proceed to booking form
   window.location.href = '/user/form/booking_form.html';
   return true;
@@ -813,7 +813,7 @@ function handleBookNowClick(event) {
 
 function handleUserIconClick(event) {
   event.preventDefault();
-  
+
   // Check if user is authenticated
   const session = checkAuthentication();
   if (session) {
@@ -839,10 +839,10 @@ function handleUserIconClick(event) {
 function updateUserIcon() {
   const userIconLink = document.getElementById('userIconLink');
   if (!userIconLink) return;
-  
+
   const textSpan = userIconLink.querySelector('.user-link-text');
   const session = checkAuthentication();
-  
+
   if (session) {
     // User is logged in - change icon to user-circle or add logged-in styling
     const icon = userIconLink.querySelector('i');
@@ -850,7 +850,7 @@ function updateUserIcon() {
       icon.classList.remove('fa-user');
       icon.classList.add('fa-user-circle');
     }
-    
+
     // Update text and title based on role
     const userRole = session.type;
     if (userRole === 'owner' || userRole === 'staff') {
@@ -866,7 +866,7 @@ function updateUserIcon() {
       }
       userIconLink.title = 'My Bookings';
     }
-    
+
     userIconLink.classList.add('logged-in');
   } else {
     // User not logged in
@@ -890,7 +890,7 @@ function checkAndRedirectByRole() {
   if (!session) {
     return; // Not authenticated, stay on home page
   }
-  
+
   const userRole = session.type;
   if (userRole === 'owner') {
     // Redirect owner to dashboard
@@ -902,17 +902,58 @@ function checkAndRedirectByRole() {
   // Customer users stay on home page
 }
 
+/**
+ * Compresses an image File to a smaller base64 JPEG string.
+ * @param {File} file - The original image file
+ * @param {number} maxDimension - Max width or height in pixels (default 1200)
+ * @param {number} quality - JPEG quality 0–1 (default 0.7)
+ * @returns {Promise<string>} - base64 data URL of the compressed image
+ */
+function compressImage(file, maxDimension = 1200, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+
+        // Scale down if larger than maxDimension
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Re-evaluate API_BASE_URL to ensure meta tag is available
   API_BASE_URL = getApiBaseUrl();
   console.log('🔗 API_BASE_URL re-evaluated on DOMContentLoaded:', API_BASE_URL);
-  
+
   // Check and redirect owner/staff users to their dashboards
   checkAndRedirectByRole();
-  
+
   // Update user icon based on authentication status
   updateUserIcon();
-  
+
   // Load dynamic content first
   loadDynamicContent();
   loadVehicleRental();
@@ -956,7 +997,7 @@ document.addEventListener('DOMContentLoaded', function () {
     anchor.addEventListener('click', function (e) {
       // Skip if this is a more info button
       if (this.classList.contains('btn-more-info')) return;
-      
+
       const targetId = this.getAttribute('href');
       if (!targetId || targetId === '#') return;
       const target = document.querySelector(targetId);
@@ -1023,15 +1064,15 @@ document.addEventListener('DOMContentLoaded', function () {
       e.stopPropagation();
       const title = button.getAttribute('data-title') || 'More Info';
       const info = button.getAttribute('data-info') || '';
-      
+
       document.getElementById('popupModalLabel').textContent = title;
-      
+
       // Add gallery button if images exist for this service
       let enhancedInfo = info;
       if (serviceImages[title] && serviceImages[title].length > 0) {
         enhancedInfo += `<br><br><button class="gallery-trigger" onclick="openImageGallery('${title}')">📸 View Image Gallery (${serviceImages[title].length} photos)</button>`;
       }
-      
+
       document.getElementById('popupModalBody').innerHTML = enhancedInfo;
       const modal = new bootstrap.Modal(document.getElementById('popupModal'));
       modal.show();
@@ -1042,41 +1083,41 @@ document.addEventListener('DOMContentLoaded', function () {
   var popupModal = document.getElementById('popupModal');
   var popupModalBody = document.getElementById('popupModalBody');
   if (popupModal && popupModalBody) {
-    popupModal.addEventListener('shown.bs.modal', function() {
+    popupModal.addEventListener('shown.bs.modal', function () {
       var imgs = popupModalBody.querySelectorAll('img');
-      imgs.forEach(function(img) {
+      imgs.forEach(function (img) {
         img.style.cursor = 'zoom-in';
-        img.addEventListener('click', function(e) {
+        img.addEventListener('click', function (e) {
           e.stopPropagation();
           createLightbox(img.src, img.alt);
         });
       });
     });
-    
-    popupModal.addEventListener('hidden.bs.modal', function() {
+
+    popupModal.addEventListener('hidden.bs.modal', function () {
       var overlays = document.querySelectorAll('.lightbox-overlay');
-      overlays.forEach(function(overlay) { overlay.remove(); });
+      overlays.forEach(function (overlay) { overlay.remove(); });
     });
   }
 
   // Image gallery functionality
-  window.openImageGallery = function(serviceName) {
+  window.openImageGallery = function (serviceName) {
     const images = serviceImages[serviceName];
     if (!images || images.length === 0) return;
-    
+
     // Close the more info modal
     const moreInfoModal = bootstrap.Modal.getInstance(document.getElementById('popupModal'));
     if (moreInfoModal) {
       moreInfoModal.hide();
     }
-    
+
     // Set up gallery modal
     document.getElementById('imageGalleryModalLabel').textContent = serviceName + ' - Image Gallery';
-    
+
     // Create carousel items
     const carouselInner = document.getElementById('galleryCarouselInner');
     carouselInner.innerHTML = '';
-    
+
     images.forEach((image, index) => {
       const carouselItem = document.createElement('div');
       carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
@@ -1090,11 +1131,11 @@ document.addEventListener('DOMContentLoaded', function () {
       `;
       carouselInner.appendChild(carouselItem);
     });
-    
+
     // Create thumbnails
     const thumbnailsContainer = document.getElementById('galleryThumbnails');
     thumbnailsContainer.innerHTML = '';
-    
+
     images.forEach((image, index) => {
       const thumbnail = document.createElement('img');
       thumbnail.src = image.src;
@@ -1103,17 +1144,17 @@ document.addEventListener('DOMContentLoaded', function () {
       thumbnail.onclick = () => goToSlide(index);
       thumbnailsContainer.appendChild(thumbnail);
     });
-    
+
     // Show gallery modal
     const galleryModal = new bootstrap.Modal(document.getElementById('imageGalleryModal'));
     galleryModal.show();
   };
 
   // Go to specific slide
-  window.goToSlide = function(index) {
+  window.goToSlide = function (index) {
     const carousel = new bootstrap.Carousel(document.getElementById('galleryCarousel'));
     carousel.to(index);
-    
+
     // Update active thumbnail
     document.querySelectorAll('.gallery-thumbnail').forEach((thumb, i) => {
       thumb.classList.toggle('active', i === index);
@@ -1121,7 +1162,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   // Toggle zoom on gallery images
-  window.toggleZoom = function(img) {
+  window.toggleZoom = function (img) {
     img.classList.toggle('zoomed');
   };
 
@@ -1134,8 +1175,8 @@ document.addEventListener('DOMContentLoaded', function () {
     bigImg.alt = alt;
     overlay.appendChild(bigImg);
     document.body.appendChild(overlay);
-    
-    overlay.addEventListener('click', function() {
+
+    overlay.addEventListener('click', function () {
       overlay.remove();
     });
   }
@@ -1155,18 +1196,18 @@ document.addEventListener('DOMContentLoaded', function () {
     function autoResizeTextarea() {
       // Reset height to auto to get the correct scrollHeight
       feedbackTextarea.style.height = 'auto';
-      
+
       // Set the new height based on content (no maximum limit)
       feedbackTextarea.style.height = feedbackTextarea.scrollHeight + 'px';
     }
-    
+
     // Add event listeners for auto-resize
     feedbackTextarea.addEventListener('input', autoResizeTextarea);
-    feedbackTextarea.addEventListener('paste', function() {
+    feedbackTextarea.addEventListener('paste', function () {
       // Small delay to allow paste content to be processed
       setTimeout(autoResizeTextarea, 10);
     });
-    
+
     // Initial resize in case there's existing content
     autoResizeTextarea();
   }
@@ -1175,13 +1216,13 @@ document.addEventListener('DOMContentLoaded', function () {
   let selectedRating = 0;
   const starRating = document.getElementById('starRating');
   const ratingText = document.getElementById('ratingText');
-  
+
   if (starRating) {
     const stars = starRating.querySelectorAll('i');
-    
+
     // Hover effect
     stars.forEach((star, index) => {
-      star.addEventListener('mouseenter', function() {
+      star.addEventListener('mouseenter', function () {
         stars.forEach((s, i) => {
           if (i <= index) {
             s.classList.remove('far');
@@ -1193,9 +1234,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       });
     });
-    
+
     // Mouse leave - reset to selected rating
-    starRating.addEventListener('mouseleave', function() {
+    starRating.addEventListener('mouseleave', function () {
       stars.forEach((s, i) => {
         if (i < selectedRating) {
           s.classList.remove('far');
@@ -1206,10 +1247,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     });
-    
+
     // Click to select rating
     stars.forEach((star, index) => {
-      star.addEventListener('click', function() {
+      star.addEventListener('click', function () {
         selectedRating = index + 1;
         const ratingLabels = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
         ratingText.textContent = `You rated: ${selectedRating} star${selectedRating > 1 ? 's' : ''} - ${ratingLabels[index]}`;
@@ -1240,15 +1281,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     imagePreviewContainer.style.display = 'block';
     if (selectImageBtn) selectImageBtn.textContent = `Add More Images (${selectedImageFiles.length} selected)`;
-    
+
     // Clear existing previews
     imagePreviewGrid.innerHTML = '';
-    
+
     // Add preview for each image
     selectedImageFiles.forEach((file, index) => {
       const imageId = file.imageId || `img-${imageIdCounter++}`;
       file.imageId = imageId;
-      
+
       const reader = new FileReader();
       reader.onload = (event) => {
         const previewDiv = document.createElement('div');
@@ -1264,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
         `;
         imagePreviewGrid.appendChild(previewDiv);
-        
+
         // Add remove button handler
         const removeBtn = previewDiv.querySelector('.remove-single-image');
         removeBtn.addEventListener('click', () => {
@@ -1298,13 +1339,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     feedbackImageInput.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
-      
+
       if (files.length === 0) return;
-      
+
       // Validate each file
       const validFiles = [];
       const invalidFiles = [];
-      
+
       files.forEach((file, index) => {
         // Validate file size (5MB max)
         if (file.size > 5 * 1024 * 1024) {
@@ -1320,11 +1361,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         validFiles.push(file);
       });
-      
+
       if (invalidFiles.length > 0) {
         showErrorModal('File Upload Warning', 'Some files were skipped:\n' + invalidFiles.join('\n') + '\n\nPlease ensure files are images under 5MB each.');
       }
-      
+
       if (validFiles.length > 0) {
         // Add valid files to arrays
         const startIndex = selectedImageFiles.length;
@@ -1335,25 +1376,23 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           const arrayIndex = startIndex + fileIndex;
           selectedImageFiles.push(file);
-          
+
           // Initialize placeholder in data array
           selectedImageDataArray.push(null);
-          
-          // Convert to base64
-          const reader = new FileReader();
-          reader.onload = (event) => {
+
+          // Compress image before converting to base64 (prevents 413 errors)
+          compressImage(file, 1200, 0.70).then((compressedData) => {
             selectedImageDataArray[arrayIndex] = {
-              data: event.target.result,
+              data: compressedData,
               fileName: file.name
             };
-            
+
             // Update previews when all files are loaded
             const allLoaded = selectedImageDataArray.every(item => item !== null);
             if (allLoaded && selectedImageDataArray.length === selectedImageFiles.length) {
               updateImagePreviews();
             }
-          };
-          reader.readAsDataURL(file);
+          });
         });
       }
     });
@@ -1368,35 +1407,36 @@ document.addEventListener('DOMContentLoaded', function () {
   // Send feedback functionality
   const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
   if (sendFeedbackBtn) {
-    sendFeedbackBtn.addEventListener('click', async function() {
+    sendFeedbackBtn.addEventListener('click', async function () {
       const feedbackText = document.getElementById('feedback').value.trim();
-      
-      if (!feedbackText) {
-        showErrorModal('Validation Error', 'Please enter a message or feedback before sending.');
+      const validImages = selectedImageDataArray.filter(img => img !== null);
+
+      // Require at least a message OR at least one image
+      if (!feedbackText && validImages.length === 0) {
+        showErrorModal('Validation Error', 'Please enter a message or attach at least one photo before sending.');
         return;
       }
-      
+
       // Disable button to prevent multiple submissions
       sendFeedbackBtn.disabled = true;
       sendFeedbackBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SENDING...';
-      
+
       try {
         // Send feedback to API (include rating and image if selected)
         const feedbackData = {
-          message: feedbackText
+          message: feedbackText || ''
         };
-        
+
         // Add rating only if user selected one
         if (selectedRating > 0) {
           feedbackData.rating = selectedRating;
         }
-        
-        // Add images if selected (filter out null values)
-        const validImages = selectedImageDataArray.filter(img => img !== null);
+
+        // Add images if selected (already filtered for nulls above)
         if (validImages.length > 0) {
           feedbackData.images = validImages;
         }
-        
+
         const response = await fetch(`${API_BASE_URL}/submit-feedback`, {
           method: 'POST',
           headers: {
@@ -1404,20 +1444,20 @@ document.addEventListener('DOMContentLoaded', function () {
           },
           body: JSON.stringify(feedbackData)
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
           // Clear the form
           document.getElementById('feedback').value = '';
-          
+
           // Reset images
           selectedImageFiles = [];
           selectedImageDataArray = [];
           if (feedbackImageInput) feedbackImageInput.value = '';
           if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
           if (selectImageBtn) selectImageBtn.textContent = 'Choose Images';
-          
+
           // Reset star rating
           selectedRating = 0;
           if (starRating) {
@@ -1430,17 +1470,17 @@ document.addEventListener('DOMContentLoaded', function () {
             ratingText.style.color = '';
             ratingText.style.fontWeight = '';
           }
-          
+
           // Show success message
           showSuccessModal('Success', 'Thank you for your feedback! Your message has been submitted successfully.');
-          
+
           // Reload feedback to show the new one
           loadFeedback();
         } else {
           // Show error message
           showErrorModal('Error', `Failed to send feedback: ${result.message}`);
         }
-        
+
       } catch (error) {
         console.error('Error submitting feedback:', error);
         showErrorModal('Error', 'Failed to send feedback. Please try again later.');
@@ -1467,18 +1507,18 @@ function escapeHtml(text) {
 async function loadFeedback() {
   const feedbackContainer = document.getElementById('feedbackContainer');
   const feedbackLoader = document.getElementById('feedbackLoader');
-  
+
   if (!feedbackContainer) return;
-  
+
   try {
     if (feedbackLoader) feedbackLoader.style.display = 'block';
-    
+
     const response = await fetch(`${API_BASE_URL}/feedback`);
     const result = await response.json();
-    
+
     if (result.success && result.feedback) {
       if (feedbackLoader) feedbackLoader.style.display = 'none';
-      
+
       if (result.feedback.length === 0) {
         feedbackContainer.innerHTML = `
           <div class="col-12 text-center">
@@ -1487,19 +1527,19 @@ async function loadFeedback() {
         `;
         return;
       }
-      
+
       feedbackContainer.innerHTML = result.feedback.map((fb, index) => {
         const date = new Date(fb.date);
-        const formattedDate = date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        const formattedDate = date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
         });
-        
-        const stars = fb.rating ? Array.from({ length: 5 }, (_, i) => 
+
+        const stars = fb.rating ? Array.from({ length: 5 }, (_, i) =>
           i < fb.rating ? '<i class="fas fa-star text-warning"></i>' : '<i class="far fa-star text-warning"></i>'
         ).join('') : '';
-        
+
         // Parse image URLs (can be single string or JSON array)
         let imageUrls = [];
         if (fb.image_url) {
@@ -1512,20 +1552,20 @@ async function loadFeedback() {
             imageUrls = [fb.image_url];
           }
         }
-        
+
         // Debug: Log if images are found
         if (imageUrls.length > 0) {
           console.log(`Feedback ${index + 1} has ${imageUrls.length} image(s)`, imageUrls);
         }
-        
+
         // Use feedback_id if available, otherwise use index as fallback for carousel ID only
         const uniqueId = fb.feedback_id || fb.id || `feedback-${index}`;
         // Store actual feedback_id for deletion (required by backend)
         const feedbackId = fb.feedback_id || fb.id;
-        
+
         // Encode image URLs as base64 to avoid HTML attribute issues
         const encodedImageUrls = btoa(JSON.stringify(imageUrls));
-        
+
         const imagesHtml = imageUrls.length > 0 ? `
           <div class="feedback-images-container">
             ${imageUrls.length === 1 ? `
@@ -1568,7 +1608,7 @@ async function loadFeedback() {
             `}
           </div>
         ` : '';
-        
+
         return `
           <div class="col-md-6 col-lg-4">
             <div class="card feedback-card h-100 shadow-sm" data-feedback-id="${feedbackId || ''}">
@@ -1591,7 +1631,7 @@ async function loadFeedback() {
           </div>
         `;
       }).join('');
-      
+
       // Initialize Bootstrap carousels after rendering and add click handlers
       setTimeout(() => {
         result.feedback.forEach((fb, index) => {
@@ -1605,20 +1645,20 @@ async function loadFeedback() {
               imageUrls = [fb.image_url];
             }
           }
-          
+
           // Add click event listeners to images using data attributes
           if (imageUrls.length > 0) {
             const uniqueId = fb.feedback_id || fb.id || `feedback-${index}`;
-            
+
             // Find all feedback images and add click handlers
             const feedbackImages = document.querySelectorAll(`[data-feedback-images]`);
             feedbackImages.forEach(img => {
               // Remove any existing listeners
               const newImg = img.cloneNode(true);
               img.parentNode.replaceChild(newImg, img);
-              
+
               // Add click listener
-              newImg.addEventListener('click', function(e) {
+              newImg.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 try {
@@ -1642,7 +1682,7 @@ async function loadFeedback() {
                 }
               });
             });
-            
+
             // Initialize carousel for multiple images
             if (imageUrls.length > 1) {
               const carouselElement = document.getElementById(`carousel-${uniqueId}`);
@@ -1680,16 +1720,16 @@ async function deleteFeedback(feedbackId) {
     console.error('No feedback ID provided');
     return;
   }
-  
+
   // Show confirmation dialog
   showConfirmModal('Confirm Delete', 'Are you sure you want to delete this feedback? This action cannot be undone.', async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/feedback/${feedbackId}`, {
         method: 'DELETE'
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         // Show success message
         showSuccessModal('Success', 'Feedback deleted successfully');
@@ -1707,32 +1747,32 @@ async function deleteFeedback(feedbackId) {
 }
 
 // Function to show feedback image in modal - must be global for onclick handlers
-window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
+window.showFeedbackImageModal = function (imageUrls, startIndex = 0) {
   console.log('showFeedbackImageModal called with:', { imageUrls, startIndex });
-  
+
   const modal = document.getElementById('feedbackImageModal');
   const carouselInner = document.getElementById('feedbackImageCarouselInner');
-  
+
   if (!modal) {
     console.error('❌ Feedback image modal not found!');
     return;
   }
-  
+
   if (!carouselInner) {
     console.error('❌ Feedback image carousel inner not found!');
     return;
   }
-  
+
   // Ensure imageUrls is an array
   if (!Array.isArray(imageUrls)) {
     imageUrls = [imageUrls];
   }
-  
+
   console.log('Setting up modal with', imageUrls.length, 'image(s)');
-  
+
   // Clear existing images
   carouselInner.innerHTML = '';
-  
+
   // Add images to carousel
   imageUrls.forEach((url, index) => {
     const carouselItem = document.createElement('div');
@@ -1743,11 +1783,11 @@ window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
     `;
     carouselInner.appendChild(carouselItem);
   });
-  
+
   // Show/hide navigation buttons based on number of images
   const prevBtn = modal.querySelector('.carousel-control-prev');
   const nextBtn = modal.querySelector('.carousel-control-next');
-  
+
   if (imageUrls.length > 1) {
     if (prevBtn) prevBtn.style.display = 'flex';
     if (nextBtn) nextBtn.style.display = 'flex';
@@ -1755,7 +1795,7 @@ window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
     if (prevBtn) prevBtn.style.display = 'none';
     if (nextBtn) nextBtn.style.display = 'none';
   }
-  
+
   // Check if Bootstrap is available
   if (typeof bootstrap === 'undefined') {
     console.error('❌ Bootstrap is not loaded!');
@@ -1766,7 +1806,7 @@ window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop fade show';
     backdrop.id = 'feedbackModalBackdrop';
-    backdrop.onclick = function() {
+    backdrop.onclick = function () {
       modal.style.display = 'none';
       modal.classList.remove('show');
       document.body.classList.remove('modal-open');
@@ -1775,7 +1815,7 @@ window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
     document.body.appendChild(backdrop);
     return;
   }
-  
+
   // Initialize and show modal
   try {
     // Remove any existing modal instance
@@ -1783,16 +1823,16 @@ window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
     if (existingModal) {
       existingModal.dispose();
     }
-    
+
     const bootstrapModal = new bootstrap.Modal(modal, {
       backdrop: true,
       keyboard: true
     });
     bootstrapModal.show();
     console.log('✅ Modal shown');
-    
+
     // Initialize carousel after modal is shown
-    const initCarousel = function() {
+    const initCarousel = function () {
       const carouselElement = document.getElementById('feedbackImageCarousel');
       if (carouselElement) {
         // Dispose existing carousel if any
@@ -1800,12 +1840,12 @@ window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
         if (existingCarousel) {
           existingCarousel.dispose();
         }
-        
+
         const carousel = new bootstrap.Carousel(carouselElement, {
           ride: false,
           interval: false
         });
-        
+
         // Navigate to start index
         if (startIndex > 0) {
           setTimeout(() => {
@@ -1814,7 +1854,7 @@ window.showFeedbackImageModal = function(imageUrls, startIndex = 0) {
         }
       }
     };
-    
+
     // Initialize carousel when modal is shown
     if (modal.classList.contains('show')) {
       initCarousel();
