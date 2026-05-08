@@ -3,26 +3,17 @@
 // Handles pop-up modal for 'More Info' buttons with enhanced image gallery
 // + Dynamic content loading from database
 
-// API Base URL resolution order:
-// 1) If <meta name="api-base" content="..."> is present, use it (best for Hostinger/prod)
-// 2) Always use production API URL as fallback (https://api.otgpuertogaleratravel.com/api)
+// API Base URL resolution — uses production API
 function getApiBaseUrl() {
-  // Try to get from meta tag (best option)
   const apiBaseFromMeta = document.querySelector('meta[name="api-base"]')?.getAttribute('content')?.trim();
   if (apiBaseFromMeta && apiBaseFromMeta.length > 0) {
-    console.log('✅ Using API base from meta tag:', apiBaseFromMeta);
     return apiBaseFromMeta;
   }
-
-  // Fallback to production API
-  const productionApi = 'https://api.otgpuertogaleratravel.com/api';
-  console.log('⚠️ Meta tag not found, using production API fallback:', productionApi);
-  return productionApi;
+  return 'https://api.otgpuertogaleratravel.com/api';
 }
 
-// Initialize API_BASE_URL - will be re-evaluated on DOMContentLoaded to ensure meta tag is available
 let API_BASE_URL = getApiBaseUrl();
-console.log('🔗 API_BASE_URL initially set to:', API_BASE_URL);
+
 
 function formatCurrency(value) {
   const number = Number(value);
@@ -92,7 +83,6 @@ async function loadVehicleRental() {
 
   try {
     const url = `${API_BASE_URL}/vehicles`;
-    console.log('🔄 Fetching vehicles from:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -258,9 +248,7 @@ async function loadVanRental() {
   carouselInner.innerHTML = placeholderSlide;
 
   try {
-    // Load van destinations
     const destUrl = `${API_BASE_URL}/van-destinations`;
-    console.log('🔄 Fetching van destinations from:', destUrl);
 
     const destResponse = await fetch(destUrl, {
       method: 'GET',
@@ -285,9 +273,7 @@ async function loadVanRental() {
       return name && name.toLowerCase() !== 'n/a';
     });
 
-    // Load van images
     const imagesUrl = `${API_BASE_URL}/van-images`;
-    console.log('🔄 Fetching van images from:', imagesUrl);
 
     const imagesResponse = await fetch(imagesUrl, {
       method: 'GET',
@@ -448,7 +434,6 @@ async function loadVanRental() {
 async function loadTourOnly() {
   try {
     const url = `${API_BASE_URL}/tours`;
-    console.log('🔄 Fetching tours from:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -501,7 +486,6 @@ async function loadTourOnly() {
 async function loadDiving() {
   try {
     const url = `${API_BASE_URL}/diving`;
-    console.log('🔄 Fetching diving data from:', url);
 
     const response = await fetch(url, {
       method: 'GET',
